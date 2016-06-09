@@ -3,3 +3,5 @@
 *.svg
 *.pyc
 *.json
+
+/.idea
