@@ -1,0 +1,4 @@
+# Ignore Generated Files
+*.png
+*.pyc
+*.json
