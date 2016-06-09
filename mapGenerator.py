@@ -3,6 +3,7 @@ from math import cos, sin
 from random import uniform, seed
 from mapRepresentations import continentListToFile
 from mapRepresentations import Continent
+from borderFactory import BorderFactory
 
 
 # ===== Constants ===================
@@ -25,69 +26,82 @@ def genPt(maxDist=SEED_DISTANCE):
     return (uniform(0, maxDist), uniform(0, maxDist))
 
 
+def generateFeatureList(pointList):
+    newList = []
+    for region in pointList:
+        newContinent = Continent((0, 0))
+        for point in region:
+            newContinent.addPoint(point)
+        newList.append(newContinent)
+    return newList
+
+
 def generatePolygonFile():
-    with open(POINT_DATA, 'rb') as dataFile:
-        linesOfInterest = dataFile.readlines()[:10]
-
-    linesOfInterest = [line.split(",") for line in linesOfInterest[1:]]
-    points = [(float(line[1]), float(line[2])) for line in linesOfInterest]
-    continents = [Continent(point) for point in points]
-    waterFeaturesList = []
-    landFeaturesList = []
-
-    for continent in continents:
-        for num in range(6):
-            continent.addEdge(genPt(), genPt())
-
-    for index, continent in enumerate(continents):
-        if index % 2 == 0:
-            waterFeaturesList.append(continent)
-        else:
-            landFeaturesList.append(continent)
-
-    continentListToFile(landFeaturesList, LAND_DATA)
-    continentListToFile(waterFeaturesList, WATER_DATA)
+    clusterList = BorderFactory(POINT_DATA).build().values()
+    fileName = "./data/"
+    for index, cluster in enumerate(clusterList):
+        featureList = generateFeatureList(cluster)
+        continentListToFile(featureList, fileName + str(index) + ".json")
 
 
 # ===== Generate Map File =====
+def generateStyle(color):
+    s = mapnik.Style()
+    r = mapnik.Rule()
+    symbolizer = mapnik.PolygonSymbolizer()
+    symbolizer.fill = mapnik.Color(color)
+    r.symbols.append(symbolizer)
+    s.rules.append(r)
+    return s
+
+
+def generateLayer(jsonFile, name, styleName):
+    ds = mapnik.GeoJSON(file=jsonFile)
+    layer = mapnik.Layer(name)
+    layer.datasource = ds
+    layer.styles.append(styleName)
+    return layer
+
+
 def makeMap(earthFile, waterFile):
     m = mapnik.Map(600, 300)
     m.background = mapnik.Color('white')
 
-    s = mapnik.Style()
-    r = mapnik.Rule()
-    s2 = mapnik.Style()
-    r2 = mapnik.Rule()
+    m.append_style("0", generateStyle("#9AFFFB"))  # Good
+    m.layers.append(generateLayer("./data/0.json", "0", "0"))  # Good
 
-    polygon_symbolizer2 = mapnik.PolygonSymbolizer()
-    polygon_symbolizer2.fill = mapnik.Color(20, 60, 200, 100)
-    r2.symbols.append(polygon_symbolizer2)
-    s2.rules.append(r2)
-    m.append_style("Water", s2)
+#    m.append_style("1", generateStyle("#9AFFDA"))
+#    m.layers.append(generateLayer("./data/1.json", "1", "1"))
 
-    polygon_symbolizer = mapnik.PolygonSymbolizer()
-    polygon_symbolizer.fill = mapnik.Color(60, 200, 100, 100)
-    line_symbolizer = mapnik.LineSymbolizer()
-    r.symbols.append(polygon_symbolizer)
-    r.symbols.append(line_symbolizer)
-    s.rules.append(r)
-    m.append_style('Earth', s)
 
-    ds = mapnik.GeoJSON(file=earthFile)
-    layer = mapnik.Layer('earth')
-    layer.datasource = ds
-    layer.styles.append('Earth')
+#    m.append_style("2", generateStyle("#9AFFFB"))
+#    m.layers.append(generateLayer("./data/2.json", "2", "2"))
 
-    ds2 = mapnik.GeoJSON(file=waterFile)
-    layer2 = mapnik.Layer("water")
-    layer2.datasource = ds2
-    layer2.styles.append("Water")
+#    m.append_style("3", generateStyle("#FF9AF1"))
+#    m.layers.append(generateLayer("./data/3.json", "3", "3"))
 
-    m.layers.append(layer)
-    m.layers.append(layer2)
+    m.append_style("4", generateStyle("#FFA79A"))  # Good
+    m.layers.append(generateLayer("./data/4.json", "4", "4"))  # Good
+
+#    m.append_style("5", generateStyle("#CCCCCC"))  # Maybe?
+#    m.layers.append(generateLayer("./data/5.json", "5", "5"))  # Maybe?
+
+    m.append_style("6", generateStyle("#DA9AFF"))  # Good
+    m.layers.append(generateLayer("./data/6.json", "6", "6"))  # Good
+
+#    m.append_style("7", generateStyle("#FFDA9A"))  # Maybe?
+#    m.layers.append(generateLayer("./data/7.json", "7", "7"))  # Maybe?
+
+    m.append_style("8", generateStyle("#FFD7B1"))  # Good
+    m.layers.append(generateLayer("./data/8.json", "8", "8"))  # Good
+
+    m.append_style("9", generateStyle("#FF9ABE"))  # Good
+    m.layers.append(generateLayer("./data/9.json", "9", "9"))  # Good
+
     m.zoom_all()
 
     mapnik.render_to_file(m, IMGNAME, 'png')
+    mapnik.render_to_file(m, "world.svg", "svg")
     print "rendered image to", IMGNAME
 
 generatePolygonFile()

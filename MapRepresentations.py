@@ -10,6 +10,7 @@ class Continent(object):
 
     def __init__(self, point):
         self.edges = []
+        self.points = []
         self.center = point
 
     def __str__(self):
@@ -27,13 +28,19 @@ class Continent(object):
         theta = acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b))
         self.edges.append(Edgelet(pt1, pt2, theta))
 
+    def addPoint(self, point):
+        self.points.append(point)
+
     def numEdges(self):
         length = len(self.edges)
         return length
 
     def reduceToArray(self):
-        self.edges.sort(key=lambda x: x.relTheta, reverse=True)
-        ptArray = [edge.getPoints()[1] for edge in self.edges]
+        self.edges.sort(key=lambda x: x.relTheta, reverse=False)
+        if len(self.edges) != 0:
+            ptArray = [edge.getPoints()[1] for edge in self.edges]
+        else:
+            ptArray = self.points
         return ptArray
 
     def generateJSONFeature(self):

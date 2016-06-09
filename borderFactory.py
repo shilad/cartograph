@@ -4,7 +4,7 @@ from Vertex import Vertex
 
 class BorderFactory:
 
-    def __init__(self, filename, r=25):
+    def __init__(self, filename, r=80):
         self.filename = filename
         Vertex.r = r
 
@@ -93,7 +93,7 @@ class BorderFactory:
                     cluster_border.append((vert.x, vert.y))
                     group_edge_vert_dict[label].discard(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > 2:
+                if len(cluster_border) > 15:
                     borders[label].append(cluster_border)
         return borders
 
@@ -115,5 +115,3 @@ class BorderFactory:
         Vertex.edge_vertex_dict = group_edge_vert_dict
         return self._make_borders(vert_array, group_edge_vert_dict)
 
-borders = BorderFactory("data.csv").build()
-print borders

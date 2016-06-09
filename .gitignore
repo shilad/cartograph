@@ -1,4 +1,5 @@
 # Ignore Generated Files
 *.png
+*.svg
 *.pyc
 *.json
