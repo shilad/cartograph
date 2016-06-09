@@ -1,31 +1,17 @@
 import mapnik
-from math import cos, sin
-from random import uniform, seed
 from mapRepresentations import continentListToFile
 from mapRepresentations import Continent
 from borderFactory import BorderFactory
 
 
 # ===== Constants ===================
-SEED_DISTANCE = .001
-IMGNAME = "./data/world.png"
+IMGNAME = "./data/world"
 WATER_DATA = "./data/water.json"
 LAND_DATA = "./data/earth.json"
 POINT_DATA = "./data/data.csv"
 
 
 # ===== Generate JSON Data ==========
-def findCoordinate(centerPt, dist, theta=0):
-        lon = centerPt[0] + (dist * cos(theta))
-        lat = centerPt[1] + (dist * sin(theta))
-        return (lat, lon)
-
-
-def genPt(maxDist=SEED_DISTANCE):
-    seed()
-    return (uniform(0, maxDist), uniform(0, maxDist))
-
-
 def generateFeatureList(pointList):
     newList = []
     for region in pointList:
@@ -100,8 +86,9 @@ def makeMap(earthFile, waterFile):
 
     m.zoom_all()
 
-    mapnik.render_to_file(m, IMGNAME, 'png')
-    mapnik.render_to_file(m, "world.svg", "svg")
+    mapnik.save_map(m, "./data/map.xml")
+    mapnik.render_to_file(m, IMGNAME + ".png")
+    mapnik.render_to_file(m, IMGNAME + ".svg")
     print "rendered image to", IMGNAME
 
 generatePolygonFile()
