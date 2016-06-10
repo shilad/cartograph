@@ -43,10 +43,10 @@ class Continent(object):
             ptArray = self.points
         return ptArray
 
-    def generateJSONFeature(self):
+    def generateJSONFeature(self, color):
         feature = self.reduceToArray()
         shape = Polygon([feature])
-        return Feature(geometry=shape)
+        return Feature(geometry=shape, properties={"fill_color": color})
 
 
 class Edgelet():
@@ -70,8 +70,8 @@ class Edgelet():
         return self.pt1, self.pt2
 
 
-def continentListToFile(continentList, filename):
-        continentList = [continent.generateJSONFeature()
+def continentListToFile(continentList, filename, color):
+        continentList = [continent.generateJSONFeature(color)
                          for continent in continentList]
         collection = FeatureCollection(continentList)
         textDump = dumps(collection)

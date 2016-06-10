@@ -28,9 +28,10 @@ def generateFeatureList(pointList):
 def generatePolygonFile():
     clusterList = BorderFactory(POINT_DATA).build().values()
     fileName = "./data/"
+    clr = ["#9AFFFB", "#9AFFDA", "#9AFFFB", "#FF9AF1", "#FFA79A", "#CCCCCC", "#DA9AFF", "#FFDA9A", "#FFD7B1", "#FF9ABE"]
     for index, cluster in enumerate(clusterList):
         featureList = generateFeatureList(cluster)
-        continentListToFile(featureList, fileName + str(index) + ".json")
+        continentListToFile(featureList, fileName + str(index) + ".json", clr[index])
 
 
 # ===== Generate geoJSON Contour Data ========
@@ -98,26 +99,26 @@ def makeMap(earthFile, waterFile, contourFile):
     m.append_style("0", generatePolygonStyle("#9AFFFB", 1.0))  # Good
     m.layers.append(generateLayer("./data/0.json", "0", "0"))  # Good
 
-#    m.append_style("1", generateStyle("#9AFFDA", 1.0))
-#    m.layers.append(generateLayer("./data/1.json", "1", "1"))
+    m.append_style("1", generatePolygonStyle("#9AFFDA", 1.0))
+    m.layers.append(generateLayer("./data/1.json", "1", "1"))
 
 
-#    m.append_style("2", generateStyle("#9AFFFB", 1.0))
+#    m.append_style("2", generatePolygonStyle("#9AFFFB", 1.0))
 #    m.layers.append(generateLayer("./data/2.json", "2", "2"))
 
-#    m.append_style("3", generateStyle("#FF9AF1", 1.0))
+#    m.append_style("3", generatePolygonStyle("#FF9AF1", 1.0))
 #    m.layers.append(generateLayer("./data/3.json", "3", "3"))
 
     m.append_style("4", generatePolygonStyle("#FFA79A", 1.0))  # Good
     m.layers.append(generateLayer("./data/4.json", "4", "4"))  # Good
 
-#    m.append_style("5", generateStyle("#CCCCCC", 1.0))  # Maybe?
+#    m.append_style("5", generatePolygonStyle("#CCCCCC", 1.0))  # Maybe?
 #    m.layers.append(generateLayer("./data/5.json", "5", "5"))  # Maybe?
 
     m.append_style("6", generatePolygonStyle("#DA9AFF", 1.0))  # Good
     m.layers.append(generateLayer("./data/6.json", "6", "6"))  # Good
 
-#    m.append_style("7", generateStyle("#FFDA9A", 1.0))  # Maybe?
+#    m.append_style("7", generatePolygonStyle("#FFDA9A", 1.0))  # Maybe?
 #    m.layers.append(generateLayer("./data/7.json", "7", "7"))  # Maybe?
 
     m.append_style("8", generatePolygonStyle("#FFD7B1", 1.0))  # Good
