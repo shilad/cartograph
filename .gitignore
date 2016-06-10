@@ -2,4 +2,8 @@
 *.png
 *.svg
 *.pyc
-*.json
+*.geoJson
+./tiles/
+*.xml
+
+.DS_Store

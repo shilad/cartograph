@@ -25,7 +25,7 @@ class Continent(object):
         a = sqrt((x1 - xCenter) ** 2 + (y1 - yCenter) ** 2)
         b = sqrt((x2 - xCenter) ** 2 + (y2 - yCenter) ** 2)
         c = sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        theta = acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b))
+        theta = acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b)) / 2
         self.edges.append(Edgelet(pt1, pt2, theta))
 
     def addPoint(self, point):
