@@ -4,7 +4,6 @@
 *.pyc
 *.json
 *.xml
-*.csv
 
 /.idea
 
