@@ -4,6 +4,7 @@ from MapRepresentations import Continent
 from borderFactory import BorderFactory
 from histToContour import getContours
 from geojson import Feature, FeatureCollection, dumps, Polygon
+from generateTiles import render_tiles
 
 # ===== Constants ===================
 IMGNAME = "./data/world"
@@ -70,11 +71,12 @@ def generatePolygonStyle(color, opacity):
     return s
 
 
-def generateLineStyle(color):
+def generateLineStyle(color, opacity):
     s = mapnik.Style()
     r = mapnik.Rule()
     symbolizer = mapnik.LineSymbolizer()
-    symbolizer.fill = mapnik.Color(color)
+    symbolizer.stroke = mapnik.Color(color)
+    symbolizer.stroke_opacity = opacity
     r.symbols.append(symbolizer)
     s.rules.append(r)
     return s
@@ -127,6 +129,10 @@ def makeMap():
     m.layers.append(generateLayer("simpleWikiMapData.geojson",
                                   "contour", "contour"))
 
+    m.append_style("outline", generateLineStyle("darkblue", 1.0))
+    m.layers.append(generateLayer("simpleWikiMapData.geojson",
+                                  "outline", "outline"))
+
     m.zoom_all()
 
     mapnik.save_map(m, "map.xml")
@@ -134,6 +140,11 @@ def makeMap():
     mapnik.render_to_file(m, IMGNAME + ".svg")
     print "rendered image to", IMGNAME
 
-generatePolygonFile()
-makeContourFeatureCollection(getContours())
-makeMap()
+if __name__ == "__main__":
+    generatePolygonFile()
+    makeContourFeatureCollection(getContours())
+
+    mapfile = "map.xml"
+    tile_dir = "tiles/"
+    bbox = (-180.0, -90.0, 180.0, 90.0)
+    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
