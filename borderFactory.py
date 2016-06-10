@@ -4,12 +4,15 @@ from Vertex import Vertex
 
 class BorderFactory:
 
-    def __init__(self, filename, r=80):
-        self.filename = filename
+    def __init__(self, x, y, cluster_labels, r=80):
+        self.x = x
+        self.y = y
+        self.cluster_labels = cluster_labels
         Vertex.r = r
 
-    def _read_file(self):
-        with open(self.filename, "r") as data:
+    @classmethod
+    def from_file(cls, filename, r=80):
+        with open(filename, "r") as data:
             x = []
             y = []
             clusters = []
@@ -19,7 +22,7 @@ class BorderFactory:
                 x.append(float(row[1]))
                 y.append(float(row[2]))
                 clusters.append(int(row[3][1:-1]))
-        return x, y, clusters
+        return cls(x, y, clusters, r)
 
     @staticmethod
     def _make_label_set(cluster_labels):
@@ -38,7 +41,8 @@ class BorderFactory:
             adj_lst[ridge[1]].add(ridge[0])
         return adj_lst
 
-    def _make_three_dicts(self, vor, cluster_labels):
+    @classmethod
+    def _make_three_dicts(cls, vor, cluster_labels):
         vert_reg_idxs_dict = {vert_idx: []
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_idxs_dict[-1] = []
@@ -46,7 +50,7 @@ class BorderFactory:
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_labs_dict[-1] = []
         group_vert_dict = {}
-        for label in self._make_label_set(cluster_labels):
+        for label in cls._make_label_set(cluster_labels):
             group_vert_dict[label] = set()
         for i, reg_idx in enumerate(vor.point_region):
             region_idxs = vor.regions[reg_idx]
@@ -100,13 +104,10 @@ class BorderFactory:
     def build(self):
         """makes a dictionary mapping group labels to an array of array of
             tuples representing the different clusters in the each group"""
-        x, y, cluster_labels = self._read_file()
-        points = list(zip(x, y))
+        points = list(zip(self.x, self.y))
         vor = Voronoi(points)
         adj_lst = self._make_vertex_adjacency_list(vor)
-        # voronoi_plot_2d(vor)
-        # plt.show()
-        vert_reg_idxs_dict, vert_reg_labs_dict, group_vert_dict = self._make_three_dicts(vor, cluster_labels)
+        vert_reg_idxs_dict, vert_reg_labs_dict, group_vert_dict = self._make_three_dicts(vor, self.cluster_labels)
         vert_array = self._make_vertex_array(vor, adj_lst, vert_reg_idxs_dict,
                                              vert_reg_labs_dict)
         Vertex.vertex_arr = vert_array

@@ -6,14 +6,24 @@ import codecs
 
 class Analyzer:
 
-    def __init__(self, vec_filename, names_filename, subset=False):
+    def __init__(self, vec_filename, names_filename, subset=0):
         self.vecs, self.names = self._read_wikibrain_out(vec_filename, names_filename)
         if subset:
-            self.vecs = self.vecs[:1000]
-            self.names = self.names[:1000]
+            self.vecs = self.vecs[:subset]
+            self.names = self.names[:subset]
         self.x = []
         self.y = []
         self.clusters = []
+
+    def __str__(self):
+        s = ",".join(("x", "y", "clusters", "names")) + "\n"
+        for i in range(len(self.x)):
+            s += ",".join((str(self.x[i]), str(self.y[i]), str(self.clusters[i]), self.names[i])) + "\n"
+        return s.encode("utf-8")
+
+    def to_file(self, filename="./data/data.csv"):
+        with open(filename, mode="w") as f:
+            f.write(str(self))
 
     @staticmethod
     def _read_wikibrain_out(vec_filename, names_filename, header=True):
@@ -50,8 +60,6 @@ class Analyzer:
         return self.x, self.y, self.clusters, self.names
 
 
-x, y, clusters, names = Analyzer("data/vecs.csv", "data/names.csv", subset=True).analyze()
-
-
-
-
+analyzer = Analyzer("data/vecs.csv", "data/names.csv", subset=25000)
+x, y, clusters, names = analyzer.analyze()
+analyzer.to_file("./data/testing.csv")

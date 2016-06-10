@@ -1,6 +1,6 @@
 import mapnik
-from mapRepresentations import continentListToFile
-from mapRepresentations import Continent
+from MapRepresentations import continentListToFile
+from MapRepresentations import Continent
 from borderFactory import BorderFactory
 
 
@@ -23,7 +23,7 @@ def generateFeatureList(pointList):
 
 
 def generatePolygonFile():
-    clusterList = BorderFactory(POINT_DATA).build().values()
+    clusterList = BorderFactory.from_file(POINT_DATA).build().values()
     fileName = "./data/"
     for index, cluster in enumerate(clusterList):
         featureList = generateFeatureList(cluster)
