@@ -1,6 +1,6 @@
 import mapnik
-from mapRepresentations import continentListToFile
-from mapRepresentations import Continent
+from MapRepresentations import continentListToFile
+from MapRepresentations import Continent
 from borderFactory import BorderFactory
 from histToContour import getContours
 from geojson import Feature, FeatureCollection, dumps, Polygon
