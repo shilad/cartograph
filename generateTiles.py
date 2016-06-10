@@ -203,4 +203,4 @@ def renderMap():
     # World
     bbox = (-180.0, -90.0, 180.0, 90.0)
 
-    render_tiles(bbox, mapfile, tile_dir, 0, 9, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 7, "World")

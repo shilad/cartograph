@@ -3,11 +3,13 @@ from mapRepresentations import continentListToFile
 from mapRepresentations import Continent
 from borderFactory import BorderFactory
 from generateTiles import renderMap
-
+from histToContour import getContours
+from geojson import Feature, FeatureCollection, dumps, Polygon
 
 # ===== Constants ===================
 IMGNAME = "./data/world"
 POINT_DATA = "./data/data.csv"
+CONTOUR_DATA = "simpleWikiMapData.geojson"
 
 
 # ===== Generate JSON Data ==========
@@ -22,18 +24,57 @@ def generateFeatureList(pointList):
 
 
 def generatePolygonFile():
-    clusterList = BorderFactory(POINT_DATA).build().values()
+    clusterList = BorderFactory.from_file(POINT_DATA).build().values()
     fileName = "./data/"
     for index, cluster in enumerate(clusterList):
         featureList = generateFeatureList(cluster)
         continentListToFile(featureList, fileName + str(index) + ".geoJSON")
 
 
+# ===== Generate geoJSON Contour Data ========
+def genContourFeatures(nmpy):
+    featureAr = []
+    polyGroups = []
+    for group in nmpy:
+        polys = []
+        for shape in group:
+            polyPoints = []
+            for pt in shape:
+                polyPoints.append((pt[0], pt[1]))
+            polys.append(polyPoints)
+        polyGroups.append(polys)
+    for shape in polyGroups:
+        newPolygon = Polygon(shape)
+        newFeature = Feature(geometry=newPolygon)
+        featureAr.append(newFeature)
+
+    return featureAr
+
+
+def makeContourFeatureCollection(nmpy):
+    featureAr = genContourFeatures(nmpy)
+    collection = FeatureCollection(featureAr)
+    textDump = dumps(collection)
+    with open("simpleWikiMapData.geojson", "w") as writeFile:
+        writeFile.write(textDump)
+
+
 # ===== Generate Map File =====
-def generateStyle(color):
+def generatePolygonStyle(color, opacity):
     s = mapnik.Style()
     r = mapnik.Rule()
     symbolizer = mapnik.PolygonSymbolizer()
+    symbolizer.fill = mapnik.Color(color)
+    symbolizer.fill_opacity = opacity
+    r.symbols.append(symbolizer)
+    s.rules.append(r)
+    return s
+
+
+def generateLineStyle(color):
+    s = mapnik.Style()
+    r = mapnik.Rule()
+    symbolizer = mapnik.LineSymbolizer()
     symbolizer.fill = mapnik.Color(color)
     r.symbols.append(symbolizer)
     s.rules.append(r)
@@ -52,36 +93,44 @@ def makeMap():
     m = mapnik.Map(1200, 600)
     m.background = mapnik.Color('white')
 
-    m.append_style("0", generateStyle("#9AFFFB"))  # Good
-    m.layers.append(generateLayer("./data/0.geoJSON", "0", "0"))  # Good
+    m.append_style("0", generatePolygonStyle("#9AFFFB", 1.0))  # Good
+    m.layers.append(generateLayer("./data/0.json", "0", "0"))  # Good
 
-#    m.append_style("1", generateStyle("#9AFFDA"))
-#    m.layers.append(generateLayer("./data/1.geoJSON", "1", "1"))
+    m.append_style("1", generatePolygonStyle("#9AFFDA", 1.0))
+    m.layers.append(generateLayer("./data/1.json", "1", "1"))
 
+    m.append_style("2", generatePolygonStyle("#9AFFFB", 1.0))
+    m.layers.append(generateLayer("./data/2.json", "2", "2"))
 
-#    m.append_style("2", generateStyle("#9AFFFB"))
-#    m.layers.append(generateLayer("./data/2.geoJSON", "2", "2"))
+    m.append_style("3", generatePolygonStyle("#FF9AF1", 1.0))
+    m.layers.append(generateLayer("./data/3.json", "3", "3"))
 
-#    m.append_style("3", generateStyle("#FF9AF1"))
-#    m.layers.append(generateLayer("./data/3.geoJSON", "3", "3"))
+    m.append_style("4", generatePolygonStyle("#FFA79A", 1.0))  # Good
+    m.layers.append(generateLayer("./data/4.json", "4", "4"))  # Good
 
-    m.append_style("4", generateStyle("#FFA79A"))  # Good
-    m.layers.append(generateLayer("./data/4.geoJSON", "4", "4"))  # Good
+    m.append_style("5", generatePolygonStyle("#CCCCCC", 1.0))  # Maybe?
+    m.layers.append(generateLayer("./data/5.json", "5", "5"))  # Maybe?
 
-#    m.append_style("5", generateStyle("#CCCCCC"))  # Maybe?
-#    m.layers.append(generateLayer("./data/5.geoJSON", "5", "5"))  # Maybe?
+    m.append_style("6", generatePolygonStyle("#DA9AFF", 1.0))  # Good
+    m.layers.append(generateLayer("./data/6.json", "6", "6"))  # Good
 
-    m.append_style("6", generateStyle("#DA9AFF"))  # Good
-    m.layers.append(generateLayer("./data/6.geoJSON", "6", "6"))  # Good
+    m.append_style("7", generatePolygonStyle("#FFDA9A", 1.0))  # Maybe?
+    m.layers.append(generateLayer("./data/7.json", "7", "7"))  # Maybe?
 
-#    m.append_style("7", generateStyle("#FFDA9A"))  # Maybe?
-#    m.layers.append(generateLayer("./data/7.geoJSON", "7", "7"))  # Maybe?
+    m.append_style("8", generatePolygonStyle("#FFD7B1", 1.0))  # Good
+    m.layers.append(generateLayer("./data/8.json", "8", "8"))  # Good
 
-    m.append_style("8", generateStyle("#FFD7B1"))  # Good
-    m.layers.append(generateLayer("./data/8.geoJSON", "8", "8"))  # Good
+    m.append_style("9", generatePolygonStyle("#FF9ABE", 1.0))  # Good
+    m.layers.append(generateLayer("./data/9.json", "9", "9"))  # Good
 
-    m.append_style("9", generateStyle("#FF9ABE"))  # Good
-    m.layers.append(generateLayer("./data/9.geoJSON", "9", "9"))  # Good
+# ======== Make Contour Layer =========
+    m.append_style("contour", generatePolygonStyle("steelblue", .30))
+    m.layers.append(generateLayer("simpleWikiMapData.geojson",
+                                  "contour", "contour"))
+
+    m.append_style("outline", generateLineStyle("darkblue"))
+    m.layers.append(generateLayer("simpleWikiMapData.geojson",
+                                  "outline", "outline"))
 
     m.zoom_all()
 
@@ -91,5 +140,6 @@ def makeMap():
     print "rendered image to", IMGNAME
 
 generatePolygonFile()
+makeContourFeatureCollection(getContours())
 makeMap()
 renderMap()
