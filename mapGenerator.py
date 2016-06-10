@@ -143,6 +143,7 @@ def makeMap():
 if __name__ == "__main__":
     generatePolygonFile()
     makeContourFeatureCollection(getContours())
+    makeMap()
 
     mapfile = "map.xml"
     tile_dir = "tiles/"
