@@ -95,35 +95,35 @@ def makeMap(earthFile, waterFile, contourFile):
     m = mapnik.Map(600, 300)
     m.background = mapnik.Color('white')
 
-    m.append_style("0", generatePolygonStyle("#9AFFFB", 0.7))  # Good
+    m.append_style("0", generatePolygonStyle("#9AFFFB", 1.0))  # Good
     m.layers.append(generateLayer("./data/0.json", "0", "0"))  # Good
 
-    m.append_style("1", generatePolygonStyle("#9AFFDA", 0.7))
+    m.append_style("1", generatePolygonStyle("#0000FF", 1.0))
     m.layers.append(generateLayer("./data/1.json", "1", "1"))
 
 
-    m.append_style("2", generatePolygonStyle("#9AFFFB", 0.7))
+    m.append_style("2", generatePolygonStyle("#9AFFFB", 1.0))
     m.layers.append(generateLayer("./data/2.json", "2", "2"))
 
-    m.append_style("3", generatePolygonStyle("#FF9AF1", 0.7))
+    m.append_style("3", generatePolygonStyle("#FF9AF1", 1.0))
     m.layers.append(generateLayer("./data/3.json", "3", "3"))
 
-    m.append_style("4", generatePolygonStyle("#FFA79A", 0.7))  # Good
+    m.append_style("4", generatePolygonStyle("#FFFF00", 1.0))  # Good
     m.layers.append(generateLayer("./data/4.json", "4", "4"))  # Good
 
-    m.append_style("5", generatePolygonStyle("#CCCCCC", 0.7))  # Maybe?
+    m.append_style("5", generatePolygonStyle("#CCCCCC", 1.0))  # Maybe?
     m.layers.append(generateLayer("./data/5.json", "5", "5"))  # Maybe?
 
-    m.append_style("6", generatePolygonStyle("#DA9AFF", 0.7))  # Good
+    m.append_style("6", generatePolygonStyle("#DA9AFF", 1.0))  # Good
     m.layers.append(generateLayer("./data/6.json", "6", "6"))  # Good
 
-    m.append_style("7", generatePolygonStyle("#FFDA9A", 0.7))  # Maybe?
+    m.append_style("7", generatePolygonStyle("#FF00FF", 1.0))  # Maybe?
     m.layers.append(generateLayer("./data/7.json", "7", "7"))  # Maybe?
 
-    m.append_style("8", generatePolygonStyle("#FFD7B1", 0.7))  # Good
+    m.append_style("8", generatePolygonStyle("#FFD7B1", 1.0))  # Good
     m.layers.append(generateLayer("./data/8.json", "8", "8"))  # Good
 
-    m.append_style("9", generatePolygonStyle("#FF9ABE", 0.7))  # Good
+    m.append_style("9", generatePolygonStyle("#FF9ABE", 1.0))  # Good
     m.layers.append(generateLayer("./data/9.json", "9", "9"))  # Good
 
 # ======== Make Contour Layer =========
