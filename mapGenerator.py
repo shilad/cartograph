@@ -130,7 +130,7 @@ def makeMap():
 
     mapnik.save_map(m, "map.xml")
 
-    #writeLabelsXml('[labels]', 'polygon','countries.geojson')
+    #writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
 
     mapnik.render_to_file(m, IMGNAME + ".png")
     mapnik.render_to_file(m, IMGNAME + ".svg")
