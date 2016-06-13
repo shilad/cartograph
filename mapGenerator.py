@@ -31,7 +31,7 @@ def generatePolygonFile():
     for index, cluster in enumerate(clusterList):
         featureList = generateFeatureList(cluster)
         fullFeatureList.append(featureList)
-        
+
     continentListToFile(fullFeatureList, fileName + "countries.geoJSON")
 
 
@@ -114,8 +114,6 @@ def makeMap():
     m = mapnik.Map(1200, 600)
     m.background = mapnik.Color('white')
 
-    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 1.0))
-    m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
 
 # ======== Make Contour Layer =========
     m.append_style("contour", generateSinglePolygonStyle("contourData.geojson", .20, 1))
@@ -126,6 +124,8 @@ def makeMap():
     m.layers.append(generateLayer("contourData.geojson",
                                   "outline", "outline"))
 
+    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 0.7))
+    m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
     m.zoom_all()
 
     mapnik.save_map(m, "map.xml")
