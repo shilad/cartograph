@@ -142,6 +142,6 @@ if __name__ == "__main__":
     makeMap()
 
     mapfile = "map.xml"
-    tile_dir = "tiles/"
+    tile_dir = "/var/www/html/tiles/"
     bbox = (-180.0, -90.0, 180.0, 90.0)
     render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
