@@ -3,39 +3,45 @@ from tsne import bh_sne
 from sklearn.cluster import KMeans
 import codecs
 from Denoiser import Denoiser
+import Constants
 
 
 class Analyzer:
 
-    def __init__(self, vec_filename, names_filename, subset=0):
-        self.vecs, self.names = self._read_wikibrain_out(vec_filename, names_filename)
+    def __init__(self, subset=0, save_output=True):
+        self.vecs, self.names = self._read_wikibrain_out()
         if subset:
             self.vecs = self.vecs[:subset]
             self.names = self.names[:subset]
         self.x = []
         self.y = []
         self.clusters = []
+        self.save_output = save_output
 
-    def __str__(self):
-        s = ",".join(("x", "y", "clusters", "names")) + "\n"
+    def save_to_files(self):
+        s = ",".join(("x", "y", "clusters")) + "\n"
         for i in range(len(self.x)):
-            s += ",".join((str(self.x[i]), str(self.y[i]), str(self.clusters[i]), self.names[i])) + "\n"
-        return s.encode("utf-8")
+            s += ",".join((str(self.x[i]), str(self.y[i]), str(self.clusters[i]))) + "\n"
+        with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, mode="w") as f:
+            f.write(s)
 
-    def to_file(self, filename="./data/data.csv"):
-        with open(filename, mode="w") as f:
-            f.write(str(self))
+        s = "\t".join(("names", "clusters")) + "\n"
+        for i in range(len(self.x)):
+            s += "\t".join((self.names[i], str(self.clusters[i]))) + "\n"
+        s = s.encode("utf-8")
+        with open(Constants.FILE_NAME_NAMES_AND_CLUSTERS, mode="w") as f:
+            f.write(s)
 
     @staticmethod
-    def _read_wikibrain_out(vec_filename, names_filename, header=True):
+    def _read_wikibrain_out(header=True):
         matrix = []
         names = []
-        with open(vec_filename, "r") as vecs:
+        with open(Constants.FILE_NAME_WIKIBRAIN_VECS, "r") as vecs:
             if header:
                 vecs.readline()
             for line in vecs:
-                matrix.append(map(float, line.split(",")))
-        with codecs.open(names_filename, "r", encoding="utf-8") as names_file:
+                matrix.append(map(float, line.rstrip("\n").split(",")))
+        with codecs.open(Constants.FILE_NAME_WIKIBRAIN_NAMES, "r", encoding="utf-8") as names_file:
             if header:
                 names_file.readline()
             for line in names_file:
@@ -51,7 +57,7 @@ class Analyzer:
         self.clusters = KMeans(num_clusters).fit(self.vecs).labels_
 
     def _denoise(self):
-        self.x, self.y, self.clusters = Denoiser(self.x, self.y, self.clusters).denoise()
+        self.x, self.y, self.clusters, self.names = Denoiser(self.x, self.y, self.clusters, self.names).denoise()
 
     def analyze(self):
         print "Analyzing"
@@ -61,9 +67,12 @@ class Analyzer:
         print "t-SNE done"
         self._denoise()
         print "Denoising done"
+        if self.save_output:
+            self.save_to_files()
         return self.x, self.y, self.clusters, self.names
 
 
-analyzer = Analyzer("./data/vecs.csv", "./data/names.csv", subset=25000)
-x, y, clusters, names = analyzer.analyze()
-analyzer.to_file("./data/testing.csv")
+if __name__ == '__main__':
+    analyzer = Analyzer(subset=1000, save_output=True)
+    analyzer.analyze()
+    analyzer.save_to_files()

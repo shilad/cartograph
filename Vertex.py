@@ -1,9 +1,8 @@
 import math
+import Constants
 
 
 class Vertex:
-    # acts as proxy for water level, lower  values => higher water
-    r = 0
     # array for all the vertex objects, aligned with Voronoi's own
     vertex_arr = []
     # dict to hold indices of vertices for each cluster
@@ -27,7 +26,7 @@ class Vertex:
         """use for building edge vertex set for each group"""
         num_close = 0
         for idx in self.adj_idxs:
-            if self._calc_distance(self.vertex_arr[idx]) <= self.r:
+            if self._calc_distance(self.vertex_arr[idx]) <= Constants.SEARCH_RADIUS:
                 num_close += 1
         return num_close >= 2 and (len(set(self.adj_idxs)) > 1 or num_close is 2)
 
