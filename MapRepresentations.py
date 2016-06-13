@@ -25,7 +25,7 @@ class Continent(object):
         a = sqrt((x1 - xCenter) ** 2 + (y1 - yCenter) ** 2)
         b = sqrt((x2 - xCenter) ** 2 + (y2 - yCenter) ** 2)
         c = sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        theta = acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b))
+        theta = acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b)) / 2
         self.edges.append(Edgelet(pt1, pt2, theta))
 
     def addPoint(self, point):
@@ -43,10 +43,10 @@ class Continent(object):
             ptArray = self.points
         return ptArray
 
-    def generateJSONFeature(self, color):
+    def generateJSONFeature(self, numStr):
         feature = self.reduceToArray()
         shape = Polygon([feature])
-        return Feature(geometry=shape, properties={"fill_color": color})
+        return Feature(geometry=shape, properties={"clusterNum": numStr})
 
 
 class Edgelet():
@@ -70,9 +70,12 @@ class Edgelet():
         return self.pt1, self.pt2
 
 
-def continentListToFile(continentList, filename, color):
-        continentList = [continent.generateJSONFeature(color)
-                         for continent in continentList]
+def continentListToFile(clusterList, filename):
+        continentList = []
+        for index, cluster in enumerate(clusterList):
+            for continent in cluster:
+                continentList.append(continent.generateJSONFeature(index))
+                
         collection = FeatureCollection(continentList)
         textDump = dumps(collection)
         with open(filename, "w") as writeFile:
