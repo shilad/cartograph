@@ -1,16 +1,11 @@
 import mapnik
 from MapRepresentations import continentListToFile
 from MapRepresentations import Continent
-from borderFactory import BorderFactory
+from BorderFactory import BorderFactory
 from histToContour import getContours
 from geojson import Feature, FeatureCollection, dumps, Polygon
-from generateTiles import render_tiles
-from addLabelsXml import writeLabelsXml
+import Constants
 
-# ===== Constants ===================
-IMGNAME = "./data/world"
-POINT_DATA = "./data/data.csv"
-CONTOUR_DATA = "contourData.geojson"
 fullFeatureList = []
 
 
@@ -26,13 +21,12 @@ def generateFeatureList(pointList):
 
 
 def generatePolygonFile():
-    clusterList = BorderFactory.from_file(POINT_DATA).build().values()
-    fileName = "./data/"
+    clusterList = BorderFactory.from_file().build().values()
     for index, cluster in enumerate(clusterList):
         featureList = generateFeatureList(cluster)
         fullFeatureList.append(featureList)
 
-    continentListToFile(fullFeatureList, fileName + "countries.geoJSON")
+    continentListToFile(fullFeatureList, Constants.FILE_NAME_COUNTRIES)
 
 
 # ===== Generate geoJSON Contour Data ========
@@ -60,7 +54,7 @@ def makeContourFeatureCollection(nmpy):
     featureAr = genContourFeatures(nmpy)
     collection = FeatureCollection(featureAr)
     textDump = dumps(collection)
-    with open("contourData.geojson", "w") as writeFile:
+    with open(Constants.FILE_NAME_CONTOUR_DATA, "w") as writeFile:
         writeFile.write(textDump)
 
 
@@ -128,20 +122,20 @@ def makeMap():
     m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
     m.zoom_all()
 
-    mapnik.save_map(m, "map.xml")
+    mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
     #writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
 
-    mapnik.render_to_file(m, IMGNAME + ".png")
-    mapnik.render_to_file(m, IMGNAME + ".svg")
-    print "rendered image to", IMGNAME
+    mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
+    mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
+    print "rendered image to", Constants.FILE_NAME_IMGNAME
 
 if __name__ == "__main__":
     generatePolygonFile()
     makeContourFeatureCollection(getContours())
     makeMap()
 
-    mapfile = "map.xml"
-    tile_dir = "tiles/"
+    mapfile = Constants.FILE_NAME_MAP
+    tile_dir = Constants.DIRECTORY_NAME_TILES
     bbox = (-180.0, -90.0, 180.0, 90.0)
     # render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")

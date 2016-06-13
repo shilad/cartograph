@@ -4,10 +4,11 @@ import numpy as np
 
 class Denoiser:
 
-    def __init__(self, x, y, clusters):
+    def __init__(self, x, y, clusters, names):
         self.x = x
         self.y = y
         self.clusters = clusters
+        self.names = names
         self.num_clusters = len(set(self.clusters))
 
     def _make_filter(self, tau=10):
@@ -34,9 +35,11 @@ class Denoiser:
         x_out = []
         y_out = []
         clusters_out = []
+        names_out = []
         for i in range(len(self.x)):
             if max_idx_arr[i] == self.clusters[i]:
                 x_out.append(self.x[i])
                 y_out.append(self.y[i])
                 clusters_out.append(self.clusters[i])
-        return x_out, y_out, clusters_out
+                names_out.append(self.names[i])
+        return x_out, y_out, clusters_out, names_out

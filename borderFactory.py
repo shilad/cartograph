@@ -1,28 +1,27 @@
 from scipy.spatial import Voronoi
 from Vertex import Vertex
+import Constants
 
 
-class BorderFactory:
+class BorderFactory(object):
 
-    def __init__(self, x, y, cluster_labels, r=5, min_num_in_cluster=5):
+    def __init__(self, x, y, cluster_labels):
         self.x = x
         self.y = y
         self.cluster_labels = cluster_labels
-        self.min_num_in_cluster = min_num_in_cluster
-        Vertex.r = r
 
     @classmethod
-    def from_file(cls, filename):
-        with open(filename, "r") as data:
+    def from_file(cls):
+        with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, "r") as data:
             x = []
             y = []
             clusters = []
             data.readline()
             for line in data:
                 row = line.split(",")
-                x.append(float(row[1]))
-                y.append(float(row[2]))
-                clusters.append(int(row[3][1:-1]))
+                x.append(float(row[0]))
+                y.append(float(row[1]))
+                clusters.append(int(row[2]))
         return cls(x, y, clusters)
 
     @staticmethod
@@ -96,7 +95,7 @@ class BorderFactory:
                     cluster_border.append((vert.x, vert.y))
                     group_edge_vert_dict[label].discard(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > self.min_num_in_cluster:
+                if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
         return borders
 
