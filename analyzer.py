@@ -2,6 +2,7 @@ import numpy as np
 from tsne import bh_sne
 from sklearn.cluster import KMeans
 import codecs
+from Denoiser import Denoiser
 
 
 class Analyzer:
@@ -50,16 +51,18 @@ class Analyzer:
         self.clusters = KMeans(num_clusters, n_jobs=-1).fit(self.vecs).labels_
 
     def _denoise(self):
-        # TODO: get denoiser object and pass in x, y, and clusters
-        pass
+        self.x, self.y, self.clusters = Denoiser(self.x, self.y, self.clusters).denoise()
 
     def analyze(self):
-        self._do_k_means()
+        print "Analyzing"
         self._do_tSNE()
+        print "t-SNE done"
+        # self._do_k_means()
+        # print "k-means done"
         self._denoise()
         return self.x, self.y, self.clusters, self.names
 
 
-analyzer = Analyzer("data/vecs.csv", "data/names.csv", subset=25000)
+analyzer = Analyzer("./data/vecs.csv", "./data/names.csv", subset=1000)
 x, y, clusters, names = analyzer.analyze()
 analyzer.to_file("./data/testing.csv")
