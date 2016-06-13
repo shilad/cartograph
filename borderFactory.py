@@ -4,7 +4,7 @@ from Vertex import Vertex
 
 class BorderFactory:
 
-    def __init__(self, x, y, cluster_labels, r=0.1, min_num_in_cluster=25):
+    def __init__(self, x, y, cluster_labels, r=5, min_num_in_cluster=5):
         self.x = x
         self.y = y
         self.cluster_labels = cluster_labels
@@ -20,9 +20,9 @@ class BorderFactory:
             data.readline()
             for line in data:
                 row = line.split(",")
-                x.append(float(row[1]))
-                y.append(float(row[2]))
-                clusters.append(int(row[3][1:-1]))
+                x.append(float(row[0]))
+                y.append(float(row[1]))
+                clusters.append(int(row[2]))
         return cls(x, y, clusters)
 
     @staticmethod

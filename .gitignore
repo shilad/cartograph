@@ -6,5 +6,8 @@
 *.xml
 
 /.idea
+/data/vecs.csv
+/data/names.csv
+/data/testing.csv
 
 .DS_Store
