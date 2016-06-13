@@ -65,7 +65,7 @@ def makeContourFeatureCollection(nmpy):
 
 
 # ===== Generate Map File =====
-def generateCountryPolygonStyle(filename, opacity, setSize):
+def generateCountryPolygonStyle(filename, opacity):
     colorWheel = ["#9AFFFC", "#9AFFDA", "#9AFFFB", "#FF9AF1", "#FFA79A", "#CCCCCC", "#DA9AFF", "#FFDA9A", "#FFD7B1", "#FF9ABE"]
     s = mapnik.Style()
     for i in range(len(fullFeatureList)):
@@ -114,7 +114,7 @@ def makeMap():
     m = mapnik.Map(1200, 600)
     m.background = mapnik.Color('white')
 
-    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 1.0, 9))
+    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 1.0))
     m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
 
 # ======== Make Contour Layer =========
