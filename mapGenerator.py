@@ -4,6 +4,8 @@ from MapRepresentations import Continent
 from BorderFactory import BorderFactory
 from histToContour import getContours
 from geojson import Feature, FeatureCollection, dumps, Polygon
+from generateTiles import render_tiles
+from addLabelsXml import writeLabelsXml
 import Constants
 
 fullFeatureList = []

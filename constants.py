@@ -13,7 +13,7 @@ MIN_NUM_IN_CLUSTER = 15  # eliminates noise
 
 
 # ========== mapGenerator ==========
-DIRECTORY_NAME_TILES = "tiles/"
+DIRECTORY_NAME_TILES = "/var/www/html/tiles/"
 FILE_NAME_REGION_NAMES = "top_categories.csv"
 FILE_NAME_IMGNAME = "./data/world"
 FILE_NAME_COUNTRIES = "./data/countries.geoJSON"

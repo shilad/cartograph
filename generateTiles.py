@@ -191,7 +191,7 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18,
 
 if __name__ == "__main__":
     mapfile = "map.xml"
-    tile_dir = "tiles/"
+    tile_dir = "/var/www/html/tiles/"
 
     #-------------------------------------------------------------------------
     #
