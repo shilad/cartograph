@@ -29,5 +29,3 @@ def writeLabelsXml(field, labelType, geojsonFile):
 	addTextLayer(mapRoot,field, geojsonFile)
 	mapFile.write('map.xml')
 	
-
-writeLabelsXml('[labels]', 'polygon','testColorsOnLayerData.geojson')
