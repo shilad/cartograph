@@ -4,14 +4,15 @@ from Vertex import Vertex
 
 class BorderFactory:
 
-    def __init__(self, x, y, cluster_labels, r=80):
+    def __init__(self, x, y, cluster_labels, r=5, min_num_in_cluster=5):
         self.x = x
         self.y = y
         self.cluster_labels = cluster_labels
+        self.min_num_in_cluster = min_num_in_cluster
         Vertex.r = r
 
     @classmethod
-    def from_file(cls, filename, r=80):
+    def from_file(cls, filename):
         with open(filename, "r") as data:
             x = []
             y = []
@@ -22,7 +23,7 @@ class BorderFactory:
                 x.append(float(row[1]))
                 y.append(float(row[2]))
                 clusters.append(int(row[3][1:-1]))
-        return cls(x, y, clusters, r)
+        return cls(x, y, clusters)
 
     @staticmethod
     def _make_label_set(cluster_labels):
@@ -41,8 +42,7 @@ class BorderFactory:
             adj_lst[ridge[1]].add(ridge[0])
         return adj_lst
 
-    @classmethod
-    def _make_three_dicts(cls, vor, cluster_labels):
+    def _make_three_dicts(self, vor, cluster_labels):
         vert_reg_idxs_dict = {vert_idx: []
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_idxs_dict[-1] = []
@@ -50,7 +50,7 @@ class BorderFactory:
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_labs_dict[-1] = []
         group_vert_dict = {}
-        for label in cls._make_label_set(cluster_labels):
+        for label in self._make_label_set(cluster_labels):
             group_vert_dict[label] = set()
         for i, reg_idx in enumerate(vor.point_region):
             region_idxs = vor.regions[reg_idx]
@@ -83,8 +83,7 @@ class BorderFactory:
             group_edge_vert_dict[label] = edge_verts
         return group_edge_vert_dict
 
-    @staticmethod
-    def _make_borders(vert_array, group_edge_vert_dict):
+    def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
         for label in group_edge_vert_dict:
@@ -97,7 +96,7 @@ class BorderFactory:
                     cluster_border.append((vert.x, vert.y))
                     group_edge_vert_dict[label].discard(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > 15:
+                if len(cluster_border) > self.min_num_in_cluster:
                     borders[label].append(cluster_border)
         return borders
 
@@ -115,4 +114,3 @@ class BorderFactory:
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
         return self._make_borders(vert_array, group_edge_vert_dict)
-

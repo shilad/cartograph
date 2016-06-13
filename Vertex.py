@@ -29,7 +29,7 @@ class Vertex:
         for idx in self.adj_idxs:
             if self._calc_distance(self.vertex_arr[idx]) <= self.r:
                 num_close += 1
-        return len(set(self.adj_idxs)) > 1 or num_close is 2
+        return num_close >= 2 and (len(set(self.adj_idxs)) > 1 or num_close is 2)
 
     def _get_num_shared_region_labels(self, vertex, group_label):
         num_in_common = 0
