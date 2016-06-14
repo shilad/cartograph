@@ -98,3 +98,4 @@ class Contours:
 	    textDump = dumps(collection)
 	    with open(self.file, "w") as writeFile:
 	        writeFile.write(textDump)
+

@@ -1,36 +1,29 @@
-from scipy.spatial import Voronoi
+from scipy.spatial import Voronoi, voronoi_plot_2d
 from Vertex import Vertex
+import Constants
+import matplotlib.pyplot as plt
 
 
-class BorderFactory:
+class BorderFactory(object):
 
-    def __init__(self, x, y, cluster_labels, r=80):
+    def __init__(self, x, y, cluster_labels):
         self.x = x
         self.y = y
         self.cluster_labels = cluster_labels
-        Vertex.r = r
 
     @classmethod
-    def from_file(cls, filename, r=80):
-        with open(filename, "r") as data:
+    def from_file(cls):
+        with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, "r") as data:
             x = []
             y = []
             clusters = []
             data.readline()
             for line in data:
-                row = line.split(",")
-                x.append(float(row[1]))
-                y.append(float(row[2]))
-                clusters.append(int(row[3][1:-1]))
-        return cls(x, y, clusters, r)
-
-    @staticmethod
-    def _make_label_set(cluster_labels):
-        """for efficiency"""
-        label_set = set()
-        for label in cluster_labels:
-            label_set.add(label)
-        return label_set
+                row = line.split("\t")
+                x.append(float(row[0]))
+                y.append(float(row[1]))
+                clusters.append(int(row[2]))
+        return cls(x, y, clusters)
 
     @staticmethod
     def _make_vertex_adjacency_list(vor):
@@ -41,8 +34,7 @@ class BorderFactory:
             adj_lst[ridge[1]].add(ridge[0])
         return adj_lst
 
-    @classmethod
-    def _make_three_dicts(cls, vor, cluster_labels):
+    def _make_three_dicts(self, vor, cluster_labels):
         vert_reg_idxs_dict = {vert_idx: []
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_idxs_dict[-1] = []
@@ -50,7 +42,7 @@ class BorderFactory:
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_labs_dict[-1] = []
         group_vert_dict = {}
-        for label in cls._make_label_set(cluster_labels):
+        for label in set(cluster_labels):
             group_vert_dict[label] = set()
         for i, reg_idx in enumerate(vor.point_region):
             region_idxs = vor.regions[reg_idx]
@@ -83,8 +75,7 @@ class BorderFactory:
             group_edge_vert_dict[label] = edge_verts
         return group_edge_vert_dict
 
-    @staticmethod
-    def _make_borders(vert_array, group_edge_vert_dict):
+    def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
         for label in group_edge_vert_dict:
@@ -97,7 +88,7 @@ class BorderFactory:
                     cluster_border.append((vert.x, vert.y))
                     group_edge_vert_dict[label].discard(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > 15:
+                if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
         return borders
 
@@ -114,5 +105,11 @@ class BorderFactory:
         group_edge_vert_dict = self._make_group_edge_vert_dict(vert_array,
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
+
+        voronoi_plot_2d(vor)
+        plt.show()
+
         return self._make_borders(vert_array, group_edge_vert_dict)
 
+if __name__ == '__main__':
+    BorderFactory.from_file().build()
