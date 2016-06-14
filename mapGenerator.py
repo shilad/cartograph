@@ -5,7 +5,7 @@ from BorderFactory import BorderFactory
 from histToContour import Contours
 from geojson import Feature, FeatureCollection, dumps, Polygon
 from generateTiles import render_tiles
-from addLabelsXml import writeLabelsXml
+from addLabelsXml import Labels
 import Constants
 
 fullFeatureList = []
@@ -96,8 +96,9 @@ def makeMap():
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
-
-    # writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
+    
+    label = Labels()
+    label.writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
