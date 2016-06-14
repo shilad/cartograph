@@ -1,11 +1,12 @@
 from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import parse, Element, SubElement
+from xml.etree.ElementTree import parse, Element, SubElement 
+import Constants
 
 class Labels():
 
 
 	def __init__(self):
-		self.mapFile = parse('map.xml')
+		self.mapFile = parse(Constants.FILE_NAME_MAP)
 		self.mapRoot = self.mapFile.getroot()
 
 
@@ -34,5 +35,5 @@ class Labels():
 
 		self._add_Text_Style(field,labelType)
 		self._add_Text_Layer(field, geojsonFile)
-		self.mapFile.write('map.xml')
+		self.mapFile.write(Constants.FILE_NAME_MAP)
 	
