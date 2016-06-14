@@ -23,7 +23,7 @@ def read_wikibrain_vecs():
 
 
 def write_tsv(filename, headers, data):
-    with open(filename, "wb") as f:
+    with open(filename, "w") as f:
         s = ("\t".join(headers) + "\n").encode("utf-8")
         f.write(s)
         for row_num in range(len(data[0])):
