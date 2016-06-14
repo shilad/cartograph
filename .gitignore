@@ -7,8 +7,8 @@
 *.xml
 
 /.idea
-/data/vecs.csv
-/data/names.csv
+/data/vecs.tsv
+/data/names.tsv
 /data/testing.csv
 
 .DS_Store
