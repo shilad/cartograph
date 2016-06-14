@@ -46,6 +46,7 @@ sudo mkdir /var/www/html/tiles
 ## Running our pipeline, generating tiles!
 ### Generate tiles
 ```
+cd ~/src/proceduralMapGeneration/
 sudo python mapGenerator.py
 cd ..
 ```
@@ -96,6 +97,7 @@ Create a file called /var/www/html/map.html with the content of the "map.html" I
 ### run renderd
 To run the server, you need to run renderd.
 ```
+cd ~/src/mod_tile/
 ./renderd -f -c ~/src/mod_tile/renderd.conf
 ```
 ### Take a look!
