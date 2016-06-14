@@ -91,16 +91,16 @@ def makeMap():
     # m.layers.append(generateLayer("contourData.geojson",
     #                               "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 0.7))
-    m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
+    m.append_style("countries", generateCountryPolygonStyle(FILE_NAME_COUNTRIES, 0.7))
+    m.layers.append(generateLayer(FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
     
     label = Labels()
-    label.writeLabelsXml('[labels]', 'interior','./data/countries.geojson')
+    label.writeLabelsXml('[labels]', 'interior',FILE_NAME_COUNTRIES)
 
-    mapnik.load_map(m, 'map.xml')
+    mapnik.load_map(m, Constants.FILE_NAME_MAP)
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
