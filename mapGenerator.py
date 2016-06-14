@@ -96,7 +96,7 @@ def makeMap():
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
-    
+
     label = Labels()
     label.writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
 
@@ -106,7 +106,7 @@ def makeMap():
 
 if __name__ == "__main__":
     generatePolygonFile()
-    contour = Contours('./data/data.csv', "contourData.geojson")
+    contour = Contours(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
     contour.makeContourFeatureCollection()
     makeMap()
 

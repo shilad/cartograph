@@ -1,4 +1,4 @@
-# ========== Analyzer ==========
+ # ========== Analyzer ==========
 FILE_NAME_WIKIBRAIN_VECS = "./data/vecs.tsv"
 FILE_NAME_WIKIBRAIN_NAMES = "./data/names.tsv"
 FILE_NAME_NAMES_AND_CLUSTERS = "./data/names_and_clusters.tsv"
