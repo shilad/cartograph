@@ -1,6 +1,7 @@
 from math import pi, sqrt, acos
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
+import pandas
 
 # ===== Constants ===================
 SEED_DISTANCE = .001
@@ -43,10 +44,15 @@ class Continent(object):
             ptArray = self.points
         return ptArray
 
+
+
+
+
     def generateJSONFeature(self, numStr):
+        label = pandas.read_csv("./data/top_categories.txt", header=None)
         feature = self.reduceToArray()
         shape = Polygon([feature])
-        return Feature(geometry=shape, properties={"clusterNum": numStr})
+        return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label[1][numStr]})
 
 
 class Edgelet():

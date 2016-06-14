@@ -2,10 +2,10 @@ import mapnik
 from MapRepresentations import continentListToFile
 from MapRepresentations import Continent
 from BorderFactory import BorderFactory
-from histToContour import getContours
+from histToContour import Contours
 from geojson import Feature, FeatureCollection, dumps, Polygon
 from generateTiles import render_tiles
-from addLabelsXml import writeLabelsXml
+from addLabelsXml import Labels
 import Constants
 
 fullFeatureList = []
@@ -29,35 +29,6 @@ def generatePolygonFile():
         fullFeatureList.append(featureList)
 
     continentListToFile(fullFeatureList, Constants.FILE_NAME_COUNTRIES)
-
-
-# ===== Generate geoJSON Contour Data ========
-def genContourFeatures(nmpy):
-    featureAr = []
-    polyGroups = []
-    for group in nmpy:
-        polys = []
-        for shape in group:
-            polyPoints = []
-            for pt in shape:
-                polyPoints.append((pt[0], pt[1]))
-            polys.append(polyPoints)
-        polyGroups.append(polys)
-
-    for shape in polyGroups:
-        newPolygon = Polygon(shape)
-        newFeature = Feature(geometry=newPolygon)
-        featureAr.append(newFeature)
-
-    return featureAr
-
-
-def makeContourFeatureCollection(nmpy):
-    featureAr = genContourFeatures(nmpy)
-    collection = FeatureCollection(featureAr)
-    textDump = dumps(collection)
-    with open(Constants.FILE_NAME_CONTOUR_DATA, "w") as writeFile:
-        writeFile.write(textDump)
 
 
 # ===== Generate Map File =====
@@ -120,13 +91,16 @@ def makeMap():
     m.layers.append(generateLayer("contourData.geojson",
                                   "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 1.0))
-    m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
+    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0.7))
+    m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
-    writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
+    label = Labels()
+    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
+
+    mapnik.load_map(m, Constants.FILE_NAME_MAP)
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
@@ -134,7 +108,8 @@ def makeMap():
 
 if __name__ == "__main__":
     generatePolygonFile()
-    makeContourFeatureCollection(getContours())
+    contour = Contours('./data/data.csv', "contourData.geojson")
+    contour.makeContourFeatureCollection()
     makeMap()
 
     mapfile = Constants.FILE_NAME_MAP
