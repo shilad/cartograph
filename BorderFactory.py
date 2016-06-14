@@ -1,9 +1,6 @@
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from Vertex import Vertex
 import Constants
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
 
 
 class BorderFactory(object):
@@ -112,14 +109,6 @@ class BorderFactory(object):
         group_edge_vert_dict = self._make_group_edge_vert_dict(vert_array,
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
-
-        # voronoi_plot_2d(vor)
-        # for region in vor.regions:
-        #     if not -1 in region:
-        #         polygon = [vor.vertices[i] for i in region]
-        #         plt.fill(*zip(*polygon))
-        #
-        # plt.show()
 
         return self._make_borders(vert_array, group_edge_vert_dict)
 
