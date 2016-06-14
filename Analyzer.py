@@ -1,7 +1,6 @@
 import numpy as np
 from tsne import bh_sne
 from sklearn.cluster import KMeans
-import codecs
 from Denoiser import Denoiser
 import Constants
 import Util

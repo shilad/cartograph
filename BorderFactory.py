@@ -1,6 +1,7 @@
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from Vertex import Vertex
 import Constants
+import Util
 
 
 class BorderFactory(object):
@@ -12,16 +13,10 @@ class BorderFactory(object):
 
     @classmethod
     def from_file(cls):
-        with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, "r") as data:
-            x = []
-            y = []
-            clusters = []
-            data.readline()
-            for line in data:
-                row = line.split("\t")
-                x.append(float(row[0]))
-                y.append(float(row[1]))
-                clusters.append(int(row[2]))
+        coords_and_clusters = Util.read_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
+        x = map(float, coords_and_clusters[0])
+        y = map(float, coords_and_clusters[1])
+        clusters = map(int, coords_and_clusters[2])
         return cls(x, y, clusters)
 
     @staticmethod
