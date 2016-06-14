@@ -1,7 +1,9 @@
 from math import pi, sqrt, acos
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
-import pandas
+import Util
+import Constants
+
 
 # ===== Constants ===================
 SEED_DISTANCE = .001
@@ -46,7 +48,7 @@ class Continent(object):
 
 
     def generateJSONFeature(self, numStr):
-        label = pandas.read_csv("./data/top_categories.txt", header=None)
+        label = Util.read_tsv(Constants.FILE_NAME_REGION_NAMES)
         feature = self.reduceToArray()
         shape = Polygon([feature])
         return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label[1][numStr]})
