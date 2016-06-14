@@ -5,10 +5,11 @@
 *.geoJson
 ./tiles/
 *.xml
-<<<<<<< HEAD
-=======
 
->>>>>>> 874112c7593e3f10425bff2c89eb4b0677a4c4a8
 /.idea
+/data/vecs.tsv
+/data/names.tsv
+/data/testing.csv
 
 .DS_Store
+/data/.DS_Store
