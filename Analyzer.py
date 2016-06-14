@@ -19,9 +19,10 @@ class Analyzer:
         self.save_output = save_output
 
     def save_to_files(self):
-        s = ",".join(("x", "y", "clusters")) + "\n"
+        s = "\t".join(("x", "y", "clusters")) + "\n"
         for i in range(len(self.x)):
-            s += ",".join((str(self.x[i]), str(self.y[i]), str(self.clusters[i]))) + "\n"
+            s += "\t".join((str(self.x[i]), str(self.y[i]), str(self.clusters[i]))) + "\n"
+        s = s.encode("utf-8")
         with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, mode="w") as f:
             f.write(s)
 
@@ -40,7 +41,7 @@ class Analyzer:
             if header:
                 vecs.readline()
             for line in vecs:
-                matrix.append(map(float, line.rstrip("\n").split(",")))
+                matrix.append(map(float, line.rstrip("\n").split("\t")))
         with codecs.open(Constants.FILE_NAME_WIKIBRAIN_NAMES, "r", encoding="utf-8") as names_file:
             if header:
                 names_file.readline()

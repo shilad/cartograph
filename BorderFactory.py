@@ -1,6 +1,7 @@
-from scipy.spatial import Voronoi
+from scipy.spatial import Voronoi, voronoi_plot_2d
 from Vertex import Vertex
 import Constants
+import matplotlib.pyplot as plt
 
 
 class BorderFactory(object):
@@ -18,19 +19,11 @@ class BorderFactory(object):
             clusters = []
             data.readline()
             for line in data:
-                row = line.split(",")
+                row = line.split("\t")
                 x.append(float(row[0]))
                 y.append(float(row[1]))
                 clusters.append(int(row[2]))
         return cls(x, y, clusters)
-
-    @staticmethod
-    def _make_label_set(cluster_labels):
-        """for efficiency"""
-        label_set = set()
-        for label in cluster_labels:
-            label_set.add(label)
-        return label_set
 
     @staticmethod
     def _make_vertex_adjacency_list(vor):
@@ -49,7 +42,7 @@ class BorderFactory(object):
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_labs_dict[-1] = []
         group_vert_dict = {}
-        for label in self._make_label_set(cluster_labels):
+        for label in set(cluster_labels):
             group_vert_dict[label] = set()
         for i, reg_idx in enumerate(vor.point_region):
             region_idxs = vor.regions[reg_idx]
@@ -112,4 +105,11 @@ class BorderFactory(object):
         group_edge_vert_dict = self._make_group_edge_vert_dict(vert_array,
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
+
+        voronoi_plot_2d(vor)
+        plt.show()
+
         return self._make_borders(vert_array, group_edge_vert_dict)
+
+if __name__ == '__main__':
+    BorderFactory.from_file().build()
