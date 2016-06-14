@@ -21,7 +21,7 @@ class Labels():
 		layer = SubElement(self.mapRoot, 'Layer', name =  field[1:-1] + 'Layer')
 
 		addStyle = SubElement(layer, 'StyleName')
-		addStyle.text = field[1:-1] + 'labelStyle'
+		addStyle.text = field[1:-1] + 'LabelStyle'
 
 		data = SubElement(layer, 'Datasource')
 		dataParamType = SubElement(data, 'Parameter', name = 'type')

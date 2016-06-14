@@ -98,7 +98,9 @@ def makeMap():
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
     
     label = Labels()
-    label.writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
+    label.writeLabelsXml('[labels]', 'interior','./data/countries.geojson')
+
+    mapnik.load_map(m, 'map.xml')
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
