@@ -5,7 +5,7 @@ Note: This architecture is based off of the stack designed on https://switch2osm
 ### Install Virtualbox and Ubuntu. 
 The instructions [here](http://www.engadget.com/2009/09/07/how-to-set-up-ubuntu-linux-on-a-mac-its-easy-and-free/) should be helpful. But you want to have at least 4GB of ram and 15-25GB of storage. For the actual server machine, we may want to actually be running Ubuntu, rather than having a virtual instance. I'm going to assume the username is "research" in this documentation, but that's an easy fix if we want to change it.
 ### Dependancy laundry list
-Here's a dependancy laundry list that consists of thigns we want and things that are good to have:
+Here's a dependancy laundry list that consists of things we want and things that are good to have:
 ```
 sudo apt-get install libboost-all-dev subversion git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg node-carto libtiff5-dev:i386 libtiff5-dev
 ```
@@ -23,7 +23,7 @@ git clone https://github.com/Bboatman/proceduralMapGeneration.git
 cd proceduralMapGeneration/
 ```
 ### Mapnik
-We need our good friend Mapnik in order draw our tiles and maps.
+We need our good friend Mapnik in order draw our tiles and maps, and in order to get mapnik we need pip.
 ```
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python2.7 get-pip.py
@@ -90,7 +90,7 @@ sudo service apache2 reload
 ```
 ## Drawing the map client-side
 ### map.html
-Create a file called /var/www/html/map.html with the content of the "map.html" I have included.
+Create a file called /var/www/html/map.html with the content of the "map.html" I have included in the installDocuments/ folder of this project.
 
 ## Run the server!
 ### run renderd
