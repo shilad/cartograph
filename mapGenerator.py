@@ -2,7 +2,7 @@ import mapnik
 from MapRepresentations import continentListToFile
 from MapRepresentations import Continent
 from borderFactory import BorderFactory
-from histToContour import getContours
+from histToContour import Contours
 from geojson import Feature, FeatureCollection, dumps, Polygon
 from generateTiles import render_tiles
 from addLabelsXml import writeLabelsXml
@@ -33,35 +33,6 @@ def generatePolygonFile():
         fullFeatureList.append(featureList)
         
     continentListToFile(fullFeatureList, fileName + "countries.geoJSON")
-
-
-# ===== Generate geoJSON Contour Data ========
-def genContourFeatures(nmpy):
-    featureAr = []
-    polyGroups = []
-    for group in nmpy:
-        polys = []
-        for shape in group:
-            polyPoints = []
-            for pt in shape:
-                polyPoints.append((pt[0], pt[1]))
-            polys.append(polyPoints)
-        polyGroups.append(polys)
-
-    for shape in polyGroups:
-        newPolygon = Polygon(shape)
-        newFeature = Feature(geometry=newPolygon)
-        featureAr.append(newFeature)
-
-    return featureAr
-
-
-def makeContourFeatureCollection(nmpy):
-    featureAr = genContourFeatures(nmpy)
-    collection = FeatureCollection(featureAr)
-    textDump = dumps(collection)
-    with open("contourData.geojson", "w") as writeFile:
-        writeFile.write(textDump)
 
 
 # ===== Generate Map File =====
@@ -130,7 +101,7 @@ def makeMap():
 
     mapnik.save_map(m, "map.xml")
 
-    #writeLabelsXml('[labels]', 'polygon','countries.geojson')
+    writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
 
     mapnik.render_to_file(m, IMGNAME + ".png")
     mapnik.render_to_file(m, IMGNAME + ".svg")
@@ -138,10 +109,11 @@ def makeMap():
 
 if __name__ == "__main__":
     generatePolygonFile()
-    makeContourFeatureCollection(getContours())
+    contour = Contours('./data/data.csv', "contourData.geojson")
+    contour.makeContourFeatureCollection()
     makeMap()
 
     mapfile = "map.xml"
     tile_dir = "tiles/"
     bbox = (-180.0, -90.0, 180.0, 90.0)
-    # render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
