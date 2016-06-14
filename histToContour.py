@@ -15,7 +15,7 @@ class Contours:
 
 
 	def _calc_contour(self, csvFile, binSize):
-		xyCoords = np.genfromtxt(csvFile, delimiter=',', usecols=(1, 2), skip_header=1)
+		xyCoords = np.genfromtxt(csvFile, delimiter=',', usecols=(0, 1), skip_header=1)
 		x = xyCoords[:, 0]
 		y = xyCoords[:, 1]
 		contBuffer = 20
