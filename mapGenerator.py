@@ -112,21 +112,21 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-#     m.append_style("contour", generateSinglePolygonStyle("contourData.geojson", .20, 1))
-#     m.layers.append(generateLayer("contourData.geojson",
-#                                   "contour", "contour"))
+    m.append_style("contour", generateSinglePolygonStyle("contourData.geojson", .20, 1))
+    m.layers.append(generateLayer("contourData.geojson",
+                                  "contour", "contour"))
 
-    # m.append_style("outline", generateLineStyle("darkblue", 1.0))
-    # m.layers.append(generateLayer("contourData.geojson",
-    #                               "outline", "outline"))
+    m.append_style("outline", generateLineStyle("darkblue", 1.0))
+    m.layers.append(generateLayer("contourData.geojson",
+                                  "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 0.7))
+    m.append_style("countries", generateCountryPolygonStyle("./data/countries.geoJSON", 1.0))
     m.layers.append(generateLayer("./data/countries.geoJSON", "countries", "countries"))
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
-    #writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
+    writeLabelsXml('[labels]', 'polygon','./data/countries.geojson')
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
@@ -140,4 +140,4 @@ if __name__ == "__main__":
     mapfile = Constants.FILE_NAME_MAP
     tile_dir = Constants.DIRECTORY_NAME_TILES
     bbox = (-180.0, -90.0, 180.0, 90.0)
-    # render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")

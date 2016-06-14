@@ -2,6 +2,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 from Vertex import Vertex
 import Constants
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 
 
 class BorderFactory(object):
@@ -75,6 +77,11 @@ class BorderFactory(object):
             group_edge_vert_dict[label] = edge_verts
         return group_edge_vert_dict
 
+    @staticmethod
+    def _make_borders_natural(borders):
+        # TODO: implement this
+        return borders
+
     def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
@@ -90,7 +97,7 @@ class BorderFactory(object):
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
                 if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
-        return borders
+        return self._make_borders_natural(borders)
 
     def build(self):
         """makes a dictionary mapping group labels to an array of array of
@@ -106,8 +113,13 @@ class BorderFactory(object):
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
 
-        voronoi_plot_2d(vor)
-        plt.show()
+        # voronoi_plot_2d(vor)
+        # for region in vor.regions:
+        #     if not -1 in region:
+        #         polygon = [vor.vertices[i] for i in region]
+        #         plt.fill(*zip(*polygon))
+        #
+        # plt.show()
 
         return self._make_borders(vert_array, group_edge_vert_dict)
 
