@@ -115,4 +115,4 @@ if __name__ == "__main__":
     mapfile = Constants.FILE_NAME_MAP
     tile_dir = Constants.DIRECTORY_NAME_TILES
     bbox = (-180.0, -90.0, 180.0, 90.0)
-    # render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
