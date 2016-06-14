@@ -1,7 +1,7 @@
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from Vertex import Vertex
 import Constants
-import matplotlib.pyplot as plt
+import Util
 
 
 class BorderFactory(object):
@@ -13,16 +13,10 @@ class BorderFactory(object):
 
     @classmethod
     def from_file(cls):
-        with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, "r") as data:
-            x = []
-            y = []
-            clusters = []
-            data.readline()
-            for line in data:
-                row = line.split("\t")
-                x.append(float(row[0]))
-                y.append(float(row[1]))
-                clusters.append(int(row[2]))
+        coords_and_clusters = Util.read_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
+        x = map(float, coords_and_clusters[0])
+        y = map(float, coords_and_clusters[1])
+        clusters = map(int, coords_and_clusters[2])
         return cls(x, y, clusters)
 
     @staticmethod
@@ -75,6 +69,11 @@ class BorderFactory(object):
             group_edge_vert_dict[label] = edge_verts
         return group_edge_vert_dict
 
+    @staticmethod
+    def _make_borders_natural(borders):
+        # TODO: implement this
+        return borders
+
     def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
@@ -90,7 +89,7 @@ class BorderFactory(object):
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
                 if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
-        return borders
+        return self._make_borders_natural(borders)
 
     def build(self):
         """makes a dictionary mapping group labels to an array of array of
@@ -105,9 +104,6 @@ class BorderFactory(object):
         group_edge_vert_dict = self._make_group_edge_vert_dict(vert_array,
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
-
-        voronoi_plot_2d(vor)
-        plt.show()
 
         return self._make_borders(vert_array, group_edge_vert_dict)
 
