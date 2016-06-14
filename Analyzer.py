@@ -4,6 +4,7 @@ from sklearn.cluster import KMeans
 import codecs
 from Denoiser import Denoiser
 import Constants
+import Util
 
 
 class Analyzer:
@@ -19,35 +20,14 @@ class Analyzer:
         self.save_output = save_output
 
     def save_to_files(self):
-        s = "\t".join(("x", "y", "clusters")) + "\n"
-        for i in range(len(self.x)):
-            s += "\t".join((str(self.x[i]), str(self.y[i]), str(self.clusters[i]))) + "\n"
-        s = s.encode("utf-8")
-        with open(Constants.FILE_NAME_COORDS_AND_CLUSTERS, mode="w") as f:
-            f.write(s)
-
-        s = "\t".join(("names", "clusters")) + "\n"
-        for i in range(len(self.x)):
-            s += "\t".join((self.names[i], str(self.clusters[i]))) + "\n"
-        s = s.encode("utf-8")
-        with open(Constants.FILE_NAME_NAMES_AND_CLUSTERS, mode="w") as f:
-            f.write(s)
+        Util.write_tsv("/Users/research/Desktop/testing.tsv", ["x", "y", "clusters"], [self.x, self.y, self.clusters])
+        Util.write_tsv("/Users/research/Desktop/testing2.tsv", ["names", "clusters"], [self.names, self.clusters])
 
     @staticmethod
-    def _read_wikibrain_out(header=True):
-        matrix = []
-        names = []
-        with open(Constants.FILE_NAME_WIKIBRAIN_VECS, "r") as vecs:
-            if header:
-                vecs.readline()
-            for line in vecs:
-                matrix.append(map(float, line.rstrip("\n").split("\t")))
-        with codecs.open(Constants.FILE_NAME_WIKIBRAIN_NAMES, "r", encoding="utf-8") as names_file:
-            if header:
-                names_file.readline()
-            for line in names_file:
-                names.append(line.rstrip("\n"))
-        return np.array(matrix), names
+    def _read_wikibrain_out():
+        matrix = Util.read_wikibrain_vecs()
+        names = Util.read_tsv(Constants.FILE_NAME_WIKIBRAIN_NAMES)
+        return np.array(matrix), names[0]
 
     def _do_tSNE(self, pca_d=None):
         out = bh_sne(self.vecs, pca_d=pca_d)
@@ -66,7 +46,7 @@ class Analyzer:
         print "k-means done"
         self._do_tSNE()
         print "t-SNE done"
-        self._denoise()
+        # self._denoise()
         print "Denoising done"
         if self.save_output:
             self.save_to_files()
@@ -76,4 +56,4 @@ class Analyzer:
 if __name__ == '__main__':
     analyzer = Analyzer(subset=1000, save_output=True)
     analyzer.analyze()
-    # analyzer.save_to_files()
+    analyzer.save_to_files()
