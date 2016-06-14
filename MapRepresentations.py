@@ -45,9 +45,6 @@ class Continent(object):
         return ptArray
 
 
-
-
-
     def generateJSONFeature(self, numStr):
         label = pandas.read_csv("./data/top_categories.txt", header=None)
         feature = self.reduceToArray()
