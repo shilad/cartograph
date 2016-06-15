@@ -29,7 +29,8 @@ class BorderFactory(object):
             adj_lst[ridge[1]].add(ridge[0])
         return adj_lst
 
-    def _make_three_dicts(self, vor, cluster_labels):
+    @staticmethod
+    def _make_three_dicts(vor, cluster_labels):
         vert_reg_idxs_dict = {vert_idx: []
                               for vert_idx in range(len(vor.vertices))}
         vert_reg_idxs_dict[-1] = []
@@ -96,6 +97,7 @@ class BorderFactory(object):
     def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
+        del group_edge_vert_dict[len(group_edge_vert_dict)-1]
         for label in group_edge_vert_dict:
             borders[label] = []
             while group_edge_vert_dict[label]:
@@ -108,7 +110,7 @@ class BorderFactory(object):
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
                 if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
-        return self._make_borders_natural(borders)
+        return BorderFactory._make_borders_natural(borders)
 
     def build(self):
         """makes a dictionary mapping group labels to an array of array of

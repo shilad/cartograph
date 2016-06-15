@@ -28,8 +28,8 @@ class Analyzer:
         names = Util.read_tsv(Constants.FILE_NAME_WIKIBRAIN_NAMES)
         return np.array(matrix), names[0]
 
-    def _do_tSNE(self, pca_d=None):
-        out = bh_sne(self.vecs, pca_d=pca_d)
+    def _do_tSNE(self):
+        out = bh_sne(self.vecs, pca_d=Constants.TSNE_PCA_DIMENSIONS, theta=Constants.TSNE_THETA)
         self.x = out[:, 0]
         self.y = out[:, 1]
 
@@ -38,8 +38,8 @@ class Analyzer:
         water_y = np.random.uniform(np.min(self.y)-3, np.max(self.y)+3, len(self.y))
         self.x = np.append(self.x, water_x)
         self.y = np.append(self.y, water_y)
-        self.clusters = np.append(self.clusters, np.full(len(water_x), max(self.clusters)+1, dtype=np.int))
-        self.names = np.append(self.names, np.full(len(water_x), max(self.clusters)+1))
+        self.clusters = np.append(self.clusters, np.full(len(water_x), max(self.clusters)+1, dtype=np.int64))
+        self.names = np.append(self.names, np.full(len(water_x), max(self.clusters)+1, dtype=np.int64))
 
 
     def _do_k_means(self, num_clusters=10):
