@@ -188,17 +188,16 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18,
         renderers[i].join()
 
 
-
 if __name__ == "__main__":
     mapfile = "map.xml"
     tile_dir = "/var/www/html/tiles/"
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     #
     # Change the following for different bounding boxes and zoom levels
     #
     # Start with an overview
     # World
-    bbox = (-180.0,-90.0, 180.0,90.0)
+    bbox = (-180.0, -90.0, 180.0, 90.0)
 
     render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
