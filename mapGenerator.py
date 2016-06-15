@@ -83,13 +83,13 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateSinglePolygonStyle("contourData.geojson", .20, 1))
-    m.layers.append(generateLayer("contourData.geojson",
-                                  "contour", "contour"))
-
-    m.append_style("outline", generateLineStyle("darkblue", 1.0))
-    m.layers.append(generateLayer("contourData.geojson",
-                                  "outline", "outline"))
+#     m.append_style("contour", generateSinglePolygonStyle("contourData.geojson", .20, 1))
+#     m.layers.append(generateLayer("contourData.geojson",
+#                                   "contour", "contour"))
+#
+#     m.append_style("outline", generateLineStyle("darkblue", 1.0))
+#     m.layers.append(generateLayer("contourData.geojson",
+#                                   "outline", "outline"))
 
     m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0.7))
     m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
@@ -97,8 +97,8 @@ def makeMap():
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
-    label = Labels()
-    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
+    # label = Labels()
+    # label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
 
     mapnik.load_map(m, Constants.FILE_NAME_MAP)
 
@@ -108,8 +108,8 @@ def makeMap():
 
 if __name__ == "__main__":
     generatePolygonFile()
-    contour = Contours('./data/data.csv', "contourData.geojson")
-    contour.makeContourFeatureCollection()
+    # contour = Contours('./data/data.csv', "contourData.geojson")
+    # contour.makeContourFeatureCollection()
     makeMap()
 
     mapfile = Constants.FILE_NAME_MAP

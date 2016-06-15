@@ -1,4 +1,5 @@
 from scipy.spatial import Voronoi, voronoi_plot_2d
+import math
 from Vertex import Vertex
 import Constants
 import Util
@@ -48,12 +49,30 @@ class BorderFactory(object):
         return vert_reg_idxs_dict, vert_reg_labs_dict, group_vert_dict
 
     @staticmethod
+    def _make_is_region_large_array(vor):
+        is_region_large = []
+        for region in vor.regions:
+            is_large = False
+            n = len(region)
+            for i in range(n):
+                if region[i] == -1 or region[(i+1)%n] == -1:
+                    is_large = True
+                else:
+                    point1 = vor.vertices[region[i]]
+                    point2 = vor.vertices[region[(i+1)%n]]
+                    length = math.hypot(point1[0]-point2[0], point1[1]-point2[1])
+                    is_large = length > Constants.REGION_BORDER_SIZE
+            is_region_large.append(is_large)
+        return is_region_large
+
+    @staticmethod
     def _make_vertex_array(vor, adj_lst, vert_reg_idxs_dict,
                            vert_reg_labs_dict):
         vert_arr = []
+        is_region_large = BorderFactory._make_is_region_large_array(vor)
         for i, v in enumerate(vor.vertices):
             vert_arr.append(Vertex(v[0], v[1], i, adj_lst[i],
-                            vert_reg_idxs_dict[i], vert_reg_labs_dict[i]))
+                            vert_reg_idxs_dict[i], vert_reg_labs_dict[i], is_region_large))
         return vert_arr
 
     @staticmethod
