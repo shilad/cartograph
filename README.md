@@ -102,3 +102,22 @@ cd ~/src/mod_tile/
 ```
 ### Take a look!
 Then open up your friendly neighborhood web browser and point it at [http://localhost/map.html](http://localhost/map.html) ...and you should have a map!
+
+## Know Oddities
+
+### If you get an error when trying to run again with renderd.sock...
+Try remaking the renderd directory
+```
+sudo mkdir /var/run/renderd
+sudo chown research /var/run/renderd
+```
+### Also make sure to...
+Link the renderd.conf file to another place that some things might end up looking for it...
+```
+cd ~/src/mod_tile/
+sudo ln renderd.conf /usr/local/etc/renderd.conf
+```
+Take ownership of the tiles directory to access them...
+```
+sudo chown -R research.research /var/www/html/tiles/
+```

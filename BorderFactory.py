@@ -1,4 +1,4 @@
-from scipy.spatial import Voronoi, voronoi_plot_2d
+from scipy.spatial import Voronoi
 from Vertex import Vertex
 import Constants
 import Util

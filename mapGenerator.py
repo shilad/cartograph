@@ -4,6 +4,7 @@ from MapRepresentations import Continent
 from BorderFactory import BorderFactory
 from histToContour import Contours
 from generateTiles import render_tiles
+from shutil import rmtree
 from addLabelsXml import Labels
 import Constants
 
@@ -24,6 +25,7 @@ def generateFeatureList(pointList):
 def generatePolygonFile():
     clusterList = BorderFactory.from_file().build().values()
     for index, cluster in enumerate(clusterList):
+        print "Generating cluster", index
         featureList = generateFeatureList(cluster)
         fullFeatureList.append(featureList)
 
@@ -32,7 +34,8 @@ def generatePolygonFile():
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity):
-    colorWheel = ["#9AFFFC", "#9AFFDA", "#9AFFFB", "#FF9AF1", "#FFA79A", "#CCCCCC", "#DA9AFF", "#FFDA9A", "#FFD7B1", "#FF9ABE"]
+    colorWheel = ["#9AFFFC", "#9AFFDA", "#9AFFFB", "#FF9AF1", "#FFA79A",
+                  "#CCCCCC", "#DA9AFF", "#FFDA9A", "#FFD7B1", "#FF9ABE"]
     s = mapnik.Style()
     for i in range(len(fullFeatureList)):
         r = mapnik.Rule()
@@ -46,15 +49,16 @@ def generateCountryPolygonStyle(filename, opacity):
     return s
 
 
-def generateSinglePolygonStyle(filename, opacity, color):
+# ===== Generate Map File =====
+def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
     s = mapnik.Style()
     r = mapnik.Rule()
     symbolizer = mapnik.PolygonSymbolizer()
     symbolizer.fill = mapnik.Color('steelblue')
     symbolizer.fill_opacity = opacity
+    symbolizer.gamma = gamma
     r.symbols.append(symbolizer)
     s.rules.append(r)
-
     return s
 
 
@@ -107,12 +111,19 @@ def makeMap():
     print "rendered image to", Constants.FILE_NAME_IMGNAME
 
 if __name__ == "__main__":
+    print "Generating Polygons"
     generatePolygonFile()
+
+    print "Generating Contours"
     contour = Contours(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
     contour.makeContourFeatureCollection()
+
+    print "Making Map XML"
     makeMap()
 
     mapfile = Constants.FILE_NAME_MAP
     tile_dir = Constants.DIRECTORY_NAME_TILES
+
     bbox = (-180.0, -90.0, 180.0, 90.0)
+    rmtree(tile_dir)
     render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
