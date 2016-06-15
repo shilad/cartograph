@@ -5,6 +5,7 @@ import scipy.ndimage
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
 import copy
+import Util
 
 class Contours:
 
@@ -15,9 +16,9 @@ class Contours:
 
 
 	def _calc_contour(self, csvFile, binSize):
-		xyCoords = np.genfromtxt(csvFile, delimiter=',', usecols=(0, 1), skip_header=1)
-		x = xyCoords[:, 0]
-		y = xyCoords[:, 1]
+		xyCoords = Util.read_tsv(csvFile)
+		x = map(float, xyCoords[0])
+		y = map(float, xyCoords[1])
 		contBuffer = 20
 
 		H, yedges, xedges = np.histogram2d(y, x, bins=binSize,

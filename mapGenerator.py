@@ -83,12 +83,12 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateSinglePolygonStyle("contourData.geojson", .20, 1))
-    m.layers.append(generateLayer("contourData.geojson",
+    m.append_style("contour", generateSinglePolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, .20, 1))
+    m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
     m.append_style("outline", generateLineStyle("darkblue", 1.0))
-    m.layers.append(generateLayer("contourData.geojson",
+    m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
     m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0.7))
