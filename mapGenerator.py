@@ -33,7 +33,7 @@ def generatePolygonFile():
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity):
-    colorWheel = ["#9AFFFC", "#9AFFDA", "#9AFFFB", "#FF9AF1", "#FFA79A", "#CCCCCC", "#DA9AFF", "#FFDA9A", "#FFD7B1", "#FF9ABE", "#FFFFFF"]
+    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#FFFFFF"]
     s = mapnik.Style()
     for i in range(len(fullFeatureList)):
         r = mapnik.Rule()
