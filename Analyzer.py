@@ -19,8 +19,8 @@ class Analyzer:
         self.save_output = save_output
 
     def save_to_files(self):
-        Util.write_tsv("/Users/research/Desktop/testing.tsv", ["x", "y", "clusters"], [self.x, self.y, self.clusters])
-        Util.write_tsv("/Users/research/Desktop/testing2.tsv", ["names", "clusters"], [self.names, self.clusters])
+        Util.write_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS, ["x", "y", "clusters"], [self.x, self.y, self.clusters])
+        Util.write_tsv(Constants.FILE_NAME_NAMES_AND_CLUSTERS, ["names", "clusters"], [self.names, self.clusters])
 
     @staticmethod
     def _read_wikibrain_out():
@@ -45,7 +45,7 @@ class Analyzer:
         print "k-means done"
         self._do_tSNE()
         print "t-SNE done"
-        # self._denoise()
+        self._denoise()
         print "Denoising done"
         if self.save_output:
             self.save_to_files()

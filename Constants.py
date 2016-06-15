@@ -9,6 +9,7 @@ TSNE_THETA = 0.5  # lower values make more accurate maps, but takes (much) longe
 
 # ========== BorderFactory ==========
 SEARCH_RADIUS = 5  # acts as proxy for water level, lower  values leads to higher water
+REGION_BORDER_SIZE = 2
 MIN_NUM_IN_CLUSTER = 10  # eliminates noise
 
 
