@@ -19,8 +19,8 @@ class Analyzer:
         self.save_output = save_output
 
     def save_to_files(self):
-        Util.write_tsv("/Users/research/Desktop/testing.tsv", ["x", "y", "clusters"], [self.x, self.y, self.clusters])
-        Util.write_tsv("/Users/research/Desktop/testing2.tsv", ["names", "clusters"], [self.names, self.clusters])
+        Util.write_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS, ["x", "y", "clusters"], [self.x, self.y, self.clusters])
+        Util.write_tsv(Constants.FILE_NAME_NAMES_AND_CLUSTERS, ["names", "clusters"], [self.names, self.clusters])
 
     @staticmethod
     def _read_wikibrain_out():
@@ -28,10 +28,20 @@ class Analyzer:
         names = Util.read_tsv(Constants.FILE_NAME_WIKIBRAIN_NAMES)
         return np.array(matrix), names[0]
 
-    def _do_tSNE(self, pca_d=None):
-        out = bh_sne(self.vecs, pca_d=pca_d)
+    def _do_tSNE(self):
+        out = bh_sne(self.vecs, pca_d=Constants.TSNE_PCA_DIMENSIONS, theta=Constants.TSNE_THETA)
         self.x = out[:, 0]
         self.y = out[:, 1]
+
+    def _add_water(self):
+        length = len(self.x)
+        water_x = np.random.uniform(np.min(self.x)-3, np.max(self.x)+3, int(length*Constants.PERCENTAGE_WATER))
+        water_y = np.random.uniform(np.min(self.y)-3, np.max(self.y)+3, int(length*Constants.PERCENTAGE_WATER))
+        self.x = np.append(self.x, water_x)
+        self.y = np.append(self.y, water_y)
+        self.clusters = np.append(self.clusters, np.full(int(length*Constants.PERCENTAGE_WATER), max(self.clusters)+1, dtype=np.int))
+        self.names = np.append(self.names, np.full(int(length*Constants.PERCENTAGE_WATER), max(self.clusters)+1, dtype = np.int))
+
 
     def _do_k_means(self, num_clusters=10):
         self.clusters = KMeans(num_clusters).fit(self.vecs).labels_
@@ -45,7 +55,9 @@ class Analyzer:
         print "k-means done"
         self._do_tSNE()
         print "t-SNE done"
-        # self._denoise()
+        self._add_water()
+        print "add water done"
+        self._denoise()
         print "Denoising done"
         if self.save_output:
             self.save_to_files()
@@ -53,6 +65,6 @@ class Analyzer:
 
 
 if __name__ == '__main__':
-    analyzer = Analyzer(subset=1000, save_output=True)
+    analyzer = Analyzer(subset=10000, save_output=True)
     analyzer.analyze()
     analyzer.save_to_files()
