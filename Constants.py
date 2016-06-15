@@ -6,9 +6,12 @@ FILE_NAME_COORDS_AND_CLUSTERS = "./data/coords_and_clusters.tsv"
 
 NUM_CLUSTERS = 10  # number of clusters to generate from K-means
 TSNE_THETA = 0.5  # lower values make more accurate maps, but takes (much) longer
+PERCENTAGE_WATER = 0.5
+
+
 
 # ========== BorderFactory ==========
-SEARCH_RADIUS = 5  # acts as proxy for water level, lower  values leads to higher water
+SEARCH_RADIUS = 10  # acts as proxy for water level, lower  values leads to higher water
 REGION_BORDER_SIZE = 2
 MIN_NUM_IN_CLUSTER = 10  # eliminates noise
 
