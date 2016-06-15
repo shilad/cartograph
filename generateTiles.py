@@ -109,18 +109,14 @@ class RenderThread:
             else:
                 (name, tile_uri, x, y, z) = r
 
-            exists = ""
-            if os.path.isfile(tile_uri):
-                exists = "exists"
-            else:
-                self.render_tile(tile_uri, x, y, z)
+            self.render_tile(tile_uri, x, y, z)
             bytes = os.stat(tile_uri)[6]
             empty = ''
             if bytes == 103:
                 empty = " Empty Tile "
             self.printLock.acquire()
             if y == 0:
-                print name, ":", z, x, y, exists, empty
+                print name, ":", z, x, y, empty
             self.printLock.release()
             self.q.task_done()
 
