@@ -13,9 +13,9 @@ MIN_NUM_IN_CLUSTER = 10  # eliminates noise
 
 
 # ========== mapGenerator ==========
-SERVER_DIRECTORY_NAME = "/var/www/html/tiles"
-LOCAL_DIRECTORY_NAME = "./data/tiles"
-DIRECTORY_NAME_TILES = SERVER_DIRECTORY_NAME
+_localTiles = "./data/tiles/"
+_serverTiles = "/var/www/html/tiles/"
+DIRECTORY_NAME_TILES = _localTiles
 FILE_NAME_REGION_NAMES = "./data/top_categories.tsv"
 FILE_NAME_IMGNAME = "./data/world"
 FILE_NAME_COUNTRIES = "./data/countries.geojson"

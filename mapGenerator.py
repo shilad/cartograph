@@ -106,6 +106,7 @@ def makeMap():
 
     mapnik.load_map(m, Constants.FILE_NAME_MAP)
 
+
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
     print "rendered image to", Constants.FILE_NAME_IMGNAME
