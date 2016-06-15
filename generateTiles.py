@@ -83,7 +83,8 @@ class RenderThread:
         c1 = self.prj.forward(mapnik.Coord(l1[0], l1[1]))
 
         # Bounding box for the tile
-        if hasattr(mapnik, 'mapnik_version') and mapnik.mapnik_version() >= 800:
+        if hasattr(mapnik, 'mapnik_version') and \
+           mapnik.mapnik_version() >= 800:
             bbox = mapnik.Box2d(c0.x, c0.y, c1.x, c1.y)
         else:
             bbox = mapnik.Envelope(c0.x, c0.y, c1.x, c1.y)
@@ -118,7 +119,8 @@ class RenderThread:
             if bytes == 103:
                 empty = " Empty Tile "
             self.printLock.acquire()
-            print name, ":", z, x, y, exists, empty
+            if y == 0:
+                print name, ":", z, x, y, exists, empty
             self.printLock.release()
             self.q.task_done()
 
@@ -188,17 +190,16 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18,
         renderers[i].join()
 
 
-
 if __name__ == "__main__":
     mapfile = "map.xml"
     tile_dir = "/var/www/html/tiles/"
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     #
     # Change the following for different bounding boxes and zoom levels
     #
     # Start with an overview
     # World
-    bbox = (-180.0,-90.0, 180.0,90.0)
+    bbox = (-180.0, -90.0, 180.0, 90.0)
 
     render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")

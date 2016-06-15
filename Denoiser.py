@@ -14,7 +14,8 @@ class Denoiser:
     def _make_filter(self, tau=10):
         graph = graphs.NNGraph(zip(self.x, self.y), k=self.num_clusters)
         graph.estimate_lmax()
-        fn = filters.Heat(graph, tau=tau)  # higher tau, spikier signal, less points
+        # higher tau, spikier signal, less points
+        fn = filters.Heat(graph, tau=tau)
         return fn
 
     def _filter_in(self):
