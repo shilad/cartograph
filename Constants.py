@@ -1,4 +1,4 @@
- # ========== Analyzer ==========
+# ========== Analyzer ==========
 FILE_NAME_WIKIBRAIN_VECS = "./data/vecs.tsv"
 FILE_NAME_WIKIBRAIN_NAMES = "./data/names.tsv"
 FILE_NAME_NAMES_AND_CLUSTERS = "./data/names_and_clusters.tsv"
@@ -19,4 +19,3 @@ FILE_NAME_IMGNAME = "./data/world"
 FILE_NAME_COUNTRIES = "./data/countries.geoJSON"
 FILE_NAME_CONTOUR_DATA = "contourData.geojson"
 FILE_NAME_MAP = "map.xml"
-

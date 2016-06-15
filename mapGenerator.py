@@ -3,7 +3,6 @@ from MapRepresentations import continentListToFile
 from MapRepresentations import Continent
 from BorderFactory import BorderFactory
 from histToContour import Contours
-from geojson import Feature, FeatureCollection, dumps, Polygon
 from generateTiles import render_tiles
 from addLabelsXml import Labels
 import Constants
@@ -41,10 +40,11 @@ def generateCountryPolygonStyle(filename, opacity):
         symbolizer.fill = mapnik.Color(colorWheel[i])
         symbolizer.fill_opacity = opacity
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Filter('[clusterNum].match("'+ str(i) + '")')
+        r.filter = mapnik.Filter('[clusterNum].match("' + str(i) + '")')
         s.rules.append(r)
 
     return s
+
 
 def generateSinglePolygonStyle(filename, opacity, color):
     s = mapnik.Style()
