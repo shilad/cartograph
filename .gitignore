@@ -3,14 +3,17 @@
 *.svg
 *.pyc
 *.geoJson
-./tiles/
+*.json
+*.geoJSON
+*.geojson
+./data/tiles/
 *.xml
 
 /.idea
 /data/vecs.tsv
 /data/names.tsv
 /data/testing.csv
-
+./data/*.zip
 .DS_Store
 /data/.DS_Store
 /install/.DS_Store

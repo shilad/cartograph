@@ -16,7 +16,7 @@ MIN_NUM_IN_CLUSTER = 10  # eliminates noise
 DIRECTORY_NAME_TILES = "/var/www/html/tiles/"
 FILE_NAME_REGION_NAMES = "./data/top_categories.tsv"
 FILE_NAME_IMGNAME = "./data/world"
-FILE_NAME_COUNTRIES = "./data/countries.geoJSON"
+FILE_NAME_COUNTRIES = "./data/countries.geojson"
 FILE_NAME_CONTOUR_DATA = "contourData.geojson"
 FILE_NAME_MAP = "map.xml"
 
