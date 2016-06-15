@@ -33,6 +33,15 @@ class Analyzer:
         self.x = out[:, 0]
         self.y = out[:, 1]
 
+    def _add_water(self):
+        water_x = np.random.uniform(np.min(self.x)-3, np.max(self.x)+3, len(self.x))
+        water_y = np.random.uniform(np.min(self.y)-3, np.max(self.y)+3, len(self.y))
+        self.x = np.append(self.x, water_x)
+        self.y = np.append(self.y, water_y)
+        self.clusters = np.append(self.clusters, np.full(len(water_x), max(self.clusters)+1, dtype=np.int))
+        self.names = np.append(self.names, np.full(len(water_x), max(self.clusters)+1))
+
+
     def _do_k_means(self, num_clusters=10):
         self.clusters = KMeans(num_clusters).fit(self.vecs).labels_
 
@@ -45,6 +54,8 @@ class Analyzer:
         print "k-means done"
         self._do_tSNE()
         print "t-SNE done"
+        self._add_water()
+        print "add water done"
         self._denoise()
         print "Denoising done"
         if self.save_output:
