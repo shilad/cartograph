@@ -121,3 +121,11 @@ Take ownership of the tiles directory to access them...
 ```
 sudo chown -R research.research /var/www/html/tiles/
 ```
+Restart the apache server
+```
+sudo service apache2 reload
+```
+If you get an error saying the server is offline, try
+```
+sudo service apache2 start
+```
