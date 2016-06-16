@@ -10,7 +10,6 @@ TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
 PERCENTAGE_WATER = 0.3
 
 
-
 # ========== BorderFactory ==========
 SEARCH_RADIUS = 50  # acts as proxy for water level, lower  values leads to higher water
 REGION_BORDER_SIZE = 2
@@ -20,7 +19,7 @@ MIN_NUM_IN_CLUSTER = 30  # eliminates noise
 # ========== mapGenerator ==========
 _localTiles = "./data/tiles/"
 _serverTiles = "/var/www/html/tiles/"
-DIRECTORY_NAME_TILES = _localTiles
+DIRECTORY_NAME_TILES = _serverTiles
 FILE_NAME_REGION_NAMES = "./data/top_categories.tsv"
 FILE_NAME_IMGNAME = "./data/world"
 FILE_NAME_COUNTRIES = "./data/countries.geojson"
