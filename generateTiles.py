@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from math import pi, sin, log, exp, atan
+import Util
+import Constants
 import os
 from Queue import Queue
 
@@ -187,8 +189,8 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18,
 
 
 if __name__ == "__main__":
-    mapfile = "map.xml"
-    tile_dir = "/var/www/html/tiles/"
+    mapfile = Constants.FILE_NAME_MAP
+    tile_dir = Constants.DIRECTORY_NAME_TILES
 
     # -------------------------------------------------------------------------
     #

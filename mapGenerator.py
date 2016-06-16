@@ -126,4 +126,4 @@ if __name__ == "__main__":
 
     bbox = (-180.0, -90.0, 180.0, 90.0)
     rmtree(tile_dir)
-    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 7, "World")

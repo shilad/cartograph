@@ -31,4 +31,3 @@ def write_tsv(filename, headers, data):
             row = [col[row_num] for col in data]
             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
             f.write(s)
-
