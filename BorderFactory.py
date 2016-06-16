@@ -15,9 +15,9 @@ class BorderFactory(object):
     @classmethod
     def from_file(cls):
         coords_and_clusters = Util.read_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
-        x = map(float, coords_and_clusters[0])
-        y = map(float, coords_and_clusters[1])
-        clusters = map(int, coords_and_clusters[2])
+        x = map(float, coords_and_clusters["x"])
+        y = map(float, coords_and_clusters["y"])
+        clusters = map(int, coords_and_clusters["clusters"])
         return cls(x, y, clusters)
 
     @staticmethod

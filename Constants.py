@@ -8,7 +8,7 @@ FILE_NAME_TSNE_CACHE = "./data/cache/tsne_cache.tsv"
 NUM_CLUSTERS = 10  # number of clusters to generate from K-means
 TSNE_THETA = 0.5  # lower values make more accurate maps, but takes (much) longer
 TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
-PERCENTAGE_WATER = 0.3
+PERCENTAGE_WATER = 0.1
 
 
 

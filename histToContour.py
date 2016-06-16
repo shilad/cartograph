@@ -16,8 +16,8 @@ class Contours:
 
     def _calc_contour(self, csvFile, binSize):
         xyCoords = Util.read_tsv(csvFile)
-        x = map(float, xyCoords[0])
-        y = map(float, xyCoords[1])
+        x = map(float, xyCoords["x"])
+        y = map(float, xyCoords["y"])
         contBuffer = 20
 
         H, yedges, xedges = np.histogram2d(y, x,
