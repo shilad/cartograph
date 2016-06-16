@@ -1,5 +1,4 @@
 from scipy.spatial import Voronoi
-import math
 from Vertex import Vertex
 import Constants
 import Util
@@ -41,39 +40,21 @@ class BorderFactory(object):
         for label in set(cluster_labels):
             group_vert_dict[label] = set()
         for i, reg_idx in enumerate(vor.point_region):
-            region_idxs = vor.regions[reg_idx]
+            vert_idxs = vor.regions[reg_idx]
             label = cluster_labels[i]
-            group_vert_dict[label].update(region_idxs)
-            for vert_idx in region_idxs:
+            group_vert_dict[label].update(vert_idxs)
+            for vert_idx in vert_idxs:
                 vert_reg_idxs_dict[vert_idx].append(reg_idx)
                 vert_reg_labs_dict[vert_idx].append(label)
         return vert_reg_idxs_dict, vert_reg_labs_dict, group_vert_dict
 
     @staticmethod
-    def _make_is_region_large_array(vor):
-        is_region_large = []
-        for region in vor.regions:
-            is_large = False
-            n = len(region)
-            for i in range(n):
-                if region[i] == -1 or region[(i+1)%n] == -1:
-                    is_large = True
-                else:
-                    point1 = vor.vertices[region[i]]
-                    point2 = vor.vertices[region[(i+1)%n]]
-                    length = math.hypot(point1[0]-point2[0], point1[1]-point2[1])
-                    is_large = length > Constants.REGION_BORDER_SIZE
-            is_region_large.append(is_large)
-        return is_region_large
-
-    @staticmethod
     def _make_vertex_array(vor, adj_lst, vert_reg_idxs_dict,
                            vert_reg_labs_dict):
         vert_arr = []
-        is_region_large = BorderFactory._make_is_region_large_array(vor)
         for i, v in enumerate(vor.vertices):
             vert_arr.append(Vertex(v[0], v[1], i, adj_lst[i],
-                            vert_reg_idxs_dict[i], vert_reg_labs_dict[i], is_region_large))
+                            vert_reg_idxs_dict[i], vert_reg_labs_dict[i]))
         return vert_arr
 
     @staticmethod
