@@ -1,3 +1,5 @@
+from __future__ import  print_function
+import os
 import numpy as np
 from tsne import bh_sne
 from sklearn.cluster import KMeans
@@ -18,9 +20,9 @@ class Analyzer:
         self.clusters = []
         self.save_output = save_output
 
-    def save_to_files(self):
-        Util.write_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS, ["x", "y", "clusters"], [self.x, self.y, self.clusters])
-        Util.write_tsv(Constants.FILE_NAME_NAMES_AND_CLUSTERS, ["names", "clusters"], [self.names, self.clusters])
+    def save_to_files(self, filename1, filename2):
+        Util.write_tsv(filename1, ["x", "y", "clusters"], [self.x, self.y, self.clusters])
+        Util.write_tsv(filename2, ["names", "clusters"], [self.names, self.clusters])
 
     @staticmethod
     def _read_wikibrain_out():
@@ -28,43 +30,60 @@ class Analyzer:
         names = Util.read_tsv(Constants.FILE_NAME_WIKIBRAIN_NAMES)
         return np.array(matrix), names[0]
 
-    def _do_tSNE(self):
-        out = bh_sne(self.vecs, pca_d=Constants.TSNE_PCA_DIMENSIONS, theta=Constants.TSNE_THETA)
-        self.x = out[:, 0]
-        self.y = out[:, 1]
+    @staticmethod
+    def _do_tSNE(vecs):
+        out = bh_sne(vecs, pca_d=Constants.TSNE_PCA_DIMENSIONS, theta=Constants.TSNE_THETA)
+        return out[:, 0], out[:, 1]
 
-    def _add_water(self):
-        length = len(self.x)
-        water_x = np.random.uniform(np.min(self.x)-3, np.max(self.x)+3, int(length*Constants.PERCENTAGE_WATER))
-        water_y = np.random.uniform(np.min(self.y)-3, np.max(self.y)+3, int(length*Constants.PERCENTAGE_WATER))
-        self.x = np.append(self.x, water_x)
-        self.y = np.append(self.y, water_y)
-        self.clusters = np.append(self.clusters, np.full(int(length*Constants.PERCENTAGE_WATER), max(self.clusters)+1, dtype=np.int))
-        self.names = np.append(self.names, np.full(int(length*Constants.PERCENTAGE_WATER), max(self.clusters)+1, dtype = np.int))
+    @staticmethod
+    def _add_water(x, y, clusters, names):
+        length = len(x)
+        water_x = np.random.uniform(np.min(x)-3, np.max(x)+3, int(length*Constants.PERCENTAGE_WATER))
+        water_y = np.random.uniform(np.min(y)-3, np.max(y)+3, int(length*Constants.PERCENTAGE_WATER))
+        x = np.append(x, water_x)
+        y = np.append(y, water_y)
+        clusters = np.append(clusters, np.full(int(length*Constants.PERCENTAGE_WATER), max(clusters)+1, dtype=np.int))
+        names = np.append(names, np.full(int(length*Constants.PERCENTAGE_WATER), max(clusters)+1, dtype = np.int))
+        return x, y, clusters, names
 
+    @staticmethod
+    def _do_k_means(vecs, num_clusters=10):
+        return KMeans(num_clusters).fit(vecs).labels_
 
-    def _do_k_means(self, num_clusters=10):
-        self.clusters = KMeans(num_clusters).fit(self.vecs).labels_
+    @staticmethod
+    def _denoise(x, y, clusters, names):
+        return Denoiser(x, y, clusters, names).denoise()
 
-    def _denoise(self):
-        self.x, self.y, self.clusters, self.names = Denoiser(self.x, self.y, self.clusters, self.names).denoise()
+    def analyze(self, use_cache=True):
+        print("Analyzing")
+        if use_cache and os.path.exists(Constants.FILE_NAME_TSNE_CACHE):
+            print("Using cache for t-SNE")
+            file_out = Util.read_tsv(Constants.FILE_NAME_TSNE_CACHE)
+            self.x = map(float, file_out[0])
+            self.y = map(float, file_out[1])
+        else:
+            print("Doing t-SNE...")
+            self.x, self.y = self._do_tSNE(self.vecs)
+            Util.write_tsv(Constants.FILE_NAME_TSNE_CACHE, ("x", "y"), (self.x, self.y))
+        print("t-SNE done")
 
-    def analyze(self):
-        print "Analyzing"
-        self._do_k_means()
-        print "k-means done"
-        self._do_tSNE()
-        print "t-SNE done"
-        self._add_water()
-        print "add water done"
-        self._denoise()
-        print "Denoising done"
+        print("Doing k-means...")
+        self.clusters = self._do_k_means(self.vecs)
+        print("k-means done")
+
+        print("Adding water...")
+        self.x, self.y, self.clusters, self.names = self._add_water(self.x, self.y, self.clusters, self.names)
+        print("Adding water done")
+
+        print("Denoising...")
+        self.x, self.y, self.clusters, self.names = self._denoise(self.x, self.y, self.clusters, self.names)
+        print("Denoising done")
+
         if self.save_output:
-            self.save_to_files()
+            self.save_to_files(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_NAMES_AND_CLUSTERS)
+            print("Output saved to", Constants.FILE_NAME_COORDS_AND_CLUSTERS, "and", Constants.FILE_NAME_NAMES_AND_CLUSTERS)
         return self.x, self.y, self.clusters, self.names
 
 
 if __name__ == '__main__':
-    analyzer = Analyzer(subset=10000, save_output=True)
-    analyzer.analyze()
-    analyzer.save_to_files()
+    Analyzer(subset=10000, save_output=True).analyze(use_cache=True)
