@@ -50,7 +50,7 @@ class Continent(object):
         label = Util.read_tsv(Constants.FILE_NAME_REGION_NAMES)
         feature = self.reduceToArray()
         shape = Polygon([feature])
-        return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label[1][numStr]})
+        return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label["label"][numStr]})
 
 
 class Edgelet():

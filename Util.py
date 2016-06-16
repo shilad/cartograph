@@ -5,15 +5,16 @@ import Constants
 def read_tsv(filename):
     with codecs.open(filename, "r", encoding="utf-8") as f:
         headers = f.readline().rstrip("\n").split("\t")
-        data = [[] for _ in headers]
+        data = {header: [] for header in headers}
         for line in f:
             row = line.rstrip("\n").split("\t")
             for i, string in enumerate(row):
-                data[i].append(string)
+                data[headers[i]].append(string)
     return data
 
 
 def read_wikibrain_vecs():
+    """We need this function since the file is organized by rows, not columns"""
     matrix = []
     with open(Constants.FILE_NAME_WIKIBRAIN_VECS, "r") as vecs:
         vecs.readline()

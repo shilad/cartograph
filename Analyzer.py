@@ -10,7 +10,7 @@ import Util
 
 class Analyzer:
 
-    def __init__(self, subset=0, save_output=True):
+    def __init__(self, subset=0, save_output=True, use_cache=True):
         self.vecs, self.names = self._read_wikibrain_out()
         if subset:
             self.vecs = self.vecs[:subset]
@@ -19,6 +19,7 @@ class Analyzer:
         self.y = []
         self.clusters = []
         self.save_output = save_output
+        self.use_cache = use_cache
 
     def save_to_files(self, filename1, filename2):
         Util.write_tsv(filename1, ["x", "y", "clusters"], [self.x, self.y, self.clusters])
@@ -28,7 +29,7 @@ class Analyzer:
     def _read_wikibrain_out():
         matrix = Util.read_wikibrain_vecs()
         names = Util.read_tsv(Constants.FILE_NAME_WIKIBRAIN_NAMES)
-        return np.array(matrix), names[0]
+        return np.array(matrix), names["names"]
 
     @staticmethod
     def _do_tSNE(vecs):
@@ -47,20 +48,20 @@ class Analyzer:
         return x, y, clusters, names
 
     @staticmethod
-    def _do_k_means(vecs, num_clusters=10):
-        return KMeans(num_clusters).fit(vecs).labels_
+    def _do_k_means(vecs):
+        return KMeans(Constants.NUM_CLUSTERS, random_state=42).fit(vecs).labels_
 
     @staticmethod
     def _denoise(x, y, clusters, names):
         return Denoiser(x, y, clusters, names).denoise()
 
-    def analyze(self, use_cache=True):
+    def analyze(self):
         print("Analyzing")
-        if use_cache and os.path.exists(Constants.FILE_NAME_TSNE_CACHE):
+        if self.use_cache and os.path.exists(Constants.FILE_NAME_TSNE_CACHE):
             print("Using cache for t-SNE")
             file_out = Util.read_tsv(Constants.FILE_NAME_TSNE_CACHE)
-            self.x = map(float, file_out[0])
-            self.y = map(float, file_out[1])
+            self.x = map(float, file_out["x"])
+            self.y = map(float, file_out["y"])
         else:
             print("Doing t-SNE...")
             self.x, self.y = self._do_tSNE(self.vecs)
@@ -86,4 +87,4 @@ class Analyzer:
 
 
 if __name__ == '__main__':
-    Analyzer(subset=10000, save_output=True).analyze(use_cache=True)
+    Analyzer(save_output=True, use_cache=True).analyze()
