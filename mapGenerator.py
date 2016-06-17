@@ -66,7 +66,7 @@ def generateLayer(jsonFile, name, styleName):
 
 
 def makeMap():
-    m = mapnik.Map(1200, 600)
+    m = mapnik.Map(1000, 1000)
     m.background = mapnik.Color('white')
 
 
@@ -89,7 +89,6 @@ def makeMap():
     label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
 
     mapnik.load_map(m, Constants.FILE_NAME_MAP)
-
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
