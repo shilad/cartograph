@@ -95,5 +95,3 @@ class BorderGeoJSONWriter:
         def collapseHoles(self):
             for continent in self.root:
                 continent.collapseHoles()
-
-
