@@ -13,7 +13,7 @@ class Labels():
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Book')
-        # textSym.set('size', '19')
+        textSym.set('size', '12')
 
     def _add_Text_Layer(self, field, geojsonFile):
         layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + 'Layer')

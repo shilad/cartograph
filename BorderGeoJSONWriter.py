@@ -1,0 +1,96 @@
+from geojson import Feature, FeatureCollection
+from geojson import dumps, Polygon
+import matplotlib.path as mplPath
+import Util
+import Constants
+
+
+class BorderGeoJSONWriter:
+
+    def __init__(self, clusterList):
+        self.clusterList = clusterList
+        self.continentTree = self._buildContinentTree()
+
+    def _buildContinentTree(self):
+        continentTree = BorderGeoJSONWriter.ContinentTree()
+        for clusterNum, cluster in enumerate(self.clusterList):
+            for continentPoints in cluster:
+                continent = BorderGeoJSONWriter.Continent(continentPoints, clusterNum, 0, False)
+                continentTree.addContinent(continent)
+        continentTree.collapseHoles()
+        return continentTree
+
+    @staticmethod
+    def _generateJSONFeature(points, numStr):
+        label = Util.read_tsv(Constants.FILE_NAME_REGION_NAMES)
+        shape = Polygon(points)
+        return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label["label"][numStr]})
+
+    def writeToFile(self, filename):
+        continentList = []
+        searchStack = []
+        for continent in self.continentTree.root:
+            searchStack.append(continent)
+        while searchStack:
+            continent = searchStack.pop()
+            for child in continent.children:
+                searchStack.append(child)
+            numToAdd = continent.depth + 1 - len(continentList)
+            for _ in range(numToAdd):
+                continentList.append([])
+            continentList[continent.depth].append(continent)
+
+        featureList = []
+        for level in continentList:
+            for continent in level:
+                featureList.append(self._generateJSONFeature(continent.points, continent.clusterNum))
+        collection = FeatureCollection(featureList)
+        textDump = dumps(collection)
+        with open(filename, "w") as writeFile:
+            writeFile.write(textDump)
+
+    class Continent:
+
+        def __init__(self, points, clusterNum, depth, isHole):
+            self.points = [points]
+            self.clusterNum = clusterNum
+            self.children = set()
+            self.depth = depth
+            self.isHole = isHole
+
+        def addInnerContinent(self, newContinent):
+            for continent in self.children:
+                path = mplPath.Path(continent.points[0])
+                if path.contains_point(newContinent.points[0][0]):
+                    newContinent.depth = self.depth + 1
+                    if self.clusterNum == newContinent.clusterNum:
+                        newContinent.isHole = True
+                    continent.addInnerContinent(newContinent)
+                    return
+            self.children.add(newContinent)
+
+        def collapseHoles(self):
+            for continent in self.children:
+                if continent.isHole:
+                    continent.collapseHoles()
+                    for hole in continent.points:
+                        self.points.append(hole)
+                    self.children.remove(continent)
+
+    class ContinentTree:
+        def __init__(self):
+            self.root = set()
+
+        def addContinent(self, newContinent):
+            for continent in self.root:
+                path = mplPath.Path(continent.points[0])
+                if path.contains_point(newContinent.points[0][0]):
+                    continent.addInnerContinent(newContinent)
+                    return
+            self.root.add(newContinent)
+
+        def collapseHoles(self):
+            for continent in self.root:
+                continent.collapseHoles()
+
+

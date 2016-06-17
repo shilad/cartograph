@@ -1,6 +1,5 @@
 import mapnik
-from MapRepresentations import continentListToFile
-from MapRepresentations import Continent
+from BorderGeoJSONWriter import BorderGeoJSONWriter
 from BorderFactory import BorderFactory
 from histToContour import Contours
 from generateTiles import render_tiles
@@ -12,29 +11,16 @@ fullFeatureList = []
 
 
 # ===== Generate JSON Data ==========
-def generateFeatureList(pointList):
-    newList = []
-    for region in pointList:
-        newContinent = Continent((0, 0))
-        for point in region:
-            newContinent.addPoint(point)
-        newList.append(newContinent)
-    return newList
-
-
 def generatePolygonFile():
     clusterList = BorderFactory.from_file().build().values()
-    for index, cluster in enumerate(clusterList):
-        print "Generating cluster", index
-        featureList = generateFeatureList(cluster)
-        fullFeatureList.append(featureList)
-
-    continentListToFile(fullFeatureList, Constants.FILE_NAME_COUNTRIES)
+    BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
+    global fullFeatureList
+    fullFeatureList = clusterList
 
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity):
-    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#FFFFFF"]
+    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
     s = mapnik.Style()
     for i in range(len(fullFeatureList)):
         r = mapnik.Rule()
@@ -42,13 +28,12 @@ def generateCountryPolygonStyle(filename, opacity):
         symbolizer.fill = mapnik.Color(colorWheel[i])
         symbolizer.fill_opacity = opacity
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Filter('[clusterNum].match("' + str(i) + '")')
+        r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
         s.rules.append(r)
 
     return s
 
 
-# ===== Generate Map File =====
 def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
     s = mapnik.Style()
     r = mapnik.Rule()
@@ -86,15 +71,15 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateSinglePolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, .20, 1))
+    m.append_style("contour", generateSinglePolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, 0, 1))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
-    m.append_style("outline", generateLineStyle("darkblue", 1.0))
+    m.append_style("outline", generateLineStyle("darkblue", 0))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0.7))
+    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 1.0))
     m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
@@ -126,4 +111,4 @@ if __name__ == "__main__":
 
     bbox = (-180.0, -90.0, 180.0, 90.0)
     rmtree(tile_dir)
-    render_tiles(bbox, mapfile, tile_dir, 0, 7, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 2, "World")
