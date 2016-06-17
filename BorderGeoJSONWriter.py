@@ -3,28 +3,42 @@ from geojson import dumps, Polygon
 import matplotlib.path as mplPath
 import Util
 import Constants
+import numpy as np
 
 
 class BorderGeoJSONWriter:
 
     def __init__(self, clusterList):
-        self.clusterList = clusterList
-        self.continentTree = self._buildContinentTree()
+        biggestContinentIndexArray = self._buildBiggestContinentIndexArray(clusterList)
+        self.continentTree = self._buildContinentTree(clusterList, biggestContinentIndexArray)
 
-    def _buildContinentTree(self):
+    @staticmethod
+    def _buildBiggestContinentIndexArray(clusterList):
+        biggestContinentIndexArray = []
+        for cluster in clusterList:
+            areaList = map(Util.calc_area, cluster)
+            biggestContinentIndexArray.append(np.argmax(areaList))
+        return biggestContinentIndexArray
+
+    @staticmethod
+    def _buildContinentTree(clusterList, biggestContinentIndexArray):
         continentTree = BorderGeoJSONWriter.ContinentTree()
-        for clusterNum, cluster in enumerate(self.clusterList):
-            for continentPoints in cluster:
-                continent = BorderGeoJSONWriter.Continent(continentPoints, clusterNum, 0, False)
+        for clusterNum, cluster in enumerate(clusterList):
+            for pos, continentPoints in enumerate(cluster):
+                continent = BorderGeoJSONWriter.Continent(continentPoints, clusterNum, 0,
+                                                          False, pos == biggestContinentIndexArray[clusterNum])
                 continentTree.addContinent(continent)
         continentTree.collapseHoles()
         return continentTree
 
     @staticmethod
-    def _generateJSONFeature(points, numStr):
+    def _generateJSONFeature(continent):
         label = Util.read_tsv(Constants.FILE_NAME_REGION_NAMES)
-        shape = Polygon(points)
-        return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label["label"][numStr]})
+        shape = Polygon(continent.points)
+        properties = {"clusterNum": continent.clusterNum}
+        if continent.isBiggest:
+            properties["labels"] = label["label"][continent.clusterNum]
+        return Feature(geometry=shape, properties=properties)
 
     def writeToFile(self, filename):
         continentList = []
@@ -43,7 +57,7 @@ class BorderGeoJSONWriter:
         featureList = []
         for level in continentList:
             for continent in level:
-                featureList.append(self._generateJSONFeature(continent.points, continent.clusterNum))
+                featureList.append(self._generateJSONFeature(continent))
         collection = FeatureCollection(featureList)
         textDump = dumps(collection)
         with open(filename, "w") as writeFile:
@@ -51,12 +65,13 @@ class BorderGeoJSONWriter:
 
     class Continent:
 
-        def __init__(self, points, clusterNum, depth, isHole):
+        def __init__(self, points, clusterNum, depth, isHole, isBiggest):
             self.points = [points]
             self.clusterNum = clusterNum
             self.children = set()
             self.depth = depth
             self.isHole = isHole
+            self.isBiggest = isBiggest
 
         def addInnerContinent(self, newContinent):
             for continent in self.children:

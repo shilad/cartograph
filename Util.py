@@ -1,5 +1,6 @@
 import codecs
 import Constants
+import numpy as np
 
 
 def read_tsv(filename):
@@ -31,3 +32,10 @@ def write_tsv(filename, headers, data):
             row = [col[row_num] for col in data]
             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
             f.write(s)
+
+def calc_area(points):
+    unzipped = zip(*points)
+    x = unzipped[0]
+    y = unzipped[1]
+    # Shoelace Algorithm (a la Stackoverflow)
+    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
