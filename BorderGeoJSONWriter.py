@@ -61,7 +61,7 @@ class BorderGeoJSONWriter:
         def addInnerContinent(self, newContinent):
             for continent in self.children:
                 path = mplPath.Path(continent.points[0])
-                if path.contains_point(newContinent.points[0][0]):
+                if path.contains_points(newContinent.points[0]).all():
                     newContinent.depth = self.depth + 1
                     if self.clusterNum == newContinent.clusterNum:
                         newContinent.isHole = True
@@ -70,7 +70,7 @@ class BorderGeoJSONWriter:
             self.children.add(newContinent)
 
         def collapseHoles(self):
-            for continent in self.children:
+            for continent in list(self.children):
                 if continent.isHole:
                     continent.collapseHoles()
                     for hole in continent.points:
@@ -84,7 +84,10 @@ class BorderGeoJSONWriter:
         def addContinent(self, newContinent):
             for continent in self.root:
                 path = mplPath.Path(continent.points[0])
-                if path.contains_point(newContinent.points[0][0]):
+                if path.contains_points(newContinent.points[0]).all():
+                    newContinent.depth = continent.depth + 1
+                    if continent.clusterNum == newContinent.clusterNum:
+                        newContinent.isHole = True
                     continent.addInnerContinent(newContinent)
                     return
             self.root.add(newContinent)
