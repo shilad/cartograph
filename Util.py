@@ -1,3 +1,4 @@
+from collections import defaultdict
 import codecs
 import Constants
 
@@ -31,3 +32,30 @@ def write_tsv(filename, headers, data):
             row = [col[row_num] for col in data]
             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
             f.write(s)
+
+
+def read_features(*files):
+    values = defaultdict(dict)
+    for fn in files:
+        if fn == FILE_NAME_NUMBERED_WIKIBRAIN_VECS:
+            with open(path, "r") as f:
+                f.readline()    # skip the header
+                for line in f:
+                    tokens = line.split('\t')
+                    id = tokens[0]
+                    values['vector'] = np.array([float(t.strip()) for t in tokens[1:])
+        else:
+            with open(fn, 'r') as f:
+                fields = [s.strip() for s in f.readline().split('\t')]
+                for line in f:
+                    if line[-1] == '\n': line = line[:-1]
+                    tokens = line.split('\t')
+                    if len(tokens) == len(fields):
+                        id = tokens[0]
+                        values[id].update(zip(fields[1:], tokens[1:]))
+                    else:
+                        sys.stderr.write('invalid line %s in %s\n' % (`line`, `fn`))
+    return values
+
+if __name__ == '__main__':
+    print read_files('data/top_categories.tsv')
