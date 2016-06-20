@@ -1,6 +1,6 @@
-from __future__ import  print_function
 import os
 import numpy as np
+import tsne
 from tsne import bh_sne
 from sklearn.cluster import KMeans
 from Denoiser import Denoiser
@@ -8,9 +8,9 @@ import Constants
 import Util
 
 
-class Analyzer:
+class Analyzer():
 
-    def __init__(self, subset=0, save_output=True, use_cache=True):
+    def __init__(self, subset=0, save_output=True, use_cache=False):
         self.vecs, self.names = self._read_wikibrain_out()
         if subset:
             self.vecs = self.vecs[:subset]
@@ -20,6 +20,7 @@ class Analyzer:
         self.clusters = []
         self.save_output = save_output
         self.use_cache = use_cache
+
 
     def save_to_files(self, filename1, filename2):
         Util.write_tsv(filename1, ["x", "y", "clusters"], [self.x, self.y, self.clusters])
@@ -82,9 +83,8 @@ class Analyzer:
 
         if self.save_output:
             self.save_to_files(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_NAMES_AND_CLUSTERS)
-            print("Output saved to", Constants.FILE_NAME_COORDS_AND_CLUSTERS, "and", Constants.FILE_NAME_NAMES_AND_CLUSTERS)
         return self.x, self.y, self.clusters, self.names
 
 
 if __name__ == '__main__':
-    Analyzer(save_output=True, use_cache=True).analyze()
+    Analyzer(save_output=True, use_cache=False, subset=1000).analyze()
