@@ -96,9 +96,10 @@ class Embedding(MTimeMixin, luigi.Task):
         return WikiBrainNumbering()
 
     def run(self):
-        f = open('data/2d_embedding.tsv', 'w')
-        f.write('writing DATA\n')
-        f.close()
+        vecs = np.array(Util.read_wikibrain_vecs(Constants.FILE_NAME_WIKIBRAIN_VECS))
+        out = bh_sne(vecs, pca_d=Constants.TSNE_PCA_DIMENSIONS, theta=Constants.TSNE_THETA)
+        x, y = out[:, 0], out[:, 1]
+        Util.write_tsv(Constants.FILE_NAME_TSNE_CACHE, ("x", "y"), (x, y))
 
 
 class DenoiseAndAddWater(MTimeMixin, luigi.Task):

@@ -13,10 +13,10 @@ def read_tsv(filename):
     return data
 
 
-def read_wikibrain_vecs():
+def read_wikibrain_vecs(path):
     """We need this function since the file is organized by rows, not columns"""
     matrix = []
-    with open(Constants.FILE_NAME_WIKIBRAIN_VECS, "r") as vecs:
+    with open(path, "r") as vecs:
         vecs.readline()
         for line in vecs:
             matrix.append(map(float, line.rstrip("\n").split("\t")))
