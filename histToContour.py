@@ -53,23 +53,25 @@ class Contours:
                 v = p.vertices
                 shapes.append(v)
             plys.append(shapes)
+        return plys
 
+    def _sort_contours(self):
+        plys = self._get_contours()
         copy_lst = copy.deepcopy(plys)
         count = 0
-        for layers in copy_lst:
+        for contours in copy_lst:
             newShape = []
-            for shapes in layers:
+            for shapes in contours:
                 bbPath = mplPath.Path(shapes)
-                for others in layers:
-                    if (shapes[0][0] != others[0][0]) \
-                       and (shapes[0][1] != others[0][1]) \
-                       and bbPath.contains_point((others[0][0], others[0][1])):
+                for intShapes in contours:
+                    if (shapes[0][0] != intShapes[0][0]) \
+                       and (shapes[0][1] != intShapes[0][1]) \
+                       and bbPath.contains_point((intShapes[0][0], intShapes[0][1])):
                         if len(newShape) == 0:
                             newShape.append(shapes)
                             self._remove_array(plys[count], shapes)
-
-                        newShape.append(others)
-                        self._remove_array(plys[count], others)
+                        newShape.append(intShapes)
+                        self._remove_array(plys[count], intShapes)
             if len(newShape) != 0:
                 plys.append(newShape)
             count += 1
@@ -78,7 +80,7 @@ class Contours:
     def _gen_contour_features(self):
         featureAr = []
         polyGroups = []
-        for group in self._get_contours():
+        for group in self._sort_contours():
             polys = []
             for shape in group:
                 polyPoints = []
