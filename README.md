@@ -129,3 +129,108 @@ If you get an error saying the server is offline, try
 ```
 sudo service apache2 start
 ```
+
+# UPDATE: Server change to TileStache 
+## Installing TileStache
+Adapted from [this axis maps blog post.](http://www.axismaps.com/blog/2012/01/dont-panic-an-absolute-beginners-guide-to-building-a-map-server/)
+
+### Install mod_python 
+This interface is how TileStache communicates with the web server. 
+```
+sudo apt-get install libapache2-mod-python
+```
+Then restart the web server. 
+```
+sudo /etc/init.d/apache2 restart
+```
+### Install some dependencies. 
+Packages that help with the install/required python tools and libraries.
+```
+cd /etc
+sudo apt-get install curl
+sudo apt-get install git-core
+sudo apt-get install python-setuptools
+sudo aptitude install python-dev
+sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
+```
+Install PIP if you don't already have it! 
+```
+curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+sudo python get-pip.py
+```
+Install required python modules. 
+```
+sudo pip install -U werkzeug
+sudo pip install -U simplejson
+sudo pip install -U modestmaps
+```
+Fix some ubuntu specific Python Image Library module issues. 
+```
+sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib
+sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib
+sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib
+```
+Install pillow.  
+```
+sudo pip install -U pil
+```
+Clone the TileStache repository from GitHub. 
+```
+git clone https://github.com/migurski/TileStache.git
+```
+Install TileStache globally. 
+```
+cd TileStache/
+python setup.py install
+```
+### Link the mod_python and TileStache to the web server. 
+Open the apache configuration file to edit it. 
+```
+sudo nano /etc/apache2/httpd.conf
+```
+Add the following to the conf file. 
+```
+<Directory /var/www/html/tiles>
+  AddHandler mod_python .py
+  PythonHandler TileStache::modpythonHandler
+  PythonOption config /etc/TileStache/tilestache.cfg
+</Directory>
+```
+If you don't have a tiles folder, create one now. 
+```
+mkdir /var/www/html/tiles
+```
+Reboot your server. 
+```
+reboot
+```
+## Update tilestache.cfg
+Open the tilestache.cfg file. 
+```
+cd /TileStache/
+sudo gedit tilestache.cfg
+```
+Edit the file to work with our project. 
+```
+{
+  "cache":
+  {
+    "name": "Disk",
+    "path": "/tmp/stache"
+  },
+  "layers": 
+  {
+    "map":
+    {
+        "provider": {"name": "mapnik", "mapfile": "map.xml"},
+        "projection": "spherical mercator"
+    }
+  }
+}
+```
+## Test the server.
+Run on the command line:
+```
+./scripts/tilestache-server.py
+```
+To view your map: open in the web browser: http://localhost:8080/map/preview.html
