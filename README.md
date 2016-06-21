@@ -172,7 +172,7 @@ sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib
 ```
 Install pillow.  
 ```
-sudo pip install -U pil
+sudo pip install -U pillow
 ```
 Clone the TileStache repository from GitHub. 
 ```
