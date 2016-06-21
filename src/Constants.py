@@ -4,7 +4,7 @@ FILE_NAME_WIKIBRAIN_NAMES = "./data/tsv/names.tsv"
 FILE_NAME_NUMBERED_VECS = "./data/tsv/numberedVecs.tsv"
 FILE_NAME_NUMBERED_NAMES = "./data/tsv/numberedNames.tsv"
 FILE_NAME_ARTICLE_COORDINATES = "./data/tsv/tsne_cache.tsv"
-FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/nlClusters.tsv"
+FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
 FILE_NAME_KEEP = "./data/tsv/keep.tsv"
 
 
@@ -23,7 +23,7 @@ MIN_NUM_IN_CLUSTER = 30  # eliminates noise
 # ========== mapGenerator ==========
 _localTiles = "./data/tiles/"
 _serverTiles = "/var/www/html/tiles/"
-DIRECTORY_NAME_TILES = _serverTiles
+DIRECTORY_NAME_TILES = _localTiles
 FILE_NAME_REGION_NAMES = "./data/tsv/top_categories.tsv"
 FILE_NAME_IMGNAME = "./data/images/world"
 FILE_NAME_COUNTRIES = "./data/geojson/countries.geojson"

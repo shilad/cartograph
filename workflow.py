@@ -89,6 +89,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
         featureDict = Util.read_features(Constants.FILE_NAME_NUMBERED_VECS)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
+        print len(vectors)
         labels = list(KMeans(Constants.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
         print len(labels)
