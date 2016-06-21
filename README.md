@@ -208,7 +208,7 @@ reboot
 ## Update tilestache.cfg
 Open the tilestache.cfg file. 
 ```
-cd /TileStache/
+cd /etc/TileStache/
 sudo gedit tilestache.cfg
 ```
 Edit the file to work with our project. 
@@ -223,7 +223,7 @@ Edit the file to work with our project.
   {
     "map":
     {
-        "provider": {"name": "mapnik", "mapfile": "map.xml"},
+        "provider": {"name": "mapnik", "mapfile": "/home/research/src/proceduralMapGeneration/map.xml"},
         "projection": "spherical mercator"
     }
   }
@@ -234,4 +234,6 @@ Run on the command line:
 ```
 ./scripts/tilestache-server.py
 ```
-To view your map: open in the web browser: http://localhost:8080/map/preview.html
+To check if TileStache is running, go to http://localhost:8080. If the message "TileStache bellows hello." appears then the server is functioning properly. 
+
+To view your map go to http://localhost:8080/map/preview.html. 
