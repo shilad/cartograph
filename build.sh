@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if luigi --module workflow WikiBrain --local-scheduler; then
+if luigi --module workflow Embedding --local-scheduler; then
 	echo "LUIGI BUILD SUCCEEDED" >&2
 	exit 0
 else
