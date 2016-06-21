@@ -6,23 +6,22 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
 import copy
 from src import Util
+from src import Constants
 
 
 class Contours:
 
-    def __init__(self):
-        # self.file = fileName
-        # self.data = dataName
-        pass
+    def __init__(self, filename):
+        self.file = filename
 
     def _calc_contour(self, binSize):
         # xyCoords = Util.read_tsv(csvFile)
         # x = map(float, xyCoords["x"])
         # y = map(float, xyCoords["y"])
-        featureDict = Util.read_features(Constants.FILE_NAME_FILE_NAME_ARTICLE_COORDINATES)
+        featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES)
         idList = list(featureDict.keys())
-        x = [float(featureDict[featureID]["x"]) for featureID in idList]
-        y = [float(featureDict[featureID]["y"]) for featureID in idList]
+        x = np.array([float(featureDict[featureID]["x"]) for featureID in idList])
+        y = np.array([float(featureDict[featureID]["y"]) for featureID in idList])
         contBuffer = 20
 
         H, yedges, xedges = np.histogram2d(y, x,
@@ -49,7 +48,7 @@ class Contours:
                 raise ValueError('array not found in list.')
 
     def _get_contours(self):
-        CS = self._calc_contour(self.data, 35)
+        CS = self._calc_contour(35)
         plys = []
         for i in range(len(CS.collections)):
             shapes = []
