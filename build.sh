@@ -1,6 +1,6 @@
 #!/bin/bash
-
-if luigi --module workflow Embedding --local-scheduler; then
+export PYTHONPATH=$PYTHONPATH:.
+if luigi --module workflow Denoise ; then
 	echo "LUIGI BUILD SUCCEEDED" >&2
 	exit 0
 else
