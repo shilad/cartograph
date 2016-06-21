@@ -1,7 +1,8 @@
 from collections import defaultdict
 import codecs
 import Constants
-
+import numpy as np
+import sys
 
 def read_tsv(filename):
     with codecs.open(filename, "r", encoding="utf-8") as f:
@@ -15,7 +16,9 @@ def read_tsv(filename):
 
 
 def read_wikibrain_vecs(path):
-    """We need this function since the file is organized by rows, not columns"""
+    """
+    We need this function since the file is organized by rows, not columns
+    """
     matrix = []
     with open(path, "r") as vecs:
         vecs.readline()
@@ -37,13 +40,13 @@ def write_tsv(filename, headers, data):
 def read_features(*files):
     values = defaultdict(dict)
     for fn in files:
-        if fn == FILE_NAME_NUMBERED_WIKIBRAIN_VECS:
-            with open(path, "r") as f:
+        if fn == Constants.FILE_NAME_NUMBERED_VECS:
+            with open(fn, "r") as f:
                 f.readline()    # skip the header
                 for line in f:
                     tokens = line.split('\t')
                     id = tokens[0]
-                    values['vector'] = np.array([float(t.strip()) for t in tokens[1:])
+                    values['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
         else:
             with open(fn, 'r') as f:
                 fields = [s.strip() for s in f.readline().split('\t')]
@@ -56,6 +59,3 @@ def read_features(*files):
                     else:
                         sys.stderr.write('invalid line %s in %s\n' % (`line`, `fn`))
     return values
-
-if __name__ == '__main__':
-    print read_files('data/top_categories.tsv')

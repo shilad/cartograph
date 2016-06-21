@@ -1,6 +1,8 @@
 # ========== Analyzer ==========
 FILE_NAME_WIKIBRAIN_VECS = "./data/vecs.tsv"
 FILE_NAME_WIKIBRAIN_NAMES = "./data/names.tsv"
+FILE_NAME_NUMBERED_VECS = "./data/nlVecs.tsv"
+FILE_NAME_NUMBERED_NAMES = "./data/nlNames.tsv"
 FILE_NAME_NAMES_AND_CLUSTERS = "./data/names_and_clusters.tsv"
 FILE_NAME_COORDS_AND_CLUSTERS = "./data/coords_and_clusters.tsv"
 FILE_NAME_TSNE_CACHE = "./data/cache/tsne_cache.tsv"

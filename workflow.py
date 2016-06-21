@@ -1,12 +1,10 @@
 import luigi
 import os
-import sys
 import time
 import Constants
-import Analyzer
-
-
-analyzer = Analyzer.Analyzer(save_output=True, use_cache=False, subset=1000)
+import Util
+from tsne import bh_sne
+import numpy as np
 
 
 class MTimeMixin:
@@ -43,11 +41,12 @@ class MTimeMixin:
 
         return True
 
+
 class WikiBrainData(luigi.ExternalTask):
     def output(self):
         return (
             luigi.LocalTarget(Constants.FILE_NAME_WIKIBRAIN_NAMES),
-            luigi.LocalTarget(Constants.FILE_NAME_WIKIBRAIN_NAMES),
+            luigi.LocalTarget(Constants.FILE_NAME_WIKIBRAIN_VECS),
         )
 
 
@@ -64,13 +63,13 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
     def run(self):
         with open(Constants.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
             lines = nameFile.readlines()
-            with open(Constants.FILE_NAME_NUMBERED_NAMES, "a") as numberNames:
+            with open(Constants.FILE_NAME_NUMBERED_NAMES, "w") as numberNames:
                 for i, line in enumerate(lines):
                     numberNames.write('%d\t%s' % (i + 1, line))
 
         with open(Constants.FILE_NAME_WIKIBRAIN_VECS) as nameFile:
             lines = nameFile.readlines()
-            with open(Constants.FILE_NAME_NUMBERED_VECS, "a") as numberNames:
+            with open(Constants.FILE_NAME_NUMBERED_VECS, "w") as numberNames:
                 for i, line in enumerate(nameFile.readlines()):
                     numberNames.write('%d\t%s' % (i + 1, line))
 
@@ -90,14 +89,18 @@ class RegionClustering(MTimeMixin, luigi.Task):
 
 class Embedding(MTimeMixin, luigi.Task):
     def output(self):
-        return luigi.LocalTarget("data/2d_embedding.tsv")
+        return luigi.LocalTarget(Constants.FILE_NAME_TSNE_CACHE)
 
     def requires(self):
         return WikiBrainNumbering()
 
     def run(self):
-        vecs = np.array(Util.read_wikibrain_vecs(Constants.FILE_NAME_WIKIBRAIN_VECS))
-        out = bh_sne(vecs, pca_d=Constants.TSNE_PCA_DIMENSIONS, theta=Constants.TSNE_THETA)
+        featureDict = Util.read_features(Constants.FILE_NAME_NUMBERED_VECS)
+        keys = list(featureDict.keys())
+        vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
+        out = bh_sne(vectors,
+                     pca_d=Constants.TSNE_PCA_DIMENSIONS,
+                     theta=Constants.TSNE_THETA)
         x, y = out[:, 0], out[:, 1]
         Util.write_tsv(Constants.FILE_NAME_TSNE_CACHE, ("x", "y"), (x, y))
 
