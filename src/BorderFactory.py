@@ -1,7 +1,7 @@
 from scipy.spatial import Voronoi
 from Vertex import Vertex
-import Constants
-import Util
+from src import Constants
+from src import Util
 
 
 class BorderFactory(object):
@@ -13,10 +13,12 @@ class BorderFactory(object):
 
     @classmethod
     def from_file(cls):
-        coords_and_clusters = Util.read_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
-        x = map(float, coords_and_clusters["x"])
-        y = map(float, coords_and_clusters["y"])
-        clusters = map(int, coords_and_clusters["clusters"])
+        featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES,
+                                         Constants.FILE_NAME_NUMBERED_CLUSTERS)
+        idList = list(featureDict.keys())
+        x = [float(featureDict[featureID]["x"]) for featureID in idList]
+        y = [float(featureDict[featureID]["y"]) for featureID in idList]
+        clusters = [int(featureDict[featureID]['cluster']) for featureID in idList]
         return cls(x, y, clusters)
 
     @staticmethod
