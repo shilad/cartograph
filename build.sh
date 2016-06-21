@@ -1,6 +1,6 @@
 #!/bin/bash
 export PYTHONPATH=$PYTHONPATH:.
-if luigi --module workflow Denoise ; then
+if luigi --module workflow Denoise --local-scheduler; then
 	echo "LUIGI BUILD SUCCEEDED" >&2
 	exit 0
 else

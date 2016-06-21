@@ -91,6 +91,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
         vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
         labels = list(KMeans(Constants.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
+        print len(labels)
         Util.write_tsv(Constants.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
 

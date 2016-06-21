@@ -5,21 +5,24 @@ import scipy.ndimage
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
 import copy
-import Util
-from Constants import FILE_NAME_COORDS_AND_CLUSTERS
-from Constants import FILE_NAME_CONTOUR_DATA
+from src import Util
 
 
 class Contours:
 
-    def __init__(self, dataName, fileName):
-        self.file = fileName
-        self.data = dataName
+    def __init__(self):
+        # self.file = fileName
+        # self.data = dataName
+        pass
 
-    def _calc_contour(self, csvFile, binSize):
-        xyCoords = Util.read_tsv(csvFile)
-        x = map(float, xyCoords["x"])
-        y = map(float, xyCoords["y"])
+    def _calc_contour(self, binSize):
+        # xyCoords = Util.read_tsv(csvFile)
+        # x = map(float, xyCoords["x"])
+        # y = map(float, xyCoords["y"])
+        featureDict = Util.read_features(Constants.FILE_NAME_FILE_NAME_ARTICLE_COORDINATES)
+        idList = list(featureDict.keys())
+        x = [float(featureDict[featureID]["x"]) for featureID in idList]
+        y = [float(featureDict[featureID]["y"]) for featureID in idList]
         contBuffer = 20
 
         H, yedges, xedges = np.histogram2d(y, x,

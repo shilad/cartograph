@@ -74,4 +74,4 @@ def write_tsv(filename, header, indexList, *data):
             data[i] = str(data[i])
             if data[i][-1] != "\n":
                 data[i] += "\n"
-            writeFile.write("%s\t%s" % (indexList[i], data[i]))
+            writeFile.write("%s\t%s" % (indexList[i] + 1, data[i]))

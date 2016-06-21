@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from math import pi, sin, log, exp, atan
-import Util
-import Constants
+from src import Constants
 import os
 from Queue import Queue
 
