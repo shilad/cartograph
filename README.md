@@ -177,12 +177,12 @@ sudo pip install -U pillow
 ```
 Clone the TileStache repository from GitHub. 
 ```
-git clone https://github.com/migurski/TileStache.git
+sudo git clone https://github.com/migurski/TileStache.git
 ```
 Install TileStache globally. 
 ```
 cd TileStache/
-python setup.py install
+sudo python setup.py install
 ```
 ### Link the mod_python and TileStache to the web server. 
 Open the apache configuration file to edit it. 
