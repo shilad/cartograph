@@ -205,8 +205,8 @@ Reboot your server.
 ```
 reboot
 ```
-## Update tilestache.cfg
-Open the tilestache.cfg file. 
+## Make a few file changes. 
+Update tilestache.cfg
 ```
 cd /etc/TileStache/
 sudo gedit tilestache.cfg
@@ -229,6 +229,13 @@ Edit the file to work with our project.
   }
 }
 ```
+Edit an outdated function call. Note that there are many Mapnik.py versions. Open the one listed below.
+```
+cd /usr/local/lib/python2.7/dist-packages/TileStache-1.50.1-py2.7.egg/TileStache/
+sudo gedit Mapnik.py
+```
+On line 154 in the renderArea() function, change fromstring() to frombytes().
+
 ## Test the server.
 Run on the command line:
 ```
