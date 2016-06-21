@@ -1,10 +1,10 @@
 import luigi
 import os
 import time
-import Constants
-import Util
+from src import Constants, Util, Denoiser
 from tsne import bh_sne
 import numpy as np
+from sklearn.cluster import KMeans
 
 
 class MTimeMixin:
@@ -50,6 +50,11 @@ class WikiBrainData(luigi.ExternalTask):
         )
 
 
+class LabelNames(luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(Constants.FILE_NAME_REGION_NAMES))
+
+
 class WikiBrainNumbering(MTimeMixin, luigi.Task):
     def output(self):
         return (
@@ -62,34 +67,37 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
 
     def run(self):
         with open(Constants.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
-            lines = nameFile.readlines()
-            with open(Constants.FILE_NAME_NUMBERED_NAMES, "w") as numberNames:
-                for i, line in enumerate(lines):
-                    numberNames.write('%d\t%s' % (i + 1, line))
+            lines = nameFile.readlines()[1:]
+            Util.write_tsv(Constants.FILE_NAME_NUMBERED_NAMES,
+                           ("index", "name"), range(1, len(lines) + 1), lines)
 
         with open(Constants.FILE_NAME_WIKIBRAIN_VECS) as nameFile:
-            lines = nameFile.readlines()
-            with open(Constants.FILE_NAME_NUMBERED_VECS, "w") as numberNames:
-                for i, line in enumerate(nameFile.readlines()):
-                    numberNames.write('%d\t%s' % (i + 1, line))
+            lines = nameFile.readlines()[1:]
+            Util.write_tsv(Constants.FILE_NAME_NUMBERED_VECS,
+                           ("index", "vector"),
+                           range(1, len(lines) + 1), lines)
 
 
 class RegionClustering(MTimeMixin, luigi.Task):
     def output(self):
-        return luigi.LocalTarget("data/cluster_labels.tsv")
+        return luigi.LocalTarget(Constants.FILE_NAME_NUMBERED_CLUSTERS)
 
     def requires(self):
         return WikiBrainNumbering()
 
     def run(self):
-        f = open('data/cluster_labels.tsv', 'w')
-        f.write('writing DATA\n')
-        f.close()
+        featureDict = Util.read_features(Constants.FILE_NAME_NUMBERED_VECS)
+        keys = list(featureDict.keys())
+        vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
+        labels = list(KMeans(Constants.NUM_CLUSTERS,
+                             random_state=42).fit(vectors).labels_)
+        Util.write_tsv(Constants.FILE_NAME_NUMBERED_CLUSTERS,
+                       ("index", "cluster"), keys, labels)
 
 
 class Embedding(MTimeMixin, luigi.Task):
     def output(self):
-        return luigi.LocalTarget(Constants.FILE_NAME_TSNE_CACHE)
+        return luigi.LocalTarget(Constants.FILE_NAME_ARTICLE_COORDINATES)
 
     def requires(self):
         return WikiBrainNumbering()
@@ -101,24 +109,30 @@ class Embedding(MTimeMixin, luigi.Task):
         out = bh_sne(vectors,
                      pca_d=Constants.TSNE_PCA_DIMENSIONS,
                      theta=Constants.TSNE_THETA)
-        x, y = out[:, 0], out[:, 1]
-        Util.write_tsv(Constants.FILE_NAME_TSNE_CACHE, ("x", "y"), (x, y))
+        x, y = list(out[:, 0]), list(out[:, 1])
+        Util.write_tsv(Constants.FILE_NAME_TSNE_CACHE,
+                       ("index", "x", "y"), keys, x, y)
 
 
-class DenoiseAndAddWater(MTimeMixin, luigi.Task):
+class Denoise(MTimeMixin, luigi.Task):
     def output(self):
         return (
-            luigi.LocalTarget("data/coords_and_clusters.tsv"),
-            luigi.LocalTarget("data/names_and_clusters.tsv")
+            luigi.LocalTarget(Constants.FILE_NAME_KEEP)
         )
 
     def requires(self):
         return RegionClustering(), Embedding()
 
     def run(self):
-        for fn in ("data/coords_and_clusters.tsv",
-                   "data/names_and_clusters.tsv"):
-            f = open(fn, 'w')
-            f.write('writing DATA\n')
-            f.close()
+        featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES,
+                                         Constants.FILE_NAME_NUMBERED_CLUSTERS)
+        featureIDs = list(featureDict.keys())
+        x = [float(featureDict[featureID]["x"]) for featureID in featureIDs]
+        y = [float(featureDict[featureID]["y"]) for featureID in featureIDs]
+        c = [int(featureDict[featureID]["cluster"]) for featureID in featureIDs]
 
+        denoiser = Denoiser.Denoiser(x, y, c)
+        keepBooleans = denoiser.denoise()
+
+        Util.write_tsv(Constants.FILE_NAME_KEEP, ("index", "keep"),
+                       featureIDs, keepBooleans)
