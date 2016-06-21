@@ -150,6 +150,7 @@ cd /etc
 sudo apt-get install curl
 sudo apt-get install git-core
 sudo apt-get install python-setuptools
+sudo apt-get install aptitude
 sudo aptitude install python-dev
 sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
 ```
