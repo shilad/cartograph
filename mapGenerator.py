@@ -62,12 +62,14 @@ def generateLayer(jsonFile, name, styleName):
     layer = mapnik.Layer(name)
     layer.datasource = ds
     layer.styles.append(styleName)
+    layer.srs = '+init=epsg:4236'
     return layer
 
 
 def makeMap():
     m = mapnik.Map(1000, 1000)
     m.background = mapnik.Color('white')
+    m.srs = '+init=epsg:3857'
 
 
 # ======== Make Contour Layer =========
