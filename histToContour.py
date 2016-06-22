@@ -7,31 +7,47 @@ from geojson import dumps, Polygon
 import copy
 import Util
 
+from scipy.ndimage.filters import gaussian_filter
 
-class Contours:
+
+class ContourCreater:
 
     def __init__(self, dataName, fileName):
         self.file = fileName
         self.data = dataName
+        self.CS = self._calc_contour(self.data, 225)
+        self.plys = self._get_contours()
 
-    def _calc_contour(self, csvFile, binSize):
-        xyCoords = Util.read_tsv(csvFile)
+    @staticmethod
+    def _calc_contour(tsvFile, binSize):
+        xyCoords = Util.read_tsv(tsvFile)
         x = map(float, xyCoords["x"])
         y = map(float, xyCoords["y"])
-        contBuffer = 20
 
         H, yedges, xedges = np.histogram2d(y, x,
                                            bins=binSize,
-                                           range=[[np.min(x) - contBuffer,
-                                                  np.max(x) + contBuffer],
-                                                  [np.min(y) - contBuffer,
-                                                  np.max(y) + contBuffer]])
+                                           range=[[np.min(x),
+                                                  np.max(x)],
+                                                  [np.min(y),
+                                                  np.max(y)]])
+        H = gaussian_filter(H, 2)
         extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
         smoothH = scipy.ndimage.zoom(H, 4)
         smoothH[smoothH < 0] = 0
 
         return (plt.contour(smoothH, extent=extent))
+
+    def _get_contours(self):
+        plys = []
+        for i in range(len(self.CS.collections)):
+            shapes = []
+            for j in range(len(self.CS.collections[i].get_paths())):
+                p = self.CS.collections[i].get_paths()[j]
+                v = p.vertices
+                shapes.append(v)
+            plys.append(shapes)
+        return plys
 
     def _remove_array(self, L, arr):
             ind = 0
@@ -43,21 +59,9 @@ class Contours:
             else:
                 raise ValueError('array not found in list.')
 
-    def _get_contours(self):
-        CS = self._calc_contour(self.data, 35)
-        plys = []
-        for i in range(len(CS.collections)):
-            shapes = []
-            for j in range(len(CS.collections[i].get_paths())):
-                p = CS.collections[i].get_paths()[j]
-                v = p.vertices
-                shapes.append(v)
-            plys.append(shapes)
-        return plys
-
     def _sort_contours(self):
         plys = self._get_contours()
-        copy_lst = copy.deepcopy(plys)
+        copy_lst = copy.deepcopy(self.plys)
         count = 0
         for contours in copy_lst:
             newShape = []
@@ -89,9 +93,9 @@ class Contours:
                 polys.append(polyPoints)
             polyGroups.append(polys)
 
-        for shape in polyGroups:
+        for index, shape in enumerate(polyGroups):
             newPolygon = Polygon(shape)
-            newFeature = Feature(geometry=newPolygon)
+            newFeature = Feature(geometry=newPolygon, properties={"clusterNum": index})
             featureAr.append(newFeature)
 
         return featureAr
@@ -102,3 +106,8 @@ class Contours:
         textDump = dumps(collection)
         with open(self.file, "w") as writeFile:
             writeFile.write(textDump)
+
+    class Contour():
+
+        def __init__(self):
+            pass
