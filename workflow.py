@@ -156,7 +156,9 @@ class Denoise(MTimeMixin, luigi.Task):
 
     def output(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_KEEP)
+            luigi.LocalTarget(Constants.FILE_NAME_KEEP),
+            luigi.LocalTarget(Constants.FILE_NAME_WATER_CLUSTERS),
+            luigi.LocalTarget(Constants.FILE_NAME_WATER_AND_ARTICLES)
         )
 
     def requires(self):
@@ -171,10 +173,16 @@ class Denoise(MTimeMixin, luigi.Task):
         c = [int(featureDict[featureID]["cluster"]) for featureID in featureIDs]
 
         denoiser = Denoiser.Denoiser(x, y, c)
-        keepBooleans = denoiser.denoise()
+        keepBooleans, waterX, waterY, waterCluster = denoiser.denoise()
 
+        for x in range(len(waterX) - len(featureIDs)):
+            featureIDs.append("w" + str(x))
         Util.write_tsv(Constants.FILE_NAME_KEEP, ("index", "keep"),
                        featureIDs, keepBooleans)
+        Util.write_tsv(Constants.FILE_NAME_WATER_AND_ARTICLES,
+                       ("index", "x", "y"), featureIDs, waterX, waterY)
+        Util.write_tsv(Constants.FILE_NAME_WATER_CLUSTERS,
+                       ("index", "cluster"), featureIDs, waterCluster)
 
 
 class CreateContinents(MTimeMixin, luigi.Task):
