@@ -17,6 +17,7 @@ class Labels():
 
     def _add_Text_Layer(self, field, geojsonFile):
         layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + 'Layer')
+        layer.set('srs', '+init=epsg:4236')
 
         addStyle = SubElement(layer, 'StyleName')
         addStyle.text = field[1:-1] + 'LabelStyle'
