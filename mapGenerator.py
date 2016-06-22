@@ -1,7 +1,7 @@
 import mapnik
 from BorderGeoJSONWriter import BorderGeoJSONWriter
 from BorderFactory import BorderFactory
-from histToContour import Contours
+from histToContour import ContourCreater
 from generateTiles import render_tiles
 from shutil import rmtree
 from addLabelsXml import Labels
@@ -34,15 +34,18 @@ def generateCountryPolygonStyle(filename, opacity):
     return s
 
 
-def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
+def generateContourPolygonStyle(filename, opacity, gamma=1):
+    colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fea3aa"]
     s = mapnik.Style()
-    r = mapnik.Rule()
-    symbolizer = mapnik.PolygonSymbolizer()
-    symbolizer.fill = mapnik.Color('steelblue')
-    symbolizer.fill_opacity = opacity
-    symbolizer.gamma = gamma
-    r.symbols.append(symbolizer)
-    s.rules.append(r)
+    for i in range(6):
+        r = mapnik.Rule()
+        symbolizer = mapnik.PolygonSymbolizer()
+        symbolizer.fill = mapnik.Color(colorWheel[i])
+        symbolizer.fill_opacity = opacity
+        symbolizer.gamma = gamma
+        r.symbols.append(symbolizer)
+        r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
+        s.rules.append(r)
     return s
 
 
@@ -71,7 +74,7 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateSinglePolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, .25, 1))
+    m.append_style("contour", generateContourPolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, 1.0))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
@@ -85,8 +88,7 @@ def makeMap():
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
-    label = Labels()
-    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
+    Labels().writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
 
     mapnik.load_map(m, Constants.FILE_NAME_MAP)
 
@@ -99,7 +101,7 @@ if __name__ == "__main__":
     generatePolygonFile()
 
     print "Generating Contours"
-    contour = Contours(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
+    contour = ContourCreater(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
     contour.makeContourFeatureCollection()
 
     print "Making Map XML"
