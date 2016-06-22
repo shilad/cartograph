@@ -18,7 +18,6 @@ class BorderFactory(object):
         idList = list(featureDict.keys())
         x = [float(featureDict[featureID]["x"]) for featureID in idList]
         y = [float(featureDict[featureID]["y"]) for featureID in idList]
-        print featureDict["118618"]
         clusters = [int(featureDict[featureID]['cluster']) for featureID in idList]
         return cls(x, y, clusters)
 
