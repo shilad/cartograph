@@ -1,19 +1,23 @@
 import luigi
 import os
 import time
-from src import Constants, Util, Denoiser
+from src import Util
+from src import Constants
+from src import Denoiser
+from src.BorderFactory import BorderFactory
+from src.BorderGeoJSONWriter import BorderGeoJSONWriter
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
 
 
 class MTimeMixin:
-    """
+    '''
         Mixin that flags a task as incomplete if any requirement
         is incomplete or has been updated more recently than this task
         This is based on http://stackoverflow.com/a/29304506, but extends
         it to support multiple input / output dependencies.
-    """
+    '''
 
     def complete(self):
         def to_list(obj):
@@ -43,6 +47,11 @@ class MTimeMixin:
 
 
 class WikiBrainData(luigi.ExternalTask):
+    '''
+    Ensure that all external files produced by WikiBrain exist in
+    the correct directory.
+    '''
+
     def output(self):
         return (
             luigi.LocalTarget(Constants.FILE_NAME_WIKIBRAIN_NAMES),
@@ -51,11 +60,22 @@ class WikiBrainData(luigi.ExternalTask):
 
 
 class LabelNames(luigi.ExternalTask):
+    '''
+    Verify that cluster has been successfully labeled from Java
+    and WikiBrain
+    '''
+
     def output(self):
         return (luigi.LocalTarget(Constants.FILE_NAME_REGION_NAMES))
 
 
 class WikiBrainNumbering(MTimeMixin, luigi.Task):
+    '''
+    Number the name and vector output of WikiBrain files so that each
+    article has a unique id corrosponding to all of its data for future
+    use of any subset of features of interest
+    '''
+
     def output(self):
         return (
             luigi.LocalTarget(Constants.FILE_NAME_NUMBERED_VECS),
@@ -79,6 +99,12 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
 
 
 class RegionClustering(MTimeMixin, luigi.Task):
+    '''
+    Run KMeans to cluster article points into specific continents.
+    Seed is set at 42 to make sure that when run against labeling
+    algorithm clusters numbers consistantly refer to the same entity
+    '''
+
     def output(self):
         return luigi.LocalTarget(Constants.FILE_NAME_NUMBERED_CLUSTERS)
 
@@ -98,6 +124,11 @@ class RegionClustering(MTimeMixin, luigi.Task):
 
 
 class Embedding(MTimeMixin, luigi.Task):
+    '''
+    Use TSNE to reduce high dimensional vectors to x, y coordinates for
+    mapping purposes
+    '''
+
     def output(self):
         return luigi.LocalTarget(Constants.FILE_NAME_ARTICLE_COORDINATES)
 
@@ -112,11 +143,16 @@ class Embedding(MTimeMixin, luigi.Task):
                      pca_d=Constants.TSNE_PCA_DIMENSIONS,
                      theta=Constants.TSNE_THETA)
         x, y = list(out[:, 0]), list(out[:, 1])
-        Util.write_tsv(Constants.FILE_NAME_TSNE_CACHE,
+        Util.write_tsv(Constants.FILE_NAME_ARTICLE_COORDINATES,
                        ("index", "x", "y"), keys, x, y)
 
 
 class Denoise(MTimeMixin, luigi.Task):
+    '''
+    Remove outlier points and set water level for legibility in reading
+    and more coherent contintent boundary lines
+    '''
+
     def output(self):
         return (
             luigi.LocalTarget(Constants.FILE_NAME_KEEP)
@@ -138,3 +174,40 @@ class Denoise(MTimeMixin, luigi.Task):
 
         Util.write_tsv(Constants.FILE_NAME_KEEP, ("index", "keep"),
                        featureIDs, keepBooleans)
+
+
+class CreateContinents(MTimeMixin, luigi.Task):
+    def output(self):
+        return (
+            luigi.LocalTarget(Constants.FILE_NAME_COUNTRIES),
+            luigi.LocalTarget(Constants.FILE_NAME_REGION_CLUSTERS),
+            luigi.LocalTarget(Constants.FILE_NAME_REGION_BORDERS)
+        )
+
+    def requires(self):
+        return Denoise()
+
+    def decomposeBorders(self, clusterDict):
+        regionList = []
+        membershipList = []
+        for key in clusterDict:
+            regions = clusterDict[key]
+            for region in regions:
+                regionList.append(region)
+                membershipList.append(key)
+        return regionList, membershipList
+
+    def run(self):
+        clusterDict = BorderFactory.from_file().build()
+        clusterList = list(clusterDict.values())
+        regionList, membershipList = self.decomposeBorders(clusterDict)
+
+        BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
+        Util.write_tsv(Constants.FILE_NAME_REGION_CLUSTERS,
+                       ("region_id", "cluster_id"),
+                       range(1, len(membershipList) + 1),
+                       membershipList)
+        Util.write_tsv(Constants.FILE_NAME_REGION_BORDERS,
+                       ("region_id", "border_list"),
+                       range(1, len(regionList) + 1),
+                       regionList)

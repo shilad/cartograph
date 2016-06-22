@@ -63,6 +63,9 @@ def read_features(*files):
 
 
 def write_tsv(filename, header, indexList, *data):
+    for index, dataList in enumerate(data):
+        if len(dataList) != len(data[0]):
+            raise InputError(index, "Lists must match to map together")
     with open(filename, "w") as writeFile:
         writeFile.write("\t".join(header) + "\n")
         if len(data) > 1:
@@ -70,8 +73,20 @@ def write_tsv(filename, header, indexList, *data):
             data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
         else:
             data = data[0]
-        for i in range(len(indexList)):
+        for i in range(len(data)):
             data[i] = str(data[i])
             if data[i][-1] != "\n":
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
+
+class InputError(Exception):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expr -- input expression in which the error occurred
+        msg  -- explanation of the error
+    """
+
+    def __init__(self, expr, msg):
+        self.expr = expr
+        self.msg = msg
