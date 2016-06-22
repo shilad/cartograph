@@ -225,6 +225,7 @@ Edit the file to work with our project.
     {
         "provider": {"name": "mapnik", "mapfile": "/home/research/src/proceduralMapGeneration/map.xml"},
         "projection": "spherical mercator"
+        "metatile": {"rows": 6, "columns": 6, "buffer":64}
     }
   }
 }
