@@ -224,7 +224,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
 class CreateMap(MTimeMixin, luigi.Task):
     '''
     Creates the mapnik map.xml configuration file and renders png and svg
-    images of the map.
+    images of the map. THIS IS UNTESTED!
     '''
     def output(self):
         return (
