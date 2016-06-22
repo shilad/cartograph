@@ -3,8 +3,9 @@ import Constants
 
 
 class Labels():
-    def __init__(self):
-        self.mapFile = parse(Constants.FILE_NAME_MAP)
+    def __init__(self, filename):
+        self.filename = filename
+        self.mapFile = parse(filename)
         self.mapRoot = self.mapFile.getroot()
 
     def _add_Text_Style(self, field, labelType):
