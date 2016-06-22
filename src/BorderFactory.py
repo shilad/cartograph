@@ -1,7 +1,7 @@
 from scipy.spatial import Voronoi
 from Vertex import Vertex
-from src import Constants
-from src import Util
+import Constants
+import Util
 
 
 class BorderFactory(object):
@@ -12,13 +12,17 @@ class BorderFactory(object):
         self.cluster_labels = cluster_labels
 
     @classmethod
-    def from_file(cls):
-        featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES,
-                                         Constants.FILE_NAME_NUMBERED_CLUSTERS)
+    def from_file(cls, ):
+        featureDict = Util.read_features(Constants.FILE_NAME_WATER_AND_ARTICLES,
+                                         Constants.FILE_NAME_KEEP,
+                                         Constants.FILE_NAME_WATER_CLUSTERS)
         idList = list(featureDict.keys())
-        x = [float(featureDict[featureID]["x"]) for featureID in idList]
-        y = [float(featureDict[featureID]["y"]) for featureID in idList]
-        clusters = [int(featureDict[featureID]['cluster']) for featureID in idList]
+        x, y, clusters = [], [], []
+        for article in idList:
+            if featureDict[article]["keep"] == "True":
+                x.append(float(featureDict[article]["x"]))
+                y.append(float(featureDict[article]["y"]))
+                clusters.append(int(featureDict[article]["cluster"]))
         return cls(x, y, clusters)
 
     @staticmethod
@@ -80,7 +84,7 @@ class BorderFactory(object):
     def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
-        del group_edge_vert_dict[len(group_edge_vert_dict)-1]
+        del group_edge_vert_dict[len(group_edge_vert_dict) - 1]
         for label in group_edge_vert_dict:
             borders[label] = []
             while group_edge_vert_dict[label]:

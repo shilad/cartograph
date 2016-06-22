@@ -1,7 +1,7 @@
 import mapnik
 from src.BorderGeoJSONWriter import BorderGeoJSONWriter
 from src.BorderFactory import BorderFactory
-from src.Contours import Contours
+from src import Contours
 from generateTiles import render_tiles
 from shutil import rmtree
 from src import Labels
@@ -12,8 +12,10 @@ fullFeatureList = []
 
 # ===== Generate JSON Data ==========
 def generatePolygonFile():
-    clusterList = BorderFactory.from_file().build().values()
+    clusterDict = BorderFactory.from_file().build()
+    clusterList = clusterDict.values()
     BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
+    print max(clusterDict.keys()), "After border factory"
     global fullFeatureList
     fullFeatureList = clusterList
 
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     generatePolygonFile()
 
     print "Generating Contours"
-    contour = Contours(Constants.FILE_NAME_CONTOUR_DATA)
+    contour = Contours.Contours(Constants.FILE_NAME_CONTOUR_DATA)
     contour.makeContourFeatureCollection()
 
     print "Making Map XML"
