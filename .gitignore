@@ -5,7 +5,7 @@
 /data/images
 /data/geojson
 /data/tiles
-
+/data/labdata.key
 
 .DS_Store
 /data/.DS_Store

@@ -1,9 +1,11 @@
 # ========== Analyzer ==========
-FILE_NAME_WIKIBRAIN_VECS = "./data/tsv/vecs.tsv"
-FILE_NAME_WIKIBRAIN_NAMES = "./data/tsv/names.tsv"
+FILE_NAME_WIKIBRAIN_VECS = "./data/labdata/vecs.tsv"
+FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
 FILE_NAME_NUMBERED_VECS = "./data/tsv/numberedVecs.tsv"
 FILE_NAME_NUMBERED_NAMES = "./data/tsv/numberedNames.tsv"
-FILE_NAME_ARTICLE_COORDINATES = "./data/tsv/tsne_cache.tsv"
+FILE_NAME_ARTICLE_COORDINATES = "./data/labdata/tsne_cache.tsv"
+FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates.tsv"
+FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
 FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
 FILE_NAME_KEEP = "./data/tsv/keep.tsv"
 

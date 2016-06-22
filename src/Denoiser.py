@@ -1,13 +1,12 @@
 from pygsp import graphs, filters
 import numpy as np
+from src import Constants
 
 
 class Denoiser:
 
     def __init__(self, x, y, clusters):
-        self.x = x
-        self.y = y
-        self.clusters = clusters
+        self.x, self.y, self.clusters = self._add_water(x, y, clusters)
         self.num_clusters = len(set(self.clusters))
 
     def _make_filter(self, tau=10):
@@ -29,6 +28,21 @@ class Denoiser:
             signal[cluster_num] = filter_.analysis(vec)
         return signal
 
+    def _add_water(self, x, y, clusters):
+        length = len(x)
+        water_x = np.random.uniform(np.min(x) - 3,
+                                    np.max(x) + 3,
+                                    int(length * Constants.PERCENTAGE_WATER))
+        water_y = np.random.uniform(np.min(x) - 3,
+                                    np.max(x) + 3,
+                                    int(length * Constants.PERCENTAGE_WATER))
+        x = np.append(x, water_x)
+        y = np.append(y, water_y)
+        clusters = np.append(clusters,
+                             np.full(int(length * Constants.PERCENTAGE_WATER),
+                                     max(clusters) + 1, dtype=np.int))
+        return x, y, clusters
+
     def denoise(self):
         signal = self._filter_in()
         max_idx_arr = np.argmax(signal, axis=0)
@@ -38,4 +52,4 @@ class Denoiser:
                 keep.append(True)
             else:
                 keep.append(False)
-        return keep
+        return keep, list(self.x), list(self.y), list(self.clusters)
