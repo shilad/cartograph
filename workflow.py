@@ -1,8 +1,8 @@
 import luigi
 import os
 import time
+from src import Config
 from src import Util
-from src import Constants
 from src import Contours
 from src import Denoiser
 from src import MapStyler
@@ -11,6 +11,9 @@ from src.BorderGeoJSONWriter import BorderGeoJSONWriter
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
+
+
+config = Config.BAD_GET_CONFIG()
 
 
 class MTimeMixin:
@@ -56,8 +59,8 @@ class WikiBrainData(luigi.ExternalTask):
 
     def output(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_WIKIBRAIN_NAMES),
-            luigi.LocalTarget(Constants.FILE_NAME_WIKIBRAIN_VECS),
+            luigi.LocalTarget(config.FILE_NAME_WIKIBRAIN_NAMES),
+            luigi.LocalTarget(config.FILE_NAME_WIKIBRAIN_VECS),
         )
 
 
@@ -68,7 +71,7 @@ class LabelNames(luigi.ExternalTask):
     '''
 
     def output(self):
-        return (luigi.LocalTarget(Constants.FILE_NAME_REGION_NAMES))
+        return (luigi.LocalTarget(config.FILE_NAME_REGION_NAMES))
 
 
 class WikiBrainNumbering(MTimeMixin, luigi.Task):
@@ -80,22 +83,22 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
 
     def output(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_NUMBERED_VECS),
-            luigi.LocalTarget(Constants.FILE_NAME_NUMBERED_NAMES),
+            luigi.LocalTarget(config.FILE_NAME_NUMBERED_VECS),
+            luigi.LocalTarget(config.FILE_NAME_NUMBERED_NAMES),
         )
 
     def requires(self):
         return WikiBrainData()
 
     def run(self):
-        with open(Constants.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
+        with open(config.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
             lines = nameFile.readlines()[1:]
-            Util.write_tsv(Constants.FILE_NAME_NUMBERED_NAMES,
+            Util.write_tsv(config.FILE_NAME_NUMBERED_NAMES,
                            ("index", "name"), range(1, len(lines) + 1), lines)
 
-        with open(Constants.FILE_NAME_WIKIBRAIN_VECS) as nameFile:
+        with open(config.FILE_NAME_WIKIBRAIN_VECS) as nameFile:
             lines = nameFile.readlines()[1:]
-            Util.write_tsv(Constants.FILE_NAME_NUMBERED_VECS,
+            Util.write_tsv(config.FILE_NAME_NUMBERED_VECS,
                            ("index", "vector"),
                            range(1, len(lines) + 1), lines)
 
@@ -108,20 +111,20 @@ class RegionClustering(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        return luigi.LocalTarget(Constants.FILE_NAME_NUMBERED_CLUSTERS)
+        return luigi.LocalTarget(config.FILE_NAME_NUMBERED_CLUSTERS)
 
     def requires(self):
         return WikiBrainNumbering()
 
     def run(self):
-        featureDict = Util.read_features(Constants.FILE_NAME_NUMBERED_VECS)
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
         print len(vectors)
-        labels = list(KMeans(Constants.NUM_CLUSTERS,
+        labels = list(KMeans(config.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
         print len(labels)
-        Util.write_tsv(Constants.FILE_NAME_NUMBERED_CLUSTERS,
+        Util.write_tsv(config.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
 
 
@@ -132,20 +135,20 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        return luigi.LocalTarget(Constants.FILE_NAME_ARTICLE_COORDINATES)
+        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_COORDINATES)
 
     def requires(self):
         return WikiBrainNumbering()
 
     def run(self):
-        featureDict = Util.read_features(Constants.FILE_NAME_NUMBERED_VECS)
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
         out = bh_sne(vectors,
-                     pca_d=Constants.TSNE_PCA_DIMENSIONS,
-                     theta=Constants.TSNE_THETA)
+                     pca_d=config.TSNE_PCA_DIMENSIONS,
+                     theta=config.TSNE_THETA)
         x, y = list(out[:, 0]), list(out[:, 1])
-        Util.write_tsv(Constants.FILE_NAME_ARTICLE_COORDINATES,
+        Util.write_tsv(config.FILE_NAME_ARTICLE_COORDINATES,
                        ("index", "x", "y"), keys, x, y)
 
 
@@ -157,17 +160,17 @@ class Denoise(MTimeMixin, luigi.Task):
 
     def output(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_KEEP),
-            luigi.LocalTarget(Constants.FILE_NAME_WATER_CLUSTERS),
-            luigi.LocalTarget(Constants.FILE_NAME_WATER_AND_ARTICLES)
+            luigi.LocalTarget(config.FILE_NAME_KEEP),
+            luigi.LocalTarget(config.FILE_NAME_WATER_CLUSTERS),
+            luigi.LocalTarget(config.FILE_NAME_WATER_AND_ARTICLES)
         )
 
     def requires(self):
         return RegionClustering(), CreateCoordinates()
 
     def run(self):
-        featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES,
-                                         Constants.FILE_NAME_NUMBERED_CLUSTERS)
+        featureDict = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES,
+                                         config.FILE_NAME_NUMBERED_CLUSTERS)
         featureIDs = list(featureDict.keys())
         x = [float(featureDict[featureID]["x"]) for featureID in featureIDs]
         y = [float(featureDict[featureID]["y"]) for featureID in featureIDs]
@@ -178,21 +181,21 @@ class Denoise(MTimeMixin, luigi.Task):
 
         for x in range(len(waterX) - len(featureIDs)):
             featureIDs.append("w" + str(x))
-        Util.write_tsv(Constants.FILE_NAME_KEEP, ("index", "keep"),
+        Util.write_tsv(config.FILE_NAME_KEEP, ("index", "keep"),
                        featureIDs, keepBooleans)
-        Util.write_tsv(Constants.FILE_NAME_WATER_AND_ARTICLES,
+        Util.write_tsv(config.FILE_NAME_WATER_AND_ARTICLES,
                        ("index", "x", "y"), featureIDs, waterX, waterY)
-        Util.write_tsv(Constants.FILE_NAME_WATER_CLUSTERS,
+        Util.write_tsv(config.FILE_NAME_WATER_CLUSTERS,
                        ("index", "cluster"), featureIDs, waterCluster)
 
 
 class CreateContinents(MTimeMixin, luigi.Task):
     def output(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_COUNTRIES),
-            luigi.LocalTarget(Constants.FILE_NAME_REGION_CLUSTERS),
-            luigi.LocalTarget(Constants.FILE_NAME_REGION_NAMES),
-            luigi.LocalTarget(Constants.FILE_NAME_REGION_BORDERS)
+            luigi.LocalTarget(config.FILE_NAME_COUNTRIES),
+            luigi.LocalTarget(config.FILE_NAME_REGION_CLUSTERS),
+            luigi.LocalTarget(config.FILE_NAME_REGION_NAMES),
+            luigi.LocalTarget(config.FILE_NAME_REGION_BORDERS)
         )
 
     def requires(self):
@@ -213,12 +216,12 @@ class CreateContinents(MTimeMixin, luigi.Task):
         clusterList = list(clusterDict.values())
         regionList, membershipList = self.decomposeBorders(clusterDict)
 
-        BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
-        Util.write_tsv(Constants.FILE_NAME_REGION_CLUSTERS,
+        BorderGeoJSONWriter(clusterList).writeToFile(config.FILE_NAME_COUNTRIES)
+        Util.write_tsv(config.FILE_NAME_REGION_CLUSTERS,
                        ("region_id", "cluster_id"),
                        range(1, len(membershipList) + 1),
                        membershipList)
-        Util.write_tsv(Constants.FILE_NAME_REGION_BORDERS,
+        Util.write_tsv(config.FILE_NAME_REGION_BORDERS,
                        ("region_id", "border_list"),
                        range(1, len(regionList) + 1),
                        regionList)
@@ -231,12 +234,12 @@ class CreateContours(MTimeMixin, luigi.Task):
         return CreateCoordinates()
 
     def output(self):
-        return luigi.LocalTarget(Constants.FILE_NAME_CONTOUR_DATA),
+        return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA),
 
     def run(self):
-        coords = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES)
+        coords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES)
         c = Contours.Contours()
-        c.makeContourFeatureCollection(coords, Constants.FILE_NAME_CONTOUR_DATA)
+        c.makeContourFeatureCollection(coords, config.FILE_NAME_CONTOUR_DATA)
 
 class CreateMap(MTimeMixin, luigi.Task):
     '''
@@ -245,9 +248,9 @@ class CreateMap(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_MAP),
-            luigi.LocalTarget(Constants.FILE_NAME_IMGNAME + '.png'),
-            luigi.LocalTarget(Constants.FILE_NAME_IMGNAME + '.svg')
+            luigi.LocalTarget(config.FILE_NAME_MAP),
+            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.png'),
+            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.svg')
         )
 
     def requires(self):
@@ -258,10 +261,10 @@ class CreateMap(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        regionClusters = Util.read_features(Constants.FILE_NAME_REGION_CLUSTERS)
+        regionClusters = Util.read_features(config.FILE_NAME_REGION_CLUSTERS)
         regionIds = sorted(set(region['cluster_id'] for region in regionClusters.values()))
         ms = MapStyler.MapStyler() 
-        ms.makeMap(Constants.FILE_NAME_CONTOUR_DATA, Constants.FILE_NAME_COUNTRIES, regionIds)
-        ms.saveMapXml(Constants.FILE_NAME_COUNTRIES, Constants.FILE_NAME_MAP)
-        ms.saveImage(Constants.FILE_NAME_MAP, Constants.FILE_NAME_IMGNAME + ".png")
-        ms.saveImage(Constants.FILE_NAME_MAP, Constants.FILE_NAME_IMGNAME + ".svg")
+        ms.makeMap(config.FILE_NAME_CONTOUR_DATA, config.FILE_NAME_COUNTRIES, regionIds)
+        ms.saveMapXml(config.FILE_NAME_COUNTRIES, config.FILE_NAME_MAP)
+        ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")
+        ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
