@@ -1,11 +1,11 @@
 import mapnik
-from src.BorderGeoJSONWriter import BorderGeoJSONWriter
-from src.BorderFactory import BorderFactory
-from src import Contours
+from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
+from cartograph.BorderFactory import BorderFactory
+from cartograph import Contours
 from generateTiles import render_tiles
 from shutil import rmtree
-from src import Labels
-from src import Constants
+from cartograph import Labels
+from cartograph import Constants
 
 fullFeatureList = []
 

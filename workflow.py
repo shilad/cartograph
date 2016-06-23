@@ -1,13 +1,13 @@
 import luigi
 import os
 import time
-from src import Config
-from src import Util
-from src import Contours
-from src import Denoiser
-from src import MapStyler
-from src.BorderFactory import BorderFactory
-from src.BorderGeoJSONWriter import BorderGeoJSONWriter
+from cartograph import Config
+from cartograph import Util
+from cartograph import Contours
+from cartograph import Denoiser
+from cartograph import MapStyler
+from cartograph.BorderFactory import BorderFactory
+from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans

@@ -5,7 +5,7 @@ import scipy.ndimage
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
 import copy
-from src import Util
+from cartograph import Util
 
 
 class Contours:
