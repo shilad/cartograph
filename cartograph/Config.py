@@ -12,7 +12,6 @@ class Config:
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
-        self.FILE_NAME_TOP_TITLES = "./data/top_100_articles.tsv"
         self.FILE_NAME_POPULARITY = "./data/labdata/article_popularity.tsv"
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
 
@@ -37,6 +36,7 @@ class Config:
         self.FILE_NAME_MAP = "map.xml"
         self.FILE_NAME_REGION_CLUSTERS = "./data/tsv/region_clusters.tsv"
         self.FILE_NAME_REGION_BORDERS = "./data/tsv/region_borders.tsv"
+        self.FILE_NAME_TOP_TITLES = "./data/geojson/top_100_articles.geojson"
 
 
 __config = Config()
