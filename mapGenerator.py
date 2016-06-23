@@ -1,7 +1,7 @@
 import mapnik
 from BorderGeoJSONWriter import BorderGeoJSONWriter
 from BorderFactory import BorderFactory
-from histToContour import Contours
+from histToContour import ContourCreator
 from generateTiles import render_tiles
 from shutil import rmtree
 from addLabelsXml import Labels
@@ -9,7 +9,7 @@ import Constants
 from TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 
 fullFeatureList = []
-
+numOfContours = 0
 
 # ===== Generate JSON Data ==========
 def generatePolygonFile():
@@ -34,19 +34,21 @@ def generateCountryPolygonStyle(filename, opacity):
         r.symbols.append(symbolizer)
         r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
         s.rules.append(r)
-
     return s
 
 
-def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
+def generateContourPolygonStyle(filename, opacity, gamma=1):
+    colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fea3aa", "red"]
     s = mapnik.Style()
-    r = mapnik.Rule()
-    symbolizer = mapnik.PolygonSymbolizer()
-    symbolizer.fill = mapnik.Color('steelblue')
-    symbolizer.fill_opacity = opacity
-    symbolizer.gamma = gamma
-    r.symbols.append(symbolizer)
-    s.rules.append(r)
+    for i in range(numOfContours):
+        r = mapnik.Rule()
+        symbolizer = mapnik.PolygonSymbolizer()
+        symbolizer.fill = mapnik.Color(colorWheel[i])
+        symbolizer.fill_opacity = opacity
+        symbolizer.gamma = gamma
+        r.symbols.append(symbolizer)
+        r.filter = mapnik.Expression('[contourNum].match("' + str(i) + '")')
+        s.rules.append(r)
     return s
 
 
@@ -77,11 +79,11 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateSinglePolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, .25, 1))
+    m.append_style("contour", generateContourPolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, 1.0))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
-    m.append_style("outline", generateLineStyle("darkblue", .25))
+    m.append_style("outline", generateLineStyle("black", 0.0))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
@@ -111,8 +113,9 @@ if __name__ == "__main__":
     generateTitleLabelFile()
 
     print "Generating Contours"
-    contour = Contours(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
+    contour = ContourCreator(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
     contour.makeContourFeatureCollection()
+    numOfContours = len(contour.plys)
 
     print "Making Map XML"
     makeMap()
