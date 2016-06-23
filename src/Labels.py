@@ -28,7 +28,7 @@ class Labels():
         dataParamFile = SubElement(data, 'Parameter', name='file')
         dataParamFile.text = geojsonFile
 
-    def writeLabelsXml(self, field, labelType, geojsonFile):
+    def writeLabelsXml(self, field, labelType, geojsonFile, mapFile):
         self._add_Text_Style(field, labelType)
         self._add_Text_Layer(field, geojsonFile)
-        self.mapFile.write(Constants.FILE_NAME_MAP)
+        self.mapFile.write(mapFile)

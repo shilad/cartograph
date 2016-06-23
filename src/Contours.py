@@ -11,17 +11,16 @@ from src import Constants
 
 class Contours:
 
-    def __init__(self, filename):
-        self.file = filename
+    def __init__(self):
+        pass
 
-    def _calc_contour(self, binSize):
+    def _calc_contour(self, articleCoords, binSize):
         # xyCoords = Util.read_tsv(csvFile)
         # x = map(float, xyCoords["x"])
         # y = map(float, xyCoords["y"])
-        featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES)
-        idList = list(featureDict.keys())
-        x = np.array([float(featureDict[featureID]["x"]) for featureID in idList])
-        y = np.array([float(featureDict[featureID]["y"]) for featureID in idList])
+        idList = list(articleCoords.keys())
+        x = np.array([float(articleCoords[featureID]["x"]) for featureID in idList])
+        y = np.array([float(articleCoords[featureID]["y"]) for featureID in idList])
         contBuffer = 20
 
         H, yedges, xedges = np.histogram2d(y, x,
@@ -47,8 +46,8 @@ class Contours:
             else:
                 raise ValueError('array not found in list.')
 
-    def _get_contours(self):
-        CS = self._calc_contour(35)
+    def _get_contours(self, coordinates):
+        CS = self._calc_contour(coordinates, 35)
         plys = []
         for i in range(len(CS.collections)):
             shapes = []
@@ -79,10 +78,10 @@ class Contours:
             count += 1
         return plys
 
-    def _gen_contour_features(self):
+    def _gen_contour_features(self, coordinates):
         featureAr = []
         polyGroups = []
-        for group in self._get_contours():
+        for group in self._get_contours(coordinates):
             polys = []
             for shape in group:
                 polyPoints = []
@@ -98,10 +97,10 @@ class Contours:
 
         return featureAr
 
-    def makeContourFeatureCollection(self):
-        featureAr = self._gen_contour_features()
+    def makeContourFeatureCollection(self, coordinates, outputFilename):
+        featureAr = self._gen_contour_features(coordinates)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
-        with open(self.file, "w") as writeFile:
+        with open(outputFilename, "w") as writeFile:
             writeFile.write(textDump)
 
