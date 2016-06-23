@@ -11,19 +11,29 @@ from TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 fullFeatureList = []
 numOfContours = 0
 
+
 # ===== Generate JSON Data ==========
-def generatePolygonFile():
+def generateCountryFile():
     clusterList = BorderFactory.from_file().build().values()
     BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
     global fullFeatureList
     fullFeatureList = clusterList
 
+
 def generateTitleLabelFile():
     titleLabels = TopTitlesGeoJSONWriter(Constants.FILE_NAME_TOPTITLES)
     titleLabels.generateJSONFeature()
 
+
+def generateContourFile():
+    contour = ContourCreator(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
+    contour.makeContourFeatureCollection()
+    global numOfContours
+    numOfContours = len(contour.plys)
+
+
 # ===== Generate Map File =====
-def generateCountryPolygonStyle(filename, opacity):
+def generateCountryPolygonStyle(opacity):
     colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
     s = mapnik.Style()
     for i in range(len(fullFeatureList)):
@@ -37,7 +47,7 @@ def generateCountryPolygonStyle(filename, opacity):
     return s
 
 
-def generateContourPolygonStyle(filename, opacity, gamma=1):
+def generateContourPolygonStyle(opacity, gamma=1):
     colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fd717b", "red"]
     s = mapnik.Style()
     for i in range(numOfContours):
@@ -79,7 +89,7 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateContourPolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, .3))
+    m.append_style("contour", generateContourPolygonStyle(.3))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
@@ -87,7 +97,7 @@ def makeMap():
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, .3))
+    m.append_style("countries", generateCountryPolygonStyle(.3))
     m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
@@ -107,15 +117,13 @@ def makeMap():
 
 if __name__ == "__main__":
     print "Generating Polygons"
-    #generatePolygonFile()
+    generateCountryFile()
 
     print "Generating TitleLabels"
     generateTitleLabelFile()
 
     print "Generating Contours"
-    contour = ContourCreator(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
-    contour.makeContourFeatureCollection()
-    numOfContours = len(contour.plys)
+    generateContourFile()
 
     print "Making Map XML"
     makeMap()
@@ -125,4 +133,4 @@ if __name__ == "__main__":
 
     bbox = (-180.0, -90.0, 180.0, 90.0)
     rmtree(tile_dir)
-    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 2, "World")
