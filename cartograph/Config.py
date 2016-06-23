@@ -5,8 +5,8 @@ class Config:
         # ========== Analyzer ==========
         self.FILE_NAME_WIKIBRAIN_VECS = "./data/labdata/vecs.tsv"
         self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
-        self.FILE_NAME_NUMBERED_VECS = "./data/tsv/numberedVecs.tsv"
-        self.FILE_NAME_NUMBERED_NAMES = "./data/tsv/numberedNames.tsv"
+        self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecs.tsv"
+        self.FILE_NAME_NUMBERED_NAMES = "./data/labdata/numberedNames.tsv"
         self.FILE_NAME_ARTICLE_COORDINATES = "./data/labdata/tsne_cache.tsv"
         self.FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates.tsv"
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
