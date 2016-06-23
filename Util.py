@@ -31,7 +31,9 @@ def write_tsv(filename, headers, data):
         for row_num in range(len(data[0])):
             row = [col[row_num] for col in data]
             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
+            print s
             f.write(s)
+
 
 def calc_area(points):
     unzipped = zip(*points)
