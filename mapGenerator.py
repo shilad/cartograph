@@ -34,7 +34,7 @@ def generateCountryPolygonStyle(filename, opacity):
 
 
 def generateContourPolygonStyle(filename, opacity, gamma=1):
-    colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fea3aa", "red"]
+    colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fd717b", "red"]
     s = mapnik.Style()
     for i in range(numOfContours):
         r = mapnik.Rule()
@@ -75,7 +75,7 @@ def makeMap():
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateContourPolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, 1.0))
+    m.append_style("contour", generateContourPolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, .3))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
@@ -83,7 +83,7 @@ def makeMap():
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0))
+    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, .3))
     m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
