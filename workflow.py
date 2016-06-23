@@ -236,9 +236,12 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA),
 
     def run(self):
-        coords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES)
-        c = Contours.Contours()
-        c.makeContourFeatureCollection(coords, config.FILE_NAME_CONTOUR_DATA)
+        xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES)
+        contour = Contours.ContourCreator()
+        contour.buildContours(xyCoords)
+        contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
+        global numOfContours
+        numOfContours = len(contour.plys)
 
 class CreateMap(MTimeMixin, luigi.Task):
     '''

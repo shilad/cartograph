@@ -3,31 +3,32 @@ import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 import scipy.ndimage
 from geojson import Feature, FeatureCollection
-from geojson import dumps, Polygon
-import copy
-from cartograph import Util
+from geojson import dumps, MultiPolygon
+
+from scipy.ndimage.filters import gaussian_filter
 
 
-class Contours:
+class ContourCreator:
 
     def __init__(self):
         pass
 
-    def _calc_contour(self, articleCoords, binSize):
-        # xyCoords = Util.read_tsv(csvFile)
-        # x = map(float, xyCoords["x"])
-        # y = map(float, xyCoords["y"])
-        idList = list(articleCoords.keys())
-        x = np.array([float(articleCoords[featureID]["x"]) for featureID in idList])
-        y = np.array([float(articleCoords[featureID]["y"]) for featureID in idList])
-        contBuffer = 20
+    def buildContours(self, coordinates):
+        self.CS = self._calc_contour(coordinates, 225)
+        self.plys = self._get_contours(self.CS)
+
+    @staticmethod
+    def _calc_contour(xyCoords, binSize):
+        x = map(float, xyCoords["x"])
+        y = map(float, xyCoords["y"])
 
         H, yedges, xedges = np.histogram2d(y, x,
                                            bins=binSize,
-                                           range=[[np.min(x) - contBuffer,
-                                                  np.max(x) + contBuffer],
-                                                  [np.min(y) - contBuffer,
-                                                  np.max(y) + contBuffer]])
+                                           range=[[np.min(x),
+                                                  np.max(x)],
+                                                  [np.min(y),
+                                                  np.max(y)]])
+        H = gaussian_filter(H, 2)
         extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
         smoothH = scipy.ndimage.zoom(H, 4)
@@ -35,18 +36,8 @@ class Contours:
 
         return (plt.contour(smoothH, extent=extent))
 
-    def _remove_array(self, L, arr):
-            ind = 0
-            size = len(L)
-            while ind != size and not np.array_equal(L[ind], arr):
-                ind += 1
-            if ind != size:
-                L.pop(ind)
-            else:
-                raise ValueError('array not found in list.')
-
-    def _get_contours(self, coordinates):
-        CS = self._calc_contour(coordinates, 35)
+    @staticmethod
+    def _get_contours(CS):
         plys = []
         for i in range(len(CS.collections)):
             shapes = []
@@ -55,51 +46,71 @@ class Contours:
                 v = p.vertices
                 shapes.append(v)
             plys.append(shapes)
-
-        copy_lst = copy.deepcopy(plys)
-        count = 0
-        for layers in copy_lst:
-            newShape = []
-            for shapes in layers:
-                bbPath = mplPath.Path(shapes)
-                for others in layers:
-                    if (shapes[0][0] != others[0][0]) \
-                       and (shapes[0][1] != others[0][1]) \
-                       and bbPath.contains_point((others[0][0], others[0][1])):
-                        if len(newShape) == 0:
-                            newShape.append(shapes)
-                            self._remove_array(plys[count], shapes)
-
-                        newShape.append(others)
-                        self._remove_array(plys[count], others)
-            if len(newShape) != 0:
-                plys.append(newShape)
-            count += 1
         return plys
 
-    def _gen_contour_features(self, coordinates):
+    @staticmethod
+    def _gen_contour_polygons(plys):
+        contourList = []
+        for group in plys:
+            contour = ContourCreator.Contour(group)
+            contour.createHoles()
+            contourList.append(contour)
+
         featureAr = []
-        polyGroups = []
-        for group in self._get_contours(coordinates):
-            polys = []
-            for shape in group:
-                polyPoints = []
-                for pt in shape:
-                    polyPoints.append((pt[0], pt[1]))
-                polys.append(polyPoints)
-            polyGroups.append(polys)
-
-        for shape in polyGroups:
-            newPolygon = Polygon(shape)
-            newFeature = Feature(geometry=newPolygon)
+        for index, contour in enumerate(contourList):
+            geoPolys = []
+            for polygon in contour.polygons:
+                geoPolys.append(polygon.points)
+            newMultiPolygon = MultiPolygon(geoPolys)
+            newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index})
             featureAr.append(newFeature)
-
         return featureAr
 
-    def makeContourFeatureCollection(self, coordinates, outputFilename):
-        featureAr = self._gen_contour_features(coordinates)
+    def makeContourFeatureCollection(self, outputfilename):
+        featureAr = self._gen_contour_polygons(self.plys)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
-        with open(outputFilename, "w") as writeFile:
+        with open(outputfilename, "w") as writeFile:
             writeFile.write(textDump)
 
+class Contour():
+
+    def __init__(self, shapes):
+        self.shapes = shapes
+        self.polygons = self._generatePolygons(self.shapes)
+
+    @staticmethod
+    def _generatePolygons(shapes):
+        polys = set()
+        for group in shapes:
+            points = []
+            for pt in group:
+                points.append((pt[0], pt[1]))
+            polys.add(ContourCreator.Polygon(points))
+        return polys
+
+    def createHoles(self):
+        toRemove = set()
+        for poly in self.polygons:
+            path = mplPath.Path(poly.points[0])
+            for otherPolys in self.polygons:
+                if poly is not otherPolys and path.contains_points(otherPolys.points[0]).all():
+                    poly.children.add(otherPolys)
+                    toRemove.add(otherPolys)
+        for poly in toRemove:
+            self.polygons.remove(poly)
+        self.collapseHoles()
+
+    def collapseHoles(self):
+        for poly in self.polygons:
+            poly.collapseChildren()
+
+class Polygon():
+
+    def __init__(self, points):
+        self.points = [points]
+        self.children = set()
+
+    def collapseChildren(self):
+        for child in self.children:
+            self.points.append(child.points[0])
