@@ -13,6 +13,8 @@ class Config:
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
         self.FILE_NAME_TOP_TITLES = "./data/top_100_articles.tsv"
+        self.FILE_NAME_POPULARITY = "./data/labdata/article_popularity.tsv"
+        self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
 
         self.NUM_CLUSTERS = 10  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
@@ -42,9 +44,7 @@ __config = Config()
 
 def BAD_GET_CONFIG():
     """
-        TODO: Remove all calls to this, replace with intiailization from a config file.
+        TODO: Remove all calls to this,
+        replace with intiailization from a config file.
     """
     return __config
-
-
-    
