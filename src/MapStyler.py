@@ -27,7 +27,9 @@ class MapStyler:
         label = Labels.Labels(mapFilename)
         label.writeLabelsXml('[labels]', 'interior', countryFilename, mapFilename)
 
-    def saveImage(self, imgFilename):
+    def saveImage(self, mapFilename, imgFilename):
+        mapnik.load_map(self.m, mapFilename)
+        self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 
 
