@@ -1,13 +1,54 @@
 <Map background-color="rgb(255,255,255)" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
   <Style name="contour">
     <Rule>
-      <PolygonSymbolizer fill="rgb(70,130,180)" fill-opacity="0" gamma="1" />
+      <PolygonSymbolizer fill="rgb(70,130,180)" fill-opacity="0.2" gamma="1" />
     </Rule>
   </Style>
-  <Style name="countries" />
+  <Style name="countries">
+    <Rule>
+      <Filter>[clusterNum].match('0')</Filter>
+      <PolygonSymbolizer fill="rgb(121,85,72)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('1')</Filter>
+      <PolygonSymbolizer fill="rgb(255,87,34)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('2')</Filter>
+      <PolygonSymbolizer fill="rgb(255,193,7)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('3')</Filter>
+      <PolygonSymbolizer fill="rgb(205,220,57)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('4')</Filter>
+      <PolygonSymbolizer fill="rgb(76,175,80)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('5')</Filter>
+      <PolygonSymbolizer fill="rgb(0,150,136)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('6')</Filter>
+      <PolygonSymbolizer fill="rgb(0,188,212)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('7')</Filter>
+      <PolygonSymbolizer fill="rgb(33,150,243)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('8')</Filter>
+      <PolygonSymbolizer fill="rgb(63,81,181)" fill-opacity="1" />
+    </Rule>
+    <Rule>
+      <Filter>[clusterNum].match('9')</Filter>
+      <PolygonSymbolizer fill="rgb(103,58,183)" fill-opacity="1" />
+    </Rule>
+  </Style>
   <Style name="outline">
     <Rule>
-      <LineSymbolizer stroke="rgb(0,0,139)" stroke-opacity="0" />
+      <LineSymbolizer stroke="rgb(0,0,139)" stroke-opacity="0.5" />
     </Rule>
   </Style>
   <Layer name="contour" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
