@@ -2,7 +2,6 @@ import ConfigParser
 
 class Config:
     def __init__(self):
-        # ========== Analyzer ==========
         self.FILE_NAME_WIKIBRAIN_VECS = "./data/labdata/vecs.tsv"
         self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
         self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecs.tsv"
@@ -21,9 +20,8 @@ class Config:
         self.PERCENTAGE_WATER = 0.1
 
         # ========== BorderFactory ==========
-        self.SEARCH_RADIUS = 50  # proxy for water level, lower values = higher water
-        self.REGION_BORDER_SIZE = 2
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
+        self.BLUR_RADIUS = 5  # defines size of neighborhood for blurring
 
         # ========== mapGenerator ==========
         self._localTiles = "./data/tiles/"
