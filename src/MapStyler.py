@@ -5,19 +5,17 @@ class MapStyler:
     def __init__(self):
         self.m = None
 
-    def makeMap(self, contourFilename, countryFilename, width=1200, height=600):
+    def makeMap(self, contourFilename, countryFilename, clusterIds, width=1200, height=600):
         self.m = mapnik.Map(width, height)
         self.m.background = mapnik.Color('white')
  
-        self.m.append_style("contour", generateSinglePolygonStyle(contourFilename, 0, 1))
-        self.m.layers.append(generateLayer(contourFilename,
-                                      "contour", "contour"))
+        self.m.append_style("contour", generateSinglePolygonStyle(contourFilename, 0.2, 1))
+        self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
  
-        self.m.append_style("outline", generateLineStyle("darkblue", 0))
-        self.m.layers.append(generateLayer(contourFilename,
-                                      "outline", "outline"))
+        self.m.append_style("outline", generateLineStyle("darkblue", 0.5))
+        self.m.layers.append(generateLayer(contourFilename, "outline", "outline"))
  
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, 1.0))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, 1.0, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
         self.m.zoom_all()
 
@@ -34,10 +32,8 @@ class MapStyler:
 
 
 """
-TODO: Remove the below global and move the funtions below into the above class
+TODO: move the functions below into the above class
 """
-fullFeatureList = []
-
 
 
 def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
@@ -52,16 +48,16 @@ def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
     return s
 
 # ===== Generate Map File =====
-def generateCountryPolygonStyle(filename, opacity):
+def generateCountryPolygonStyle(filename, opacity, clusterIds):
     colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
     s = mapnik.Style()
-    for i in range(len(fullFeatureList)):
+    for i, c in enumerate(clusterIds):
         r = mapnik.Rule()
         symbolizer = mapnik.PolygonSymbolizer()
         symbolizer.fill = mapnik.Color(colorWheel[i])
         symbolizer.fill_opacity = opacity
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
+        r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
         s.rules.append(r)
 
     return s
@@ -82,5 +78,3 @@ def generateLayer(jsonFile, name, styleName):
     layer.datasource = ds
     layer.styles.append(styleName)
     return layer
-
-
