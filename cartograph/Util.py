@@ -87,3 +87,10 @@ class InputError(Exception):
     def __init__(self, expr, msg):
         self.expr = expr
         self.msg = msg
+
+def calc_area(points):
+    unzipped = zip(*points)
+    x = unzipped[0]
+    y = unzipped[1]
+    # Shoelace Algorithm (a la Stackoverflow)
+    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))

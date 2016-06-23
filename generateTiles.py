@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from math import pi, sin, log, exp, atan
-from cartograph import Constants
+import Constants
 import os
 from Queue import Queue
 
