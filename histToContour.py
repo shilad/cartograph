@@ -4,6 +4,7 @@ import matplotlib.path as mplPath
 import scipy.ndimage
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
+import Constants
 import Util
 
 from scipy.ndimage.filters import gaussian_filter
@@ -11,8 +12,8 @@ from scipy.ndimage.filters import gaussian_filter
 
 class ContourCreator:
 
-    def __init__(self, dataName, fileName):
-        self.file = fileName
+    def __init__(self, dataName):
+        self.file = Constants.FILE_NAME_CONTOUR_DATA
         self.data = dataName
         self.CS = self._calc_contour(self.data, 225)
         self.plys = self._get_contours(self.CS)
