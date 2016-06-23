@@ -18,7 +18,7 @@ DATA_LOCAL=data/labdata
 DATA_REMOTE=labdata@como.macalester.edu:data
 
 function do_rsync() {
-    echo executing: rsync -avz -e "ssh -i $KEYFILE" $@
+    echo executing: rsync -avuz -e "ssh -i $KEYFILE" $@
     rsync -avz -e "ssh -i $KEYFILE" $@ || die "FAILURE!"
 }
 

@@ -3,6 +3,7 @@ import os
 import time
 from src import Util
 from src import Constants
+from src import Contours
 from src import Denoiser
 from src import MapStyler
 from src.BorderFactory import BorderFactory
@@ -124,7 +125,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
                        ("index", "cluster"), keys, labels)
 
 
-class Embedding(MTimeMixin, luigi.Task):
+class CreateCoordinates(MTimeMixin, luigi.Task):
     '''
     Use TSNE to reduce high dimensional vectors to x, y coordinates for
     mapping purposes
@@ -162,7 +163,7 @@ class Denoise(MTimeMixin, luigi.Task):
         )
 
     def requires(self):
-        return RegionClustering(), Embedding()
+        return RegionClustering(), CreateCoordinates()
 
     def run(self):
         featureDict = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES,
@@ -221,6 +222,21 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        range(1, len(regionList) + 1),
                        regionList)
 
+class CreateContours(MTimeMixin, luigi.Task):
+    '''
+    Creates the contours layer.
+    '''
+    def requires(self):
+        return CreateCoordinates()
+
+    def output(self):
+        return luigi.LocalTarget(Constants.FILE_NAME_CONTOUR_DATA),
+
+    def run(self):
+        coords = Util.read_features(Constants.FILE_NAME_ARTICLE_COORDINATES)
+        c = Contours.Contours()
+        c.makeContourFeatureCollection(coords, Constants.FILE_NAME_CONTOUR_DATA)
+
 class CreateMap(MTimeMixin, luigi.Task):
     '''
     Creates the mapnik map.xml configuration file and renders png and svg
@@ -235,13 +251,14 @@ class CreateMap(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (
-            luigi.LocalTarget(Constants.FILE_NAME_COUNTRIES),
-            luigi.LocalTarget(Constants.FILE_NAME_CONTOUR_DATA),
+            CreateContours(),
+            CreateCoordinates(),
+            CreateContinents(),
         )
 
     def run(self):
-        ms = Mapstyler() 
-        ms.makeMap(Constants.Constants.FILE_NAME_CONTOUR_DATA, Constants.FILE_NAME_COUNTRIES)
+        ms = MapStyler.MapStyler() 
+        ms.makeMap(Constants.FILE_NAME_CONTOUR_DATA, Constants.FILE_NAME_COUNTRIES)
         ms.saveMapXml(Constants.FILE_NAME_COUNTRIES, Constants.FILE_NAME_MAP)
         ms.saveImage(Constants.FILE_NAME_IMGNAME + ".png")
         ms.saveImage(Constants.FILE_NAME_IMGNAME + ".svg")
