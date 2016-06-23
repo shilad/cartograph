@@ -1,7 +1,9 @@
 from scipy.spatial import Voronoi
 from Vertex import Vertex
-import Constants
 import Util
+
+import Config
+config = Config.BAD_GET_CONFIG()
 
 
 class BorderFactory(object):
@@ -13,9 +15,9 @@ class BorderFactory(object):
 
     @classmethod
     def from_file(cls, ):
-        featureDict = Util.read_features(Constants.FILE_NAME_WATER_AND_ARTICLES,
-                                         Constants.FILE_NAME_KEEP,
-                                         Constants.FILE_NAME_WATER_CLUSTERS)
+        featureDict = Util.read_features(config.FILE_NAME_WATER_AND_ARTICLES,
+                                         config.FILE_NAME_KEEP,
+                                         config.FILE_NAME_WATER_CLUSTERS)
         idList = list(featureDict.keys())
         x, y, clusters = [], [], []
         for article in idList:
@@ -95,7 +97,7 @@ class BorderFactory(object):
                     cluster_border.append((vert.x, vert.y))
                     group_edge_vert_dict[label].discard(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
+                if len(cluster_border) > config.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
         return BorderFactory._make_borders_natural(borders)
 

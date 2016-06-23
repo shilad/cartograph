@@ -1,5 +1,4 @@
 from MapRepresentations import Continent, continentListToFile
-from Constants import FILE_NAME_COUNTRIES
 import BorderFactory
 
 
@@ -27,7 +26,3 @@ class ContinentFactory:
             self.fullFeatureList.append(featureList)
 
         continentListToFile(self.fullFeatureList, self.countriesFile)
-
-if __name__ == "__main__":
-    continentFactory = ContinentFactory(FILE_NAME_COUNTRIES)
-    continentFactory.generatePolygonFile()

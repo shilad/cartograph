@@ -2,7 +2,10 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
 import matplotlib.path as mplPath
 import Util
-import Constants
+
+import Config
+config = Config.BAD_GET_CONFIG()
+
 
 
 class BorderGeoJSONWriter:
@@ -22,7 +25,7 @@ class BorderGeoJSONWriter:
 
     @staticmethod
     def _generateJSONFeature(points, numStr):
-        label = Util.read_tsv(Constants.FILE_NAME_REGION_NAMES)
+        label = Util.read_tsv(config.FILE_NAME_REGION_NAMES)
         shape = Polygon(points)
         return Feature(geometry=shape, properties={"clusterNum": numStr, "labels": label["label"][numStr]})
 
