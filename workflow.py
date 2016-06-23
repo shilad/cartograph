@@ -196,7 +196,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
         )
 
     def requires(self):
-        return Denoise()
+        return (Denoise(), LabelNames())
 
     def decomposeBorders(self, clusterDict):
         regionList = []
@@ -258,8 +258,10 @@ class CreateMap(MTimeMixin, luigi.Task):
         )
 
     def run(self):
+        regionClusters = Util.read_features(Constants.FILE_NAME_REGION_CLUSTERS)
+        regionIds = sorted(set(region['cluster_id'] for region in regionClusters.values()))
         ms = MapStyler.MapStyler() 
-        ms.makeMap(Constants.FILE_NAME_CONTOUR_DATA, Constants.FILE_NAME_COUNTRIES)
+        ms.makeMap(Constants.FILE_NAME_CONTOUR_DATA, Constants.FILE_NAME_COUNTRIES, regionIds)
         ms.saveMapXml(Constants.FILE_NAME_COUNTRIES, Constants.FILE_NAME_MAP)
         ms.saveImage(Constants.FILE_NAME_MAP, Constants.FILE_NAME_IMGNAME + ".png")
         ms.saveImage(Constants.FILE_NAME_MAP, Constants.FILE_NAME_IMGNAME + ".svg")
