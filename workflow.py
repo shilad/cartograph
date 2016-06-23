@@ -74,6 +74,11 @@ class LabelNames(luigi.ExternalTask):
         return (luigi.LocalTarget(config.FILE_NAME_REGION_NAMES))
 
 
+class ArticlePopularity(luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_POPULARITY))
+
+
 class WikiBrainNumbering(MTimeMixin, luigi.Task):
     '''
     Number the name and vector output of WikiBrain files so that each
@@ -101,6 +106,37 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
             Util.write_tsv(config.FILE_NAME_NUMBERED_VECS,
                            ("index", "vector"),
                            range(1, len(lines) + 1), lines)
+
+
+class PopularityLabeler(MTimeMixin, luigi.Task):
+
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_POPULARITY))
+
+    def requires(self):
+        return WikiBrainNumbering(), ArticlePopularity()
+
+    def run(self):
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_NAMES)
+        idList = list(featureDict.keys())
+
+        nameDict = {}
+        with open(config.FILE_NAME_POPULARITY) as popularity:
+            lines = popularity.readlines()
+            for line in lines:
+                lineAr = line.split("\t")
+                name = lineAr[0]
+                pop = lineAr[1][:-1]
+                nameDict[name] = pop
+
+        popularityList = []
+        for featureID in idList:
+            name = featureDict[featureID]["name"]
+            popularityList.append(nameDict[name])
+
+        Util.write_tsv(config.FILE_NAME_NUMBERED_POPULARITY,
+                       ("id", "popularity"),
+                       idList, popularityList)
 
 
 class RegionClustering(MTimeMixin, luigi.Task):
