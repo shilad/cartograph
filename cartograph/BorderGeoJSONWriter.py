@@ -2,10 +2,9 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, Polygon
 import matplotlib.path as mplPath
 import Util
-import Constants
 import numpy as np
-
 import Config
+
 config = Config.BAD_GET_CONFIG()
 
 
