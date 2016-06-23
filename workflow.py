@@ -238,7 +238,7 @@ class CreateContours(MTimeMixin, luigi.Task):
     def run(self):
         xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES)
         contour = Contours.ContourCreator()
-        contour.buildContours(xyCoords)
+        contour.buildContours(list(xyCoords.values()))
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
         global numOfContours
         numOfContours = len(contour.plys)
