@@ -6,6 +6,7 @@ from generateTiles import render_tiles
 from shutil import rmtree
 from addLabelsXml import Labels
 import Constants
+from TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 
 fullFeatureList = []
 
@@ -17,6 +18,9 @@ def generatePolygonFile():
     global fullFeatureList
     fullFeatureList = clusterList
 
+def generateTitleLabelFile():
+    titleLabels = TopTitlesGeoJSONWriter(Constants.FILE_NAME_TOPTITLES)
+    titleLabels.generateJSONFeature()
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity):
@@ -81,14 +85,17 @@ def makeMap():
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0))
+    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 0.6))
     m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
     label = Labels()
-    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
+    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES, maxScale='559082264', minScale='17471321')
+
+    titleLabels = Labels()
+    titleLabels.writeLabelsXml('[titleLabel]', 'point', Constants.FILE_NAME_TOPTITLES, minScale='1091958', maxScale='17471321')
 
     mapnik.load_map(m, Constants.FILE_NAME_MAP)
 
@@ -98,7 +105,10 @@ def makeMap():
 
 if __name__ == "__main__":
     print "Generating Polygons"
-    generatePolygonFile()
+    #generatePolygonFile()
+
+    print "Generating TitleLabels"
+    generateTitleLabelFile()
 
     print "Generating Contours"
     contour = Contours(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
@@ -112,4 +122,4 @@ if __name__ == "__main__":
 
     bbox = (-180.0, -90.0, 180.0, 90.0)
     rmtree(tile_dir)
-    render_tiles(bbox, mapfile, tile_dir, 0, 2, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
