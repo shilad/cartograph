@@ -1,6 +1,6 @@
 #!/bin/bash
 export PYTHONPATH=$PYTHONPATH:.
-if luigi --module workflow CreateMap --local-scheduler --retcode-task-failed 1; then
+if luigi --module workflow RenderMap --local-scheduler --retcode-task-failed 1; then
 	echo "LUIGI BUILD SUCCEEDED" >&2
 	exit 0
 else
