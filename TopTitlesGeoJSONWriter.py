@@ -1,6 +1,5 @@
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
-import Util
 import Constants
 
 

@@ -12,6 +12,7 @@ class Config:
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
+        self.FILE_NAME_TOP_TITLES = "./data/top_100_articles.tsv"
 
         self.NUM_CLUSTERS = 10  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
