@@ -1,14 +1,13 @@
 from pygsp import graphs, filters
 import numpy as np
 
+import Config
+config = Config.BAD_GET_CONFIG()
 
 class Denoiser:
 
-    def __init__(self, x, y, clusters, names):
-        self.x = x
-        self.y = y
-        self.clusters = clusters
-        self.names = names
+    def __init__(self, x, y, clusters):
+        self.x, self.y, self.clusters = self._add_water(x, y, clusters)
         self.num_clusters = len(set(self.clusters))
 
     def _make_filter(self, tau=10):
@@ -30,17 +29,28 @@ class Denoiser:
             signal[cluster_num] = filter_.analysis(vec)
         return signal
 
+    def _add_water(self, x, y, clusters):
+        length = len(x)
+        water_x = np.random.uniform(np.min(x) - 3,
+                                    np.max(x) + 3,
+                                    int(length * config.PERCENTAGE_WATER))
+        water_y = np.random.uniform(np.min(x) - 3,
+                                    np.max(x) + 3,
+                                    int(length * config.PERCENTAGE_WATER))
+        x = np.append(x, water_x)
+        y = np.append(y, water_y)
+        clusters = np.append(clusters,
+                             np.full(int(length * config.PERCENTAGE_WATER),
+                                     max(clusters) + 1, dtype=np.int))
+        return x, y, clusters
+
     def denoise(self):
         signal = self._filter_in()
         max_idx_arr = np.argmax(signal, axis=0)
-        x_out = []
-        y_out = []
-        clusters_out = []
-        names_out = []
+        keep = []
         for i in range(len(self.x)):
             if max_idx_arr[i] == self.clusters[i]:
-                x_out.append(self.x[i])
-                y_out.append(self.y[i])
-                clusters_out.append(self.clusters[i])
-                names_out.append(self.names[i])
-        return x_out, y_out, clusters_out, names_out
+                keep.append(True)
+            else:
+                keep.append(False)
+        return keep, list(self.x), list(self.y), list(self.clusters)

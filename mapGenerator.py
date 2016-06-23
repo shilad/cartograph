@@ -1,25 +1,39 @@
 import mapnik
 from BorderGeoJSONWriter import BorderGeoJSONWriter
 from BorderFactory import BorderFactory
-from histToContour import Contours
+from histToContour import ContourCreator
 from generateTiles import render_tiles
 from shutil import rmtree
 from addLabelsXml import Labels
 import Constants
+from TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 
 fullFeatureList = []
+numOfContours = 0
 
 
 # ===== Generate JSON Data ==========
-def generatePolygonFile():
+def generateCountryFile():
     clusterList = BorderFactory.from_file().build().values()
     BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
     global fullFeatureList
     fullFeatureList = clusterList
 
 
+def generateTitleLabelFile():
+    titleLabels = TopTitlesGeoJSONWriter(Constants.FILE_NAME_TOPTITLES)
+    titleLabels.generateJSONFeature()
+
+
+def generateContourFile():
+    contour = ContourCreator(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
+    contour.makeContourFeatureCollection()
+    global numOfContours
+    numOfContours = len(contour.plys)
+
+
 # ===== Generate Map File =====
-def generateCountryPolygonStyle(filename, opacity):
+def generateCountryPolygonStyle(opacity):
     colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
     s = mapnik.Style()
     for i in range(len(fullFeatureList)):
@@ -30,19 +44,21 @@ def generateCountryPolygonStyle(filename, opacity):
         r.symbols.append(symbolizer)
         r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
         s.rules.append(r)
-
     return s
 
 
-def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
+def generateContourPolygonStyle(opacity, gamma=1):
+    colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fd717b", "red"]
     s = mapnik.Style()
-    r = mapnik.Rule()
-    symbolizer = mapnik.PolygonSymbolizer()
-    symbolizer.fill = mapnik.Color('steelblue')
-    symbolizer.fill_opacity = opacity
-    symbolizer.gamma = gamma
-    r.symbols.append(symbolizer)
-    s.rules.append(r)
+    for i in range(numOfContours):
+        r = mapnik.Rule()
+        symbolizer = mapnik.PolygonSymbolizer()
+        symbolizer.fill = mapnik.Color(colorWheel[i])
+        symbolizer.fill_opacity = opacity
+        symbolizer.gamma = gamma
+        r.symbols.append(symbolizer)
+        r.filter = mapnik.Expression('[contourNum].match("' + str(i) + '")')
+        s.rules.append(r)
     return s
 
 
@@ -62,34 +78,38 @@ def generateLayer(jsonFile, name, styleName):
     layer = mapnik.Layer(name)
     layer.datasource = ds
     layer.styles.append(styleName)
+    layer.srs = '+init=epsg:4236'
     return layer
 
 
 def makeMap():
-    m = mapnik.Map(1200, 600)
+    m = mapnik.Map(1000, 1000)
     m.background = mapnik.Color('white')
+    m.srs = '+init=epsg:3857'
 
 
 # ======== Make Contour Layer =========
-    m.append_style("contour", generateSinglePolygonStyle(Constants.FILE_NAME_CONTOUR_DATA, 0, 1))
+    m.append_style("contour", generateContourPolygonStyle(.3))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
-    m.append_style("outline", generateLineStyle("darkblue", 0))
+    m.append_style("outline", generateLineStyle("black", 0.0))
     m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
-    m.append_style("countries", generateCountryPolygonStyle(Constants.FILE_NAME_COUNTRIES, 1.0))
+    m.append_style("countries", generateCountryPolygonStyle(.3))
     m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
     mapnik.save_map(m, Constants.FILE_NAME_MAP)
 
     label = Labels()
-    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES)
+    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES, maxScale='559082264', minScale='17471321')
+
+    titleLabels = Labels()
+    titleLabels.writeLabelsXml('[titleLabel]', 'point', Constants.FILE_NAME_TOPTITLES, minScale='1091958', maxScale='17471321')
 
     mapnik.load_map(m, Constants.FILE_NAME_MAP)
-
 
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
     mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
@@ -97,11 +117,13 @@ def makeMap():
 
 if __name__ == "__main__":
     print "Generating Polygons"
-    generatePolygonFile()
+    generateCountryFile()
+
+    print "Generating TitleLabels"
+    generateTitleLabelFile()
 
     print "Generating Contours"
-    contour = Contours(Constants.FILE_NAME_COORDS_AND_CLUSTERS, Constants.FILE_NAME_CONTOUR_DATA)
-    contour.makeContourFeatureCollection()
+    generateContourFile()
 
     print "Making Map XML"
     makeMap()

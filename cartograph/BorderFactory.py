@@ -1,7 +1,9 @@
 from scipy.spatial import Voronoi
 from Vertex import Vertex
-import Constants
 import Util
+
+import Config
+config = Config.BAD_GET_CONFIG()
 
 
 class BorderFactory(object):
@@ -12,11 +14,17 @@ class BorderFactory(object):
         self.cluster_labels = cluster_labels
 
     @classmethod
-    def from_file(cls):
-        coords_and_clusters = Util.read_tsv(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
-        x = map(float, coords_and_clusters["x"])
-        y = map(float, coords_and_clusters["y"])
-        clusters = map(int, coords_and_clusters["clusters"])
+    def from_file(cls, ):
+        featureDict = Util.read_features(config.FILE_NAME_WATER_AND_ARTICLES,
+                                         config.FILE_NAME_KEEP,
+                                         config.FILE_NAME_WATER_CLUSTERS)
+        idList = list(featureDict.keys())
+        x, y, clusters = [], [], []
+        for article in idList:
+            if featureDict[article]["keep"] == "True":
+                x.append(float(featureDict[article]["x"]))
+                y.append(float(featureDict[article]["y"]))
+                clusters.append(int(featureDict[article]["cluster"]))
         return cls(x, y, clusters)
 
     @staticmethod
@@ -78,7 +86,7 @@ class BorderFactory(object):
     def _make_borders(self, vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
         borders = {}
-        del group_edge_vert_dict[len(group_edge_vert_dict)-1]
+        del group_edge_vert_dict[len(group_edge_vert_dict) - 1]
         for label in group_edge_vert_dict:
             borders[label] = []
             while group_edge_vert_dict[label]:
@@ -89,7 +97,7 @@ class BorderFactory(object):
                     cluster_border.append((vert.x, vert.y))
                     group_edge_vert_dict[label].discard(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > Constants.MIN_NUM_IN_CLUSTER:
+                if len(cluster_border) > config.MIN_NUM_IN_CLUSTER:
                     borders[label].append(cluster_border)
         return BorderFactory._make_borders_natural(borders)
 

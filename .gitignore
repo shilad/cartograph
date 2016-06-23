@@ -1,20 +1,16 @@
 # Ignore Generated Files
-*.png
-*.svg
-*.pyc
-*.geoJson
-*.json
-*.geoJSON
-*.geojson
-*.png
-*.xml
 
 /.idea
-/data/vecs.tsv
-/data/names.tsv
-/data/testing.csv
-./data/*.zip
+/data/tsv
+/data/images
+/data/geojson
+/data/tiles
+/data/labdata.key
+
 .DS_Store
 /data/.DS_Store
 /install/.DS_Store
 /data/cache/.DS_Store
+
+__pycache__
+*.pyc
