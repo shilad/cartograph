@@ -191,6 +191,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
         return (
             luigi.LocalTarget(Constants.FILE_NAME_COUNTRIES),
             luigi.LocalTarget(Constants.FILE_NAME_REGION_CLUSTERS),
+            luigi.LocalTarget(Constants.FILE_NAME_REGION_NAMES),
             luigi.LocalTarget(Constants.FILE_NAME_REGION_BORDERS)
         )
 
@@ -260,5 +261,5 @@ class CreateMap(MTimeMixin, luigi.Task):
         ms = MapStyler.MapStyler() 
         ms.makeMap(Constants.FILE_NAME_CONTOUR_DATA, Constants.FILE_NAME_COUNTRIES)
         ms.saveMapXml(Constants.FILE_NAME_COUNTRIES, Constants.FILE_NAME_MAP)
-        ms.saveImage(Constants.FILE_NAME_IMGNAME + ".png")
-        ms.saveImage(Constants.FILE_NAME_IMGNAME + ".svg")
+        ms.saveImage(Constants.FILE_NAME_MAP, Constants.FILE_NAME_IMGNAME + ".png")
+        ms.saveImage(Constants.FILE_NAME_MAP, Constants.FILE_NAME_IMGNAME + ".svg")
