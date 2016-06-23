@@ -19,8 +19,8 @@ class ContourCreator:
 
     @staticmethod
     def _calc_contour(xyCoords, binSize):
-        x = map(float, xyCoords["x"])
-        y = map(float, xyCoords["y"])
+        x = [ float(c['x']) for c in xyCoords ]
+        y = [ float(c['y']) for c in xyCoords ]
 
         H, yedges, xedges = np.histogram2d(y, x,
                                            bins=binSize,
@@ -52,7 +52,7 @@ class ContourCreator:
     def _gen_contour_polygons(plys):
         contourList = []
         for group in plys:
-            contour = ContourCreator.Contour(group)
+            contour = Contour(group)
             contour.createHoles()
             contourList.append(contour)
 
@@ -73,8 +73,7 @@ class ContourCreator:
         with open(outputfilename, "w") as writeFile:
             writeFile.write(textDump)
 
-class Contour():
-
+class Contour:
     def __init__(self, shapes):
         self.shapes = shapes
         self.polygons = self._generatePolygons(self.shapes)
@@ -86,7 +85,7 @@ class Contour():
             points = []
             for pt in group:
                 points.append((pt[0], pt[1]))
-            polys.add(ContourCreator.Polygon(points))
+            polys.add(Polygon(points))
         return polys
 
     def createHoles(self):
@@ -105,7 +104,7 @@ class Contour():
         for poly in self.polygons:
             poly.collapseChildren()
 
-class Polygon():
+class Polygon:
 
     def __init__(self, points):
         self.points = [points]
