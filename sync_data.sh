@@ -32,6 +32,8 @@ if ! [ -f $KEYFILE ]; then
     die "Please download Summer2016/Downloads/labdata.key in Google Drive and place it as $KEYFILE"
 fi
 
+chmod 600 $KEYFILE
+
 command=""
 targets=""
 
