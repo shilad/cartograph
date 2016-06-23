@@ -32,7 +32,7 @@ class MTimeMixin:
                 return [obj]
 
         def mtime(path):
-            return time.ctime(os.path.getmtime(path))
+            return os.path.getmtime(path)
 
         if not all(os.path.exists(out.path) for out in to_list(self.output())):
             return False
@@ -194,7 +194,6 @@ class CreateContinents(MTimeMixin, luigi.Task):
         return (
             luigi.LocalTarget(config.FILE_NAME_COUNTRIES),
             luigi.LocalTarget(config.FILE_NAME_REGION_CLUSTERS),
-            luigi.LocalTarget(config.FILE_NAME_REGION_NAMES),
             luigi.LocalTarget(config.FILE_NAME_REGION_BORDERS)
         )
 
@@ -257,7 +256,7 @@ class CreateMap(MTimeMixin, luigi.Task):
         return (
             CreateContours(),
             CreateCoordinates(),
-            CreateContinents(),
+            CreateContinents()
         )
 
     def run(self):
