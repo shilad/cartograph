@@ -7,9 +7,23 @@ class Labels():
         self.mapFile = parse(Constants.FILE_NAME_MAP)
         self.mapRoot = self.mapFile.getroot()
 
-    def _add_Text_Style(self, field, labelType):
+#     def _add_Zoom_Ref(self):
+# <?xml version="1.0" encoding="utf-8"?>
+# <!DOCTYPE Map [
+# <!ENTITY % entities SYSTEM "data/zoomScales.xml.inc">
+# %entities;
+# ]>
+
+
+    def _add_Text_Style(self, field, labelType, minScale, maxScale):
         style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + 'LabelStyle')
         rule = SubElement(style, 'Rule')
+
+        minScaleSym = SubElement(rule,'MinScaleDenominator')
+        maxScaleSym = SubElement(rule,'MaxScaleDenominator')
+        minScaleSym.text = minScale
+        maxScaleSym.text = maxScale
+
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Book')
@@ -28,7 +42,7 @@ class Labels():
         dataParamFile = SubElement(data, 'Parameter', name='file')
         dataParamFile.text = geojsonFile
 
-    def writeLabelsXml(self, field, labelType, geojsonFile):
-        self._add_Text_Style(field, labelType)
+    def writeLabelsXml(self, field, labelType, geojsonFile, minScale=1066, maxScale=559082264):
+        self._add_Text_Style(field, labelType, minScale, maxScale)
         self._add_Text_Layer(field, geojsonFile)
         self.mapFile.write(Constants.FILE_NAME_MAP)
