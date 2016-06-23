@@ -301,7 +301,8 @@ class CreateMap(MTimeMixin, luigi.Task):
     def run(self):
         regionClusters = Util.read_features(config.FILE_NAME_REGION_CLUSTERS)
         regionIds = sorted(set(region['cluster_id'] for region in regionClusters.values()))
-        ms = MapStyler.MapStyler() 
+        ms = MapStyler.MapStyler()
+
         ms.makeMap(config.FILE_NAME_CONTOUR_DATA, config.FILE_NAME_COUNTRIES, regionIds)
         ms.saveMapXml(config.FILE_NAME_COUNTRIES, config.FILE_NAME_MAP)
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")
