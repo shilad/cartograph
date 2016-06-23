@@ -240,8 +240,6 @@ class CreateContours(MTimeMixin, luigi.Task):
         contour = Contours.ContourCreator()
         contour.buildContours(list(xyCoords.values()))
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
-        global numOfContours
-        numOfContours = len(contour.plys)
 
 class CreateMap(MTimeMixin, luigi.Task):
     '''
