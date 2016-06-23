@@ -21,8 +21,8 @@ class Labels():
 
         minScaleSym = SubElement(rule,'MinScaleDenominator')
         maxScaleSym = SubElement(rule,'MaxScaleDenominator')
-        minScaleSym.text = minScale
-        maxScaleSym.text = maxScale
+        minScaleSym.text = str(minScale)
+        maxScaleSym.text = str(maxScale)
 
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
