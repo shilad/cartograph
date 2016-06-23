@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 import scipy.ndimage
 from geojson import Feature, FeatureCollection
-from geojson import dumps, Polygon, MultiPolygon
-import copy
+from geojson import dumps, MultiPolygon
 import Util
 
 from scipy.ndimage.filters import gaussian_filter
