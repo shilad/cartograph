@@ -1,5 +1,4 @@
 from xml.etree.ElementTree import parse, SubElement
-import Constants
 
 
 class Labels():

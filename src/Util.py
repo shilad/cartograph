@@ -1,6 +1,5 @@
 from collections import defaultdict
 import codecs
-import Constants
 import numpy as np
 import sys
 
@@ -41,16 +40,14 @@ def read_wikibrain_vecs(path):
 def read_features(*files):
     values = defaultdict(dict)
     for fn in files:
-        if fn == Constants.FILE_NAME_NUMBERED_VECS:
-            with open(fn, "r") as f:
-                f.readline()    # skip the header
+        with open(fn, "r") as f:
+            fields = [s.strip() for s in f.readline().split('\t')]
+            if fields[-1] == 'vector': # SUCH A HACK!
                 for line in f:
                     tokens = line.split('\t')
                     id = tokens[0]
                     values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
-        else:
-            with open(fn, 'r') as f:
-                fields = [s.strip() for s in f.readline().split('\t')]
+            else:
                 for line in f:
                     if line[-1] == '\n': line = line[:-1]
                     tokens = line.split('\t')
