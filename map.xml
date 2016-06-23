@@ -1,75 +1,100 @@
-<Map background-color="rgb(255,255,255)" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
+<Map background-color="rgb(255,255,255)" srs="+init=epsg:3857">
   <Style name="contour">
     <Rule>
-      <PolygonSymbolizer fill="rgb(70,130,180)" fill-opacity="0.2" gamma="1" />
+      <Filter>[contourNum].match('0')</Filter>
+      <PolygonSymbolizer fill="rgb(210,184,227)" fill-opacity="0.3" gamma="1" />
+    </Rule>
+    <Rule>
+      <Filter>[contourNum].match('1')</Filter>
+      <PolygonSymbolizer fill="rgb(178,206,254)" fill-opacity="0.3" gamma="1" />
+    </Rule>
+    <Rule>
+      <Filter>[contourNum].match('2')</Filter>
+      <PolygonSymbolizer fill="rgb(186,237,145)" fill-opacity="0.3" gamma="1" />
+    </Rule>
+    <Rule>
+      <Filter>[contourNum].match('3')</Filter>
+      <PolygonSymbolizer fill="rgb(250,248,132)" fill-opacity="0.3" gamma="1" />
+    </Rule>
+    <Rule>
+      <Filter>[contourNum].match('4')</Filter>
+      <PolygonSymbolizer fill="rgb(248,184,139)" fill-opacity="0.3" gamma="1" />
+    </Rule>
+    <Rule>
+      <Filter>[contourNum].match('5')</Filter>
+      <PolygonSymbolizer fill="rgb(253,113,123)" fill-opacity="0.3" gamma="1" />
+    </Rule>
+    <Rule>
+      <Filter>[contourNum].match('6')</Filter>
+      <PolygonSymbolizer fill="rgb(255,0,0)" fill-opacity="0.3" gamma="1" />
     </Rule>
   </Style>
   <Style name="countries">
     <Rule>
       <Filter>[clusterNum].match('0')</Filter>
-      <PolygonSymbolizer fill="rgb(121,85,72)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(121,85,72)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('1')</Filter>
-      <PolygonSymbolizer fill="rgb(255,87,34)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(255,87,34)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('2')</Filter>
-      <PolygonSymbolizer fill="rgb(255,193,7)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(255,193,7)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('3')</Filter>
-      <PolygonSymbolizer fill="rgb(205,220,57)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(205,220,57)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('4')</Filter>
-      <PolygonSymbolizer fill="rgb(76,175,80)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(76,175,80)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('5')</Filter>
-      <PolygonSymbolizer fill="rgb(0,150,136)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(0,150,136)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('6')</Filter>
-      <PolygonSymbolizer fill="rgb(0,188,212)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(0,188,212)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('7')</Filter>
-      <PolygonSymbolizer fill="rgb(33,150,243)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(33,150,243)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('8')</Filter>
-      <PolygonSymbolizer fill="rgb(63,81,181)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(63,81,181)" fill-opacity="0.3" />
     </Rule>
     <Rule>
       <Filter>[clusterNum].match('9')</Filter>
-      <PolygonSymbolizer fill="rgb(103,58,183)" fill-opacity="1" />
+      <PolygonSymbolizer fill="rgb(103,58,183)" fill-opacity="0.3" />
     </Rule>
   </Style>
   <Style name="outline">
     <Rule>
-      <LineSymbolizer stroke="rgb(0,0,139)" stroke-opacity="0.5" />
+      <LineSymbolizer stroke="rgb(0,0,139)" stroke-opacity="0.1" />
     </Rule>
   </Style>
-  <Layer name="contour" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
+  <Layer name="contour" srs="+init=epsg:4236">
     <StyleName>contour</StyleName>
     <Datasource>
       <Parameter name="file">./data/geojson/contourData.geojson</Parameter>
       <Parameter name="type">geojson</Parameter>
     </Datasource>
   </Layer>
-  <Layer name="outline" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
+  <Layer name="outline" srs="+init=epsg:4236">
     <StyleName>outline</StyleName>
     <Datasource>
       <Parameter name="file">./data/geojson/contourData.geojson</Parameter>
       <Parameter name="type">geojson</Parameter>
     </Datasource>
   </Layer>
-  <Layer name="countries" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">
+  <Layer name="countries" srs="+init=epsg:4236">
     <StyleName>countries</StyleName>
     <Datasource>
       <Parameter name="file">./data/geojson/countries.geojson</Parameter>
       <Parameter name="type">geojson</Parameter>
     </Datasource>
   </Layer>
-<Style name="labelsLabelStyle"><Rule><TextSymbolizer face-name="DejaVu Sans Book" placement="interior" size="12">[labels]</TextSymbolizer></Rule></Style><Layer name="labelsLayer"><StyleName>labelsLabelStyle</StyleName><Datasource><Parameter name="type">geojson</Parameter><Parameter name="file">./data/geojson/countries.geojson</Parameter></Datasource></Layer></Map>
+<Style name="labelsLabelStyle"><Rule><MinScaleDenominator>17471321</MinScaleDenominator><MaxScaleDenominator>559082264</MaxScaleDenominator><TextSymbolizer face-name="DejaVu Sans Book" placement="interior" size="12">[labels]</TextSymbolizer></Rule></Style><Layer name="labelsLayer" srs="+init=epsg:4236"><StyleName>labelsLabelStyle</StyleName><Datasource><Parameter name="type">geojson</Parameter><Parameter name="file">./data/geojson/countries.geojson</Parameter></Datasource></Layer></Map>
