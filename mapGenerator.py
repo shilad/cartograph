@@ -1,32 +1,33 @@
 import mapnik
-from BorderGeoJSONWriter import BorderGeoJSONWriter
-from BorderFactory import BorderFactory
-from histToContour import ContourCreator
-from generateTiles import render_tiles
+from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
+from cartograph.BorderFactory import BorderFactory
+from cartograph.Contours import ContourCreator
 from shutil import rmtree
-from addLabelsXml import Labels
-import Constants
-from TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
+from cartograph.Labels import Labels
+import cartograph.Config
+from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 
 fullFeatureList = []
 numOfContours = 0
+
+config = cartograph.Config.BAD_GET_CONFIG()
 
 
 # ===== Generate JSON Data ==========
 def generateCountryFile():
     clusterList = BorderFactory.from_file().build().values()
-    BorderGeoJSONWriter(clusterList).writeToFile(Constants.FILE_NAME_COUNTRIES)
+    BorderGeoJSONWriter(clusterList).writeToFile(config.FILE_NAME_COUNTRIES)
     global fullFeatureList
     fullFeatureList = clusterList
 
 
 def generateTitleLabelFile():
-    titleLabels = TopTitlesGeoJSONWriter(Constants.FILE_NAME_TOPTITLES)
-    titleLabels.generateJSONFeature()
+    titleLabels = TopTitlesGeoJSONWriter(100)
+    titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLES)
 
 
 def generateContourFile():
-    contour = ContourCreator(Constants.FILE_NAME_COORDS_AND_CLUSTERS)
+    contour = ContourCreator(config.FILE_NAME_COORDS_AND_CLUSTERS)
     contour.makeContourFeatureCollection()
     global numOfContours
     numOfContours = len(contour.plys)
@@ -90,30 +91,30 @@ def makeMap():
 
 # ======== Make Contour Layer =========
     m.append_style("contour", generateContourPolygonStyle(.3))
-    m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
+    m.layers.append(generateLayer(config.FILE_NAME_CONTOUR_DATA,
                                   "contour", "contour"))
 
     m.append_style("outline", generateLineStyle("black", 0.0))
-    m.layers.append(generateLayer(Constants.FILE_NAME_CONTOUR_DATA,
+    m.layers.append(generateLayer(config.FILE_NAME_CONTOUR_DATA,
                                   "outline", "outline"))
 
     m.append_style("countries", generateCountryPolygonStyle(.3))
-    m.layers.append(generateLayer(Constants.FILE_NAME_COUNTRIES, "countries", "countries"))
+    m.layers.append(generateLayer(config.FILE_NAME_COUNTRIES, "countries", "countries"))
     m.zoom_all()
 
-    mapnik.save_map(m, Constants.FILE_NAME_MAP)
+    mapnik.save_map(m, config.FILE_NAME_MAP)
 
     label = Labels()
-    label.writeLabelsXml('[labels]', 'interior', Constants.FILE_NAME_COUNTRIES, maxScale='559082264', minScale='17471321')
+    label.writeLabelsXml('[labels]', 'interior', config.FILE_NAME_COUNTRIES, maxScale='559082264', minScale='17471321')
 
     titleLabels = Labels()
-    titleLabels.writeLabelsXml('[titleLabel]', 'point', Constants.FILE_NAME_TOPTITLES, minScale='1091958', maxScale='17471321')
+    titleLabels.writeLabelsXml('[titleLabel]', 'point', config.FILE_NAME_TOPTITLES, minScale='1091958', maxScale='17471321')
 
-    mapnik.load_map(m, Constants.FILE_NAME_MAP)
+    mapnik.load_map(m, config.FILE_NAME_MAP)
 
-    mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".png")
-    mapnik.render_to_file(m, Constants.FILE_NAME_IMGNAME + ".svg")
-    print "rendered image to", Constants.FILE_NAME_IMGNAME
+    mapnik.render_to_file(m, config.FILE_NAME_IMGNAME + ".png")
+    mapnik.render_to_file(m, config.FILE_NAME_IMGNAME + ".svg")
+    print "rendered image to", config.FILE_NAME_IMGNAME
 
 if __name__ == "__main__":
     print "Generating Polygons"
@@ -128,9 +129,9 @@ if __name__ == "__main__":
     print "Making Map XML"
     makeMap()
 
-    mapfile = Constants.FILE_NAME_MAP
-    tile_dir = Constants.DIRECTORY_NAME_TILES
+    mapfile = config.FILE_NAME_MAP
+    tile_dir = config.DIRECTORY_NAME_TILES
 
     bbox = (-180.0, -90.0, 180.0, 90.0)
     rmtree(tile_dir)
-    render_tiles(bbox, mapfile, tile_dir, 0, 2, "World")
+    # render_tiles(bbox, mapfile, tile_dir, 0, 2, "World")

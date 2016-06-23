@@ -72,6 +72,7 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
 def generateContourPolygonStyle(opacity, numContours, gamma=1):
     colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fd717b", "red"]
     s = mapnik.Style()
+    print numContours
     for i in range(numContours):
         r = mapnik.Rule()
         symbolizer = mapnik.PolygonSymbolizer()
