@@ -2,9 +2,10 @@ from xml.etree.ElementTree import parse, SubElement
 
 
 class Labels():
-    def __init__(self, filename):
-        self.filename = filename
-        self.mapFile = parse(filename)
+    def __init__(self, mapfile, geojson):
+        self.mapFileName = mapfile
+        self.mapFile = parse(mapfile)
+        self.geojson = geojson
         self.mapRoot = self.mapFile.getroot()
 
 #     def _add_Zoom_Ref(self):
@@ -14,13 +15,12 @@ class Labels():
 # %entities;
 # ]>
 
-
     def _add_Text_Style(self, field, labelType, minScale, maxScale):
         style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + 'LabelStyle')
         rule = SubElement(style, 'Rule')
 
-        minScaleSym = SubElement(rule,'MinScaleDenominator')
-        maxScaleSym = SubElement(rule,'MaxScaleDenominator')
+        minScaleSym = SubElement(rule, 'MinScaleDenominator')
+        maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
         minScaleSym.text = str(minScale)
         maxScaleSym.text = str(maxScale)
 
@@ -42,7 +42,7 @@ class Labels():
         dataParamFile = SubElement(data, 'Parameter', name='file')
         dataParamFile.text = geojsonFile
 
-    def writeLabelsXml(self, field, labelType, geojsonFile, mapFile, minScale=1066, maxScale=559082264):
+    def writeLabelsXml(self, field, labelType, minScale=1066, maxScale=559082264):
         self._add_Text_Style(field, labelType, minScale, maxScale)
-        self._add_Text_Layer(field, geojsonFile)
-        self.mapFile.write(mapFile)
+        self._add_Text_Layer(field, self.geojson)
+        self.mapFile.write(self.mapFileName)

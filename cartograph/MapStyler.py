@@ -3,11 +3,13 @@ import mapnik
 import Labels
 
 class MapStyler:
-    def __init__(self):
+    def __init__(self, width=1200, height=600):
         self.m = None
+        self.width = width
+        self.height = height
 
-    def makeMap(self, contourFilename, countryFilename, clusterIds, width=1200, height=600):
-        self.m = mapnik.Map(width, height)
+    def makeMap(self, contourFilename, countryFilename, clusterIds):
+        self.m = mapnik.Map(self.width, self.height)
         self.m.background = mapnik.Color('white')
         self.m.srs = '+init=epsg:3857'
 
@@ -25,14 +27,12 @@ class MapStyler:
         self.m.zoom_all()
 
     def saveMapXml(self, countryFilename, mapFilename):
-        assert(self.m != None)
+        assert(self.m is not None)
         mapnik.save_map(self.m, mapFilename)
-        label = Labels.Labels(mapFilename)
-        label.writeLabelsXml('[labels]', 'interior',
-                             countryFilename, mapFilename,
-                             maxScale='559082264', minScale='17471321')
 
     def saveImage(self, mapFilename, imgFilename):
+        if self.m is None:
+            self.m = mapnik.Map(self.width, self.height)
         mapnik.load_map(self.m, mapFilename)
         self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)

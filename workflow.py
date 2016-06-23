@@ -8,6 +8,8 @@ from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactory import BorderFactory
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
+from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
+from cartograph.Labels import Labels
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
@@ -261,6 +263,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        range(1, len(regionList) + 1),
                        regionList)
 
+
 class CreateContours(MTimeMixin, luigi.Task):
     '''
     Creates the contours layer.
@@ -279,17 +282,28 @@ class CreateContours(MTimeMixin, luigi.Task):
         global numOfContours
         numOfContours = len(contour.plys)
 
-class CreateMap(MTimeMixin, luigi.Task):
+
+class CreateLabels(MTimeMixin, luigi.Task):
+
+    def requires(self):
+        return (PopularityLabeler(), CreateCoordinates())
+
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_TOP_TITLES)
+
+    def run(self):
+        titleLabels = TopTitlesGeoJSONWriter(100)
+        titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLES)
+
+
+class CreateMapXml(MTimeMixin, luigi.Task):
     '''
     Creates the mapnik map.xml configuration file and renders png and svg
     images of the map. THIS IS UNTESTED!
     '''
     def output(self):
         return (
-            luigi.LocalTarget(config.FILE_NAME_MAP),
-            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.png'),
-            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.svg')
-        )
+            luigi.LocalTarget(config.FILE_NAME_MAP))
 
     def requires(self):
         return (
@@ -305,5 +319,41 @@ class CreateMap(MTimeMixin, luigi.Task):
 
         ms.makeMap(config.FILE_NAME_CONTOUR_DATA, config.FILE_NAME_COUNTRIES, regionIds)
         ms.saveMapXml(config.FILE_NAME_COUNTRIES, config.FILE_NAME_MAP)
+        ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")
+        ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
+
+
+class LabelMap(MTimeMixin, luigi.Task):
+
+    def requires(self):
+        return (CreateMapXml(),
+                CreateLabels(),
+                CreateContinents())
+
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_MAP))
+
+    def run(self):
+        label = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
+        label.writeLabelsXml('[labels]', 'interior',
+                             maxScale='559082264', minScale='17471321')
+
+        titleLabels = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TOP_TITLES)
+        titleLabels.writeLabelsXml('[titleLabel]', 'point',
+                                   minScale='1091958', maxScale='17471321')
+
+
+class RenderMap(MTimeMixin, luigi.Task):
+
+    def requires(self):
+        return (CreateMapXml(), LabelMap())
+
+    def output(self):
+        return(
+            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.png'),
+            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.svg'))
+
+    def run(self):
+        ms = MapStyler.MapStyler()
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
