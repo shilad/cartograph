@@ -159,12 +159,6 @@ sudo gedit Mapnik.py
 ```
 On line 154 in the renderArea() function, change fromstring() to frombytes().
 
-## Test the server.
-Run on the command line:
-```
-./scripts/tilestache-server.py
-```
-To check if TileStache is running, go to http://localhost:8080. If the message "TileStache bellows hello." appears then the server is functioning properly. 
 
 ## Make the map (finally)
 To actually generate the map, you need to run TileStache.
@@ -172,6 +166,9 @@ To actually generate the map, you need to run TileStache.
 cd /etc/TileStache/
 ./scripts/tilestache-server.py
 ```
+
+To check if your server is running, open a browser to localhost:8080. If it says "TileStache bellows hello.", you're all good - you should be able to go view the map. If not, something has gone wrong.  
+
 Note that if you change things that affect the way the tiles look (basically, anything that affects the xml), to overwrite the tiles in the cache you have to remove it and rerun the TileStache server:
 ```
 rm -rf /tmp/stache
