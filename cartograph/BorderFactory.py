@@ -16,9 +16,13 @@ class BorderFactory(object):
 
     @classmethod
     def from_file(cls, ):
-        featureDict = Util.read_features(config.FILE_NAME_WATER_AND_ARTICLES,
-                                         config.FILE_NAME_KEEP,
-                                         config.FILE_NAME_WATER_CLUSTERS)
+        if debug:
+            s = "."
+        else:
+            s = ""
+        featureDict = Util.read_features(s+config.FILE_NAME_WATER_AND_ARTICLES,
+                                         s+config.FILE_NAME_KEEP,
+                                         s+config.FILE_NAME_WATER_CLUSTERS)
         idList = list(featureDict.keys())
         x, y, clusters = [], [], []
         for article in idList:
@@ -176,30 +180,24 @@ class BorderFactory(object):
                 list of lists of contiguous regions
             """
             assert len(indices1) == len(indices2)
-            consensus_lists = []
-            diff2 = -1 if reversed2 else 1
-            n = len(indices1)
-            i = 0
+
             # build list for each contiguous region
-            while i < n:
+            diff2 = -1 if reversed2 else 1
+            consensus_lists = [[(indices1[0], indices2[0])]]
+            for i in range(1, len(indices1)):
+                prev = consensus_lists[-1][-1]
                 current = (indices1[i], indices2[i])
-                next_ = (indices1[(i + 1) % n], indices2[(i + 1) % n])
-                contiguous = [current]
-                while (current[0] + 1) % len1 == next_[0] and \
-                        (current[1] + diff2) % len2 == next_[1] and i < n:
-                    i += 1
-                    contiguous.append(next_)
-                    current = next_
-                    next_ = (indices1[(i + 1) % n], indices2[(i + 1) % n])
-                consensus_lists.append(contiguous)
-                i += 1
+                if (prev[0] + 1) % len1 == current[0] and \
+                        (prev[1] + diff2) % len2 == current[1]:
+                    consensus_lists[-1].append(current)
+                else:
+                    consensus_lists.append([current])
 
             # check for circular and index 0 in the middle of an intersection
             first = consensus_lists[0][0]
             last = consensus_lists[-1][-1]
             if (last[0] + 1) % len1 == first[0] and \
                     (last[1] + diff2) % len2 == first[1]:
-                # TODO: this never actually runs (with current data)
                 if len(consensus_lists) == 1:
                     # it's circular
                     return consensus_lists, True
@@ -321,6 +319,8 @@ class BorderFactory(object):
                                     adj_matrix[search_reg_adj_idx][reg_adj_idx] = 1
             return self.borders
 
+debug = False
 
 if __name__ == '__main__':
+    debug = True
     BorderFactory.from_file().build()

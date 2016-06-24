@@ -261,6 +261,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        range(1, len(regionList) + 1),
                        regionList)
 
+
 class CreateContours(MTimeMixin, luigi.Task):
     '''
     Creates the contours layer.
