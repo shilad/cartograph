@@ -1,6 +1,10 @@
 import json
 import mapnik
 import Labels
+from shapely.geometry import mapping, shape
+import Config
+config = Config.BAD_GET_CONFIG()
+
 
 class MapStyler:
     def __init__(self, width=800, height=600):
@@ -14,16 +18,18 @@ class MapStyler:
         self.m.srs = '+init=epsg:3857'
 
         js = json.load(open(contourFilename, 'r'))
-        numContours = len(js['features'])
+        numContours = [0 for x in range(config.NUM_CLUSTERS)]
+        for i in range(len(js['features'])):
+            numContours[js['features'][i]['properties']['clusterNum']] += 1
 
-        self.m.append_style("contour", generateContourPolygonStyle(0.3, numContours))
-        self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
- 
-        self.m.append_style("outline", generateLineStyle("darkblue", 0.1))
-        self.m.layers.append(generateLayer(contourFilename, "outline", "outline"))
- 
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, 0.3, clusterIds))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .20, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
+
+        self.m.append_style("contour", generateContourPolygonStyle(.15, numContours))
+        self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
+
+        self.m.append_style("outline", generateLineStyle("black", 1.0))
+        self.m.layers.append(generateLayer(countryFilename, "outline", "outline"))
         self.m.zoom_all()
 
     def saveMapXml(self, countryFilename, mapFilename):
@@ -54,6 +60,7 @@ def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
     s.rules.append(r)
     return s
 
+
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity, clusterIds):
     colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
@@ -66,23 +73,23 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
         r.symbols.append(symbolizer)
         r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
         s.rules.append(r)
-
     return s
 
+
 def generateContourPolygonStyle(opacity, numContours, gamma=1):
-    colorWheel = ["#d2b8e3 ", "#b2cefe", "#baed91", "#faf884", "#f8b88b", "#fd717b", "red"]
+    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
     s = mapnik.Style()
-    print numContours
-    for i in range(numContours):
+    for i in range(config.NUM_CLUSTERS):
         r = mapnik.Rule()
         symbolizer = mapnik.PolygonSymbolizer()
         symbolizer.fill = mapnik.Color(colorWheel[i])
         symbolizer.fill_opacity = opacity
         symbolizer.gamma = gamma
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Expression('[contourNum].match("' + str(i) + '")')
+        r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
         s.rules.append(r)
     return s
+
 
 def generateLineStyle(color, opacity):
     s = mapnik.Style()
@@ -93,6 +100,7 @@ def generateLineStyle(color, opacity):
     r.symbols.append(symbolizer)
     s.rules.append(r)
     return s
+
 
 def generateLayer(jsonFile, name, styleName):
     ds = mapnik.GeoJSON(file=jsonFile)
