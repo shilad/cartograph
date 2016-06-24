@@ -17,10 +17,7 @@ class TopTitlesGeoJSONWriter:
                                   config.FILE_NAME_ARTICLE_COORDINATES)
 
     def getTopArticles(self):
-        allArticles = []
-        for key in self.articleData:
-            allArticles.append((key, self.articleData[key]))
-        allArticles.sort(key=lambda x: x[1]["popularity"], reverse=True)
+        allArticles = Util.sort_by_feature(self.articleData, "popularity")
         return allArticles[:self.numArticles]
 
     def generateJSONFeature(self, filename):
