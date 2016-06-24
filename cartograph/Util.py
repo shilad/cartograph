@@ -76,6 +76,17 @@ def write_tsv(filename, header, indexList, *data):
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
 
+
+def sort_by_feature(articleDict, featureName, reverse=True):
+    allArticles = []
+    if featureName not in articleDict[articleDict.keys()[0]]:
+        raise InputError(featureName, "Feature does not exist")
+    for key in articleDict:
+        allArticles.append((key, articleDict[key]))
+    allArticles.sort(key=lambda x: x[1][featureName], reverse=reverse)
+    return allArticles
+
+
 class InputError(Exception):
     """Exception raised for errors in the input.
 
