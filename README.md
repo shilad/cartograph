@@ -42,15 +42,10 @@ We need a directory to save the tiles in, so in order to do that you should
 ```
 sudo mkdir /var/www/html/tiles
 ```
-
-## Running our pipeline, generating tiles! - OUT OF DATE, NEEDS UPDATING TO CURRENT WORKFLOW
-### Generate tiles
+Take ownership of the tiles directory to access them...
 ```
-cd ~/src/proceduralMapGeneration/
-sudo python mapGenerator.py
-cd ..
+sudo chown -R research.research /var/www/html/tiles/
 ```
-
 
 ## Apache webserver
 
@@ -85,7 +80,7 @@ sudo apt-get install aptitude
 sudo aptitude install python-dev
 sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
 ```
-Install PIP if you don't already have it! 
+You probably have pip at this point, but if you don't:
 ```
 curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 sudo python get-pip.py
@@ -96,7 +91,7 @@ sudo pip install -U werkzeug
 sudo pip install -U simplejson
 sudo pip install -U modestmaps
 ```
-Fix some ubuntu specific Python Image Library module issues. 
+Python Image Library doesn't play nice with Ubuntu, add some symlinks to fix that: 
 ```
 sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib
 sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib
@@ -115,7 +110,7 @@ Install TileStache globally.
 cd TileStache/
 sudo python setup.py install
 ```
-### Link the mod_python and TileStache to the web server. 
+### Link mod_python and TileStache to the web server. 
 Open the apache configuration file to edit it. 
 ```
 sudo nano /etc/apache2/httpd.conf
@@ -128,10 +123,6 @@ Add the following to the conf file.
   PythonOption config /etc/TileStache/tilestache.cfg
 </Directory>
 ```
-If you don't have a tiles folder, create one now. 
-```
-mkdir /var/www/html/tiles
-```
 Reboot your server. 
 ```
 reboot
@@ -142,7 +133,7 @@ Update tilestache.cfg
 cd /etc/TileStache/
 sudo gedit tilestache.cfg
 ```
-Edit the file to work with our project. 
+Edit the file to work with our project. (NOTE: update this with a file in setup files so that the code doesn't have to go in the readme - it will be getting updated regularly) 
 ```
 {
   "cache":
@@ -175,7 +166,18 @@ Run on the command line:
 ```
 To check if TileStache is running, go to http://localhost:8080. If the message "TileStache bellows hello." appears then the server is functioning properly. 
 
-## Run the server!
+## Make the map (finally)
+To actually generate the map, you need to run TileStache.
+```
+cd /etc/TileStache/
+./scripts/tilestache-server.py
+```
+Note that if you change things that affect the way the tiles look (basically, anything that affects the xml), to overwrite the tiles in the cache you have to remove it and rerun the TileStache server:
+```
+rm -rf /tmp/stache
+cd /etc/TileStache/
+./scripts/tilestache-server.py
+```
 
 ### Take a look!
 Then open up your friendly neighborhood web browser and point it at [http://localhost/Leaflet/leafletmap2.html](http://localhost/Leaflet/leafletmap2.html) ...and you should have a map!
