@@ -2,7 +2,6 @@ import ConfigParser
 
 class Config:
     def __init__(self):
-        # ========== Analyzer ==========
         self.FILE_NAME_WIKIBRAIN_VECS = "./data/labdata/vecs.tsv"
         self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
         self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecs.tsv"
@@ -12,7 +11,8 @@ class Config:
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
-        self.FILE_NAME_TOP_TITLES = "./data/top_100_articles.tsv"
+        self.FILE_NAME_POPULARITY = "./data/labdata/article_popularity.tsv"
+        self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
 
         self.NUM_CLUSTERS = 10  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
@@ -20,9 +20,8 @@ class Config:
         self.PERCENTAGE_WATER = 0.1
 
         # ========== BorderFactory ==========
-        self.SEARCH_RADIUS = 50  # proxy for water level, lower values = higher water
-        self.REGION_BORDER_SIZE = 2
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
+        self.BLUR_RADIUS = 5  # defines size of neighborhood for blurring
 
         # ========== mapGenerator ==========
         self._localTiles = "./data/tiles/"
@@ -30,11 +29,13 @@ class Config:
         self.DIRECTORY_NAME_TILES = self._localTiles
         self.FILE_NAME_REGION_NAMES = "./data/labdata/top_categories.tsv"
         self.FILE_NAME_IMGNAME = "./data/images/world"
+        self.FILE_NAME_IMGDOT = "./data/labdata/blackDot.png"
         self.FILE_NAME_COUNTRIES = "./data/geojson/countries.geojson"
         self.FILE_NAME_CONTOUR_DATA = "./data/geojson/contourData.geojson"
         self.FILE_NAME_MAP = "map.xml"
         self.FILE_NAME_REGION_CLUSTERS = "./data/tsv/region_clusters.tsv"
         self.FILE_NAME_REGION_BORDERS = "./data/tsv/region_borders.tsv"
+        self.FILE_NAME_TOP_TITLES = "./data/geojson/top_100_articles.geojson"
 
 
 __config = Config()
@@ -42,9 +43,7 @@ __config = Config()
 
 def BAD_GET_CONFIG():
     """
-        TODO: Remove all calls to this, replace with intiailization from a config file.
+        TODO: Remove all calls to this,
+        replace with intiailization from a config file.
     """
     return __config
-
-
-    

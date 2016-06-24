@@ -1,6 +1,5 @@
 import luigi
 import os
-import time
 from cartograph import Config
 from cartograph import Util
 from cartograph import Contours
@@ -8,6 +7,8 @@ from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactory import BorderFactory
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
+from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
+from cartograph.Labels import Labels
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
@@ -51,6 +52,41 @@ class MTimeMixin:
         return True
 
 
+class ContourCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/Contours.py"))
+
+
+class DenoiserCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/Denoiser.py"))
+
+
+class MapStylerCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/MapStyler.py"))
+
+
+class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/BorderFactory.py"))
+
+
+class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/BorderGeoJSONWriter.py"))
+
+
+class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/TopTitlesGeoJSONWriter.py"))
+
+
+class LabelsCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget("./cartograph/Labels.py"))
+
+
 class WikiBrainData(luigi.ExternalTask):
     '''
     Ensure that all external files produced by WikiBrain exist in
@@ -72,6 +108,11 @@ class LabelNames(luigi.ExternalTask):
 
     def output(self):
         return (luigi.LocalTarget(config.FILE_NAME_REGION_NAMES))
+
+
+class ArticlePopularity(luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_POPULARITY))
 
 
 class WikiBrainNumbering(MTimeMixin, luigi.Task):
@@ -103,6 +144,38 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
                            range(1, len(lines) + 1), lines)
 
 
+class PopularityLabeler(MTimeMixin, luigi.Task):
+
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_POPULARITY))
+
+    def requires(self):
+        return (WikiBrainNumbering(),
+                ArticlePopularity())
+
+    def run(self):
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_NAMES)
+        idList = list(featureDict.keys())
+
+        nameDict = {}
+        with open(config.FILE_NAME_POPULARITY) as popularity:
+            lines = popularity.readlines()
+            for line in lines:
+                lineAr = line.split("\t")
+                name = lineAr[0]
+                pop = lineAr[1][:-1]
+                nameDict[name] = pop
+
+        popularityList = []
+        for featureID in idList:
+            name = featureDict[featureID]["name"]
+            popularityList.append(nameDict[name])
+
+        Util.write_tsv(config.FILE_NAME_NUMBERED_POPULARITY,
+                       ("id", "popularity"),
+                       idList, popularityList)
+
+
 class RegionClustering(MTimeMixin, luigi.Task):
     '''
     Run KMeans to cluster article points into specific continents.
@@ -120,10 +193,8 @@ class RegionClustering(MTimeMixin, luigi.Task):
         featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vectorID]["vector"] for vectorID in keys])
-        print len(vectors)
         labels = list(KMeans(config.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
-        print len(labels)
         Util.write_tsv(config.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
 
@@ -166,7 +237,9 @@ class Denoise(MTimeMixin, luigi.Task):
         )
 
     def requires(self):
-        return RegionClustering(), CreateCoordinates()
+        return (RegionClustering(),
+                CreateCoordinates(),
+                DenoiserCode())
 
     def run(self):
         featureDict = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES,
@@ -198,7 +271,10 @@ class CreateContinents(MTimeMixin, luigi.Task):
         )
 
     def requires(self):
-        return (Denoise(), LabelNames())
+        return (DenoiserCode(),
+                LabelNames(),
+                BorderGeoJSONWriterCode(),
+                BorderFactoryCode())
 
     def decomposeBorders(self, clusterDict):
         regionList = []
@@ -231,10 +307,11 @@ class CreateContours(MTimeMixin, luigi.Task):
     Creates the contours layer.
     '''
     def requires(self):
-        return CreateCoordinates(), CreateContinents()
+        return (CreateCoordinates(),
+                ContourCode())
 
     def output(self):
-        return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA),
+        return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA)
 
     def run(self):
         xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES, config.FILE_NAME_NUMBERED_CLUSTERS)
@@ -243,30 +320,86 @@ class CreateContours(MTimeMixin, luigi.Task):
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 
 
-class CreateMap(MTimeMixin, luigi.Task):
+class CreateLabels(MTimeMixin, luigi.Task):
+
+    def requires(self):
+        return (PopularityLabeler(),
+                CreateCoordinates(),
+                TopTitlesGeoJSONWriterCode())
+
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_TOP_TITLES)
+
+    def run(self):
+        titleLabels = TopTitlesGeoJSONWriter(100)
+        titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLES)
+
+
+class CreateMapXml(MTimeMixin, luigi.Task):
     '''
     Creates the mapnik map.xml configuration file and renders png and svg
     images of the map. THIS IS UNTESTED!
     '''
     def output(self):
         return (
-            luigi.LocalTarget(config.FILE_NAME_MAP),
-            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.png'),
-            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.svg')
-        )
+            luigi.LocalTarget(config.FILE_NAME_MAP))
 
     def requires(self):
         return (
             CreateContours(),
             CreateCoordinates(),
-            CreateContinents()
+            CreateContinents(),
+            MapStylerCode()
         )
 
     def run(self):
         regionClusters = Util.read_features(config.FILE_NAME_REGION_CLUSTERS)
         regionIds = sorted(set(region['cluster_id'] for region in regionClusters.values()))
         ms = MapStyler.MapStyler()
-        ms.makeMap(config.FILE_NAME_CONTOUR_DATA, config.FILE_NAME_COUNTRIES, regionIds)
+        ms.makeMap(config.FILE_NAME_CONTOUR_DATA,
+                   config.FILE_NAME_COUNTRIES,
+                   regionIds)
         ms.saveMapXml(config.FILE_NAME_COUNTRIES, config.FILE_NAME_MAP)
+        ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")
+        ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
+
+
+class LabelMap(MTimeMixin, luigi.Task):
+
+    def requires(self):
+        return (CreateMapXml(),
+                CreateLabels(),
+                CreateContinents(),
+                LabelsCode())
+
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_MAP))
+
+    def run(self):
+        label = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
+        label.writeLabelsXml('[labels]', 'interior',
+                             maxScale='559082264', minScale='17471321')
+
+        titleLabels = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TOP_TITLES)
+        titleLabels.writeShieldXml('[titleLabel]', 'point',
+                                   imgFile=config.FILE_NAME_IMGDOT,
+                                   minScale='1091958', maxScale='17471321'
+                                   )
+
+
+class RenderMap(MTimeMixin, luigi.Task):
+
+    def requires(self):
+        return (CreateMapXml(),
+                LabelMap(),
+                MapStylerCode())
+
+    def output(self):
+        return(
+            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.png'),
+            luigi.LocalTarget(config.FILE_NAME_IMGNAME + '.svg'))
+
+    def run(self):
+        ms = MapStyler.MapStyler()
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
