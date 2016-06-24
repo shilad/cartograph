@@ -225,23 +225,23 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        range(1, len(regionList) + 1),
                        regionList)
 
+
 class CreateContours(MTimeMixin, luigi.Task):
     '''
     Creates the contours layer.
     '''
     def requires(self):
-        return CreateCoordinates()
+        return CreateCoordinates(), CreateContinents()
 
     def output(self):
         return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA),
 
     def run(self):
-        xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES)
+        xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES, config.FILE_NAME_NUMBERED_CLUSTERS)
         contour = Contours.ContourCreator()
         contour.buildContours(list(xyCoords.values()))
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
-        global numOfContours
-        numOfContours = len(contour.plys)
+
 
 class CreateMap(MTimeMixin, luigi.Task):
     '''
@@ -265,7 +265,7 @@ class CreateMap(MTimeMixin, luigi.Task):
     def run(self):
         regionClusters = Util.read_features(config.FILE_NAME_REGION_CLUSTERS)
         regionIds = sorted(set(region['cluster_id'] for region in regionClusters.values()))
-        ms = MapStyler.MapStyler() 
+        ms = MapStyler.MapStyler()
         ms.makeMap(config.FILE_NAME_CONTOUR_DATA, config.FILE_NAME_COUNTRIES, regionIds)
         ms.saveMapXml(config.FILE_NAME_COUNTRIES, config.FILE_NAME_MAP)
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".png")

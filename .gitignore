@@ -6,6 +6,7 @@
 /data/geojson
 /data/tiles
 /data/labdata.key
+map.xml
 
 .DS_Store
 /data/.DS_Store
