@@ -3,7 +3,7 @@ import mapnik
 import Labels
 
 class MapStyler:
-    def __init__(self, width=1200, height=600):
+    def __init__(self, width=800, height=600):
         self.m = None
         self.width = width
         self.height = height
