@@ -29,6 +29,7 @@ class Config:
         self.DIRECTORY_NAME_TILES = self._localTiles
         self.FILE_NAME_REGION_NAMES = "./data/labdata/top_categories.tsv"
         self.FILE_NAME_IMGNAME = "./data/images/world"
+        self.FILE_NAME_IMGDOT = "./data/images/blackDot.png"
         self.FILE_NAME_COUNTRIES = "./data/geojson/countries.geojson"
         self.FILE_NAME_CONTOUR_DATA = "./data/geojson/contourData.geojson"
         self.FILE_NAME_MAP = "map.xml"

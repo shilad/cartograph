@@ -414,8 +414,10 @@ class LabelMap(MTimeMixin, luigi.Task):
                              maxScale='559082264', minScale='17471321')
 
         titleLabels = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TOP_TITLES)
-        titleLabels.writeLabelsXml('[titleLabel]', 'point',
-                                   minScale='1091958', maxScale='17471321')
+        titleLabels.writeShieldXml('[titleLabel]', 'point',
+                                   imgFile=config.FILE_NAME_IMGDOT,
+                                   minScale='1091958', maxScale='17471321'
+                                   )
 
 
 class RenderMap(MTimeMixin, luigi.Task):
