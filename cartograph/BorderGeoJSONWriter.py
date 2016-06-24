@@ -3,6 +3,7 @@ from geojson import dumps, MultiPolygon
 import matplotlib.path as mplPath
 import Util
 import Config
+
 config = Config.BAD_GET_CONFIG()
 
 
