@@ -43,7 +43,7 @@ We need a directory to save the tiles in, so in order to do that you should
 sudo mkdir /var/www/html/tiles
 ```
 
-## Running our pipeline, generating tiles!
+## Running our pipeline, generating tiles! - OUT OF DATE, NEEDS UPDATING TO CURRENT WORKFLOW
 ### Generate tiles
 ```
 cd ~/src/proceduralMapGeneration/
@@ -51,87 +51,18 @@ sudo python mapGenerator.py
 cd ..
 ```
 
-## mod_tile and renderd
-### get mod_tile
-Tile serving for our project happens with mod_tile and renderd, which were built by the kind folks at openstreetmaps to run an apache server on top of mapnik images. I'll be including versions of the config files I manually modded but the architecture is solid.
-```
-git clone git://github.com/openstreetmap/mod_tile.git
-cd mod_tile
-sudo apt-get install libmapnik-dev
-./autogen.sh
-./configure
-make
-sudo make install-mod_tile
-sudo ldconfig
-```
 
 ## Apache webserver
-### renderd.conf
-Now we have to edit some configurations to be able to run the server. In this folder I have copies of the conf files that you're going to end up wanting to change. Replace the entire renderd.conf with the content of the version I have included in the installDocuments/ folder of this project.
-### set up renderd
-This assumes that the username of your ubuntu enviornment is "research".
-```
-sudo mkdir /var/run/renderd
-sudo chown research /var/run/renderd
-sudo mkdir /var/lib/mod_tile
-sudo chown research /var/lib/mod_tile
-```
-### mod_tile.conf
-Now we need to tell our webserver about mod_tile, so we need to create and edit /etc/apache2/conf-available/mod_tile.conf and add the following line to it:
-```
-LoadModule tile_module /usr/lib/apache2/modules/mod_tile.so
-```
+
 ### 000-default.conf
 Replace the entire content of /etc/apache2/sites-available/000-default.conf with the text of the "000-default.conf" file I have included in the installDocuments/ folder of this project.
 ### configure apache
-We need to tell Apache that we've added the new module. **NOTE:** The second command will get an error but we should still be ok.
-```
-sudo a2enconf mod_tile
-sudo service apache2 reload
-```
-## Drawing the map client-side
-### map.html
-Create a file called /var/www/html/map.html with the content of the "map.html" I have included in the installDocuments/ folder of this project.
-
-## Run the server!
-### run renderd
-To run the server, you need to run renderd.
-```
-cd ~/src/mod_tile/
-./renderd -f -c ~/src/mod_tile/renderd.conf
-```
-### Take a look!
-Then open up your friendly neighborhood web browser and point it at [http://localhost/map.html](http://localhost/map.html) ...and you should have a map!
-
-## Know Oddities
-
-### If you get an error when trying to run again with renderd.sock...
-Try remaking the renderd directory
-```
-sudo mkdir /var/run/renderd
-sudo chown research /var/run/renderd
-```
-### Also make sure to...
-Link the renderd.conf file to another place that some things might end up looking for it...
-```
-cd ~/src/mod_tile/
-sudo ln renderd.conf /usr/local/etc/renderd.conf
-```
-Take ownership of the tiles directory to access them...
-```
-sudo chown -R research.research /var/www/html/tiles/
-```
-Restart the apache server
+Restart the server so it knows you've made changes.  **NOTE:**  Will result in an error but we should still be ok.
 ```
 sudo service apache2 reload
 ```
-If you get an error saying the server is offline, try
-```
-sudo service apache2 start
-```
 
-# UPDATE: Server change to TileStache 
-## Installing TileStache
+## Making Maps!: Installing TileStache
 Adapted from [this axis maps blog post.](http://www.axismaps.com/blog/2012/01/dont-panic-an-absolute-beginners-guide-to-building-a-map-server/)
 
 ### Install mod_python 
@@ -244,4 +175,24 @@ Run on the command line:
 ```
 To check if TileStache is running, go to http://localhost:8080. If the message "TileStache bellows hello." appears then the server is functioning properly. 
 
-To view your map go to http://localhost:8080/map/preview.html. 
+## Run the server!
+
+### Take a look!
+Then open up your friendly neighborhood web browser and point it at [http://localhost/Leaflet/leafletmap2.html](http://localhost/Leaflet/leafletmap2.html) ...and you should have a map!
+
+## Known Fixes
+
+Take ownership of the tiles directory to access them...
+```
+sudo chown -R research.research /var/www/html/tiles/
+```
+Restart the apache server
+```
+sudo service apache2 reload
+```
+If you get an error saying the server is offline, try
+```
+sudo service apache2 start
+```
+
+
