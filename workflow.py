@@ -121,19 +121,18 @@ class ArticlePopularity(luigi.ExternalTask):
         return (luigi.LocalTarget(config.FILE_NAME_POPULARITY))
 
 
-class WikiBrainNumbering(MTimeMixin, luigi.Task):
+class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
     Number the name and vector output of WikiBrain files so that each
     article has a unique id corrosponding to all of its data for future
     use of any subset of features of interest
     '''
-    def requires(self):
-        return WikiBrainData()
 
     def output(self):
         return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_VECS),
                 luigi.LocalTarget(config.FILE_NAME_NUMBERED_NAMES))
 
+    '''
     def run(self):
         with open(config.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
             lines = nameFile.readlines()[1:]
@@ -145,6 +144,7 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
             Util.write_tsv(config.FILE_NAME_NUMBERED_VECS,
                            ("index", "vector"),
                            range(1, len(lines) + 1), lines)
+    '''
 
 
 # ====================================================================
@@ -176,6 +176,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                 name = lineAr[0]
                 pop = lineAr[1][:-1]
                 nameDict[name] = pop
+        print len(nameDict.keys())
 
         popularityList = []
         for featureID in idList:
@@ -200,13 +201,18 @@ class RegionClustering(MTimeMixin, luigi.Task):
         return WikiBrainNumbering()
 
     def run(self):
-        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS)
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS,
+                                         config.FILE_NAME_NUMBERED_NAMES)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
         labels = list(KMeans(config.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
+        names = [featureDict[fID]["name"] for fID in keys]
         Util.write_tsv(config.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
+
+        Util.write_tsv(config.FILE_NAME_LABELING_FILE,
+                       ("name", "cluster"), names, labels)
 
 
 class CreateCoordinates(MTimeMixin, luigi.Task):
