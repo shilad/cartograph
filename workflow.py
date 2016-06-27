@@ -407,14 +407,15 @@ class LabelMap(MTimeMixin, luigi.Task):
         return (luigi.LocalTarget(config.FILE_NAME_MAP))
 
     def run(self):
+        zoomScales = Util.read_zoom(config.FILE_NAME_SCALE_DENOMINATORS)
         label = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
         label.writeLabelsXml('[labels]', 'interior',
-                             maxScale='559082264', minScale='17471321')
+                             maxScale=zoomScales.get('maxscale_zoom0'), minScale=zoomScales.get('minscale_zoom4'))
 
         titleLabels = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TOP_TITLES)
         titleLabels.writeShieldXml('[titleLabel]', 'point',
                                    imgFile=config.FILE_NAME_IMGDOT,
-                                   minScale='1091958', maxScale='17471321'
+                                   minScale=zoomScales.get('minscale_zoom8'), maxScale=zoomScales.get('maxscale_zoom5')
                                    )
 
 
