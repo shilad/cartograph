@@ -59,37 +59,37 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Contours.py"))
+        return (luigi.LocalTarget(Contours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Denoiser.py"))
+        return (luigi.LocalTarget(Denoiser.__file__))
 
 
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/MapStyler.py"))
+        return (luigi.LocalTarget(MapStyler.__file__))
 
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/BorderFactory.py"))
+        return (luigi.LocalTarget(BorderFactory.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/BorderGeoJSONWriter.py"))
+        return (luigi.LocalTarget(BorderGeoJSONWriter.__file__))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/TopTitlesGeoJSONWriter.py"))
+        return (luigi.LocalTarget(TopTitlesGeoJSONWriter.__file__))
 
 
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Labels.py"))
+        return (luigi.LocalTarget(Labels.__file__))
 
 
 # ====================================================================
