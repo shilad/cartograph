@@ -2,6 +2,7 @@ from scipy.spatial import Voronoi
 import numpy as np
 from Vertex import Vertex
 import Util
+from collections import defaultdict
 
 import Config
 config = Config.BAD_GET_CONFIG()
@@ -16,13 +17,10 @@ class BorderFactory(object):
 
     @classmethod
     def from_file(cls, ):
-        if debug:
-            s = "."
-        else:
-            s = ""
-        featureDict = Util.read_features(s+config.FILE_NAME_WATER_AND_ARTICLES,
-                                         s+config.FILE_NAME_KEEP,
-                                         s+config.FILE_NAME_WATER_CLUSTERS)
+        s = "." if debug else ""
+        featureDict = Util.read_features(s + config.FILE_NAME_WATER_AND_ARTICLES,
+                                         s + config.FILE_NAME_KEEP,
+                                         s + config.FILE_NAME_WATER_CLUSTERS)
         idList = list(featureDict.keys())
         x, y, clusters = [], [], []
         for article in idList:
@@ -34,8 +32,7 @@ class BorderFactory(object):
 
     @staticmethod
     def _make_vertex_adjacency_list(vor):
-        adj_lst = {vert_idx: set() for vert_idx in range(len(vor.vertices))}
-        adj_lst[-1] = set()
+        adj_lst = defaultdict(set)
         for ridge in vor.ridge_vertices:
             adj_lst[ridge[0]].add(ridge[1])
             adj_lst[ridge[1]].add(ridge[0])
@@ -43,15 +40,9 @@ class BorderFactory(object):
 
     @staticmethod
     def _make_three_dicts(vor, cluster_labels):
-        vert_reg_idxs_dict = {vert_idx: []
-                              for vert_idx in range(len(vor.vertices))}
-        vert_reg_idxs_dict[-1] = []
-        vert_reg_labs_dict = {vert_idx: []
-                              for vert_idx in range(len(vor.vertices))}
-        vert_reg_labs_dict[-1] = []
-        group_vert_dict = {}
-        for label in set(cluster_labels):
-            group_vert_dict[label] = set()
+        vert_reg_idxs_dict = defaultdict(list)
+        vert_reg_labs_dict = defaultdict(list)
+        group_vert_dict = defaultdict(set)
         for i, reg_idx in enumerate(vor.point_region):
             vert_idxs = vor.regions[reg_idx]
             label = cluster_labels[i]
@@ -64,47 +55,46 @@ class BorderFactory(object):
     @staticmethod
     def _make_vertex_array(vor, adj_lst, vert_reg_idxs_dict,
                            vert_reg_labs_dict):
-        vert_arr = []
-        for i, v in enumerate(vor.vertices):
-            vert_arr.append(Vertex(v[0], v[1], i, adj_lst[i],
-                            vert_reg_idxs_dict[i], vert_reg_labs_dict[i]))
-        return vert_arr
+        return [Vertex(v[0], v[1], i, adj_lst[i],
+                vert_reg_idxs_dict[i], vert_reg_labs_dict[i])
+                for i, v in enumerate(vor.vertices)]
 
     @staticmethod
     def _make_group_edge_vert_dict(vert_array, group_vert_dict):
         """maps group labels to edge vertex indices"""
-        group_edge_vert_dict = {}
+        group_edge_vert_dict = defaultdict(set)
         for label in group_vert_dict:
-            edge_verts = set()
-            # v is an index to Voronoi vertices
+            # can't do list comprehension because otherwise it's a generator later
             for vert_idx in group_vert_dict[label]:
-                if vert_array[vert_idx].is_edge_vertex():
-                    edge_verts.add(vert_idx)
-            group_edge_vert_dict[label] = edge_verts
+                if vert_array[vert_idx].is_edge_vertex:
+                    group_edge_vert_dict[label].add(vert_idx)
         return group_edge_vert_dict
 
     @staticmethod
     def _make_borders(vert_array, group_edge_vert_dict):
         """internal function to build borders from generated data"""
-        borders = {}
+        borders = defaultdict(list)
+        # remove water points
         del group_edge_vert_dict[len(group_edge_vert_dict) - 1]
         for label in group_edge_vert_dict:
-            borders[label] = []
             while group_edge_vert_dict[label]:
-                cluster_border = []
+                continent = []
                 vert_idx = next(iter(group_edge_vert_dict[label]))
                 while vert_idx is not None:
                     vert = vert_array[vert_idx]
-                    cluster_border.append((vert.x, vert.y))
-                    group_edge_vert_dict[label].discard(vert_idx)
+                    continent.append(vert)
+                    group_edge_vert_dict[label].remove(vert_idx)
                     vert_idx = vert.get_adj_edge_vert_idx(label, vert_idx)
-                if len(cluster_border) > config.MIN_NUM_IN_CLUSTER:
-                    borders[label].append(cluster_border)
+                if len(continent) > config.MIN_NUM_IN_CONTINENT:
+                    borders[label].append(continent)
         return BorderFactory.NaturalBorderMaker(borders).make_borders_natural()
 
     def build(self):
-        """makes a dictionary mapping group labels to an array of array of
-            tuples representing the different clusters in the each group"""
+        """
+        Returns:
+            a dictionary mapping group labels to a list of list of tuples representing
+            the different continents in each cluster
+        """
         points = list(zip(self.x, self.y))
         vor = Voronoi(points)
         adj_lst = self._make_vertex_adjacency_list(vor)
@@ -116,7 +106,11 @@ class BorderFactory(object):
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
 
-        return self._make_borders(vert_array, group_edge_vert_dict)
+        borders = self._make_borders(vert_array, group_edge_vert_dict)
+        for label in borders:
+            for i, continent in enumerate(borders[label]):
+                borders[label][i] = [(vert.x, vert.y) for vert in continent]
+        return borders
 
     class NaturalBorderMaker:
 
@@ -126,7 +120,7 @@ class BorderFactory(object):
         @staticmethod
         def _wrap_range(start, stop, length, reverse=False):
             """
-            Return:
+            Returns:
                 range from start to stop *inclusively* modulo length
             """
             start %= length
@@ -144,6 +138,8 @@ class BorderFactory(object):
 
         @staticmethod
         def _blur(array, circular):
+            if len(array) <= config.BLUR_RADIUS:
+                return array
             blurred = []
             if circular:
                 for i, _ in enumerate(array):
@@ -161,20 +157,24 @@ class BorderFactory(object):
             return blurred
 
         @staticmethod
-        def _blur_points(points, circular):
-            unzipped = zip(*points)
-            x = BorderFactory.NaturalBorderMaker._blur(unzipped[0], circular)
-            y = BorderFactory.NaturalBorderMaker._blur(unzipped[1], circular)
-            return zip(x, y)
+        def _blur_vertices(vertices, circular):
+            x = [vertex.x for vertex in vertices]
+            y = [vertex.y for vertex in vertices]
+            x = BorderFactory.NaturalBorderMaker._blur(x, circular)
+            y = BorderFactory.NaturalBorderMaker._blur(y, circular)
+            for i, vertex in enumerate(vertices):
+                vertex.x = x[i]
+                vertex.y = y[i]
+            return vertices
 
         @staticmethod
         def _get_consensus_border_intersection(indices1, indices2, len1, len2, reversed2):
             """
             Args:
-                indices1: *aligned* indices of points in region1 which are in intersection
-                indices2: *aligned* indices of points in region2 which are in intersection
-                len1: length of region1
-                len2: length of region2
+                indices1: *aligned* indices of points in points1 which are in intersection
+                indices2: *aligned* indices of points in points2 which are in intersection
+                len1: length of points1
+                len2: length of points2
                 reversed2: Whether or not indices2 is in reversed order
             Returns:
                 list of lists of contiguous regions
@@ -208,80 +208,86 @@ class BorderFactory(object):
             return consensus_lists, False
 
         @staticmethod
-        def _get_border_region_indices(region, intersection):
+        def _get_border_region_indices(points, intersection):
             """
             Returns:
-                list of indices of points in region which are in intersection
+                list of indices of points in points which are in intersection
             """
             indices = []
-            for i, point in enumerate(region):
-                if region[i] in intersection:
+            for i, point in enumerate(points):
+                if point in intersection:
                     indices.append(i)
             return indices
 
         @staticmethod
-        def _get_intersecting_borders(region1, region2):
+        def _get_intersecting_borders(points1, points2):
             """
             Returns:
-                list of lists of tuples which represents the aligned indices of region1 and region2 in each contiguous
-                intersection of region1 and region2 and whether the intersection is circular.
+                list of lists of tuples which represents the aligned indices of points1 and points2 in each contiguous
+                intersection of points1 and points2 and whether the intersection is circular.
                 Ex: [[(pt1_0, pt2_0), (pt1_1, pt2_1), ...], [...]]
             """
-            region1_set = set(region1)
-            region2_set = set(region2)
-            intersection = region1_set & region2_set
+            points1_set = set(points1)
+            points2_set = set(points2)
+            intersection = points1_set & points2_set
             if intersection:
-                region1_border_idxs = BorderFactory.NaturalBorderMaker._get_border_region_indices(region1, intersection)
-                region2_border_idxs = BorderFactory.NaturalBorderMaker._get_border_region_indices(region2, intersection)
+                points1_border_idxs = BorderFactory.NaturalBorderMaker._get_border_region_indices(points1, intersection)
+                points2_border_idxs = BorderFactory.NaturalBorderMaker._get_border_region_indices(points2, intersection)
 
                 # align lists, taking orientation into account
-                search_point = region1[region1_border_idxs[0]]
+                search_point = points1[points1_border_idxs[0]]
                 offset = 0
-                for i, index in enumerate(region2_border_idxs):
-                    if search_point == region2[index]:
+                for i, index in enumerate(points2_border_idxs):
+                    if search_point == points2[index]:
                         offset = i
                         break
                 # check for direction
                 reverse = False
-                if len(region1_border_idxs) > 1:
-                    try_index = (offset + 1) % len(region2_border_idxs)
-                    if region2[region2_border_idxs[try_index]] != region1[region1_border_idxs[1]]:
+                if len(points1_border_idxs) > 1:
+                    try_index = (offset + 1) % len(points2_border_idxs)
+                    if points2[points2_border_idxs[try_index]] != points1[points1_border_idxs[1]]:
                         reverse = True
                 if reverse:
                     # gnarly bug this one was
                     # reversing the list means offsetting by one extra - set the new 0 pos at the end
-                    region2_border_idxs = np.roll(region2_border_idxs, -offset - 1)
-                    region2_border_idxs = list(reversed(region2_border_idxs))
+                    points2_border_idxs = np.roll(points2_border_idxs, -offset - 1)
+                    points2_border_idxs = list(reversed(points2_border_idxs))
                 else:
-                    region2_border_idxs = np.roll(region2_border_idxs, -offset)
+                    points2_border_idxs = np.roll(points2_border_idxs, -offset)
 
                 return BorderFactory.NaturalBorderMaker._get_consensus_border_intersection(
-                    region1_border_idxs, region2_border_idxs, len(region1), len(region2), reverse
+                    points1_border_idxs, points2_border_idxs, len(points1), len(points2), reverse
                 )
             return [], False
 
         @staticmethod
         def _make_new_regions(region1, region2):
             """
+            Args:
+                region1: One region represented by Vertex objects
+                region2: Another region represented by Vertex objects
             Returns:
                 region1 and region2 with their intersecting points modified
             """
-            consensus_lists, circular = BorderFactory.NaturalBorderMaker._get_intersecting_borders(region1, region2)
+            points1 = [(vertex.x, vertex.y) for vertex in region1]
+            points2 = [(vertex.x, vertex.y) for vertex in region2]
+            consensus_lists, circular = BorderFactory.NaturalBorderMaker._get_intersecting_borders(points1, points2)
             processed = []
             for contiguous in consensus_lists:
                 # sanity check
                 for indices in contiguous:
-                    assert region1[indices[0]] == region2[indices[1]]
+                    assert points1[indices[0]] == points2[indices[1]]
                 indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
                 processed.append(
-                    BorderFactory.NaturalBorderMaker._blur_points([region1[i] for i in indices[0]], circular)
+                    BorderFactory.NaturalBorderMaker._blur_vertices([region1[i] for i in indices[0]], circular)
                 )
+            # TODO: allow for arbitrary numbers of points
             for i, contiguous in enumerate(processed):
-                for j, point in enumerate(contiguous):
+                for j, vertex in enumerate(contiguous):
                     reg1_idx = consensus_lists[i][j][0]
                     reg2_idx = consensus_lists[i][j][1]
-                    region1[reg1_idx] = point
-                    region2[reg2_idx] = point
+                    region1[reg1_idx] = vertex
+                    region2[reg2_idx] = vertex
             return region1, region2
 
         @staticmethod
@@ -304,10 +310,10 @@ class BorderFactory(object):
                 the borders object where the intersecting borders are made more natural
             """
             adj_matrix, index_key = BorderFactory.NaturalBorderMaker._make_region_adj_matrix_and_index_key(self.borders)
-            for group_label in self.borders.keys():
+            for group_label in self.borders:
                 for reg_idx, region in enumerate(self.borders[group_label]):
                     reg_adj_idx = index_key[group_label] + reg_idx
-                    for search_group_label in self.borders.keys():
+                    for search_group_label in self.borders:
                         if group_label is not search_group_label:
                             for search_reg_idx, search_region in enumerate(self.borders[search_group_label]):
                                 search_reg_adj_idx = index_key[search_group_label] + search_reg_idx

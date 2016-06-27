@@ -20,7 +20,7 @@ class Config:
         self.PERCENTAGE_WATER = 0.1
 
         # ========== BorderFactory ==========
-        self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
+        self.MIN_NUM_IN_CONTINENT = 30  # eliminates noise
         self.BLUR_RADIUS = 5  # defines size of neighborhood for blurring
 
         # ========== mapGenerator ==========

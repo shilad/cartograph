@@ -1,6 +1,3 @@
-import math
-
-
 class Vertex:
     # array for all the vertex objects, aligned with Voronoi's own
     vertex_arr = []
@@ -15,15 +12,14 @@ class Vertex:
         # these must match with region_group_labels
         self.region_idxs = region_idxs
         self.region_group_labels = region_group_labels
-
-    def is_edge_vertex(self):
-        """use for building edge vertex set for each group"""
-        return len(set(self.adj_idxs)) > 1
+        # used for building edge vertex set for each cluster
+        self.is_edge_vertex = len(set(self.adj_idxs)) > 1
 
     def _get_num_shared_region_labels(self, vertex, group_label):
         """
-        Returns the number of shared regions of type group_label between
-        this vertex and another vertex
+        Returns:
+            the number of shared regions of type group_label between
+            this vertex and another vertex
          """
         num_in_common = 0
         for i in range(len(self.region_idxs)):
@@ -34,12 +30,15 @@ class Vertex:
         return num_in_common
 
     def get_adj_edge_vert_idx(self, group_label, prev_vertex_idx):
-        """used for getting the next vertex in the contiguous border"""
-        candidates = []
+        """
+        Returns:
+            The index of an adjacent edge vertex that is not prev_vertex_idx.
+            Returns None if there is not a valid vertex
+        """
         for idx in self.adj_idxs:
             if idx != prev_vertex_idx \
                and idx in self.edge_vertex_dict[group_label] \
-                    and self._get_num_shared_region_labels(self.vertex_arr[idx],
-                                                        group_label) == 1:
+               and self._get_num_shared_region_labels(self.vertex_arr[idx],
+                                                      group_label) == 1:
                 return idx
         return None
