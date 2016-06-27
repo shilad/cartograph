@@ -1,5 +1,8 @@
 import luigi
 import os
+
+import cartograph
+
 from cartograph import Config
 from cartograph import Util
 from cartograph import Contours
@@ -59,37 +62,37 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(Contours.__file__))
+        return (luigi.LocalTarget(cartograph.Contours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(Denoiser.__file__))
+        return (luigi.LocalTarget(cartograph.Denoiser.__file__))
 
 
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(MapStyler.__file__))
+        return (luigi.LocalTarget(cartograph.MapStyler.__file__))
 
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(BorderFactory.__file__))
+        return (luigi.LocalTarget(cartograph.BorderFactory.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(BorderGeoJSONWriter.__file__))
+        return (luigi.LocalTarget(cartograph.BorderGeoJSONWriter.__file__))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(TopTitlesGeoJSONWriter.__file__))
+        return (luigi.LocalTarget(cartograph.TopTitlesGeoJSONWriter.__file__))
 
 
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(Labels.__file__))
+        return (luigi.LocalTarget(cartograph.Labels.__file__))
 
 
 # ====================================================================
@@ -297,7 +300,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
     def requires(self):
         return (LabelNames(),
                 BorderGeoJSONWriterCode(),
-                DenoiserCode(),
+                Denoise(),
                 BorderFactoryCode())
 
     def decomposeBorders(self, clusterDict):
