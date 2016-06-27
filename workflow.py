@@ -74,22 +74,22 @@ class MapStylerCode(MTimeMixin, luigi.ExternalTask):
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(BorderFactory.__file__))
+        return (luigi.LocalTarget("./cartograph/BorderFactory.py"))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(BorderGeoJSONWriter.__file__))
+        return (luigi.LocalTarget("./cartograph/BorderGeoJSONWriter.py"))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(TopTitlesGeoJSONWriter.__file__))
+        return (luigi.LocalTarget("./cartograph/TopTitlesGeoJSONWriter.py"))
 
 
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(Labels.__file__))
+        return (luigi.LocalTarget("./cartograph/Labels.py"))
 
 
 # ====================================================================
