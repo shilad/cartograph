@@ -4,7 +4,7 @@ export PYTHONPATH=$PYTHONPATH:.
 command=""
 
 if [ $# == 0 ]; then
-	command=RenderMap
+	command="RenderMap"
 elif [ $# == 1 ]; then
 	command="$1"
 fi
