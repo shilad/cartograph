@@ -38,11 +38,11 @@ class ContourCreator:
         CSs = []
         for i in range(len(xs)):
             H, yedges, xedges = np.histogram2d(ys[i], xs[i],
-                                           bins=binSize,
-                                           range=[[np.min(xs[i]),
-                                                  np.max(xs[i])],
-                                                  [np.min(ys[i]),
-                                                  np.max(ys[i])]])
+                                            bins=binSize,
+                                            range=[[np.min(xs[i]),
+                                            np.max(xs[i])],
+                                            [np.min(ys[i]),
+                                            np.max(ys[i])]])
             H = gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
