@@ -12,8 +12,10 @@ import TileStache
 static_files =  { '/static': os.path.join(os.path.abspath('./web')) }
 path_cfg = os.path.abspath("./data/tilestache.cfg")
 path_cache = json.load(open(path_cfg, 'r'))['cache']['path']
-assert(len(path_cache) > 5)
-shutil.rmtree(path_cache)
+
+if os.path.isdir(path_cache):
+    assert(len(path_cache) > 5)
+    shutil.rmtree(path_cache)
 
 app = TileStache.WSGITileServer(path_cfg)
 
