@@ -59,17 +59,17 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Contours.py"))
+        return (luigi.LocalTarget(Contours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Denoiser.py"))
+        return (luigi.LocalTarget(Denoiser.__file__))
 
 
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/MapStyler.py"))
+        return (luigi.LocalTarget(MapStyler.__file__))
 
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
@@ -121,19 +121,18 @@ class ArticlePopularity(luigi.ExternalTask):
         return (luigi.LocalTarget(config.FILE_NAME_POPULARITY))
 
 
-class WikiBrainNumbering(MTimeMixin, luigi.Task):
+class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
     Number the name and vector output of WikiBrain files so that each
     article has a unique id corrosponding to all of its data for future
     use of any subset of features of interest
     '''
-    def requires(self):
-        return WikiBrainData()
 
     def output(self):
         return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_VECS),
                 luigi.LocalTarget(config.FILE_NAME_NUMBERED_NAMES))
 
+    '''
     def run(self):
         with open(config.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
             lines = nameFile.readlines()[1:]
@@ -145,6 +144,7 @@ class WikiBrainNumbering(MTimeMixin, luigi.Task):
             Util.write_tsv(config.FILE_NAME_NUMBERED_VECS,
                            ("index", "vector"),
                            range(1, len(lines) + 1), lines)
+    '''
 
 
 # ====================================================================
@@ -176,6 +176,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                 name = lineAr[0]
                 pop = lineAr[1][:-1]
                 nameDict[name] = pop
+        print len(nameDict.keys())
 
         popularityList = []
         for featureID in idList:
@@ -200,13 +201,18 @@ class RegionClustering(MTimeMixin, luigi.Task):
         return WikiBrainNumbering()
 
     def run(self):
-        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS)
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS,
+                                         config.FILE_NAME_NUMBERED_NAMES)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
         labels = list(KMeans(config.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
+        names = [featureDict[fID]["name"] for fID in keys]
         Util.write_tsv(config.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
+
+        Util.write_tsv(config.FILE_NAME_LABELING_FILE,
+                       ("name", "cluster"), names, labels)
 
 
 class CreateCoordinates(MTimeMixin, luigi.Task):
@@ -407,14 +413,15 @@ class LabelMap(MTimeMixin, luigi.Task):
         return (luigi.LocalTarget(config.FILE_NAME_MAP))
 
     def run(self):
+        zoomScales = Util.read_zoom(config.FILE_NAME_SCALE_DENOMINATORS)
         label = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
         label.writeLabelsXml('[labels]', 'interior',
-                             maxScale='559082264', minScale='17471321')
+                             maxScale=zoomScales.get('maxscale_zoom0'), minScale=zoomScales.get('minscale_zoom4'))
 
         titleLabels = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TOP_TITLES)
         titleLabels.writeShieldXml('[titleLabel]', 'point',
                                    imgFile=config.FILE_NAME_IMGDOT,
-                                   minScale='1091958', maxScale='17471321'
+                                   minScale=zoomScales.get('minscale_zoom8'), maxScale=zoomScales.get('maxscale_zoom5')
                                    )
 
 
