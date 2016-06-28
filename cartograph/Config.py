@@ -11,7 +11,7 @@ class Config:
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
-        self.FILE_NAME_POPULARITY = "./data/labdata/article_popularity_full.tsv"
+        self.FILE_NAME_POPULARITY = "./data/labdata/article_pageview_full.tsv"
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
 
