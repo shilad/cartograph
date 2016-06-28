@@ -9,7 +9,7 @@ function usage() {
     exit 1
 }
 
-TASK=CreateMap
+TASK=RenderMap
 
 while [ "$1" != "" ]; do
     case $1 in
