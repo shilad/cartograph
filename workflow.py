@@ -214,9 +214,6 @@ class RegionClustering(MTimeMixin, luigi.Task):
         Util.write_tsv(config.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
 
-        Util.write_tsv(config.FILE_NAME_LABELING_FILE,
-                       ("name", "cluster"), names, labels)
-
 
 class CreateCoordinates(MTimeMixin, luigi.Task):
     '''
