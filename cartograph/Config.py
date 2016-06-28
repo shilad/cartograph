@@ -20,7 +20,7 @@ class Config:
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
         self.PERCENTAGE_WATER = 0.05
 
-        self.COLORWHEEl = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
+        self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
 
         # ========== BorderFactory ==========
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
