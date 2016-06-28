@@ -10,10 +10,13 @@ config = Config.BAD_GET_CONFIG()
 
 class BorderFactory(object):
 
+    water_label = 0
+
     def __init__(self, x, y, cluster_labels):
         self.x = x
         self.y = y
         self.cluster_labels = cluster_labels
+        BorderFactory.water_label = len(self.cluster_labels)-1
 
     @classmethod
     def from_file(cls, ):
@@ -40,6 +43,16 @@ class BorderFactory(object):
 
     @staticmethod
     def _make_three_dicts(vor, cluster_labels):
+        """
+        Args:
+            vor: The Voronoi object
+            cluster_labels: A list of cluster labels for each input point (not vertex)
+
+        Returns:
+            Three dictionaries - the first maps each vertex index to a list of region indices that are adjacent to that
+            vertex, the second maps vertex indices to a list of labels for each adjacent region, and the third maps
+            a cluster label to all the vertex indices which touch a region of that label.
+        """
         vert_reg_idxs_dict = defaultdict(list)
         vert_reg_labs_dict = defaultdict(list)
         group_vert_dict = defaultdict(set)
@@ -72,10 +85,12 @@ class BorderFactory(object):
 
     @staticmethod
     def _make_borders(vert_array, group_edge_vert_dict):
-        """internal function to build borders from generated data"""
+        """
+        Internal function to build borders from generated data.
+        Returns:
+            A dictionary mapping labels to lists of lists of Vertex objects specifying each continent border
+        """
         borders = defaultdict(list)
-        # remove water points
-        del group_edge_vert_dict[len(group_edge_vert_dict) - 1]
         for label in group_edge_vert_dict:
             while group_edge_vert_dict[label]:
                 continent = []
@@ -137,31 +152,36 @@ class BorderFactory(object):
                     return range(start, stop + 1)
 
         @staticmethod
-        def _blur(array, circular):
-            if len(array) <= config.BLUR_RADIUS:
+        def _blur(array, circular, radius):
+            # arrays which are shorter than this will be blurred to a single point
+            if len(array) <= radius*2+1:
                 return array
             blurred = []
             if circular:
                 for i, _ in enumerate(array):
-                    start = i - config.BLUR_RADIUS
-                    stop = i + config.BLUR_RADIUS
+                    start = i - radius
+                    stop = i + radius
                     neighborhood = [
                         array[j] for j in BorderFactory.NaturalBorderMaker._wrap_range(start, stop, len(array))]
                     blurred.append(np.average(neighborhood))
             else:
                 for i, _ in enumerate(array):
-                    start = max(0, i - config.BLUR_RADIUS)
-                    stop = min(len(array) - 1, i + config.BLUR_RADIUS)
+                    start = max(0, i - radius)
+                    stop = min(len(array) - 1, i + radius)
                     neighborhood = [array[j] for j in range(start, stop + 1)]
                     blurred.append(np.average(neighborhood))
             return blurred
 
         @staticmethod
-        def _blur_vertices(vertices, circular):
+        def _process_vertices(vertices, circular):
+            if len(vertices) >= 2 and vertices[0].is_edge_coast(vertices[1], BorderFactory.water_label):
+                radius = config.BLUR_RADIUS*2
+            else:
+                radius = config.BLUR_RADIUS
             x = [vertex.x for vertex in vertices]
             y = [vertex.y for vertex in vertices]
-            x = BorderFactory.NaturalBorderMaker._blur(x, circular)
-            y = BorderFactory.NaturalBorderMaker._blur(y, circular)
+            x = BorderFactory.NaturalBorderMaker._blur(x, circular, radius)
+            y = BorderFactory.NaturalBorderMaker._blur(y, circular, radius)
             for i, vertex in enumerate(vertices):
                 vertex.x = x[i]
                 vertex.y = y[i]
@@ -249,7 +269,8 @@ class BorderFactory(object):
                         reverse = True
                 if reverse:
                     # gnarly bug this one was
-                    # reversing the list means offsetting by one extra - set the new 0 pos at the end
+                    # reversing the list means offsetting by one extra - set the new 0 pos at the end of the list
+                    # before reversing
                     points2_border_idxs = np.roll(points2_border_idxs, -offset - 1)
                     points2_border_idxs = list(reversed(points2_border_idxs))
                 else:
@@ -259,6 +280,18 @@ class BorderFactory(object):
                     points1_border_idxs, points2_border_idxs, len(points1), len(points2), reverse
                 )
             return [], False
+
+        @staticmethod
+        def _replace_into_border(region, replace, start, stop):
+            """
+            Inserts replace between start and stop (counted inclusively) into the list region
+            """
+            if stop < start:
+                region = region[:start]
+                region[:stop+1] = replace
+            else:
+                region[start:stop+1] = replace
+            return region
 
         @staticmethod
         def _make_new_regions(region1, region2):
@@ -279,15 +312,15 @@ class BorderFactory(object):
                     assert points1[indices[0]] == points2[indices[1]]
                 indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
                 processed.append(
-                    BorderFactory.NaturalBorderMaker._blur_vertices([region1[i] for i in indices[0]], circular)
+                    BorderFactory.NaturalBorderMaker._process_vertices([region1[i] for i in indices[0]], circular)
                 )
-            # TODO: allow for arbitrary numbers of points
             for i, contiguous in enumerate(processed):
-                for j, vertex in enumerate(contiguous):
-                    reg1_idx = consensus_lists[i][j][0]
-                    reg2_idx = consensus_lists[i][j][1]
-                    region1[reg1_idx] = vertex
-                    region2[reg2_idx] = vertex
+                start = consensus_lists[i][0][0]
+                stop = consensus_lists[i][-1][0]
+                BorderFactory.NaturalBorderMaker._replace_into_border(region1, contiguous, start, stop)
+                start = consensus_lists[i][0][1]
+                stop = consensus_lists[i][-1][1]
+                BorderFactory.NaturalBorderMaker._replace_into_border(region2, contiguous, start, stop)
             return region1, region2
 
         @staticmethod
@@ -323,6 +356,8 @@ class BorderFactory(object):
                                         BorderFactory.NaturalBorderMaker._make_new_regions(region, search_region)
                                     adj_matrix[reg_adj_idx][search_reg_adj_idx] = 1
                                     adj_matrix[search_reg_adj_idx][reg_adj_idx] = 1
+            # remove water points
+            del self.borders[len(self.borders)-1]
             return self.borders
 
 debug = False

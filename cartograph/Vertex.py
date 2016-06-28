@@ -1,8 +1,12 @@
+from cartograph import Config
+
+
 class Vertex:
     # array for all the vertex objects, aligned with Voronoi's own
     vertex_arr = []
     # dict to hold indices of vertices for each cluster
     edge_vertex_dict = {}
+    config = Config.BAD_GET_CONFIG()
 
     def __init__(self, x, y, idx, adj_idxs, region_idxs, region_group_labels):
         self.x = x
@@ -42,3 +46,14 @@ class Vertex:
                                                       group_label) == 1:
                 return idx
         return None
+
+    def is_edge_coast(self, vertex, water_label):
+        """
+        Args:
+            vertex: An adjacent vertex
+            water_label: The label of the water region
+
+        Returns:
+            True if the edge formed between this vertex and vertex borders water
+        """
+        return self._get_num_shared_region_labels(vertex, water_label) == 1
