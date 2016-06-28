@@ -36,6 +36,16 @@ def read_wikibrain_vecs(path):
 #             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
 #             f.write("%s\t%s" % (row_num, s))
 
+def read_zoom(filename):
+    values = defaultdict(dict)
+    with open(filename) as f:
+        for line in f:
+            tokens = line.split('\t')
+            zoom = tokens[0]
+            denom = tokens[1][:-1]
+            values[zoom] = denom
+    return values
+
 
 def read_features(*files):
     values = defaultdict(dict)
