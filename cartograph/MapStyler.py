@@ -1,8 +1,9 @@
-import json
+from json import load
+from geojson import dumps
 import mapnik
 import Labels
-from shapely.geometry import mapping, shape
 import Config
+from shapely.geometry import shape, mapping
 config = Config.BAD_GET_CONFIG()
 
 
@@ -17,18 +18,18 @@ class MapStyler:
         self.m.background = mapnik.Color('white')
         self.m.srs = '+init=epsg:3857'
 
-        js = json.load(open(contourFilename, 'r'))
+        jsContour = load(open(contourFilename, 'r'))
         numContours = [0 for x in range(config.NUM_CLUSTERS)]
-        for i in range(len(js['features'])):
-            numContours[js['features'][i]['properties']['clusterNum']] += 1
+        for feat in jsContour['features']:
+            numContours[feat['properties']['clusterNum']] += 1
 
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .20, clusterIds))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .35, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
 
-        self.m.append_style("contour", generateContourPolygonStyle(.15, numContours))
+        self.m.append_style("contour", generateContourPolygonStyle(.20, numContours))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
-        self.m.append_style("outline", generateLineStyle("black", 1.0))
+        self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
         self.m.layers.append(generateLayer(countryFilename, "outline", "outline"))
         self.m.zoom_all()
 
@@ -77,7 +78,10 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
 
 
 def generateContourPolygonStyle(opacity, numContours, gamma=1):
+
     colorWheel = Config.COLORWHEEL
+    testColors = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#673AB7"]
+
     s = mapnik.Style()
     for i in range(config.NUM_CLUSTERS):
         r = mapnik.Rule()
@@ -91,12 +95,14 @@ def generateContourPolygonStyle(opacity, numContours, gamma=1):
     return s
 
 
-def generateLineStyle(color, opacity):
+def generateLineStyle(color, opacity, dash=None):
     s = mapnik.Style()
     r = mapnik.Rule()
     symbolizer = mapnik.LineSymbolizer()
     symbolizer.stroke = mapnik.Color(color)
     symbolizer.stroke_opacity = opacity
+    if dash:
+        symbolizer.stroke_dasharray = dash
     r.symbols.append(symbolizer)
     s.rules.append(r)
     return s
