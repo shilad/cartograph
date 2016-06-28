@@ -29,7 +29,7 @@ class MapStyler:
         self.m.append_style("contour", generateContourPolygonStyle(.20, numContours))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
-        self.m.append_style("outline", generateLineStyle("black", 1.0))
+        self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
         self.m.layers.append(generateLayer(countryFilename, "outline", "outline"))
         self.m.zoom_all()
 
@@ -93,12 +93,14 @@ def generateContourPolygonStyle(opacity, numContours, gamma=1):
     return s
 
 
-def generateLineStyle(color, opacity):
+def generateLineStyle(color, opacity, dash=None):
     s = mapnik.Style()
     r = mapnik.Rule()
     symbolizer = mapnik.LineSymbolizer()
     symbolizer.stroke = mapnik.Color(color)
     symbolizer.stroke_opacity = opacity
+    if dash:
+        symbolizer.stroke_dasharray = dash
     r.symbols.append(symbolizer)
     s.rules.append(r)
     return s

@@ -8,13 +8,6 @@ class Labels():
         self.geojson = geojson
         self.mapRoot = self.mapFile.getroot()
 
-#     def _add_Zoom_Ref(self):
-# <?xml version="1.0" encoding="utf-8"?>
-# <!DOCTYPE Map [
-# <!ENTITY % entities SYSTEM "data/zoomScales.xml.inc">
-# %entities;
-# ]>
-
     def _add_Text_Style(self, field, labelType, minScale, maxScale):
         style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + 'LabelStyle')
         rule = SubElement(style, 'Rule')
