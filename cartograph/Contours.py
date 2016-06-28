@@ -8,7 +8,6 @@ from scipy.ndimage.filters import gaussian_filter
 import Config
 import json
 import shapely.geometry as shply
-import shapely.geos
 config = Config.BAD_GET_CONFIG()
 
 
@@ -20,7 +19,6 @@ class ContourCreator:
     def buildContours(self, coordinates):
         self.xs, self.ys = self._sortClusters(coordinates)
         self.CSs = self._calc_contour(self.xs, self.ys, 210)
-
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
