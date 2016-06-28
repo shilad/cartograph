@@ -6,6 +6,9 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 from scipy.ndimage.filters import gaussian_filter
 import Config
+import json
+import shapely.geometry as shply
+import shapely.geos
 config = Config.BAD_GET_CONFIG()
 
 
@@ -16,20 +19,24 @@ class ContourCreator:
 
     def buildContours(self, coordinates):
         self.xs, self.ys = self._sortClusters(coordinates)
-        self.CSs = self._calc_contour(self.xs, self.ys, 225)
+        self.CSs = self._calc_contour(self.xs, self.ys, 210)
+
+        # Nested list.
+        # One outer parent list for each cluster. (n=~10)
+        # One child inner list for each contour (n=~7)
+        # One grandchild list for each polygon within the contour
         self.plyList = self._get_contours(self.CSs)
+        self.newPlys = self._cleanContours(self.plyList)
 
     @staticmethod
     def _sortClusters(xyCoords):
-        x = [float(c['x']) for c in xyCoords]
-        y = [float(c['y']) for c in xyCoords]
-        clusters = [float(c['cluster']) for c in xyCoords]
         xs = [[] for i in range(config.NUM_CLUSTERS)]
         ys = [[] for i in range(config.NUM_CLUSTERS)]
 
-        for i in range(len(clusters)):
-            xs[int(clusters[i])].append(x[i])
-            ys[int(clusters[i])].append(y[i])
+        for pointInfo in xyCoords:
+            c = int(pointInfo['cluster'])
+            xs[c].append(float(pointInfo['x']))
+            ys[c].append(float(pointInfo['y']))
 
         return xs, ys
 
@@ -38,11 +45,11 @@ class ContourCreator:
         CSs = []
         for i in range(len(xs)):
             H, yedges, xedges = np.histogram2d(ys[i], xs[i],
-                                           bins=binSize,
-                                           range=[[np.min(xs[i]),
-                                                  np.max(xs[i])],
-                                                  [np.min(ys[i]),
-                                                  np.max(ys[i])]])
+                                            bins=binSize,
+                                            range=[[np.min(ys[i]),
+                                            np.max(ys[i])],
+                                            [np.min(xs[i]),
+                                            np.max(xs[i])]])
             H = gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
@@ -68,9 +75,34 @@ class ContourCreator:
         return plyList
 
     @staticmethod
-    def _gen_contour_polygons(plyList):
+    def _cleanContours(plyList):
+        js = json.load(open(config.FILE_NAME_COUNTRIES, 'r'))
+
+        newPlys = []
+        for (clusterId, clusterFeatures) in enumerate(js['features']):
+            clusterGeom = shply.shape(clusterFeatures['geometry']).buffer(0.0)
+            newClusterContours = []
+            for clusterCounters in plyList[clusterId]:
+                newPolygons = []
+                for polygon in clusterCounters:
+                    shplyPoly = shply.Polygon(polygon)
+                    newPolygon = shplyPoly.intersection(clusterGeom)
+                    if newPolygon.geom_type == 'Polygon':
+                        newPolygon = [newPolygon]
+                    for p in newPolygon:
+                        newCoords = p.exterior.coords
+                        if len(newCoords) > 0:
+                            newPolygons.append(newCoords)
+                if len(newPolygons) > 0:
+                    newClusterContours.append(newPolygons)
+            newPlys.append(newClusterContours)
+
+        return newPlys
+
+    @staticmethod
+    def _gen_contour_polygons(newPlys):
         countryGroup = []
-        for plys in plyList:
+        for plys in newPlys:
             contourList = []
             for group in plys:
                 contour = Contour(group)
@@ -79,18 +111,19 @@ class ContourCreator:
             countryGroup.append(contourList)
 
         featureAr = []
-        for countryNum, contourList in enumerate(countryGroup):
+        for clusterNum, contourList in enumerate(countryGroup):
             for index, contour in enumerate(contourList):
                 geoPolys = []
                 for polygon in contour.polygons:
                     geoPolys.append(polygon.points)
                 newMultiPolygon = MultiPolygon(geoPolys)
-                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": countryNum})
+                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum})
                 featureAr.append(newFeature)
+
         return featureAr
 
     def makeContourFeatureCollection(self, outputfilename):
-        featureAr = self._gen_contour_polygons(self.plyList)
+        featureAr = self._gen_contour_polygons(self.newPlys)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
         with open(outputfilename, "w") as writeFile:
