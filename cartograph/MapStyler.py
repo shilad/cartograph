@@ -63,7 +63,7 @@ def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity, clusterIds):
-    colorWheel = Config.COLORWHEEL
+    colorWheel = config.COLORWHEEL
     s = mapnik.Style()
     for i, c in enumerate(clusterIds):
         r = mapnik.Rule()
@@ -77,7 +77,7 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
 
 
 def generateContourPolygonStyle(opacity, numContours, gamma=1):
-    colorWheel = Config.COLORWHEEL
+    colorWheel = config.COLORWHEEL
     s = mapnik.Style()
     for i in range(config.NUM_CLUSTERS):
         r = mapnik.Rule()
