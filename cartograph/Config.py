@@ -13,6 +13,7 @@ class Config:
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
         self.FILE_NAME_POPULARITY = "./data/labdata/article_popularity.tsv"
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
+        self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
 
         self.NUM_CLUSTERS = 10  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer

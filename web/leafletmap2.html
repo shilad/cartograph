@@ -1,0 +1,100 @@
+<html>
+
+<head>
+  <title> Leaflet Map </title>
+  <link rel="stylesheet" href="leaflet.css"/>
+  <link rel="stylesheet" href="leafletmap.css"/>
+  <script src="leaflet.js"></script>
+  <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
+
+</head>
+
+<body>
+
+  <div id="map"></div>
+  <div id = "infobox">
+	<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>
+  </div>
+
+  <script>
+  // initialize the map
+  var map = L.map('map').setView([0, 0], 3);
+
+  // load a tile layer
+  L.tileLayer('http://localhost:8080/map/{z}/{x}/{y}.png',
+    {
+      maxZoom: 18,
+      attribution: "WikiBrain / Sen Research Lab 2016"
+    }).addTo(map);
+
+  var infobox = document.getElementById('infobox');
+
+
+  var countryUtfGrid = new L.UtfGrid('http://localhost:8080/map_countries_utfgrid/{z}/{x}/{y}.json?callback={cb}', {
+    		  resolution: 4
+ 		  });;
+  		  map.addLayer(countryUtfGrid);
+
+	
+  countryUtfGrid.on('click', function (e) {
+	if (e.data) {
+		console.log("clicked on a country"); 
+		var label = e.data.labels;
+		var labelstrings = label.split(" ");
+		var url = "https://simple.wikipedia.org/wiki/Category:"
+		for(var i = 0; i < labelstrings.length; i++){
+			url += labelstrings[i];
+			if(i < labelstrings.length - 1) {
+				url += "_";
+			}
+		}
+		//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
+		infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Simple English Wikipedia </h1> <h3> Country Name: <strong> ' + e.data.labels + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+	
+    	} else {
+       		infobox.innerHTML = '<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>';
+   	}
+ });
+
+  var cityGrid = new L.UtfGrid('http://localhost:8080/map_articles_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+		map.addLayer(cityGrid);
+	
+	cityGrid.on('click', function(e) {
+		if(e.data){
+			console.log("clicked on a city");
+			var title = e.data.titleLabel;
+			console.log(title);
+			var labelstrings = title.split(" ");
+			var url = "https://simple.wikipedia.org/wiki/";
+			for(var i = 0; i < labelstrings.length; i++){
+				url += labelstrings[i];
+				if(i < labelstrings.length -1) {
+					url += "_";
+				}
+			}
+
+			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
+		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Simple English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.titleLabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		} else {
+			infobox.innerHTML = '<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>';
+   		 }
+
+});
+		 
+		  
+  
+var baseLayers = {
+	"City Data": cityGrid,
+	"Country Data": countryUtfGrid
+	
+} 
+
+L.control.layers(baseLayers, null, {'collapsed': false}).addTo(map);
+
+
+
+
+  </script>
+
+</body>
+</html>
