@@ -1,5 +1,8 @@
 import luigi
 import os
+
+import cartograph
+
 from cartograph import Config
 from cartograph import Util
 from cartograph import Contours
@@ -59,37 +62,37 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Contours.py"))
+        return (luigi.LocalTarget(cartograph.Contours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Denoiser.py"))
+        return (luigi.LocalTarget(cartograph.Denoiser.__file__))
 
 
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/MapStyler.py"))
+        return (luigi.LocalTarget(cartograph.MapStyler.__file__))
 
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/BorderFactory.py"))
+        return (luigi.LocalTarget(cartograph.BorderFactory.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/BorderGeoJSONWriter.py"))
+        return (luigi.LocalTarget(cartograph.BorderGeoJSONWriter.__file__))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/TopTitlesGeoJSONWriter.py"))
+        return (luigi.LocalTarget(cartograph.TopTitlesGeoJSONWriter.__file__))
 
 
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Labels.py"))
+        return (luigi.LocalTarget(cartograph.Labels.__file__))
 
 
 # ====================================================================
