@@ -18,7 +18,9 @@ class Config:
         self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
-        self.PERCENTAGE_WATER = 0.1
+        self.PERCENTAGE_WATER = 0.05
+
+        self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
 
         self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
 
