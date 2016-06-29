@@ -336,7 +336,7 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateCoordinates(),
-                ContourCode(), 
+                ContourCode(),
                 CreateContinents())
 
     def output(self):

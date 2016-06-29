@@ -19,7 +19,6 @@ class Config:
         self.NUM_CLUSTERS = 13  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
-        self.PERCENTAGE_WATER = 0.15
 
         self.COLORWHEEL = ["#b0a2e2", "#f03e00", "#3022c9", "#677c00",
                            "#a84bfc", "#005907", "#ff3cc5", "#70bb7a",
@@ -27,6 +26,8 @@ class Config:
                            "#412a85", "#ff7360", "#007ada", "#9a0002",
                            "#02afb1", "#bf005a", "#c59cd9", "#853a00",
                            "#ff72a3", "#7a507a"]
+
+        self.TESTWHEEL = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#fff01f", "#b15928", "#dba485", "#f575f4"]
 
         # ========== BorderFactory ==========
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise

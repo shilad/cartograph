@@ -1,9 +1,6 @@
 from json import load
-from geojson import dumps
 import mapnik
-import Labels
 import Config
-from shapely.geometry import shape, mapping
 config = Config.BAD_GET_CONFIG()
 
 
@@ -23,10 +20,10 @@ class MapStyler:
         for feat in jsContour['features']:
             numContours[feat['properties']['clusterNum']] += 1
 
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .35, clusterIds))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .25, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
 
-        self.m.append_style("contour", generateContourPolygonStyle(.20, numContours, clusterIds))
+        self.m.append_style("contour", generateContourPolygonStyle(.25, numContours, clusterIds))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
         self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
