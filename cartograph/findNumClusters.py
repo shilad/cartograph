@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 n = 10
 
+
 class findNumClusters():
     def __init__(self, dataSet, maxClusters, minClusters=5):
         self.data = dataSet
@@ -39,10 +40,9 @@ class findNumClusters():
                 for index, pt in enumerate(self.data):
                     cluster = self.gain[clustId]["labels"][index]
                     centroid = centroids[cluster]
-                    self.gain[clustId]["cosine"] += distance.cosine(centroid, pt) / (n * len(centroid) * 2)
-                    self.gain[clustId]["cheby"] += distance.chebyshev(centroid, pt) / (n * len(centroid) * 2)
-                    self.gain[clustId]["euclid"] += distance.sqeuclidean(centroid, pt) / (n * len(centroid) * 2)
-                    self.gain[clustId]["jaccard"] += distance.correlation(centroid, pt) / (n * len(centroid) * 2)
+                    self.gain[clustId]["cosine"] += distance.cosine(centroid, pt) / len(self.data)
+                    self.gain[clustId]["cheby"] += distance.chebyshev(centroid, pt) / len(self.data)
+                    self.gain[clustId]["jaccard"] += distance.correlation(centroid, pt) / len(self.data)
 
                 marginGain = self.bestMarginalGain(clustId, rep, centroids)
                 if marginGain[0] is False:
@@ -70,12 +70,11 @@ class findNumClusters():
 
         keys = self.gain.keys()
         avgList = [self.gain[key]["avg"] for key in keys]
-        distMetrics = ["cosine", "cheby", "euclid", "jaccard"]
+        distMetrics = ["cosine", "cheby", "jaccard"]
         distances = [self.gain[clustID][dist] for dist in distMetrics]
         print "\tDistances: %s" % (str(distances))
         for dist in distances:
             self.gain[clustID]["avg"][-1] += (dist / len(distMetrics))
-
 
         avgList = [self.gain[key]["avg"] for key in keys]
         dist = sum(self.gain[clustID]["avg"]) / len(self.gain[clustID]["avg"])
@@ -87,6 +86,7 @@ class findNumClusters():
                    labels=x)
         plt.draw()
         plt.savefig("../data/images/fullEnglishClusteringElbow.png")
+        plt.close(fig)
         print "\tSaved image to file"
         if len(avgList) > 1:
             prevAvg = sum(avgList[-2]) / len(avgList[-2])
@@ -103,9 +103,6 @@ class findNumClusters():
                 elif repAvg * .85 < dist:
                     print "\tBest avg: %s, With %s clusters" % (dist, clustID)
                     return False, clustID
-            
-
-
         return True, clustID
 
 if __name__ == "__main__":
