@@ -1,9 +1,6 @@
 from json import load
-from geojson import dumps
 import mapnik
-import Labels
 import Config
-from shapely.geometry import shape, mapping
 config = Config.BAD_GET_CONFIG()
 
 
@@ -23,10 +20,10 @@ class MapStyler:
         for feat in jsContour['features']:
             numContours[feat['properties']['clusterNum']] += 1
 
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .35, clusterIds))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .25, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
 
-        self.m.append_style("contour", generateContourPolygonStyle(.20, numContours))
+        self.m.append_style("contour", generateContourPolygonStyle(.25, numContours, clusterIds))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
         self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
@@ -64,7 +61,7 @@ def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity, clusterIds):
-    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
+    colorWheel = config.COLORWHEEL
     s = mapnik.Style()
     for i, c in enumerate(clusterIds):
         r = mapnik.Rule()
@@ -77,18 +74,17 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
     return s
 
 
-def generateContourPolygonStyle(opacity, numContours, gamma=1):
-    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
-    testColors = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#673AB7"]
+def generateContourPolygonStyle(opacity, numContours, clusterIds, gamma=1):
+    colorWheel = config.COLORWHEEL
     s = mapnik.Style()
-    for i in range(config.NUM_CLUSTERS):
+    for i, c in enumerate(clusterIds):
         r = mapnik.Rule()
         symbolizer = mapnik.PolygonSymbolizer()
         symbolizer.fill = mapnik.Color(colorWheel[i])
         symbolizer.fill_opacity = opacity
         symbolizer.gamma = gamma
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Expression('[clusterNum].match("' + str(i) + '")')
+        r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
         s.rules.append(r)
     return s
 

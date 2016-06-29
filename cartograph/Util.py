@@ -93,7 +93,7 @@ def sort_by_feature(articleDict, featureName, reverse=True):
         raise InputError(featureName, "Feature does not exist")
     for key in articleDict:
         allArticles.append((key, articleDict[key]))
-    allArticles.sort(key=lambda x: x[1][featureName], reverse=reverse)
+    allArticles.sort(key=lambda x: float(x[1][featureName]), reverse=reverse)
     return allArticles
 
 
