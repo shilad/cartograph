@@ -86,6 +86,22 @@ def write_tsv(filename, header, indexList, *data):
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
 
+def append_tsv(filename, header, indexList, *data):
+    for index, dataList in enumerate(data):
+        if len(dataList) != len(data[0]):
+            raise InputError(index, "Lists must match to map together")
+    with open(filename, "a") as writeFile:
+        writeFile.write("\t".join(header) + "\n")
+        if len(data) > 1:
+            data = zip(*data)
+            data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
+        else:
+            data = data[0]
+        for i in range(len(data)):
+            data[i] = str(data[i])
+            if data[i][-1] != "\n":
+                data[i] += "\n"
+            writeFile.write("%s\t%s" % (indexList[i], data[i]))
 
 def sort_by_feature(articleDict, featureName, reverse=True):
     allArticles = []
