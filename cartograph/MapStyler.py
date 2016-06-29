@@ -26,7 +26,7 @@ class MapStyler:
         self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .35, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
 
-        self.m.append_style("contour", generateContourPolygonStyle(.20, numContours))
+        self.m.append_style("contour", generateContourPolygonStyle(.40, numContours))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
         self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))

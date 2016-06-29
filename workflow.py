@@ -10,6 +10,7 @@ from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.Labels import Labels
 from tsne import bh_sne
+from collections import defaultdict
 import numpy as np
 from sklearn.cluster import KMeans
 
@@ -192,7 +193,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
     '''
     Run KMeans to cluster article points into specific continents.
     Seed is set at 42 to make sure that when run against labeling
-    algorithm clusters numbers consistantly refer to the same entity
+    algorithm clusters numbers consistently refer to the same entity
     '''
     def output(self):
         return luigi.LocalTarget(config.FILE_NAME_NUMBERED_CLUSTERS)
@@ -284,7 +285,7 @@ class Denoise(MTimeMixin, luigi.Task):
 class CreateContinents(MTimeMixin, luigi.Task):
     '''
     Use BorderFactory to define edges of continent polygons based on
-    vornoi tesselations of both article and waterpoints storing
+    voronoi tesselations of both article and waterpoints storing
     article clusters as the points of their exterior edge
     '''
     def output(self):
@@ -349,6 +350,50 @@ class CreateContours(MTimeMixin, luigi.Task):
         contour.buildContours(list(xyCoords.values()))
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 
+class CreateStates(MTimeMixin, luigi.Task):
+    '''
+    Create states within regions
+    '''
+    def requires(self):
+        return(Denoise(), 
+               CreateContinents(), 
+               CreateContours())
+    def output(self):
+        ''' TODO - figure out what this is going to return'''
+        return luigi.LocalTarget(config.FILE_NAME_STATE_CLUSTERS)
+    def run(self):
+        #create dictionary of article ids to a dictionary with cluster numbers and vectors representing them
+        articleDict = Util.read_features(config.FILE_NAME_NUMBERED_CLUSTERS, config.FILE_NAME_NUMBERED_VECS)
+
+        #loop through and grab all the points (dictionaries) in each cluster that match the current cluster number (i), write the keys to a list
+        for i in range(0, config.NUM_CLUSTERS):
+            keys = []
+            for article in articleDict:
+                if int(articleDict[article]['cluster']) == i:
+                    keys.append(article)
+            #grab those articles' vectors from articleDict (thank you @ brooke for read_features, it is everything)         
+            vectors = np.array([articleDict[vID]['vector'] for vID in keys])
+            
+            #cluster vectors
+            preStateLabels = list(KMeans(6,
+                             random_state=42).fit(vectors).labels_)
+            #append cluster number to cluster so that sub-clusters are of the form [larger][smaller] - eg cluster 4 has subclusters 40, 41, 42
+            stateLabels = []
+            for label in preStateLabels:
+                newlabel = str(i) + str(label) 
+                stateLabels.append(newlabel)
+
+            #also need to make a new utils method for append_tsv rather than write_tsv
+            Util.append_tsv(config.FILE_NAME_STATE_CLUSTERS,
+                       ("index", "stateCluster"), keys, stateLabels)
+        #CODE THUS FAR CREATES ALL SUBCLUSTERS, NOW YOU JUST HAVE TO FIGURE OUT HOW TO INTEGRATE THEM
+        
+        #ALSO HOW TO DETERMINE THE BEST # OF CLUSTERS FOR EACH SUBCLUSTER??? IT SEEMS LIKE THEY SHOULD VARY (MAYBE BASED ON # OF POINTS?)
+
+       
+        #then make sure those get borders created for them??
+        #then create and color those polygons in xml
+
 
 class CreateLabels(MTimeMixin, luigi.Task):
     '''
@@ -383,6 +428,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
             CreateContours(),
             CreateCoordinates(),
             CreateContinents(),
+            CreateStates(),
             MapStylerCode()
         )
 
