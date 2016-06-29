@@ -17,7 +17,7 @@ class Vertex:
         self.region_idxs = region_idxs
         self.region_group_labels = region_group_labels
         # used for building edge vertex set for each cluster
-        self.is_edge_vertex = len(set(self.adj_idxs)) > 1
+        self.is_edge_vertex = len(set(self.region_group_labels)) > 1
 
     def _get_num_shared_region_labels(self, vertex, group_label):
         """
