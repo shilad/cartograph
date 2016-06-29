@@ -298,7 +298,8 @@ class CreateContinents(MTimeMixin, luigi.Task):
         return (LabelNames(),
                 BorderGeoJSONWriterCode(),
                 DenoiserCode(),
-                BorderFactoryCode())
+                BorderFactoryCode(),
+                RegionClustering())
 
     def decomposeBorders(self, clusterDict):
         '''
