@@ -64,7 +64,11 @@ def generateSinglePolygonStyle(filename, opacity, color, gamma=1):
 
 # ===== Generate Map File =====
 def generateCountryPolygonStyle(filename, opacity, clusterIds):
-    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
+    colorWheel = ["#ff86d3", "#79dc6d","#b346f8","#f1bc00","#03018c",
+                  "#b7d15c", "#3e89ff","#ff8200","#003580","#ec0035",
+                  "#00853f", "#bd002d","#01828c","#73001a","#8f9dff",
+                  "#853e00", "#b5c1ff","#510032","#c6c999","#0074aa",
+                  "#f9b3c9", "#006042"]
     s = mapnik.Style()
     for i, c in enumerate(clusterIds):
         r = mapnik.Rule()
@@ -78,8 +82,14 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
 
 
 def generateContourPolygonStyle(opacity, numContours, gamma=1):
-    colorWheel = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7"]
-    testColors = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#673AB7"]
+    colorWheel = ["#ff86d3", "#79dc6d","#b346f8","#f1bc00","#03018c",
+                  "#b7d15c", "#3e89ff","#ff8200","#003580","#ec0035",
+                  "#00853f", "#bd002d","#01828c","#73001a","#8f9dff",
+                  "#853e00", "#b5c1ff","#510032","#c6c999","#0074aa",
+                  "#f9b3c9", "#006042"]
+    testColors = ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+                  "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+                  "#FFFFFF", "#FFFFFF", "#FFFFFF", "#673AB7"]
     s = mapnik.Style()
     for i in range(config.NUM_CLUSTERS):
         r = mapnik.Rule()

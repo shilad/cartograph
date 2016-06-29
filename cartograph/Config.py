@@ -15,7 +15,7 @@ class Config:
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
 
-        self.NUM_CLUSTERS = 10  # number of clusters to generate from K-means
+        self.NUM_CLUSTERS = 13  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
         self.PERCENTAGE_WATER = 0.1

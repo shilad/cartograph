@@ -1,47 +1,56 @@
 import numpy as np
 from sklearn.cluster import KMeans
-from scipy import spatial
+from scipy.spatial import distance
 import Util
+import matplotlib.pyplot as plt
 
+n = 10
 
 class findNumClusters():
-    def __init__(self, dataSet, maxClusters):
+    def __init__(self, dataSet, maxClusters, minClusters=5):
         self.data = dataSet
         self.maxClusters = maxClusters
+        self.minClusters = minClusters
         self.difference = []
         self.labels = []
         self.gain = {}
 
     def kMeans(self):
-        for numClusters in range(1, self.maxClusters + 1):
-            print "Running on %s clusters" % (numClusters)
-            self.labels = list(KMeans(numClusters,
-                          random_state=42).fit(np.array(self.data)).labels_)
-            centroids = [[0 for x in range(len(self.data[0]))]
-                         for y in range(numClusters)]
-            for index, pt in enumerate(self.data):
-                cluster = self.labels[index]
-                prevCenter = centroids[cluster]
-                centroids[cluster] = self._solve_centroid(pt, prevCenter)
+        for numClusters in range(self.minClusters, self.maxClusters + 1):
+            self.gain[numClusters] = {}
+            self.gain[numClusters]["avg"] = []
+            for rep in range(n):
+                clustId = numClusters
+                print "Running on %s clusters, rep %s" % (numClusters, rep + 1)
+                self.gain[clustId]["labels"] = list(KMeans(numClusters).fit(np.array(self.data)).labels_)
+                centroids = [[0 for x in range(len(self.data[0]))]
+                             for y in range(numClusters)]
 
-            self.gain[numClusters]["cosine"] = [0 for x in range(numClusters + 1)]
-            self.gain[numClusters]["cheby"] = [0 for x in range(numClusters + 1)]
-            self.gain[numClusters]["euclid"] = [0 for x in range(numClusters + 1)]
-            self.gain[numClusters]["jaccard"] = [0 for x in range(numClusters + 1)]
-            for index, pt in enumerate(self.data):
-                cluster = self.labels[index]
-                centroid = centroids[cluster]
-                self.gain[numClusters]["cosine"][cluster] += spatial.distance.cosine(centroid, pt)
-                self.gain[numClusters]["cheby"][cluster] += spatial.distance.chebyshev(centroid, pt)
-                self.gain[numClusters]["euclid"][cluster] += spatial.distance.sqeuclidean(centroid, pt)
-                self.gain[numClusters]["jaccard"][cluster] += spatial.distance.jaccard(centroid, pt)
+                print "\tFinding Centroids"
+                for index, pt in enumerate(self.data):
+                    cluster = self.gain[clustId]["labels"][index]
+                    prevCenter = centroids[cluster]
+                    centroids[cluster] = self._solve_centroid(pt, prevCenter)
 
-            if self._bestMarginalGain(numClusters, centroids) is False:
-                return numClusters, self.labels
+                self.gain[clustId]["cosine"] = 0
+                self.gain[clustId]["cheby"] = 0
+                self.gain[clustId]["euclid"] = 0
+                self.gain[clustId]["jaccard"] = 0
+                for index, pt in enumerate(self.data):
+                    cluster = self.gain[clustId]["labels"][index]
+                    centroid = centroids[cluster]
+                    self.gain[clustId]["cosine"] += distance.cosine(centroid, pt) / (n * len(centroid) * 2)
+                    self.gain[clustId]["cheby"] += distance.chebyshev(centroid, pt) / (n * len(centroid) * 2)
+                    self.gain[clustId]["euclid"] += distance.sqeuclidean(centroid, pt) / (n * len(centroid) * 2)
+                    self.gain[clustId]["jaccard"] += distance.correlation(centroid, pt) / (n * len(centroid) * 2)
+
+                marginGain = self.bestMarginalGain(clustId, rep, centroids)
+                if marginGain[0] is False:
+                    return marginGain[1], self.gain[marginGain[0]]["labels"]
 
         print "Max clusters is best marginal gain," + \
               "consider rerunning with higher max"
-        return maxClusters, self.labels
+        return self.maxClusters, self.gain[clustId]["labels"]
 
     def _solve_centroid(self, vec1, vec2):
         if len(vec1) != len(vec2):
@@ -54,21 +63,53 @@ class findNumClusters():
 
         return centroid
 
-    def _bestMarginalGain(self, numClusters, labels):
+    def bestMarginalGain(self, clustID, rep, labels):
+        print "\tChecking Marginal Gain"
+
+        self.gain[clustID]["avg"].append(0)
+
         keys = self.gain.keys()
         avgList = [self.gain[key]["avg"] for key in keys]
+        distMetrics = ["cosine", "cheby", "euclid", "jaccard"]
+        distances = [self.gain[clustID][dist] for dist in distMetrics]
+        print "\tDistances: %s" % (str(distances))
+        for dist in distances:
+            self.gain[clustID]["avg"][-1] += (dist / len(distMetrics))
 
-        self.gain[numClusters]["avg"] = 0
-        distMetrics = list(self.gain[numClusters].values())
-        for val in distMetrics:
-            distance = self.gain[numClusters][val]
-            self.gain[numClusters]["avg"] += (distance / len(distMetrics))
-            check = [1 if distance > avg else 0 for avg in avgList]
-            if sum(check) > 2:
-                return False
+
+        avgList = [self.gain[key]["avg"] for key in keys]
+        dist = sum(self.gain[clustID]["avg"]) / len(self.gain[clustID]["avg"])
+
+        x = list(keys)
+        fig, ax = plt.subplots()
+        ax.boxplot([self.gain[key]["avg"] for key in keys],
+                   showmeans=True,
+                   labels=x)
+        plt.draw()
+        plt.savefig("../data/images/fullEnglishClusteringElbow.png")
+        print "\tSaved image to file"
+        if len(avgList) > 1:
+            prevAvg = sum(avgList[-2]) / len(avgList[-2])
+            print "\tPrevious Avg: " + str(prevAvg)
+        print "\tCurrent Dist: " + str(dist)
+
+        if n == rep - 1:
+            for avg in avgList:
+                repAvg = sum(avg) / len(avg)
+                if repAvg < dist:
+                    print "\tBest avg: %s, With %s clusters" % (avg, avgList.index(avg))
+                    plt.show()
+                    return False, avgList.index(avg)
+                elif repAvg * .85 < dist:
+                    print "\tBest avg: %s, With %s clusters" % (dist, clustID)
+                    return False, clustID
+            
+
+
+        return True, clustID
 
 if __name__ == "__main__":
-    featureDict = Util.read_features("../data/labdata/numberedVecs.tsv")
+    featureDict = Util.read_features("../data/labdata/numberedVecsFull.tsv")
     keys = list(featureDict.keys())
     data = [featureDict[key]["vector"] for key in keys]
     clusterSolver = findNumClusters(data, len(data) / 100)
