@@ -11,6 +11,7 @@ config = Config.BAD_GET_CONFIG()
 class BorderFactory(object):
 
     water_label = 0
+    points = []
 
     def __init__(self, x, y, cluster_labels):
         self.x = x
@@ -111,6 +112,7 @@ class BorderFactory(object):
             the different continents in each cluster
         """
         points = list(zip(self.x, self.y))
+        BorderFactory.points = points
         vor = Voronoi(points)
         adj_lst = self._make_vertex_adjacency_list(vor)
         vert_reg_idxs_dict, vert_reg_labs_dict, group_vert_dict = self._make_three_dicts(vor, self.cluster_labels)
@@ -121,11 +123,7 @@ class BorderFactory(object):
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
 
-        borders = self._make_borders(vert_array, group_edge_vert_dict)
-        for label in borders:
-            for i, continent in enumerate(borders[label]):
-                borders[label][i] = [(vert.x, vert.y) for vert in continent]
-        return borders
+        return self._make_borders(vert_array, group_edge_vert_dict)
 
 
 class _NaturalBorderMaker:
@@ -155,7 +153,7 @@ class _NaturalBorderMaker:
     @staticmethod
     def _blur(array, circular, radius):
         # arrays which are shorter than this will be blurred to a single point
-        if len(array) <= radius*2+1:
+        if len(array) <= radius * 2 + 1:
             return array
         blurred = []
         if circular:
@@ -175,18 +173,27 @@ class _NaturalBorderMaker:
 
     @staticmethod
     def _process_vertices(vertices, circular):
-        if len(vertices) >= 2 and vertices[0].is_edge_coast(vertices[1], BorderFactory.water_label):
-            radius = config.BLUR_RADIUS*2
+        """
+        Processes the list of vertices based on whether they are part of a coast or not
+        Args:
+            vertices: list of Vertex objects
+            circular: whether or not the list forms a circular border
+
+        Returns:
+            A list of tuples for each point in the new border
+        """
+        if len(vertices) < 2:
+            return vertices
+        if vertices[0].is_edge_coast(vertices[1], BorderFactory.water_label):
+            x, y = [], []
+            for i in range(len(vertices)-1):
+                x, y = _NoisyEdgesMaker()
         else:
-            radius = config.BLUR_RADIUS
-        x = [vertex.x for vertex in vertices]
-        y = [vertex.y for vertex in vertices]
-        x = _NaturalBorderMaker._blur(x, circular, radius)
-        y = _NaturalBorderMaker._blur(y, circular, radius)
-        for i, vertex in enumerate(vertices):
-            vertex.x = x[i]
-            vertex.y = y[i]
-        return vertices
+            x = [vertex.x for vertex in vertices]
+            y = [vertex.y for vertex in vertices]
+            x = _NaturalBorderMaker._blur(x, circular, config.BLUR_RADIUS)
+            y = _NaturalBorderMaker._blur(y, circular, config.BLUR_RADIUS)
+        return zip(x, y)
 
     @staticmethod
     def _get_consensus_border_intersection(indices1, indices2, len1, len2, reversed2):
@@ -200,7 +207,8 @@ class _NaturalBorderMaker:
         Returns:
             list of lists of contiguous regions
         """
-        assert len(indices1) == len(indices2)
+        if len(indices1) != len(indices2):
+            raise ValueError("Lists of indices must be the same length.")
 
         # build list for each contiguous region
         diff2 = -1 if reversed2 else 1
@@ -361,6 +369,40 @@ class _NaturalBorderMaker:
         del self.borders[len(self.borders)-1]
         return self.borders
 
+
+class _NoisyEdgesMaker:
+    """
+    Implementation based on https://github.com/amitp/mapgen2/blob/master/NoisyEdges.as
+    """
+
+    def __init__(self, pt0, pt1, pt2, pt3):
+        self.pt0 = pt0
+        self.pt1 = pt1
+        self.pt2 = pt2
+        self.pt3 = pt3
+        self.midpoint = self._interpolate(pt0, pt2)
+        self.min_length = 0.01
+
+    @staticmethod
+    def _interpolate(pt0, pt1, value=0.5):
+        return pt0 + (np.subtract(pt1, pt0) * value)
+
+    def _subdivide(self, a, b, c, d):
+        pass
+
+    def _make_half_noisy_edge(self, a, b, c, d):
+        edge = [a]
+        self._subdivide(a, b, c, d)
+        edge.append(c)
+        return edge
+
+    def make_noisy_edge(self):
+        mid0 = self._interpolate(self.pt0, self.pt1)
+        mid1 = self._interpolate(self.pt1, self.pt2)
+        mid2 = self._interpolate(self.pt2, self.pt3)
+        mid3 = self._interpolate(self.pt3, self.pt0)
+        return self._make_half_noisy_edge(self.pt0, mid0, self.midpoint, mid3) + \
+               self._make_half_noisy_edge(self.midpoint, mid1, self.pt2, mid2)
 
 debug = False
 
