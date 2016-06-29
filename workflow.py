@@ -1,5 +1,8 @@
 import luigi
 import os
+
+import cartograph
+
 from cartograph import Config
 from cartograph import Util
 from cartograph import Contours
@@ -59,37 +62,37 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(Contours.__file__))
+        return (luigi.LocalTarget(cartograph.Contours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(Denoiser.__file__))
+        return (luigi.LocalTarget(cartograph.Denoiser.__file__))
 
 
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(MapStyler.__file__))
+        return (luigi.LocalTarget(cartograph.MapStyler.__file__))
 
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/BorderFactory.py"))
+        return (luigi.LocalTarget(cartograph.BorderFactory.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/BorderGeoJSONWriter.py"))
+        return (luigi.LocalTarget(cartograph.BorderGeoJSONWriter.__file__))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/TopTitlesGeoJSONWriter.py"))
+        return (luigi.LocalTarget(cartograph.TopTitlesGeoJSONWriter.__file__))
 
 
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget("./cartograph/Labels.py"))
+        return (luigi.LocalTarget(cartograph.Labels.__file__))
 
 
 # ====================================================================
@@ -121,18 +124,19 @@ class ArticlePopularity(luigi.ExternalTask):
         return (luigi.LocalTarget(config.FILE_NAME_POPULARITY))
 
 
-class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
+class WikiBrainNumbering(MTimeMixin, luigi.Task):
     '''
     Number the name and vector output of WikiBrain files so that each
     article has a unique id corrosponding to all of its data for future
     use of any subset of features of interest
     '''
+    def requires(self):
+        return WikiBrainData()
 
     def output(self):
         return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_VECS),
                 luigi.LocalTarget(config.FILE_NAME_NUMBERED_NAMES))
 
-    '''
     def run(self):
         with open(config.FILE_NAME_WIKIBRAIN_NAMES) as nameFile:
             lines = nameFile.readlines()[1:]
@@ -144,7 +148,6 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
             Util.write_tsv(config.FILE_NAME_NUMBERED_VECS,
                            ("index", "vector"),
                            range(1, len(lines) + 1), lines)
-    '''
 
 
 # ====================================================================
@@ -176,7 +179,6 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                 name = lineAr[0]
                 pop = lineAr[1][:-1]
                 nameDict[name] = pop
-        print len(nameDict.keys())
 
         popularityList = []
         for featureID in idList:
@@ -201,18 +203,13 @@ class RegionClustering(MTimeMixin, luigi.Task):
         return WikiBrainNumbering()
 
     def run(self):
-        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS,
-                                         config.FILE_NAME_NUMBERED_NAMES)
+        featureDict = Util.read_features(config.FILE_NAME_NUMBERED_VECS)
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
         labels = list(KMeans(config.NUM_CLUSTERS,
                              random_state=42).fit(vectors).labels_)
-        names = [featureDict[fID]["name"] for fID in keys]
         Util.write_tsv(config.FILE_NAME_NUMBERED_CLUSTERS,
                        ("index", "cluster"), keys, labels)
-
-        Util.write_tsv(config.FILE_NAME_LABELING_FILE,
-                       ("name", "cluster"), names, labels)
 
 
 class CreateCoordinates(MTimeMixin, luigi.Task):
@@ -297,9 +294,9 @@ class CreateContinents(MTimeMixin, luigi.Task):
     def requires(self):
         return (LabelNames(),
                 BorderGeoJSONWriterCode(),
-                DenoiserCode(),
                 BorderFactoryCode(),
-                RegionClustering())
+                RegionClustering(),
+                Denoise())
 
     def decomposeBorders(self, clusterDict):
         '''
@@ -339,7 +336,8 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateCoordinates(),
-                ContourCode())
+                ContourCode(), 
+                CreateContinents())
 
     def output(self):
         return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA)
@@ -389,7 +387,8 @@ class CreateMapXml(MTimeMixin, luigi.Task):
 
     def run(self):
         regionClusters = Util.read_features(config.FILE_NAME_REGION_CLUSTERS)
-        regionIds = sorted(set(region['cluster_id'] for region in regionClusters.values()))
+        regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
+        regionIds = map(str, regionIds)
         ms = MapStyler.MapStyler()
         ms.makeMap(config.FILE_NAME_CONTOUR_DATA,
                    config.FILE_NAME_COUNTRIES,
@@ -414,15 +413,14 @@ class LabelMap(MTimeMixin, luigi.Task):
         return (luigi.LocalTarget(config.FILE_NAME_MAP))
 
     def run(self):
-        zoomScales = Util.read_zoom(config.FILE_NAME_SCALE_DENOMINATORS)
         label = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
         label.writeLabelsXml('[labels]', 'interior',
-                             maxScale=zoomScales.get('maxscale_zoom0'), minScale=zoomScales.get('minscale_zoom4'))
+                             maxScale='559082264', minScale='17471321')
 
         titleLabels = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TOP_TITLES)
         titleLabels.writeShieldXml('[titleLabel]', 'point',
                                    imgFile=config.FILE_NAME_IMGDOT,
-                                   minScale=zoomScales.get('minscale_zoom8'), maxScale=zoomScales.get('maxscale_zoom5')
+                                   minScale='1091958', maxScale='17471321'
                                    )
 
 
@@ -430,7 +428,7 @@ class RenderMap(MTimeMixin, luigi.Task):
     '''
     Write the final product xml of all our data manipulations to an image file
     to ensure that everything excuted as it should
-    ''' 
+    '''
     def requires(self):
         return (CreateMapXml(),
                 LabelMap(),
