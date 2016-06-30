@@ -12,7 +12,8 @@ class ZoomGeoJSONWriter:
     def _readInArticles(self):
         return Util.read_features(config.FILE_NAME_NUMBERED_ZOOM,
                 config.FILE_NAME_ARTICLE_COORDINATES,
-                config.FILE_NAME_NUMBERED_POPULARITY)
+                config.FILE_NAME_NUMBERED_POPULARITY,
+                config.FILE_NAME_NUMBERED_NAMES)
 
     def generateZoomJSONFeature(self, filename):
         featureAr = []
@@ -24,6 +25,7 @@ class ZoomGeoJSONWriter:
             newPoint = Point(pointTuple)
             properties = {'maxZoom':int(pointInfo['maxZoom']), 
                           'popularity':int(pointInfo['popularity']),
+                          'cityLabel':str(pointInfo['name'])
                           }
             newFeature = Feature(geometry=newPoint, properties=properties)
             featureAr.append(newFeature)
@@ -31,4 +33,3 @@ class ZoomGeoJSONWriter:
         textDump = dumps(collection)
         with open(filename, 'w') as writeFile:
             writeFile.write(textDump)
-           

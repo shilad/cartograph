@@ -97,12 +97,12 @@ class LabelsCode(MTimeMixin, luigi.ExternalTask):
         return (luigi.LocalTarget(cartograph.Labels.__file__))
 
 
-class CalculateZooms(MTimeMixin, luigi.ExternalTask):
+class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (luigi.LocalTarget(cartograph.CalculateZooms.__file__))
 
 
-class ZoomGeoJSONWriter(MTimeMixin, luigi.ExternalTask):
+class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
@@ -455,7 +455,8 @@ class CreateMapXml(MTimeMixin, luigi.Task):
 class LabelTopArticlesOnMap(MTimeMixin, luigi.Task):
     '''
     Mapnik's text renderer is unsupported by the wrapper we're using so
-    instead, labels must be written directly to the xml file to be rendered
+    instead, labels must be written directly to the xml file to be rendered.
+    This is the hacky version that labels the x most popular articles.
     '''
     def requires(self):
         return (CreateMapXml(),
@@ -478,6 +479,47 @@ class LabelTopArticlesOnMap(MTimeMixin, luigi.Task):
                                    )
 
 
+class LabelMapUsingZoom(MTimeMixin, luigi.Task):
+    '''
+    Adding the labels directly into the xml file for map rendering. 
+    Labels are added to appear based on a grid based zoom calculation in 
+    the CalculateZooms.py
+    '''
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_MAP))
+
+    def requires(self):
+        return (CreateMapXml(),
+                CreateLabelsFromZoom(),
+                CreateContinents(),
+                LabelsCode(),
+                CalculateZoomsCode(),
+                ZoomGeoJSONWriterCode()
+                )
+
+    def run(self):
+        labelClust = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
+        maxScaleClust = labelClust.getScaleDenominator(0)
+        minScaleClust = labelClust.getScaleDenominator(5)
+
+        labelClust.writeLabelsXml('[labels]', 'interior', 
+                                    minScale=minScaleClust, 
+                                    maxScale=maxScaleClust)
+
+        zoomValues=set()
+        zoomValueData = Util.read_features(config.FILE_NAME_NUMBERED_ZOOM)
+        for zoomInfo in list(zoomValueData.values()):
+            zoomValues.add(zoomInfo['maxZoom'])
+        largestZoomLevel = len(zoomValues) - 1
+
+        for z in range(largestZoomLevel):
+            labelCities = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TITLES_BY_ZOOM)
+            labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
+                                                filterZoomNum=z,
+                                                imgFile=config.FILE_NAME_IMGDOT)
+        
+
+
 class RenderMap(MTimeMixin, luigi.Task):
     '''
     Write the final product xml of all our data manipulations to an image file
@@ -485,7 +527,7 @@ class RenderMap(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateMapXml(),
-                LabelTopArticlesOnMap(),
+                LabelMapUsingZoom(),
                 MapStylerCode())
 
     def output(self):
