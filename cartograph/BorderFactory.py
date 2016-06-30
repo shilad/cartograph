@@ -1,8 +1,8 @@
-from scipy.spatial import Voronoi
 import numpy as np
 from Vertex import Vertex
 import Util
 from collections import defaultdict
+from BorderFactoryTemp.Builder import Builder
 
 import Config
 config = Config.BAD_GET_CONFIG()
@@ -111,6 +111,8 @@ class BorderFactory(object):
             a dictionary mapping group labels to a list of list of tuples representing
             the different continents in each cluster
         """
+        return Builder(self.x, self.y, self.cluster_labels).build()
+        """
         points = list(zip(self.x, self.y))
         BorderFactory.points = points
         vor = Voronoi(points)
@@ -123,7 +125,7 @@ class BorderFactory(object):
                                                                group_vert_dict)
         Vertex.edge_vertex_dict = group_edge_vert_dict
 
-        return self._make_borders(vert_array, group_edge_vert_dict)
+        return self._make_borders(vert_array, group_edge_vert_dict)"""
 
 
 class _NaturalBorderMaker:
