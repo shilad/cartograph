@@ -22,7 +22,7 @@ class Config:
 
         self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
 
-        self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
+        self.TESTWHEEL = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#fff01f", "#b15928", "#dba485", "#f575f4"]
 
         # ========== BorderFactory ==========
         self.MIN_NUM_IN_CONTINENT = 50  # eliminates noise

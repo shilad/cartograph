@@ -3,20 +3,8 @@
 # in web/ under the http://127.0.0.1:8080/static/ URL.
 #
 
-import json, os, shutil
+import os
 
-from werkzeug.serving import run_simple
-import TileStache
+from cartograph.Server import run_server
 
-
-static_files =  { '/static': os.path.join(os.path.abspath('./web')) }
-path_cfg = os.path.abspath("./data/tilestache.cfg")
-path_cache = json.load(open(path_cfg, 'r'))['cache']['path']
-
-if os.path.isdir(path_cache):
-    assert(len(path_cache) > 5)
-    shutil.rmtree(path_cache)
-
-app = TileStache.WSGITileServer(path_cfg)
-
-run_simple('0.0.0.0', 8080, app, static_files=static_files)
+run_server(os.path.abspath('./data/tilestache.cfg'))
