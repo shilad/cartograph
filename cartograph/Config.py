@@ -14,6 +14,7 @@ class Config:
         self.FILE_NAME_POPULARITY = "./data/labdata/article_pageview_full.tsv"
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
+        self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
 
         self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
@@ -41,6 +42,7 @@ class Config:
         self.FILE_NAME_REGION_CLUSTERS = "./data/tsv/region_clusters.tsv"
         self.FILE_NAME_REGION_BORDERS = "./data/tsv/region_borders.tsv"
         self.FILE_NAME_TOP_TITLES = "./data/geojson/top_100_articles.geojson"
+        self.FILE_NAME_TITLES_BY_ZOOM = "./data/geojson/maxZoom_of_articles.geojson"
 
 
 __config = Config()
