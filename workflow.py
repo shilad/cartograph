@@ -11,7 +11,9 @@ from cartograph import MapStyler
 from cartograph.BorderFactory import BorderFactory
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
+from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
+from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
@@ -93,6 +95,16 @@ class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (luigi.LocalTarget(cartograph.Labels.__file__))
+
+
+class CalculateZooms(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(cartograph.CalculateZooms.__file__))
+
+
+class ZoomGeoJSONWriter(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
 
 # ====================================================================
@@ -234,6 +246,33 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         Util.write_tsv(config.FILE_NAME_ARTICLE_COORDINATES,
                        ("index", "x", "y"), keys, x, y)
 
+class ZoomLabeler(MTimeMixin, luigi.Task):
+    '''
+    Calculates a starting zoom level for every article point in the data,
+    i.e. determines when each article label should appear. 
+    '''
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_NUMBERED_ZOOM)
+
+    def requires(self):
+        return (RegionClustering(),
+                CreateCoordinates(),
+                PopularityLabeler())
+
+    def run(self):
+        feats = Util.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
+                        config.FILE_NAME_ARTICLE_COORDINATES,
+                        config.FILE_NAME_NUMBERED_CLUSTERS)
+
+        zoom = CalculateZooms(feats)
+        numberedZoomDict = zoom.simulateZoom()
+        keys = list(numberedZoomDict.keys())
+        zoomValue = list(numberedZoomDict.values())
+
+        Util.write_tsv(config.FILE_NAME_NUMBERED_ZOOM, 
+                        ("index","maxZoom"), keys, zoomValue)
+
+
 
 class Denoise(MTimeMixin, luigi.Task):
     '''
@@ -348,7 +387,22 @@ class CreateContours(MTimeMixin, luigi.Task):
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 
 
-class CreateLabels(MTimeMixin, luigi.Task):
+class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
+    '''
+    Generates geojson data for relative zoom labelling in map.xml
+    '''
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_TITLES_BY_ZOOM)
+
+    def requires(self):
+        return (ZoomLabeler())
+
+    def run(self):
+        titlesByZoom = ZoomGeoJSONWriter()
+        titlesByZoom.generateZoomJSONFeature(config.FILE_NAME_TITLES_BY_ZOOM)
+
+
+class CreateTopLabels(MTimeMixin, luigi.Task):
     '''
     Write the top 100 most popular articles to file for relative zoom
     Generated as geojson data for use inside map.xml
@@ -356,6 +410,7 @@ class CreateLabels(MTimeMixin, luigi.Task):
     def requires(self):
         return (PopularityLabeler(),
                 CreateCoordinates(),
+                RegionClustering(),
                 TopTitlesGeoJSONWriterCode())
 
     def output(self):
@@ -363,7 +418,7 @@ class CreateLabels(MTimeMixin, luigi.Task):
 
     def run(self):
         titleLabels = TopTitlesGeoJSONWriter(100)
-        titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLES)
+        titleLabels.generateTopJSONFeature(config.FILE_NAME_TOP_TITLES)
 
 
 class CreateMapXml(MTimeMixin, luigi.Task):
@@ -397,14 +452,14 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
 
 
-class LabelMap(MTimeMixin, luigi.Task):
+class LabelTopArticlesOnMap(MTimeMixin, luigi.Task):
     '''
     Mapnik's text renderer is unsupported by the wrapper we're using so
     instead, labels must be written directly to the xml file to be rendered
     '''
     def requires(self):
         return (CreateMapXml(),
-                CreateLabels(),
+                CreateTopLabels(),
                 CreateContinents(),
                 LabelsCode())
 
@@ -430,7 +485,7 @@ class RenderMap(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateMapXml(),
-                LabelMap(),
+                LabelTopArticlesOnMap(),
                 MapStylerCode())
 
     def output(self):
