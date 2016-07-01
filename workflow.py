@@ -342,9 +342,12 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA)
 
     def run(self):
-        xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES, config.FILE_NAME_NUMBERED_CLUSTERS)
+        featuresDict = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES,
+                                          config.FILE_NAME_NUMBERED_CLUSTERS,
+                                          config.FILE_NAME_NUMBERED_VECS)
+
         contour = Contours.ContourCreator()
-        contour.buildContours(list(xyCoords.values()))
+        contour.buildContours(featuresDict)
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 
 
