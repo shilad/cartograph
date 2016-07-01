@@ -215,9 +215,10 @@ class PercentilePopularity(MTimeMixin, luigi.Task):
 
     def run(self):
         readPopularData = Util.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
-        popularity = map(float, readPopularData['popularity'])
+        popularity = np.array(map(float, readPopularData['popularity']))
         index = map(int, readPopularData['id'])
-
+        
+        
 
 
         # totalSum = sum(popularity)
