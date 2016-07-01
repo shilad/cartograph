@@ -31,12 +31,31 @@ class Labels():
         textSym.set('face-name', 'DejaVu Sans Book')
         textSym.set('size', '12')
 
-    def _add_Shield_Style_By_Zoom(self, field, labelType, filterZoomNum, imgFile):
-        style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + str(filterZoomNum) + 'LabelStyle')
+    def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile):
         rule = SubElement(style, 'Rule')
 
         filterBy = SubElement(rule, 'Filter')
-        filterBy.text = "[maxZoom] = '" + str(filterZoomNum) + "'"
+        filterBy.text = "[maxZoom].match('" + str(filterZoomNum) +"')"
+
+        maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
+        maxScaleSym.text = self.getScaleDenominator(filterZoomNum)
+
+        shieldSym = SubElement(rule, 'ShieldSymbolizer', placement=labelType)
+        shieldSym.text = field
+        shieldSym.set('face-name', 'DejaVu Sans Book')
+        shieldSym.set('size', '12')
+        shieldSym.set('dx', '15')
+        shieldSym.set('unlock-image', 'true')
+        shieldSym.set('placement-type', 'simple')
+        shieldSym.set('file', imgFile)
+
+    def _add_Shield_Style_By_Zoom(self, field, labelType, filterZoomNum, imgFile):
+        style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + str(filterZoomNum) + 'LabelStyle')
+        
+        rule = SubElement(style, 'Rule')
+
+        filterBy = SubElement(rule, 'Filter')
+        filterBy.text = "[maxZoom].match('" + str(filterZoomNum) +"')"
 
         maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
         maxScaleSym.text = self.getScaleDenominator(filterZoomNum)

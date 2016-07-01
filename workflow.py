@@ -202,6 +202,30 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                        idList, popularityList)
 
 
+class PercentilePopularity(MTimeMixin, luigi.Task):
+    '''
+    Bins the popularity values by given percentiles then maps the values to
+    the unique article ID. 
+    '''
+    def requires(self):
+        return (PopularityLabeler())
+
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_NORM_POPULARITY))
+
+    def run(self):
+        readPopularData = Util.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
+        popularity = map(float, readPopularData['popularity'])
+        index = map(int, readPopularData['id'])
+
+
+
+        # totalSum = sum(popularity)
+        # normPopularity = map(lambda x: float(x)/totalSum, popularity)
+
+
+        
+
 class RegionClustering(MTimeMixin, luigi.Task):
     '''
     Run KMeans to cluster article points into specific continents.
@@ -256,6 +280,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (RegionClustering(),
+                CalculateZoomsCode(),
                 CreateCoordinates(),
                 PopularityLabeler())
 
