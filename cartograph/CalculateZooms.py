@@ -10,7 +10,7 @@ class CalculateZooms:
 
     def __init__(self, points):
         self.tilesPerWindow = 3 # not mapnik's tile size, just used for managing crowding
-        self.pointsPerCell = 3
+        self.pointsPerCell = 1
         self.points = points
         self.numberedZoom= {}   # mapping from point ids to the zoom level at which they appear
         self.minX = min(float(p['x']) for p in self.points.values())
@@ -22,11 +22,14 @@ class CalculateZooms:
             p['popularity'] = float(p['popularity'])
 
     def simulateZoom(self):
-        for z in range(20):
-            # print(z, len(self.numberedZoom), len(self.points))
+        for z in range(config.MAX_ZOOM_SIMULATION):
+            print(z, len(self.numberedZoom), len(self.points))
             if len(self.numberedZoom) == len(self.points):
                 break
             self._simulateAZoomLevel(z)
+        for id in self.points:
+            if id not in self.numberedZoom:
+                self.numberedZoom[id] = config.MAX_ZOOM_SIMULATION
         return self.numberedZoom
 
     def _simulateAZoomLevel(self, zoomLevel):

@@ -13,6 +13,7 @@ class Config:
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
         self.FILE_NAME_POPULARITY = "./data/labdata/article_pageview_full.tsv"
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
+        self.FILE_NAME_NUMBERED_NORM_POPULARITY = "./data/tsv/normalized_popularity_with_id.tsv"
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
         self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
 
@@ -28,6 +29,7 @@ class Config:
         # ========== BorderFactory ==========
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
         self.BLUR_RADIUS = 5  # defines size of neighborhood for blurring
+        self.MAX_ZOOM_SIMULATION = 18
 
         # ========== mapGenerator ==========
         self._localTiles = "./data/tiles/"
