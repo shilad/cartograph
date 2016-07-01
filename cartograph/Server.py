@@ -3,8 +3,12 @@ import json, os, shutil
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
 
+import Util
+import Config
+
 import TileStache
-import cartograph
+
+config = Config.BAD_GET_CONFIG()
 
 def run_server(path_cfg):
     path_cfg = os.path.abspath(path_cfg)
@@ -21,9 +25,17 @@ def run_server(path_cfg):
 
 class CartographServer(TileStache.WSGITileServer):
     def __call__(self, environ, start_response):
+        
         path_info = environ.get('PATH_INFO', None)
         if path_info.startswith('/dynamic'):
-            response = Response ('Hello, world' + path_info)
+
+             #dictionary of article ids to points and titles
+            xyDict = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES,
+                                         config.FILE_NAME_NUMBERED_NAMES)
+            
+            response = Response ()
+            
+           
             return response(environ, start_response)
         else:
             return TileStache.WSGITileServer.__call__(self, environ, start_response)
