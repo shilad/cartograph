@@ -8,7 +8,7 @@ from cartograph import Util
 from cartograph import Contours
 from cartograph import Denoiser
 from cartograph import MapStyler
-from cartograph.BorderFactory import BorderFactory
+from cartograph.BorderFactoryTemp.Builder import Builder
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
@@ -79,7 +79,7 @@ class MapStylerCode(MTimeMixin, luigi.ExternalTask):
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.BorderFactory.__file__))
+        return (luigi.LocalTarget(cartograph.BorderFactoryTemp.Builder.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
@@ -377,7 +377,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
         return regionList, membershipList
 
     def run(self):
-        clusterDict = BorderFactory.from_file().build()
+        clusterDict = Builder.from_file().build()
         clustList = list(clusterDict.values())
         regionList, membershipList = self.decomposeBorders(clusterDict)
 
@@ -444,6 +444,7 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
     def run(self):
         titleLabels = TopTitlesGeoJSONWriter(100)
         titleLabels.generateTopJSONFeature(config.FILE_NAME_TOP_TITLES)
+
 
 
 class CreateMapXml(MTimeMixin, luigi.Task):

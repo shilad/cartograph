@@ -33,6 +33,7 @@ class TopTitlesGeoJSONWriter:
         allArticles = Util.sort_by_feature(self.articleData, "popularity")
         return allArticles[:self.numArticles]
 
+
     def generateTopJSONFeature(self, filename):
         featureAr = []
         topArticles = self.getTopArticles()
