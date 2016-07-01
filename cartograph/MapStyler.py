@@ -10,6 +10,9 @@ class MapStyler:
         self.width = width
         self.height = height
 
+        d = 3000000
+        self.extents = mapnik.Box2d(-d, -d, d, d)
+
     def makeMap(self, contourFilename, countryFilename, clusterIds):
         self.m = mapnik.Map(self.width, self.height)
         self.m.background = mapnik.Color('white')
@@ -28,7 +31,12 @@ class MapStyler:
 
         self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
         self.m.layers.append(generateLayer(countryFilename, "outline", "outline"))
-        self.m.zoom_all()
+
+        #extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
+        #print(extent)
+        self.m.zoom_to_box(self.extents)
+        #self.m.zoom_all()
+        #print(self.m.envelope())
 
     def saveMapXml(self, countryFilename, mapFilename):
         assert(self.m is not None)
@@ -38,7 +46,9 @@ class MapStyler:
         if self.m is None:
             self.m = mapnik.Map(self.width, self.height)
         mapnik.load_map(self.m, mapFilename)
-        self.m.zoom_all()
+        extent = mapnik.Box2d(-300, -180.0, 90.0, 90.0)
+        self.m.zoom_to_box(self.extents)
+        #self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 
 
