@@ -6,7 +6,8 @@ class Config:
         self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
         self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecsFull.tsv"
         self.FILE_NAME_NUMBERED_NAMES = "./data/labdata/numberedNamesFull.tsv"
-        self.FILE_NAME_ARTICLE_COORDINATES = "./data/labdata/tsne_cache_full.tsv"
+        self.FILE_NAME_ARTICLE_EMBEDDING = "./data/labdata/tsne_cache_full.tsv"
+        self.FILE_NAME_ARTICLE_COORDINATES = "./data/tsv/coordinates.tsv"
         self.FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates.tsv"
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
@@ -17,6 +18,7 @@ class Config:
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
         self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
 
+        self.MAX_COORDINATE = 40 # Maximum x / y coordinate value
         self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
