@@ -248,13 +248,13 @@ class RegionClustering(MTimeMixin, luigi.Task):
                        ("index", "cluster"), keys, labels)
 
 
-class CreateCoordinates(MTimeMixin, luigi.Task):
+class CreateEmbedding(MTimeMixin, luigi.Task):
     '''
     Use TSNE to reduce high dimensional vectors to x, y coordinates for
     mapping purposes
     '''
     def output(self):
-        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_COORDINATES)
+        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_EMBEDDING)
 
     def requires(self):
         return WikiBrainNumbering()
@@ -266,9 +266,32 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         out = bh_sne(vectors,
                      pca_d=config.TSNE_PCA_DIMENSIONS,
                      theta=config.TSNE_THETA)
-        x, y = list(out[:, 0]), list(out[:, 1])
+        X, Y = list(out[:, 0]), list(out[:, 1])
+        Util.write_tsv(config.FILE_NAME_ARTICLE_EMBEDDING,
+                       ("index", "x", "y"), keys, X, Y)
+
+class CreateCoordinates(MTimeMixin, luigi.Task):
+    '''
+    Use TSNE to reduce high dimensional vectors to x, y coordinates for
+    mapping purposes
+    '''
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_COORDINATES)
+
+    def requires(self):
+        return CreateEmbedding()
+
+    def run(self):
+        points = Util.read_features(config.FILE_NAME_ARTICLE_EMBEDDING)
+        keys = list(points.keys())
+        X = [float(points[k]['x']) for k in keys]
+        Y = [float(points[k]['y']) for k in keys]
+        maxVal = max(abs(v) for v in X + Y)
+        scaling = config.MAX_COORDINATE / maxVal
+        X = [x * scaling for x in X]
+        Y = [y * scaling for y in Y]
         Util.write_tsv(config.FILE_NAME_ARTICLE_COORDINATES,
-                       ("index", "x", "y"), keys, x, y)
+                       ("index", "x", "y"), keys, X, Y)
 
 class ZoomLabeler(MTimeMixin, luigi.Task):
     '''
