@@ -6,7 +6,7 @@ from collections import defaultdict
 config = Config.BAD_GET_CONFIG()
 
 
-class Builder:
+class BorderBuilder:
     def __init__(self, x, y, clusterLabels):
         self.x = x
         self.y = y
@@ -71,4 +71,4 @@ debug = False
 
 if __name__ == '__main__':
     debug = True
-    Builder.from_file().build()
+    BorderBuilder.from_file().build()
