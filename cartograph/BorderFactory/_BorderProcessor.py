@@ -1,5 +1,6 @@
 import numpy as np
 from cartograph import Config
+from _Noiser import NoisyEdgesMaker
 config = Config.BAD_GET_CONFIG()
 
 
@@ -60,18 +61,19 @@ class BorderProcessor:
         """
         if len(vertices) < 2:
             return vertices
-        # if vertices[0].is_edge_coast(vertices[1], BorderFactory.water_label):
-        #     x, y = [], []
-        #     for i in range(len(vertices) - 1):
-        #         x, y = _NoisyEdgesMaker()
-        # else:
-        x = [vertex.x for vertex in vertices]
-        y = [vertex.y for vertex in vertices]
-        x = BorderProcessor._blur(x, circular, config.BLUR_RADIUS)
-        y = BorderProcessor._blur(y, circular, config.BLUR_RADIUS)
-        for i, vertex in enumerate(vertices):
-            vertex.x = x[i]
-            vertex.y = y[i]
+        if vertices[0].isOnCoast and vertices[1].isOnCoast:
+            # these vertices are on the coast
+            # TODO: implement circular noising
+            # vertices = NoisyEdgesMaker(vertices).makeNoisyEdges()
+            pass
+        else:
+            x = [vertex.x for vertex in vertices]
+            y = [vertex.y for vertex in vertices]
+            x = BorderProcessor._blur(x, circular, config.BLUR_RADIUS)
+            y = BorderProcessor._blur(y, circular, config.BLUR_RADIUS)
+            for i, vertex in enumerate(vertices):
+                vertex.x = x[i]
+                vertex.y = y[i]
         return vertices
 
     @staticmethod
@@ -87,7 +89,8 @@ class BorderProcessor:
             list of lists of contiguous regions, whether the border is circle, and reverse2 (for convenience)
         """
         if len(indices1) != len(indices2):
-            raise ValueError("Lists of indices must be the same length.")
+            raise ValueError("Lists of indices must be the same length. There are probably double instances of "
+                             "vertices in the lists.")
 
         # build list for each contiguous region
         diff2 = -1 if reverse2 else 1
@@ -96,7 +99,7 @@ class BorderProcessor:
             prev = consensusLists[-1][-1]
             current = (indices1[i], indices2[i])
             if (prev[0] + 1) % len1 == current[0] and \
-                                    (prev[1] + diff2) % len2 == current[1]:
+                    (prev[1] + diff2) % len2 == current[1]:
                 consensusLists[-1].append(current)
             else:
                 consensusLists.append([current])
@@ -105,14 +108,14 @@ class BorderProcessor:
         first = consensusLists[0][0]
         last = consensusLists[-1][-1]
         if (last[0] + 1) % len1 == first[0] and \
-                                (last[1] + diff2) % len2 == first[1]:
+                (last[1] + diff2) % len2 == first[1]:
             if len(consensusLists) == 1:
                 # it's circular
                 return consensusLists, True, reverse2
             else:
-                # 0 is in middle of intersection
-                consensusLists[0] = consensusLists[-1] + consensusLists[0]
-                consensusLists.pop()
+                # 0 is in middle of intersection (i.e., the first and last "look" like non-contiguous segments,
+                # but they are in reality connected
+                consensusLists[0] = consensusLists.pop() + consensusLists[0]
         return consensusLists, False, reverse2
 
     @staticmethod
@@ -171,30 +174,34 @@ class BorderProcessor:
         return [], False, False
 
     @staticmethod
-    def _replaceIntoBorder(region, replace, start, stop, reverse=False):
-        """
-        Inserts the list replace between start and stop (counted inclusively) into the list region.
-        Since the contiguous regions in _makeNewRegions are constructed using region1's vertices,
-        a side effect of this method when region is region2 is to free region2's Vertex objects from memory.
-        Args:
-            region: The region to insert replace into
-            replace: The list of Vertex objects to insert into region
-            start: The start index (counted inclusively)
-            stop: The end index (counted inclusively)
-            reverse: Whether to treat replace, start, and stop in reversed order
-
-        Returns:
-            The new region (may be of different length than the input)
-        """
+    def _makeNewRegionFromProcessed(region, processedVertices, regionStartStopList, reverse=False):
         if reverse:
-            replace = reversed(replace)
-            start, stop = stop, start
-        if stop < start:
-            region = region[:start]
-            region[:stop + 1] = replace
-        else:
-            region[start:stop + 1] = replace
-        return region
+            regionStartStopList = np.roll(regionStartStopList, 1, axis=1)  # swap start and stop
+            regionStartStopList = list(reversed(regionStartStopList))
+            processedVertices = [list(reversed(contiguous)) for contiguous in processedVertices]
+        processedRegion = []
+        index = 0
+        startStopListIndex = 0
+        # find the section that overlaps 0 (if any) and move it to the back of the list
+        # also move the start index to 1 more than the end of the overlapping region
+        for i, startStop in enumerate(regionStartStopList):
+            if startStop[0] > startStop[1]:
+                regionStartStopList = np.roll(regionStartStopList, -i - 1, axis=0)
+                index = startStop[1] + 1
+                break
+        # now that everything is in order, find the region with the smallest start value
+        smallestStartValIndex = np.argmin(regionStartStopList, axis=0)[0]
+        regionStartStopList = np.roll(regionStartStopList, -smallestStartValIndex, axis=0)
+        while index < len(region):
+            if startStopListIndex < len(regionStartStopList) and index == regionStartStopList[startStopListIndex][0]:
+                processedRegion.extend(processedVertices[startStopListIndex])
+                start, stop = regionStartStopList[startStopListIndex]
+                index += len(BorderProcessor._wrapRange(start, stop, len(region)))
+                startStopListIndex += 1
+            else:
+                processedRegion.append(region[index])
+                index += 1
+        return processedRegion
 
     @staticmethod
     def _makeNewRegions(region1, region2):
@@ -203,29 +210,33 @@ class BorderProcessor:
             region1: One region represented by Vertex objects
             region2: Another region represented by Vertex objects
         Returns:
-            region1 and region2 with their intersecting vertices modified
+            new regions with their intersecting points modified
         """
         points1 = [(vertex.x, vertex.y) for vertex in region1]
         points2 = [(vertex.x, vertex.y) for vertex in region2]
         consensusLists, circular, reverse2 = BorderProcessor._getIntersectingBorders(points1, points2)
+        if len(consensusLists) == 0:
+            return region1, region2
+
+        region1StartStopList = []
+        region2StartStopList = []
         processed = []
         for contiguous in consensusLists:
             # sanity check
             for indices in contiguous:
-                assert points1[indices[0]] == points2[indices[1]]
+                if points1[indices[0]] != points2[indices[1]]:
+                    print("Warning: Region points do not match completely.")
+                    break
             indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
+            region1StartStopList.append((indices[0][0], indices[0][-1]))
+            region2StartStopList.append((indices[1][0], indices[1][-1]))
             processed.append(
                 BorderProcessor._processVertices([region1[i] for i in indices[0]], circular)
             )
-            assert len(indices[0]) == len(processed[-1])
-        for i, contiguous in enumerate(processed):
-            start = consensusLists[i][0][0]
-            stop = consensusLists[i][-1][0]
-            BorderProcessor._replaceIntoBorder(region1, contiguous, start, stop)
-            start = consensusLists[i][0][1]
-            stop = consensusLists[i][-1][1]
-            BorderProcessor._replaceIntoBorder(region2, contiguous, start, stop, reverse2)
-        return region1, region2
+
+        processedRegion1 = BorderProcessor._makeNewRegionFromProcessed(region1, processed, region1StartStopList)
+        processedRegion2 = BorderProcessor._makeNewRegionFromProcessed(region2, processed, region2StartStopList, reverse2)
+        return processedRegion1, processedRegion2
 
     @staticmethod
     def _makeRegionAdjacencyMatrixAndIndexKey(borders):
@@ -258,6 +269,7 @@ class BorderProcessor:
                                 self.borders[groupLabel][regIdx], \
                                     self.borders[searchGroupLabel][searchRegIdx] = \
                                     BorderProcessor._makeNewRegions(region, search_region)
+                                # assert len(set(map(lambda v: v.x, search_region))) == len(search_region)
                                 adjMatrix[regAdjIdx][searchRegAdjIdx] = 1
                                 adjMatrix[searchRegAdjIdx][regAdjIdx] = 1
         return self.borders
