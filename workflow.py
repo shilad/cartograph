@@ -431,6 +431,7 @@ class CreateContours(MTimeMixin, luigi.Task):
     def run(self):
         featuresDict = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES,
                                           config.FILE_NAME_NUMBERED_CLUSTERS,
+                                          config.FILE_NAME_KEEP,
                                           config.FILE_NAME_NUMBERED_VECS)
 
         contour = Contours.ContourCreator()
