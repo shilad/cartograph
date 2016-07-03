@@ -18,7 +18,8 @@ class Config:
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
         self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
 
-        self.MAX_COORDINATE = 40 # Maximum x / y coordinate value
+        self.MAX_COORDINATE = 40                # Maximum x / y coords. Too large distorts.
+        self.MAX_ZOOM = 20 # Maximum zoom level
         self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first

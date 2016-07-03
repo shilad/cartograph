@@ -23,10 +23,10 @@ class MapStyler:
         for feat in jsContour['features']:
             numContours[feat['properties']['clusterNum']] += 1
 
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .25, clusterIds))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .05, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
 
-        self.m.append_style("contour", generateContourPolygonStyle(.25, numContours, clusterIds))
+        self.m.append_style("contour", generateContourPolygonStyle(.20, numContours, clusterIds))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
         self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
@@ -34,8 +34,8 @@ class MapStyler:
 
         #extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
         #print(extent)
-        self.m.zoom_to_box(self.extents)
-        #self.m.zoom_all()
+        #self.m.zoom_to_box(self.extents)
+        self.m.zoom_all()
         #print(self.m.envelope())
 
     def saveMapXml(self, countryFilename, mapFilename):
@@ -46,9 +46,9 @@ class MapStyler:
         if self.m is None:
             self.m = mapnik.Map(self.width, self.height)
         mapnik.load_map(self.m, mapFilename)
-        extent = mapnik.Box2d(-300, -180.0, 90.0, 90.0)
-        self.m.zoom_to_box(self.extents)
-        #self.m.zoom_all()
+        #extent = mapnik.Box2d(-300, -180.0, 90.0, 90.0)
+        #self.m.zoom_to_box(self.extents)
+        self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 
 

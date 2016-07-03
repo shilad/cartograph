@@ -19,13 +19,13 @@ class ContourCreator:
     def buildContours(self, featureDict):
         xs, ys, vectors = self._sortClusters(featureDict)
         centralities = self._centroidValues(vectors)
-        self.CSs = self._calc_contour(xs, ys, centralities, 100)
+        self.CSs = self._calc_contour(xs, ys, centralities, 200)
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
         # One grandchild list for each polygon within the contour
         self.plyList = self._get_contours(self.CSs)
-        # self.newPlys = self._cleanContours(self.plyList)
+        self.newPlys = self._cleanContours(self.plyList)
 
     @staticmethod
     def _sortClusters(featureDict):
@@ -36,6 +36,7 @@ class ContourCreator:
         keys = featureDict.keys()
         for index in keys:
             pointInfo = featureDict[index]
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
@@ -78,8 +79,7 @@ class ContourCreator:
                                             [np.min(xs),
                                             np.max(xs)]])
             for i in range(len(centrality)):
-                line[i] = np.nan_to_num(line[i])
-            print centrality
+                centrality[i] = np.nan_to_num(centrality[i])
 
             # H, yedges, xedges = np.histogram2d(ys[i], xs[i],
             #                                 bins=binSize,
@@ -88,12 +88,12 @@ class ContourCreator:
             #                                 [np.min(xs[i]),
             #                                 np.max(xs[i])]])
 
-            # centrality = spn.filters.gaussian_filter(centrality, 2)
+            centrality = spn.filters.gaussian_filter(centrality, 2)
             extent = [xedgess.min(), xedgess.max(), yedgess.min(), yedgess.max()]
 
-            smoothH = spn.zoom(centrality, 4)
-            smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, extent=extent))
+            #smoothH = spn.zoom(centrality, 4)
+            #smoothH[smoothH < 0] = 0
+            CSs.append(plt.contour(centrality, extent=extent))
 
         return CSs
 
@@ -123,7 +123,8 @@ class ContourCreator:
             for clusterCounters in plyList[clusterId]:
                 newPolygons = []
                 for polygon in clusterCounters:
-                    shplyPoly = shply.Polygon(polygon)
+                    if len(polygon) < 3: continue
+                    shplyPoly = shply.Polygon(polygon).buffer(0.0)
                     newPolygon = shplyPoly.intersection(clusterGeom)
                     if newPolygon.geom_type == 'Polygon':
                         newPolygon = [newPolygon]
@@ -161,7 +162,7 @@ class ContourCreator:
         return featureAr
 
     def makeContourFeatureCollection(self, outputfilename):
-        featureAr = self._gen_contour_polygons(self.plyList)
+        featureAr = self._gen_contour_polygons(self.newPlys)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
         with open(outputfilename, "w") as writeFile:
