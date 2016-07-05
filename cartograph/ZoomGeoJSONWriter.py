@@ -24,7 +24,7 @@ class ZoomGeoJSONWriter:
             pointTuple = (float(pointInfo['x']),float(pointInfo['y']))
             newPoint = Point(pointTuple)
             properties = {'maxZoom':int(pointInfo['maxZoom']), 
-                          'popularity':int(pointInfo['popularity']),
+                          'popularity':float(pointInfo['popularity']),
                           'cityLabel':str(pointInfo['name'])
                           }
             newFeature = Feature(geometry=newPoint, properties=properties)
