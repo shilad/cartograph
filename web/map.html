@@ -5,8 +5,6 @@
   <link rel="stylesheet" href="leaflet.css"/>
   <link rel="stylesheet" href="leafletmap.css"/>
   <script src="leaflet.js"></script>
-  <script src="leaflet-search.js"></script>
-  <script src="jquery-3.0.0.js"></script>
   <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
 
 </head>
@@ -94,29 +92,6 @@ var baseLayers = {
 L.control.layers(baseLayers, null, {'collapsed': false}).addTo(map);
 
 
-//this is the search box - i think the url should be the dynamic/ thing, but I'm not sure how to put the {s} parameter in so that it actually searches for the right thing
-//TODO: actually import leaflet search
-map.addControl(new L.control.search({
-		url: '/dynamic/search?q={s}',
-		textPlaceholder: 'Search for an article',
-		collapsed: false,
-		markerLocation: true,
-		markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
-}));
-
-/*
-
-//this function should probably execute onclick of the search box or something like that!
-jQuery.ajax({
-    url: ',
-    type: 'GET',
-    contentType: 'application/json',
-    success: function (data){
-        alert(data);
-    }
- });
-});
-*/
 
 
   </script>

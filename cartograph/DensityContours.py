@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
-import scipy.ndimage
+import scipy.ndimage as spn
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-from scipy.ndimage.filters import gaussian_filter
+import scipy.stats as sps
 import Config
 import json
 import shapely.geometry as shply
@@ -16,9 +16,9 @@ class ContourCreator:
     def __init__(self):
         pass
 
-    def buildContours(self, coordinates):
-        self.xs, self.ys = self._sortClusters(coordinates)
-        self.CSs = self._calc_contour(self.xs, self.ys, 210)
+    def buildContours(self, featureDict):
+        xs, ys = self._sortClusters(featureDict)
+        self.CSs = self._calc_contour(xs, ys, 200)
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
@@ -27,31 +27,34 @@ class ContourCreator:
         self.newPlys = self._cleanContours(self.plyList)
 
     @staticmethod
-    def _sortClusters(xyCoords):
+    def _sortClusters(featureDict):
         xs = [[] for i in range(config.NUM_CLUSTERS)]
         ys = [[] for i in range(config.NUM_CLUSTERS)]
 
-        for pointInfo in xyCoords:
+        keys = featureDict.keys()
+        for index in keys:
+            pointInfo = featureDict[index]
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
-
         return xs, ys
 
     @staticmethod
-    def _calc_contour(xs, ys, binSize):
+    def _calc_contour(clusterXs, clusterYs, binSize):
         CSs = []
-        for i in range(len(xs)):
-            H, yedges, xedges = np.histogram2d(ys[i], xs[i],
+        for (xs, ys) in zip(clusterXs, clusterYs):
+            H, yedges, xedges = np.histogram2d(ys, xs,
                                             bins=binSize,
-                                            range=[[np.min(ys[i]),
-                                            np.max(ys[i])],
-                                            [np.min(xs[i]),
-                                            np.max(xs[i])]])
-            H = gaussian_filter(H, 2)
+                                            range=[[np.min(ys),
+                                            np.max(ys)],
+                                            [np.min(xs),
+                                            np.max(xs)]])
+
+            H = spn.filters.gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
-            smoothH = scipy.ndimage.zoom(H, 4)
+            smoothH = spn.zoom(H, 4)
             smoothH[smoothH < 0] = 0
             CSs.append(plt.contour(smoothH, extent=extent))
 
@@ -83,7 +86,8 @@ class ContourCreator:
             for clusterCounters in plyList[clusterId]:
                 newPolygons = []
                 for polygon in clusterCounters:
-                    shplyPoly = shply.Polygon(polygon)
+                    if len(polygon) < 3: continue
+                    shplyPoly = shply.Polygon(polygon).buffer(0.0)
                     newPolygon = shplyPoly.intersection(clusterGeom)
                     if newPolygon.geom_type == 'Polygon':
                         newPolygon = [newPolygon]

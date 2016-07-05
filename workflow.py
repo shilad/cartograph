@@ -5,14 +5,18 @@ import cartograph
 
 from cartograph import Config
 from cartograph import Util
-from cartograph import Contours
+from cartograph import DensityContours
+from cartograph import CentroidContours
 from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactoryTemp.Builder import Builder
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
+from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
+from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
+from collections import defaultdict
 import numpy as np
 from sklearn.cluster import KMeans
 
@@ -62,7 +66,12 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.Contours.__file__))
+        return (luigi.LocalTarget(cartograph.DensityContours.__file__))
+
+
+class ContourCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(cartograph.CentroidContours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
@@ -93,6 +102,16 @@ class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (luigi.LocalTarget(cartograph.Labels.__file__))
+
+
+class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(cartograph.CalculateZooms.__file__))
+
+
+class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
 
 # ====================================================================
@@ -190,11 +209,35 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                        idList, popularityList)
 
 
+class PercentilePopularity(MTimeMixin, luigi.Task):
+    '''
+    Bins the popularity values by given percentiles then maps the values to
+    the unique article ID. 
+    '''
+    def requires(self):
+        return (PopularityLabeler())
+
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_NORM_POPULARITY))
+
+    def run(self):
+        readPopularData = Util.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
+        popularity = map(float, readPopularData['popularity'])
+        index = map(int, readPopularData['id'])
+
+
+
+        # totalSum = sum(popularity)
+        # normPopularity = map(lambda x: float(x)/totalSum, popularity)
+
+
+        
+
 class RegionClustering(MTimeMixin, luigi.Task):
     '''
     Run KMeans to cluster article points into specific continents.
     Seed is set at 42 to make sure that when run against labeling
-    algorithm clusters numbers consistantly refer to the same entity
+    algorithm clusters numbers consistently refer to the same entity
     '''
     def output(self):
         return luigi.LocalTarget(config.FILE_NAME_NUMBERED_CLUSTERS)
@@ -212,13 +255,13 @@ class RegionClustering(MTimeMixin, luigi.Task):
                        ("index", "cluster"), keys, labels)
 
 
-class CreateCoordinates(MTimeMixin, luigi.Task):
+class CreateEmbedding(MTimeMixin, luigi.Task):
     '''
     Use TSNE to reduce high dimensional vectors to x, y coordinates for
     mapping purposes
     '''
     def output(self):
-        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_COORDINATES)
+        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_EMBEDDING)
 
     def requires(self):
         return WikiBrainNumbering()
@@ -230,9 +273,60 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         out = bh_sne(vectors,
                      pca_d=config.TSNE_PCA_DIMENSIONS,
                      theta=config.TSNE_THETA)
-        x, y = list(out[:, 0]), list(out[:, 1])
+        X, Y = list(out[:, 0]), list(out[:, 1])
+        Util.write_tsv(config.FILE_NAME_ARTICLE_EMBEDDING,
+                       ("index", "x", "y"), keys, X, Y)
+
+class CreateCoordinates(MTimeMixin, luigi.Task):
+    '''
+    Use TSNE to reduce high dimensional vectors to x, y coordinates for
+    mapping purposes
+    '''
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_ARTICLE_COORDINATES)
+
+    def requires(self):
+        return CreateEmbedding()
+
+    def run(self):
+        points = Util.read_features(config.FILE_NAME_ARTICLE_EMBEDDING)
+        keys = list(points.keys())
+        X = [float(points[k]['x']) for k in keys]
+        Y = [float(points[k]['y']) for k in keys]
+        maxVal = max(abs(v) for v in X + Y)
+        scaling = config.MAX_COORDINATE / maxVal
+        X = [x * scaling for x in X]
+        Y = [y * scaling for y in Y]
         Util.write_tsv(config.FILE_NAME_ARTICLE_COORDINATES,
-                       ("index", "x", "y"), keys, x, y)
+                       ("index", "x", "y"), keys, X, Y)
+
+class ZoomLabeler(MTimeMixin, luigi.Task):
+    '''
+    Calculates a starting zoom level for every article point in the data,
+    i.e. determines when each article label should appear. 
+    '''
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_NUMBERED_ZOOM)
+
+    def requires(self):
+        return (RegionClustering(),
+                CalculateZoomsCode(),
+                CreateCoordinates(),
+                PopularityLabeler())
+
+    def run(self):
+        feats = Util.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
+                        config.FILE_NAME_ARTICLE_COORDINATES,
+                        config.FILE_NAME_NUMBERED_CLUSTERS)
+
+        zoom = CalculateZooms(feats)
+        numberedZoomDict = zoom.simulateZoom()
+        keys = list(numberedZoomDict.keys())
+        zoomValue = list(numberedZoomDict.values())
+
+        Util.write_tsv(config.FILE_NAME_NUMBERED_ZOOM, 
+                        ("index","maxZoom"), keys, zoomValue)
+
 
 
 class Denoise(MTimeMixin, luigi.Task):
@@ -281,7 +375,7 @@ class Denoise(MTimeMixin, luigi.Task):
 class CreateContinents(MTimeMixin, luigi.Task):
     '''
     Use BorderFactory to define edges of continent polygons based on
-    vornoi tesselations of both article and waterpoints storing
+    voronoi tesselations of both article and waterpoints storing
     article clusters as the points of their exterior edge
     '''
     def output(self):
@@ -342,13 +436,81 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.FILE_NAME_CONTOUR_DATA)
 
     def run(self):
-        xyCoords = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES, config.FILE_NAME_NUMBERED_CLUSTERS)
-        contour = Contours.ContourCreator()
-        contour.buildContours(list(xyCoords.values()))
-        contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
+        featuresDict = Util.read_features(config.FILE_NAME_ARTICLE_COORDINATES,
+                                          config.FILE_NAME_NUMBERED_CLUSTERS,
+                                          config.FILE_NAME_KEEP,
+                                          config.FILE_NAME_NUMBERED_VECS)
 
 
-class CreateLabels(MTimeMixin, luigi.Task):
+        centroidContour = CentroidContours.ContourCreator()
+        centroidContour.buildContours(featuresDict)
+        centroidContour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
+
+        densityContour = DensityContours.ContourCreator()
+        densityContour.buildContours(featuresDict)
+        densityContour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
+
+class CreateStates(MTimeMixin, luigi.Task):
+    '''
+    Create states within regions
+    '''
+    def requires(self):
+        return(Denoise(), 
+               CreateContinents(), 
+               CreateContours())
+    def output(self):
+        ''' TODO - figure out what this is going to return'''
+        return luigi.LocalTarget(config.FILE_NAME_STATE_CLUSTERS)
+    def run(self):
+        #create dictionary of article ids to a dictionary with cluster numbers and vectors representing them
+        articleDict = Util.read_features(config.FILE_NAME_NUMBERED_CLUSTERS, config.FILE_NAME_NUMBERED_VECS)
+
+        #loop through and grab all the points (dictionaries) in each cluster that match the current cluster number (i), write the keys to a list
+        for i in range(0, config.NUM_CLUSTERS):
+            keys = []
+            for article in articleDict:
+                if int(articleDict[article]['cluster']) == i:
+                    keys.append(article)
+            #grab those articles' vectors from articleDict (thank you @ brooke for read_features, it is everything)         
+            vectors = np.array([articleDict[vID]['vector'] for vID in keys])
+            
+            #cluster vectors
+            preStateLabels = list(KMeans(6,
+                             random_state=42).fit(vectors).labels_)
+            #append cluster number to cluster so that sub-clusters are of the form [larger][smaller] - eg cluster 4 has subclusters 40, 41, 42
+            stateLabels = []
+            for label in preStateLabels:
+                newlabel = str(i) + str(label) 
+                stateLabels.append(newlabel)
+
+            #also need to make a new utils method for append_tsv rather than write_tsv
+            Util.append_tsv(config.FILE_NAME_STATE_CLUSTERS,
+                       ("index", "stateCluster"), keys, stateLabels)
+        #CODE THUS FAR CREATES ALL SUBCLUSTERS, NOW YOU JUST HAVE TO FIGURE OUT HOW TO INTEGRATE THEM
+        
+        #ALSO HOW TO DETERMINE THE BEST # OF CLUSTERS FOR EACH SUBCLUSTER??? IT SEEMS LIKE THEY SHOULD VARY (MAYBE BASED ON # OF POINTS?)
+
+       
+        #then make sure those get borders created for them??
+        #then create and color those polygons in xml
+
+
+class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
+    '''
+    Generates geojson data for relative zoom labelling in map.xml
+    '''
+    def output(self):
+        return luigi.LocalTarget(config.FILE_NAME_TITLES_BY_ZOOM)
+
+    def requires(self):
+        return (ZoomLabeler())
+
+    def run(self):
+        titlesByZoom = ZoomGeoJSONWriter()
+        titlesByZoom.generateZoomJSONFeature(config.FILE_NAME_TITLES_BY_ZOOM)
+
+
+class CreateTopLabels(MTimeMixin, luigi.Task):
     '''
     Write the top 100 most popular articles to file for relative zoom
     Generated as geojson data for use inside map.xml
@@ -356,6 +518,7 @@ class CreateLabels(MTimeMixin, luigi.Task):
     def requires(self):
         return (PopularityLabeler(),
                 CreateCoordinates(),
+                RegionClustering(),
                 TopTitlesGeoJSONWriterCode())
 
     def output(self):
@@ -363,8 +526,8 @@ class CreateLabels(MTimeMixin, luigi.Task):
 
     def run(self):
         titleLabels = TopTitlesGeoJSONWriter(100)
-        topArticles = titleLabels.getTopArticles()
-        titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLES, topArticles)
+        titleLabels.generateTopJSONFeature(config.FILE_NAME_TOP_TITLES)
+
 
 
 class CreateMapXml(MTimeMixin, luigi.Task):
@@ -382,6 +545,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
             CreateContours(),
             CreateCoordinates(),
             CreateContinents(),
+            CreateStates(),
             MapStylerCode()
         )
 
@@ -398,14 +562,15 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         ms.saveImage(config.FILE_NAME_MAP, config.FILE_NAME_IMGNAME + ".svg")
 
 
-class LabelMap(MTimeMixin, luigi.Task):
+class LabelTopArticlesOnMap(MTimeMixin, luigi.Task):
     '''
     Mapnik's text renderer is unsupported by the wrapper we're using so
-    instead, labels must be written directly to the xml file to be rendered
+    instead, labels must be written directly to the xml file to be rendered.
+    This is the hacky version that labels the x most popular articles.
     '''
     def requires(self):
         return (CreateMapXml(),
-                CreateLabels(),
+                CreateTopLabels(),
                 CreateContinents(),
                 LabelsCode())
 
@@ -424,6 +589,47 @@ class LabelMap(MTimeMixin, luigi.Task):
                                    )
 
 
+class LabelMapUsingZoom(MTimeMixin, luigi.Task):
+    '''
+    Adding the labels directly into the xml file for map rendering. 
+    Labels are added to appear based on a grid based zoom calculation in 
+    the CalculateZooms.py
+    '''
+    def output(self):
+        return (luigi.LocalTarget(config.FILE_NAME_MAP))
+
+    def requires(self):
+        return (CreateMapXml(),
+                CreateLabelsFromZoom(),
+                CreateContinents(),
+                LabelsCode(),
+                CalculateZoomsCode(),
+                ZoomGeoJSONWriterCode()
+                )
+
+    def run(self):
+        labelClust = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
+        maxScaleClust = labelClust.getScaleDenominator(0)
+        minScaleClust = labelClust.getScaleDenominator(5)
+
+        labelClust.writeLabelsXml('[labels]', 'interior', 
+                                    minScale=minScaleClust, 
+                                    maxScale=maxScaleClust)
+
+        zoomValues=set()
+        zoomValueData = Util.read_features(config.FILE_NAME_NUMBERED_ZOOM)
+        for zoomInfo in list(zoomValueData.values()):
+            zoomValues.add(zoomInfo['maxZoom'])
+        largestZoomLevel = len(zoomValues) - 1
+
+        for z in range(largestZoomLevel):
+            labelCities = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TITLES_BY_ZOOM)
+            labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
+                                                filterZoomNum=z,
+                                                imgFile=config.FILE_NAME_IMGDOT)
+        
+
+
 class RenderMap(MTimeMixin, luigi.Task):
     '''
     Write the final product xml of all our data manipulations to an image file
@@ -431,7 +637,7 @@ class RenderMap(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateMapXml(),
-                LabelMap(),
+                LabelMapUsingZoom(),
                 MapStylerCode())
 
     def output(self):
