@@ -4,11 +4,11 @@ from scipy.spatial import distance
 import Util
 import matplotlib.pyplot as plt
 
-n = 10
+n = 5
 
 
 class findNumClusters():
-    def __init__(self, dataSet, maxClusters, minClusters=5):
+    def __init__(self, dataSet, maxClusters, minClusters=2):
         self.data = dataSet
         self.maxClusters = maxClusters
         self.minClusters = minClusters
@@ -82,26 +82,27 @@ class findNumClusters():
         x = list(keys)
         fig, ax = plt.subplots()
         ax.boxplot([self.gain[key]["avg"] for key in keys],
-                   showmeans=True,
                    labels=x)
         plt.draw()
-        plt.savefig("../data/images/fullEnglishClusteringElbow.png")
+        plt.savefig("../data/images/FullEnglish2.png")
         plt.close(fig)
         print "\tSaved image to file"
         if len(avgList) > 1:
             prevAvg = sum(avgList[-2]) / len(avgList[-2])
             print "\tPrevious Avg: " + str(prevAvg)
+        else:
+            prevAvg = float("inf")
         print "\tCurrent Dist: " + str(dist)
 
         if n == rep - 1:
             for avg in avgList:
                 repAvg = sum(avg) / len(avg)
-                if repAvg < dist:
-                    print "\tBest avg: %s, With %s clusters" % (avg, avgList.index(avg))
+                if prevAvg < repAvg:
+                    print "\tBest avg: %s, With %s clusters" % (prevAvg, avgList[-2])
                     plt.show()
                     return False, avgList.index(avg)
-                elif repAvg * .85 < dist:
-                    print "\tBest avg: %s, With %s clusters" % (dist, clustID)
+                elif prevAvg * .9 < repAvg:
+                    print "\tBest avg: %s, With %s clusters" % (repAvg, clustID)
                     return False, clustID
         return True, clustID
 
