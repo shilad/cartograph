@@ -1,9 +1,6 @@
 import luigi
 import os
-
 import cartograph
-
-from cartograph import Config
 from cartograph import Util
 from cartograph import Contours
 from cartograph import Denoiser
@@ -12,12 +9,13 @@ from cartograph.BorderFactory import BorderFactory
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.Labels import Labels
+from cartograph.Config import initConf
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
 
 
-config = Config.BAD_GET_CONFIG()  # To be removed
+config = initConf("conf.txt")  # To be removed
 
 
 class MTimeMixin:
@@ -98,7 +96,6 @@ class LabelsCode(MTimeMixin, luigi.ExternalTask):
 # ====================================================================
 # Clean up raw wikibrain data for uniform data structure manipulation
 # ====================================================================
-
 
 class WikiBrainData(luigi.ExternalTask):
     '''
@@ -364,7 +361,7 @@ class CreateLabels(MTimeMixin, luigi.Task):
 
     def run(self):
         titleLabels = TopTitlesGeoJSONWriter(100)
-        titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLES)
+        titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLE)
 
 
 class CreateMapXml(MTimeMixin, luigi.Task):
