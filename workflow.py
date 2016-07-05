@@ -468,12 +468,7 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
 
     def run(self):
         titleLabels = TopTitlesGeoJSONWriter(100)
-<<<<<<< HEAD
         titleLabels.generateJSONFeature(config.FILE_NAME_TOP_TITLE)
-=======
-        titleLabels.generateTopJSONFeature(config.FILE_NAME_TOP_TITLES)
-
->>>>>>> b7522658cacf88ee4914c605b5f9c9f9df4b0481
 
 
 class CreateMapXml(MTimeMixin, luigi.Task):
