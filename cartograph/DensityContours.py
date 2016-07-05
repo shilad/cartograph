@@ -17,9 +17,8 @@ class ContourCreator:
         pass
 
     def buildContours(self, featureDict):
-        xs, ys, vectors = self._sortClusters(featureDict)
-        centralities = self._centroidValues(vectors)
-        self.CSs = self._calc_contour(xs, ys, centralities, 200)
+        xs, ys = self._sortClusters(featureDict)
+        self.CSs = self._calc_contour(xs, ys, 200)
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
@@ -31,7 +30,6 @@ class ContourCreator:
     def _sortClusters(featureDict):
         xs = [[] for i in range(config.NUM_CLUSTERS)]
         ys = [[] for i in range(config.NUM_CLUSTERS)]
-        vectors = [[] for i in range(config.NUM_CLUSTERS)]
 
         keys = featureDict.keys()
         for index in keys:
@@ -40,60 +38,25 @@ class ContourCreator:
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
-            vectors[c].append(pointInfo['vector'])
-
-        return xs, ys, vectors
+        return xs, ys
 
     @staticmethod
-    def _centroidValues(clusterVectors):
-        '''
-        SARAH:
-        Error seems to be here -- binned stats looks to be evaluating so that 
-        none of these end up in any of the bins I think (that's why it's 
-        NaN -- all the bins are empty) Might want to check what's happening 
-        in self.centerValues, because vector, self.xs, and self.xy all look
-        like they're right to me. Sorry I couldn't help more.
-                -- Brooke
-        '''
-
-        centralities = []
-        for vectors in clusterVectors:
-            centroid = np.mean(vectors, axis=0)
-            dotValues = []
-            for vec in vectors:
-                dotValues.append(centroid.dot(vec))
-            centralities.append(dotValues)
-
-        return centralities
-
-    @staticmethod
-    def _calc_contour(clusterXs, clusterYs, clusterValues, binSize):
+    def _calc_contour(clusterXs, clusterYs, binSize):
         CSs = []
-        for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues):
-            centrality, yedgess, xedgess, binNumber = sps.binned_statistic_2d(ys, xs,
-                                            values,
-                                            statistic='mean',
+        for (xs, ys) in zip(clusterXs, clusterYs):
+            H, yedges, xedges = np.histogram2d(ys, xs,
                                             bins=binSize,
                                             range=[[np.min(ys),
                                             np.max(ys)],
                                             [np.min(xs),
                                             np.max(xs)]])
-            for i in range(len(centrality)):
-                centrality[i] = np.nan_to_num(centrality[i])
 
-            # H, yedges, xedges = np.histogram2d(ys[i], xs[i],
-            #                                 bins=binSize,
-            #                                 range=[[np.min(ys[i]),
-            #                                 np.max(ys[i])],
-            #                                 [np.min(xs[i]),
-            #                                 np.max(xs[i])]])
+            H = spn.filters.gaussian_filter(H, 2)
+            extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
-            centrality = spn.filters.gaussian_filter(centrality, 2)
-            extent = [xedgess.min(), xedgess.max(), yedgess.min(), yedgess.max()]
-
-            #smoothH = spn.zoom(centrality, 4)
-            #smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(centrality, extent=extent))
+            smoothH = spn.zoom(H, 4)
+            smoothH[smoothH < 0] = 0
+            CSs.append(plt.contour(smoothH, extent=extent))
 
         return CSs
 
