@@ -5,7 +5,7 @@ import cartograph
 
 from cartograph import Config
 from cartograph import Util
-from cartograph import Contours
+from cartograph import DensityContours
 from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactoryTemp.Builder import Builder
@@ -64,7 +64,7 @@ class MTimeMixin:
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.Contours.__file__))
+        return (luigi.LocalTarget(cartograph.DensityContours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
@@ -434,7 +434,7 @@ class CreateContours(MTimeMixin, luigi.Task):
                                           config.FILE_NAME_KEEP,
                                           config.FILE_NAME_NUMBERED_VECS)
 
-        contour = Contours.ContourCreator()
+        contour = DensityContours.ContourCreator()
         contour.buildContours(featuresDict)
         contour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 

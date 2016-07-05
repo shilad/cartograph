@@ -23,7 +23,7 @@ class MapStyler:
         for feat in jsContour['features']:
             numContours[feat['properties']['clusterNum']] += 1
 
-        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .05, clusterIds))
+        self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .20, clusterIds))
         self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
 
         self.m.append_style("contour", generateContourPolygonStyle(.20, numContours, clusterIds))
