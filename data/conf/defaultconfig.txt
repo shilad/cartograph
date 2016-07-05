@@ -1,0 +1,41 @@
+[DEFAULT]
+externalDir: ./data/labdata
+generatedDir: ./data/tsv
+geojsonDir: ./data/geojson
+
+[ExternalFiles]
+numbered_vecs: %(externalDir)s/numberedVecsFull.tsv
+numbered_names: %(externalDir)s/numberedNamesFull.tsv
+popularity: %(externalDir)s/article_pageview_full.tsv
+scale_denominators: %(externalDir)s/scale_denominators.tsv
+region_names: %(externalDir)s/top_categories_full.tsv
+article_coordinates: %(externalDir)s/tsne_cache_full.tsv
+
+[PreprocessingFiles]
+coordinates_with_water: %(generatedDir)s/water_and_article_coordinates.tsv
+clusters_with_water: %(generatedDir)s/clusters_with_water_pts.tsv
+clusters_with_id: %(generatedDir)s/numberedClusters.tsv
+denoised_with_id: %(generatedDir)s/keep.tsv
+popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
+
+[AnalyzerConstants]
+num_clusters: 13 
+tsne_theta: 0.5  
+pca_dimensions: None  
+
+[BorderFactoryConstants]
+min_num_in_cluster: 30  
+blur_radius: 5  
+
+[MapData]
+countries_geojson: %(geojsonDir)s/countries.geojson
+contours_geojson: %(geojsonDir)s/contourData.geojson
+clusters_with_region_id: %(generatedDir)s/region_clusters.tsv
+borders_with_region_id: %(generatedDir)s/region_borders.tsv
+
+[MapResources]
+img_dot: %(generatedDir)s/blackDot.png
+
+[MapOutput]
+map_file: map.xml
+img_src_name: ./data/images/world
