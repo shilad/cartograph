@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
-import scipy.ndimage
+import scipy.ndimage as spn
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-from scipy.ndimage.filters import gaussian_filter
+import scipy.stats as sps
 import Config
 import json
 import shapely.geometry as shply
@@ -16,9 +16,10 @@ class ContourCreator:
     def __init__(self):
         pass
 
-    def buildContours(self, coordinates):
-        self.xs, self.ys = self._sortClusters(coordinates)
-        self.CSs = self._calc_contour(self.xs, self.ys, 210)
+    def buildContours(self, featureDict):
+        xs, ys, vectors = self._sortClusters(featureDict)
+        centralities = self._centroidValues(vectors)
+        self.CSs = self._calc_contour(xs, ys, centralities, 200)
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
@@ -27,33 +28,72 @@ class ContourCreator:
         self.newPlys = self._cleanContours(self.plyList)
 
     @staticmethod
-    def _sortClusters(xyCoords):
+    def _sortClusters(featureDict):
         xs = [[] for i in range(config.NUM_CLUSTERS)]
         ys = [[] for i in range(config.NUM_CLUSTERS)]
+        vectors = [[] for i in range(config.NUM_CLUSTERS)]
 
-        for pointInfo in xyCoords:
+        keys = featureDict.keys()
+        for index in keys:
+            pointInfo = featureDict[index]
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
+            vectors[c].append(pointInfo['vector'])
 
-        return xs, ys
+        return xs, ys, vectors
 
     @staticmethod
-    def _calc_contour(xs, ys, binSize):
-        CSs = []
-        for i in range(len(xs)):
-            H, yedges, xedges = np.histogram2d(ys[i], xs[i],
-                                            bins=binSize,
-                                            range=[[np.min(ys[i]),
-                                            np.max(ys[i])],
-                                            [np.min(xs[i]),
-                                            np.max(xs[i])]])
-            H = gaussian_filter(H, 2)
-            extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
+    def _centroidValues(clusterVectors):
+        '''
+        SARAH:
+        Error seems to be here -- binned stats looks to be evaluating so that 
+        none of these end up in any of the bins I think (that's why it's 
+        NaN -- all the bins are empty) Might want to check what's happening 
+        in self.centerValues, because vector, self.xs, and self.xy all look
+        like they're right to me. Sorry I couldn't help more.
+                -- Brooke
+        '''
 
-            smoothH = scipy.ndimage.zoom(H, 4)
-            smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, extent=extent))
+        centralities = []
+        for vectors in clusterVectors:
+            centroid = np.mean(vectors, axis=0)
+            dotValues = []
+            for vec in vectors:
+                dotValues.append(centroid.dot(vec))
+            centralities.append(dotValues)
+
+        return centralities
+
+    @staticmethod
+    def _calc_contour(clusterXs, clusterYs, clusterValues, binSize):
+        CSs = []
+        for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues):
+            centrality, yedgess, xedgess, binNumber = sps.binned_statistic_2d(ys, xs,
+                                            values,
+                                            statistic='mean',
+                                            bins=binSize,
+                                            range=[[np.min(ys),
+                                            np.max(ys)],
+                                            [np.min(xs),
+                                            np.max(xs)]])
+            for i in range(len(centrality)):
+                centrality[i] = np.nan_to_num(centrality[i])
+
+            # H, yedges, xedges = np.histogram2d(ys[i], xs[i],
+            #                                 bins=binSize,
+            #                                 range=[[np.min(ys[i]),
+            #                                 np.max(ys[i])],
+            #                                 [np.min(xs[i]),
+            #                                 np.max(xs[i])]])
+
+            centrality = spn.filters.gaussian_filter(centrality, 2)
+            extent = [xedgess.min(), xedgess.max(), yedgess.min(), yedgess.max()]
+
+            #smoothH = spn.zoom(centrality, 4)
+            #smoothH[smoothH < 0] = 0
+            CSs.append(plt.contour(centrality, extent=extent))
 
         return CSs
 
@@ -83,7 +123,8 @@ class ContourCreator:
             for clusterCounters in plyList[clusterId]:
                 newPolygons = []
                 for polygon in clusterCounters:
-                    shplyPoly = shply.Polygon(polygon)
+                    if len(polygon) < 3: continue
+                    shplyPoly = shply.Polygon(polygon).buffer(0.0)
                     newPolygon = shplyPoly.intersection(clusterGeom)
                     if newPolygon.geom_type == 'Polygon':
                         newPolygon = [newPolygon]
