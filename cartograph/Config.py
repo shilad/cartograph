@@ -6,7 +6,8 @@ class Config:
         self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
         self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecsFull.tsv"
         self.FILE_NAME_NUMBERED_NAMES = "./data/labdata/numberedNamesFull.tsv"
-        self.FILE_NAME_ARTICLE_COORDINATES = "./data/labdata/tsne_cache_full.tsv"
+        self.FILE_NAME_ARTICLE_EMBEDDING = "./data/labdata/tsne_cache_full.tsv"
+        self.FILE_NAME_ARTICLE_COORDINATES = "./data/tsv/coordinates.tsv"
         self.FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates.tsv"
         self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
         self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
@@ -17,14 +18,14 @@ class Config:
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
         self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
 
+        self.MAX_COORDINATE = 40                # Maximum x / y coords. Too large distorts.
+        self.MAX_ZOOM = 20 # Maximum zoom level
         self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
         self.PERCENTAGE_WATER = 0.05
 
         self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
-
-        self.TESTWHEEL = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#fff01f", "#b15928", "#dba485", "#f575f4"]
 
         # ========== BorderFactory ==========
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
