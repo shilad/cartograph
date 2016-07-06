@@ -57,7 +57,8 @@ class ContourCreator:
     @staticmethod
     def _calc_contour(clusterXs, clusterYs, clusterValues, binSize, numContours):
         CSs = []
-        for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues, numContours):
+        for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues):
+            if not xs: continue
             centrality, yedgess, xedgess, binNumber = sps.binned_statistic_2d(ys, xs,
                                                         values, statistic='mean',
                                                         bins=binSize, range=[[np.min(ys),
