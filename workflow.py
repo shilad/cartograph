@@ -582,11 +582,9 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
             zoomValues.add(zoomInfo['maxZoom'])
         largestZoomLevel = len(zoomValues) - 1
 
-        for z in range(largestZoomLevel):
-            labelCities = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TITLES_BY_ZOOM)
-            labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
-                                                filterZoomNum=z,
-                                                imgFile=config.FILE_NAME_IMGDOT)
+        labelCities = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TITLES_BY_ZOOM)
+        labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
+                                           config.MAX_ZOOM, imgFile=config.FILE_NAME_IMGDOT)
         
 
 
