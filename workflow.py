@@ -61,12 +61,12 @@ class MTimeMixin:
 # NOTE: Any new .py files that will run *must* go here for automation
 # ====================================================================
 
-class ContourCode(MTimeMixin, luigi.ExternalTask):
+class DensityContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (luigi.LocalTarget(cartograph.DensityContours.__file__))
 
 
-class ContourCode(MTimeMixin, luigi.ExternalTask):
+class CentroidContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (luigi.LocalTarget(cartograph.CentroidContours.__file__))
 
@@ -437,7 +437,8 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateCoordinates(),
-                ContourCode(),
+                CentroidContourCode(),
+                DensityContourCode(),
                 CreateContinents())
 
     def output(self):
@@ -603,14 +604,13 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                                                       "zoom_with_id"))
         for zoomInfo in list(zoomValueData.values()):
             zoomValues.add(zoomInfo['maxZoom'])
-        largestZoomLevel = len(zoomValues) - 1
 
-        for z in range(largestZoomLevel):
-            labelCities = Labels(config.get("MapOutput", "map_file"),
-                                 config.get("MapData", "title_by_zoom"))
-            labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
-                                               filterZoomNum=z,
-                                               imgFile=config.get("MapResources", "img_dot"))
+        labelCities = Labels(config.get("MapOutput", "map_file"),
+                             config.get("MapData", "title_by_zoom"))
+        labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
+                                           config.MAX_ZOOM,
+                                           imgFile=config.get("MapResources",
+                                                              "img_dot"))
 
 
 class RenderMap(MTimeMixin, luigi.Task):
