@@ -4,18 +4,21 @@ class Config:
     def __init__(self):
         self.FILE_NAME_WIKIBRAIN_VECS = "./data/labdata/vecs.tsv"
         self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
-        self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecsFull.tsv"
-        self.FILE_NAME_NUMBERED_NAMES = "./data/labdata/numberedNamesFull.tsv"
-        self.FILE_NAME_ARTICLE_COORDINATES = "./data/labdata/tsne_cache_full.tsv"
-        self.FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates.tsv"
-        self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
-        self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
-        self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
-        self.FILE_NAME_POPULARITY = "./data/labdata/article_pageview_full.tsv"
-        self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
+
+        self.FILE_NAME_NUMBERED_VECS = "./data/labdata/interest_vecs.tsv"
+        self.FILE_NAME_NUMBERED_NAMES = "./data/labdata/interest_names.tsv"
+
+        self.FILE_NAME_ARTICLE_COORDINATES = "./data/interpolation/interest_interpolated_coordinates.tsv"
+        #self.FILE_NAME_ARTICLE_COORDINATES = "./data/labdata/tsne_cache_interest_interpolated.tsv"
+        self.FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates_interest.tsv"
+        self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts_interest.tsv"
+        self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters_interest.tsv"
+        self.FILE_NAME_KEEP = "./data/tsv/keep_interest.tsv"
+        self.FILE_NAME_POPULARITY = "./data/labdata/interest_pageview.tsv"
+        self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id_interest.tsv"
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
 
-        self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
+        self.NUM_CLUSTERS = 4  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
         self.PERCENTAGE_WATER = 0.1
@@ -24,14 +27,16 @@ class Config:
 
         # ========== BorderFactory ==========
         self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
-        self.BLUR_RADIUS = 5  # defines size of neighborhood for blurring
+        self.BLUR_RADIUS = 4  # defines size of neighborhood for blurring
 
         # ========== mapGenerator ==========
         self._localTiles = "./data/tiles/"
         self._serverTiles = "/var/www/html/tiles/"
         self.DIRECTORY_NAME_TILES = self._localTiles
-        self.FILE_NAME_REGION_NAMES = "./data/labdata/top_categories_full.tsv"
-        self.FILE_NAME_IMGNAME = "./data/images/world"
+
+        self.FILE_NAME_REGION_NAMES = "./data/labdata/top_categories_interest.tsv"
+        self.FILE_NAME_IMGNAME = "./data/images/world_interest"
+
         self.FILE_NAME_IMGDOT = "./data/labdata/blackDot.png"
         self.FILE_NAME_COUNTRIES = "./data/geojson/countries.geojson"
         self.FILE_NAME_CONTOUR_DATA = "./data/geojson/contourData.geojson"
@@ -39,6 +44,12 @@ class Config:
         self.FILE_NAME_REGION_CLUSTERS = "./data/tsv/region_clusters.tsv"
         self.FILE_NAME_REGION_BORDERS = "./data/tsv/region_borders.tsv"
         self.FILE_NAME_TOP_TITLES = "./data/geojson/top_100_articles.geojson"
+
+
+        # ========== Interpolation ==========
+        self.FILE_NAME_MORE_VECS = "./data/labdata/interest_vecs.tsv"
+        self.FILE_NAME_MORE_NAMES = "./data/labdata/interest_names.tsv"
+        self.FILE_NAME_MORE_COORDINATES = "./data/interpolation/interest_interpolated_coordinates.tsv"
 
 
 __config = Config()
