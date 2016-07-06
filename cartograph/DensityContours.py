@@ -56,7 +56,7 @@ class ContourCreator:
 
             smoothH = spn.zoom(H, 4)
             smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, extent=extent))
+            CSs.append(plt.contour(smoothH, config.NUM_CONTOURS, extent=extent))
 
         return CSs
 
