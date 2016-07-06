@@ -1,21 +1,17 @@
-import numpy as np
-
 import Util
-import Config
-
-config = Config.BAD_GET_CONFIG()
-
-
 # For information on the constants below see 
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 
 # Scale denom for each zoom level
-ZOOM_LEVEL_SCALE_DENOMS = [ 559082264 ]
+
+TOP_LEVEL_COORDINATES = (360, 170.1022)
+'''
+ZOOM_LEVEL_SCALE_DENOMS = [559082264]
 for i in range(config.MAX_ZOOM):
     ZOOM_LEVEL_SCALE_DENOMS.append(ZOOM_LEVEL_SCALE_DENOMS[-1] / 2)
 
 # Proportion of map per tile.
-ZOOM_LEVEL_DEGREES_PER_TILE = [ (360, 170.1022) ]
+ZOOM_LEVEL_DEGREES_PER_TILE = [(360, 170.1022)]
 for i in range(config.MAX_ZOOM):
     prev = ZOOM_LEVEL_DEGREES_PER_TILE[-1]
     ZOOM_LEVEL_DEGREES_PER_TILE.append((prev[0] / 2, prev[1] / 2))
@@ -27,8 +23,9 @@ for i in range(config.MAX_ZOOM + 1):
     ZOOM_MAP_PROP_PER_TILE.append(frac)
 
 # Minimum zoom level that encompasses a whole map on a tile.
-MIN_FULL_MAP_ZOOM = max( z for z in range(config.MAX_ZOOM)
-                         if ZOOM_MAP_PROP_PER_TILE[z] >= 1.0 )
+MIN_FULL_MAP_ZOOM = max(z for z in range(config.MAX_ZOOM)
+                        if ZOOM_MAP_PROP_PER_TILE[z] >= 1.0)
+'''
 
 class QuadTree:
     def __init__(self, depth, leftX, topY, size, capacity, maxDepth):
@@ -74,35 +71,45 @@ class QuadTree:
 
 class CalculateZooms:
 
-    def __init__(self, points):
+    def __init__(self, points, maxCoordinate, numClusters):
         self.pointsPerTile = 2
+        self.maxCoordinate = maxCoordinate
         self.points = points
         self.numberedZoom= {}   # mapping from point ids to the zoom level at which they appear
         self.minX = min(float(p['x']) for p in self.points.values())
         self.maxX = max(float(p['x']) for p in self.points.values())
         self.minY = min(float(p['y']) for p in self.points.values())
         self.maxY = max(float(p['y']) for p in self.points.values())
+        self.numClusters = numClusters
 
         for p in self.points.values():
             p['popularity'] = float(p['popularity'])
 
-    def simulateZoom(self):
+    def simulateZoom(self, maxZoom):
 
         # Order ids by overall popualarity
         idsByPopularity = [pair[0] for pair in Util.sort_by_feature(self.points, 'popularity')]
 
         # Get top points per cluster 
-        nClusters = config.NUM_CLUSTERS
+        nClusters = self.numClusters
         topPerCluster = [[] for i in range(nClusters)]
         for id in idsByPopularity:
             c = int(self.points[id]['cluster'])
             topPerCluster[c].append(id)
 
+        coordRange = min(TOP_LEVEL_COORDINATES)
+        print coordRange, "TEST!!!"
+        lastZoom = 0
+        for i in range(18):
+            if coordRange >= self.maxCoordinate:
+                lastZoom = i
+            coordRange /= 2.0
         added = set()
 
-        nAdded = [ 0 ]
-        mc = 1.0 * config.MAX_COORDINATE
-        qt = QuadTree(MIN_FULL_MAP_ZOOM, -mc, -mc, mc * 2, self.pointsPerTile, config.MAX_ZOOM)
+        nAdded = [0]
+        mc = 1.0 * self.maxCoordinate
+        qt = QuadTree(lastZoom, -mc, -mc, mc * 2,
+                      self.pointsPerTile, maxZoom)
 
         def maybeAddPoint(pid):
             if pid in added: return
