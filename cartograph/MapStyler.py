@@ -5,7 +5,7 @@ config = Config.BAD_GET_CONFIG()
 
 
 class MapStyler:
-    def __init__(self, width=800, height=600):
+    def __init__(self, width=1600, height=1200):
         self.m = None
         self.width = width
         self.height = height
@@ -26,7 +26,7 @@ class MapStyler:
         self.m.append_style("contour", generateContourPolygonStyle(.25, numContours, clusterIds))
         self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
 
-        self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
+        self.m.append_style("outline", generateLineStyle("#000000", 1.0))
         self.m.layers.append(generateLayer(countryFilename, "outline", "outline"))
         self.m.zoom_all()
 
@@ -94,6 +94,7 @@ def generateLineStyle(color, opacity, dash=None):
     r = mapnik.Rule()
     symbolizer = mapnik.LineSymbolizer()
     symbolizer.stroke = mapnik.Color(color)
+    symbolizer.stroke_width = 0.1
     symbolizer.stroke_opacity = opacity
     if dash:
         symbolizer.stroke_dasharray = dash
