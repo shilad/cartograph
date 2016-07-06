@@ -527,8 +527,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
         colorwheel = config.get("MapData", "colorwheel")[2:-2].split("', '")
-        ms = MapStyler.MapStyler(config.getint("PreprocessingConstants",
-                                               "num_clusters"), colorwheel)
+        ms = MapStyler.MapStyler(config)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -606,7 +605,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
             zoomValues.add(zoomInfo['maxZoom'])
 
         labelCities = Labels(config.get("MapOutput", "map_file"),
-                             config.get("MapData", "title_by_zoom"))
+                             config.get("MapData", "title_by_zoom"),
+                             config.get("MapData", "scale_dimensions"))
         labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
                                            config.MAX_ZOOM,
                                            imgFile=config.get("MapResources",
@@ -631,9 +631,7 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        numClusters = config.get("PreprocessingConstants", "num_clusters")
-        colorwheel = config.get("MapData", "colorwheel")[2:-2].split("', '")
-        ms = MapStyler.MapStyler(numClusters, colorwheel)
+        ms = MapStyler.MapStyler(config)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),
