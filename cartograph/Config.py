@@ -1,5 +1,4 @@
 from ConfigParser import SafeConfigParser
-from os import getcwd
 
 EXTERNAL_FILES = 'ExternalFiles'
 PREPROCESSING_FILES = 'PreprocessingFiles'
