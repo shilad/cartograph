@@ -1,31 +1,27 @@
 from _VoronoiWrapper import VoronoiWrapper
 from _BorderProcessor import BorderProcessor
-from cartograph import Util, Config
+from cartograph import Util
 from collections import defaultdict
-
-config = Config.BAD_GET_CONFIG()
 
 
 class BorderBuilder:
-    def __init__(self, x, y, clusterLabels):
-        self.x = x
-        self.y = y
-        self.clusterLabels = clusterLabels
+    def __init__(self, config):
+        self.x, self.y, self.clusterLabels = [], [], []
+        self.minNumInCluster = config.getint("PreprocessingConstants", "min_num_in_cluster")
+        self.blurRadius = config.getint("PreprocessingConstants", "blur_radius")
+        self.minBorderNoiseLength = config.getfloat("PreprocessingConstants", "min_border_noise_length")
+        self._initialize(config)
 
-    @classmethod
-    def from_file(cls, ):
-        s = "../../" if debug else ""
-        featureDict = Util.read_features(s + config.FILE_NAME_WATER_AND_ARTICLES,
-                                         s + config.FILE_NAME_KEEP,
-                                         s + config.FILE_NAME_WATER_CLUSTERS)
+    def _initialize(self, config):
+        featureDict = Util.read_features(config.get("PreprocessingFiles", "coordinates_with_water"),
+                                         config.get("PreprocessingFiles", "clusters_with_water"),
+                                         config.get("PreprocessingFiles", "denoised_with_id"))
         idList = list(featureDict.keys())
-        x, y, clusters = [], [], []
         for article in idList:
             if featureDict[article]["keep"] == "True":
-                x.append(float(featureDict[article]["x"]))
-                y.append(float(featureDict[article]["y"]))
-                clusters.append(int(featureDict[article]["cluster"]))
-        return cls(x, y, clusters)
+                self.x.append(float(featureDict[article]["x"]))
+                self.y.append(float(featureDict[article]["y"]))
+                self.clusterLabels.append(int(featureDict[article]["cluster"]))
 
     def build(self):
         borders = defaultdict(list)
@@ -55,10 +51,10 @@ class BorderBuilder:
                     currentIndex = edgeVertexDict[nextIndex].index
                 del edgeVertexDict[firstIndex]
                 # TODO: weight islands differently
-                if len(continent) > config.MIN_NUM_IN_CONTINENT:
+                if len(continent) > self.minNumInCluster:
                     borders[label].append(continent)
 
-        BorderProcessor(borders).process()
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength).process()
         # remove water points
         del borders[len(borders) - 1]
         for label in borders:
@@ -66,9 +62,3 @@ class BorderBuilder:
                 for i, vertex in enumerate(continent):
                     continent[i] = (vertex.x, vertex.y)
         return borders
-
-debug = False
-
-if __name__ == '__main__':
-    debug = True
-    BorderBuilder.from_file().build()

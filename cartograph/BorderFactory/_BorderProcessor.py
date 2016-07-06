@@ -1,12 +1,12 @@
 import numpy as np
-from cartograph import Config
 from _Noiser import NoisyEdgesMaker
-config = Config.BAD_GET_CONFIG()
 
 
 class BorderProcessor:
-    def __init__(self, borders):
+    def __init__(self, borders, blurRadius, minBorderNoiseLength):
         self.borders = borders
+        self.blurRadius = blurRadius
+        self.minBorderNoiseLength = minBorderNoiseLength
 
     @staticmethod
     def wrapRange(start, stop, length, reverse=False):
@@ -62,12 +62,12 @@ class BorderProcessor:
         if vertices[0].isOnCoast and vertices[1].isOnCoast:
             # these vertices are on the coast
             # TODO: implement circular noising
-            vertices = NoisyEdgesMaker(vertices).makeNoisyEdges()
+            vertices = NoisyEdgesMaker(vertices, self.minBorderNoiseLength).makeNoisyEdges()
         else:
             x = [vertex.x for vertex in vertices]
             y = [vertex.y for vertex in vertices]
-            x = self.blur(x, circular, config.BLUR_RADIUS)
-            y = self.blur(y, circular, config.BLUR_RADIUS)
+            x = self.blur(x, circular, self.blurRadius)
+            y = self.blur(y, circular, self.blurRadius)
             for i, vertex in enumerate(vertices):
                 vertex.x = x[i]
                 vertex.y = y[i]

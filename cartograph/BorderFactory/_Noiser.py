@@ -1,5 +1,5 @@
 import numpy as np
-from cartograph.BorderFactory._Vertex import Vertex
+from _Vertex import Vertex
 
 
 class NoisyEdgesMaker:
@@ -7,9 +7,9 @@ class NoisyEdgesMaker:
     Implementation based on https://github.com/amitp/mapgen2/blob/master/NoisyEdges.as
     """
 
-    def __init__(self, vertices):
+    def __init__(self, vertices, minBorderNoiseLength):
         self.vertices = vertices
-        self.minLength = 0.1
+        self.minBorderNoiseLength = minBorderNoiseLength
         self.edge = []
 
     @staticmethod
@@ -17,8 +17,8 @@ class NoisyEdgesMaker:
         return pt0 + (np.subtract(pt1, pt0) * value)
 
     def _subdivide(self, a, b, c, d):
-        if np.linalg.norm(np.subtract(b, a)) < self.minLength or \
-                np.linalg.norm(np.subtract(c, d)) < self.minLength:
+        if np.linalg.norm(np.subtract(b, a)) < self.minBorderNoiseLength or \
+                np.linalg.norm(np.subtract(c, d)) < self.minBorderNoiseLength:
             return
 
         # get random center point
