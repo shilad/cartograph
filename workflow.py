@@ -631,7 +631,9 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        ms = MapStyler.MapStyler()
+        numClusters = config.get("PreprocessingConstants", "num_clusters")
+        colorwheel = config.get("MapData", "colorwheel")[2:-2].split("', '")
+        ms = MapStyler.MapStyler(numClusters, colorwheel)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),
