@@ -14,12 +14,13 @@ class Config:
         self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
         self.FILE_NAME_POPULARITY = "./data/labdata/article_pageview_full.tsv"
         self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
-        self.FILE_NAME_NUMBERED_NORM_POPULARITY = "./data/tsv/normalized_popularity_with_id.tsv"
+        self.FILE_NAME_NUMBERED_BIN_POPULARITY = "./data/tsv/percentile_popularity_with_id.tsv"
         self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
         self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
 
         self.MAX_COORDINATE = 40                # Maximum x / y coords. Too large distorts.
         self.MAX_ZOOM = 20 # Maximum zoom level
+        self.NUM_POP_BINS = 3 #Number of bins to determine the 
         self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first

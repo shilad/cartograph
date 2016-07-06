@@ -6,18 +6,12 @@ import Util
 config = Config.BAD_GET_CONFIG()
 
 class ZoomGeoJSONWriter:
-    def __init__(self):
-        self.articleData = self._readInArticles()
-
-    def _readInArticles(self):
-        return Util.read_features(config.FILE_NAME_NUMBERED_ZOOM,
-                config.FILE_NAME_ARTICLE_COORDINATES,
-                config.FILE_NAME_NUMBERED_POPULARITY,
-                config.FILE_NAME_NUMBERED_NAMES)
+    def __init__(self, feats):
+        self.articleData = feats
 
     def generateZoomJSONFeature(self, filename):
         featureAr = []
-        zoomDict = self._readInArticles()
+        zoomDict = self.articleData
         zoomFeatures = list(zoomDict.values())
 
         for pointInfo in zoomFeatures:
@@ -25,7 +19,8 @@ class ZoomGeoJSONWriter:
             newPoint = Point(pointTuple)
             properties = {'maxZoom':int(pointInfo['maxZoom']), 
                           'popularity':float(pointInfo['popularity']),
-                          'cityLabel':str(pointInfo['name'])
+                          'cityLabel':str(pointInfo['name']),
+                          'popBinScore':int(pointInfo['popBinScore'])
                           }
             newFeature = Feature(geometry=newPoint, properties=properties)
             featureAr.append(newFeature)
