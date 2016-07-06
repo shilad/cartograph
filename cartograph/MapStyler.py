@@ -18,19 +18,19 @@ class MapStyler:
         self.m.background = mapnik.Color('white')
         self.m.srs = '+init=epsg:3857'
 
-        jsContour = load(open(contourFilename, 'r'))
-        numContours = [0 for x in range(config.NUM_CLUSTERS)]
-        for feat in jsContour['features']:
-            numContours[feat['properties']['clusterNum']] += 1
+        #jsContour = load(open(contourFilename, 'r'))
+        numContours = [config.NUM_CONTOURS for x in range(config.NUM_CLUSTERS)]
+        #for feat in jsContour['features']:
+            #numContours[feat['properties']['clusternum']] += 1
 
         self.m.append_style("countries", generateCountryPolygonStyle(countryFilename, .20, clusterIds))
-        self.m.layers.append(generateLayer(countryFilename, "countries", "countries"))
+        self.m.layers.append(generateLayer('countries', "countries", "countries"))
 
         self.m.append_style("contour", generateContourPolygonStyle(.20, numContours, clusterIds))
-        self.m.layers.append(generateLayer(contourFilename, "contour", "contour"))
+        self.m.layers.append(generateLayer('contours', "contour", "contour"))
 
         self.m.append_style("outline", generateLineStyle("#999999", 1.0, '3,3'))
-        self.m.layers.append(generateLayer(countryFilename, "outline", "outline"))
+        self.m.layers.append(generateLayer('coordinates', "outline", "outline"))
 
         #extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
         #print(extent)
@@ -79,7 +79,7 @@ def generateCountryPolygonStyle(filename, opacity, clusterIds):
         symbolizer.fill = mapnik.Color(colorWheel[i])
         symbolizer.fill_opacity = opacity
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
+        r.filter = mapnik.Expression('[clusternum].match("' + c + '")')
         s.rules.append(r)
     return s
 
@@ -94,7 +94,7 @@ def generateContourPolygonStyle(opacity, numContours, clusterIds, gamma=1):
         symbolizer.fill_opacity = opacity
         symbolizer.gamma = gamma
         r.symbols.append(symbolizer)
-        r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
+        r.filter = mapnik.Expression('[clusternum].match("' + c + '")')
         s.rules.append(r)
     return s
 
@@ -112,10 +112,22 @@ def generateLineStyle(color, opacity, dash=None):
     return s
 
 
-def generateLayer(jsonFile, name, styleName):
-    ds = mapnik.GeoJSON(file=jsonFile)
+def generateLayer(tableName, name, styleName):
+    ds = getPostgisDatasource(tableName)
     layer = mapnik.Layer(name)
     layer.datasource = ds
     layer.styles.append(styleName)
     layer.srs = '+init=epsg:4236'
     return layer
+
+
+def getPostgisDatasource(table):
+    return mapnik.PostGIS(
+        host = config.PG_HOST,
+        user = config.PG_USER,
+        password = config.PG_PASSWORD,
+        dbname = config.PG_DATABASE,
+        table = table,
+        geometry_field = 'geom',
+    )
+

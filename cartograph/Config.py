@@ -24,6 +24,7 @@ class Config:
         self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
         self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
         self.PERCENTAGE_WATER = 0.05
+        self.NUM_CONTOURS = 8
 
         self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
 
@@ -46,6 +47,12 @@ class Config:
         self.FILE_NAME_REGION_BORDERS = "./data/tsv/region_borders.tsv"
         self.FILE_NAME_TOP_TITLES = "./data/geojson/top_100_articles.geojson"
         self.FILE_NAME_TITLES_BY_ZOOM = "./data/geojson/maxZoom_of_articles.geojson"
+
+        # ====== Postgres ======
+        self.PG_HOST = 'localhost'
+        self.PG_DATABASE = 'mapnik'
+        self.PG_USER = None
+        self.PG_PASSWORD = None
 
 
 __config = Config()

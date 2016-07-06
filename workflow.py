@@ -18,6 +18,7 @@ from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
+from cartograph.PGLoader import LoadGeoJsonTask, TimestampedPostgresTarget
 
 
 config = Config.BAD_GET_CONFIG()  # To be removed
@@ -38,22 +39,23 @@ class MTimeMixin:
                 return [obj]
 
         def mtime(path):
-            return os.path.getmtime(path)
+            return int(os.path.getmtime(path))
 
         if not all(os.path.exists(out.path) for out in to_list(self.output())):
             return False
 
         self_mtime = min(mtime(out.path) for out in to_list(self.output()))
 
-        # the below assumes a list of requirements,
-        # each with a list of outputs. YMMV
         for el in to_list(self.requires()):
             if not el.complete():
                 return False
             for output in to_list(el.output()):
-                if mtime(output.path) > self_mtime:
-                    return False
-
+                if isinstance(output, TimestampedPostgresTarget):
+                    if output.last_mtime() > self_mtime:
+                        return False
+                else:
+                    if mtime(output.path) > self_mtime:
+                        return False
         return True
 
 
@@ -111,6 +113,12 @@ class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
 class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
+
+class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(cartograph.PGLoader.__file__))
+
+
 
 
 # ====================================================================
@@ -484,6 +492,29 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
         titleLabels.generateTopJSONFeature(config.FILE_NAME_TOP_TITLES)
 
 
+class LoadContours(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self, config, 'contours', config.FILE_NAME_CONTOUR_DATA)
+
+    def requires(self):
+        return CreateContours(), PGLoaderCode()
+
+
+class LoadCoordinates(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self, config, 'coordinates', config.FILE_NAME_TITLES_BY_ZOOM)
+
+    def requires(self):
+        return CreateCoordinates(), PGLoaderCode()
+
+
+class LoadCountries(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self, config, 'countries', config.FILE_NAME_COUNTRIES)
+
+    def requires(self):
+        return CreateContinents(), PGLoaderCode()
+
 
 class CreateMapXml(MTimeMixin, luigi.Task):
     '''
@@ -497,9 +528,9 @@ class CreateMapXml(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (
-            CreateContours(),
-            CreateCoordinates(),
-            CreateContinents(),
+            LoadContours(),
+            LoadCoordinates(),
+            LoadCountries(),
             MapStylerCode()
         )
 
