@@ -445,6 +445,7 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.get("MapData", "contours_geojson"))
 
     def run(self):
+
         featuresDict = Util.read_features(config.get("PreprocessingFiles",
                                                      "article_coordinates"),
                                           config.get("PreprocessingFiles",
@@ -456,13 +457,16 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         writeFile = config.get("MapData", "countries_geojson")
+        densityContour = DensityContours.ContourCreator(numClusters)
+        densityContour.buildContours(featuresDict, writeFile)
+        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+
         centroidContour = CentroidContours.ContourCreator(numClusters)
         centroidContour.buildContours(featuresDict, writeFile)
         centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
-        densityContour = DensityContours.ContourCreator(numClusters)
-        densityContour.buildContours(featuresDict, writeFile)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+
+
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
