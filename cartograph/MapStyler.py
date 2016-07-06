@@ -21,7 +21,7 @@ class MapStyler:
         jsContour = load(open(contourFilename, 'r'))
         numContours = [0 for x in range(self.numClusters)]
         for feat in jsContour['features']:
-            numContours[feat['properties']['clusterNum']] += 1
+            numContours[feat['properties']['clusternum']] += 1
 
         self.m.append_style("countries",
                             self.generateCountryPolygonStyle(countryFilename,
@@ -79,7 +79,7 @@ class MapStyler:
             symbolizer.fill = mapnik.Color(self.colorWheel[i])
             symbolizer.fill_opacity = opacity
             r.symbols.append(symbolizer)
-            r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
+            r.filter = mapnik.Expression('[clusternum].match("' + c + '")')
             s.rules.append(r)
         return s
 
@@ -92,7 +92,7 @@ class MapStyler:
             symbolizer.fill_opacity = opacity
             symbolizer.gamma = gamma
             r.symbols.append(symbolizer)
-            r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
+            r.filter = mapnik.Expression('[clusternum].match("' + c + '")')
             s.rules.append(r)
         return s
 
