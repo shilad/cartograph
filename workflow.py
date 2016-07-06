@@ -15,6 +15,7 @@ from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
 from cartograph.CalculateZooms import CalculateZooms
+from cartograph.PopularityLabelSizer import PopularityLabelSizer
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
@@ -208,7 +209,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                        idList, popularityList)
 
 
-class PercentilePopularity(MTimeMixin, luigi.Task):
+class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
     '''
     Bins the popularity values by given percentiles then maps the values to
     the unique article ID. 
@@ -221,10 +222,14 @@ class PercentilePopularity(MTimeMixin, luigi.Task):
 
     def run(self):
         readPopularData = Util.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
-        popularity = np.array(map(float, readPopularData['popularity']))
-        index = map(int, readPopularData['id'])
+        popularity = list(map(float, readPopularData['popularity']))
+        index = list(map(int, readPopularData['id']))
         
+        popLabel = PopularityLabelSizer(3,popularity)
+        popLabelScores = popLabel.calculatePopScore()
         
+        Util.write_tsv("SOME_FILE_NAME_FROM_CONFIG", 
+                        ("id", "popPercentile"), index, popLabelScores)
 
 
         # totalSum = sum(popularity)
