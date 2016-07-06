@@ -1,12 +1,11 @@
 from pygsp import graphs, filters
 import numpy as np
 
-import Config
-config = Config.BAD_GET_CONFIG()
 
 class Denoiser:
 
-    def __init__(self, x, y, clusters):
+    def __init__(self, x, y, clusters, waterLevel):
+        self.waterLevel = waterLevel
         self.x, self.y, self.clusters = self._add_water(x, y, clusters)
         self.num_clusters = len(set(self.clusters))
 
@@ -33,14 +32,14 @@ class Denoiser:
         length = len(x)
         water_x = np.random.uniform(np.min(x) - 3,
                                     np.max(x) + 3,
-                                    int(length * config.PERCENTAGE_WATER))
+                                    int(length * self.waterLevel))
         water_y = np.random.uniform(np.min(x) - 3,
                                     np.max(x) + 3,
-                                    int(length * config.PERCENTAGE_WATER))
+                                    int(length * self.waterLevel))
         x = np.append(x, water_x)
         y = np.append(y, water_y)
         clusters = np.append(clusters,
-                             np.full(int(length * config.PERCENTAGE_WATER),
+                             np.full(int(length * self.waterLevel),
                                      max(clusters) + 1, dtype=np.int))
         return x, y, clusters
 
