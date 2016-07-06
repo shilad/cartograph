@@ -114,6 +114,11 @@ class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
         return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
 
+class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return(luigi.LocalTarget(cartograph.PopularityLabelSizer.__file__))
+
+
 # ====================================================================
 # Clean up raw wikibrain data for uniform data structure manipulation
 # ====================================================================
@@ -215,28 +220,22 @@ class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
     the unique article ID. 
     '''
     def requires(self):
-        return (PopularityLabeler())
+        return (PopularityLabeler(), PopularityLabelSizerCode())
 
     def output(self):
-        return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_NORM_POPULARITY))
+        return (luigi.LocalTarget(config.FILE_NAME_NUMBERED_BIN_POPULARITY))
 
     def run(self):
         readPopularData = Util.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
         popularity = list(map(float, readPopularData['popularity']))
         index = list(map(int, readPopularData['id']))
         
-        popLabel = PopularityLabelSizer(3,popularity)
+        popLabel = PopularityLabelSizer(config.NUM_POP_BINS,popularity)
         popLabelScores = popLabel.calculatePopScore()
         
-        Util.write_tsv("SOME_FILE_NAME_FROM_CONFIG", 
-                        ("id", "popPercentile"), index, popLabelScores)
-
-
-        # totalSum = sum(popularity)
-        # normPopularity = map(lambda x: float(x)/totalSum, popularity)
-
-
-        
+        Util.write_tsv(config.FILE_NAME_NUMBERED_BIN_POPULARITY, 
+                        ("id", "popBinScore"), index, popLabelScores)
+       
 
 class RegionClustering(MTimeMixin, luigi.Task):
     '''
@@ -322,7 +321,8 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     def run(self):
         feats = Util.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
                         config.FILE_NAME_ARTICLE_COORDINATES,
-                        config.FILE_NAME_NUMBERED_CLUSTERS)
+                        config.FILE_NAME_NUMBERED_CLUSTERS,
+                        config.FILE_NAME_NUMBERED_BIN_POPULARITY)
 
         zoom = CalculateZooms(feats)
         numberedZoomDict = zoom.simulateZoom()
@@ -331,7 +331,6 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
 
         Util.write_tsv(config.FILE_NAME_NUMBERED_ZOOM, 
                         ("index","maxZoom"), keys, zoomValue)
-
 
 
 class Denoise(MTimeMixin, luigi.Task):
@@ -464,10 +463,18 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.FILE_NAME_TITLES_BY_ZOOM)
 
     def requires(self):
-        return (ZoomLabeler())
+        return (ZoomLabeler(),
+                PercentilePopularityLabeler())
 
     def run(self):
-        titlesByZoom = ZoomGeoJSONWriter()
+        feats = Util.read_features(config.FILE_NAME_NUMBERED_ZOOM,
+                config.FILE_NAME_ARTICLE_COORDINATES,
+                config.FILE_NAME_NUMBERED_POPULARITY,
+                config.FILE_NAME_NUMBERED_NAMES,
+                config.FILE_NAME_NUMBERED_BIN_POPULARITY
+                )
+
+        titlesByZoom = ZoomGeoJSONWriter(feats)
         titlesByZoom.generateZoomJSONFeature(config.FILE_NAME_TITLES_BY_ZOOM)
 
 
@@ -569,23 +576,22 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
 
     def run(self):
         labelClust = Labels(config.FILE_NAME_MAP, config.FILE_NAME_COUNTRIES)
-        maxScaleClust = labelClust.getScaleDenominator(0)
-        minScaleClust = labelClust.getScaleDenominator(5)
+        maxScaleClust = labelClust.getMaxDenominator(0)
+        minScaleClust = labelClust.getMinDenominator(5)
 
         labelClust.writeLabelsXml('[labels]', 'interior', 
                                     minScale=minScaleClust, 
                                     maxScale=maxScaleClust)
 
-        zoomValues=set()
-        zoomValueData = Util.read_features(config.FILE_NAME_NUMBERED_ZOOM)
-        for zoomInfo in list(zoomValueData.values()):
-            zoomValues.add(zoomInfo['maxZoom'])
-        largestZoomLevel = len(zoomValues) - 1
+        # zoomValues=set()
+        # zoomValueData = Util.read_features(config.FILE_NAME_NUMBERED_ZOOM)
+        # for zoomInfo in list(zoomValueData.values()):
+        #     zoomValues.add(zoomInfo['maxZoom'])
+        # largestZoomLevel = len(zoomValues) - 1
 
         labelCities = Labels(config.FILE_NAME_MAP, config.FILE_NAME_TITLES_BY_ZOOM)
-        labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
-                                           config.MAX_ZOOM, imgFile=config.FILE_NAME_IMGDOT)
-        
+        labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point', 
+                                            config.MAX_ZOOM, imgFile=config.FILE_NAME_IMGDOT, numBins=config.NUM_POP_BINS)
 
 
 class RenderMap(MTimeMixin, luigi.Task):
