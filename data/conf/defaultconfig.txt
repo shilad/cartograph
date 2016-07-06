@@ -30,6 +30,8 @@ water_level: .1
 [MapConstants]
 max_coordinate: 40
 max_zoom: 18
+map_width: 800
+map_height: 600
 
 [MapData]
 countries_geojson: %(geojsonDir)s/countries.geojson
