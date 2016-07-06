@@ -32,6 +32,7 @@ class ContourCreator:
         vectors = [[] for i in range(self.numClusters)]
 
         keys = featureDict.keys()
+        print keys
         for index in keys:
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
