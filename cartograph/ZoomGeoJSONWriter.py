@@ -1,31 +1,21 @@
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
-import Config
-import Util
 
-config = Config.BAD_GET_CONFIG()
 
 class ZoomGeoJSONWriter:
-    def __init__(self):
-        self.articleData = self._readInArticles()
-
-    def _readInArticles(self):
-        return Util.read_features(config.FILE_NAME_NUMBERED_ZOOM,
-                config.FILE_NAME_ARTICLE_COORDINATES,
-                config.FILE_NAME_NUMBERED_POPULARITY,
-                config.FILE_NAME_NUMBERED_NAMES)
+    def __init__(self, featureDict):
+        self.articleData = featureDict
 
     def generateZoomJSONFeature(self, filename):
         featureAr = []
-        zoomDict = self._readInArticles()
-        zoomFeatures = list(zoomDict.values())
+        zoomFeatures = list(self.articleData.values())
 
         for pointInfo in zoomFeatures:
-            pointTuple = (float(pointInfo['x']),float(pointInfo['y']))
+            pointTuple = (float(pointInfo['x']), float(pointInfo['y']))
             newPoint = Point(pointTuple)
-            properties = {'maxZoom':int(pointInfo['maxZoom']), 
-                          'popularity':float(pointInfo['popularity']),
-                          'cityLabel':str(pointInfo['name'])
+            properties = {'maxZoom': int(pointInfo['maxZoom']),
+                          'popularity': float(pointInfo['popularity']),
+                          'cityLabel': str(pointInfo['name'])
                           }
             newFeature = Feature(geometry=newPoint, properties=properties)
             featureAr.append(newFeature)

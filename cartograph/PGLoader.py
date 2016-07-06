@@ -57,10 +57,10 @@ class TimestampedPostgresTarget(PostgresTarget):
 
 class LoadGeoJsonTask(CopyToTable):
     def __init__(self, config, table, geoJsonFilename):
-        self._host = config.PG_HOST
-        self._database = config.PG_DATABASE
-        self._user = config.PG_USER
-        self._password = config.PG_PASSWORD
+        self._host = config.get('PG', 'host')
+        self._database = config.get('PG', 'database')
+        self._user = config.get('PG', 'user') or None
+        self._password = config.get('PG', 'password') or None
         self._table = table
         self._update_id = str(int(os.path.getmtime(geoJsonFilename)))
         self.geoJsonFilename = geoJsonFilename

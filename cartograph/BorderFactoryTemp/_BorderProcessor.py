@@ -1,11 +1,10 @@
 import numpy as np
-from cartograph import Config
-config = Config.BAD_GET_CONFIG()
 
 
 class BorderProcessor:
 
-        def __init__(self, borders):
+        def __init__(self, borders, blurRadius):
+            self.blurRadius = blurRadius
             self.borders = borders
 
         @staticmethod
@@ -27,33 +26,31 @@ class BorderProcessor:
                 else:
                     return range(start, stop + 1)
 
-        @staticmethod
-        def _blur(array, circular):
+        def _blur(self, array, circular):
             blurred = []
+            blurRadius = self.blurRadius
             if circular:
                 for i, _ in enumerate(array):
-                    start = i - config.BLUR_RADIUS
-                    stop = i + config.BLUR_RADIUS
+                    start = i - blurRadius
+                    stop = i + blurRadius
                     neighborhood = [
-                        array[j] for j in BorderProcessor._wrap_range(start, stop, len(array))]
+                        array[j] for j in self._wrap_range(start, stop, len(array))]
                     blurred.append(np.average(neighborhood))
             else:
                 for i, _ in enumerate(array):
-                    start = max(0, i - config.BLUR_RADIUS)
-                    stop = min(len(array) - 1, i + config.BLUR_RADIUS)
+                    start = max(0, i - blurRadius)
+                    stop = min(len(array) - 1, i + blurRadius)
                     neighborhood = [array[j] for j in range(start, stop + 1)]
                     blurred.append(np.average(neighborhood))
             return blurred
 
-        @staticmethod
-        def _blur_points(points, circular):
+        def _blur_points(self, points, circular):
             unzipped = zip(*points)
-            x = BorderProcessor._blur(unzipped[0], circular)
-            y = BorderProcessor._blur(unzipped[1], circular)
+            x = self._blur(unzipped[0], circular)
+            y = self._blur(unzipped[1], circular)
             return zip(x, y)
 
-        @staticmethod
-        def _get_consensus_border_intersection(indices1, indices2, len1, len2, reversed2):
+        def _get_consensus_border_intersection(self, indices1, indices2, len1, len2, reversed2):
             """
             Args:
                 indices1: *aligned* indices of points in region1 which are in intersection
@@ -98,8 +95,7 @@ class BorderProcessor:
                     consensus_lists.pop()
             return consensus_lists, False
 
-        @staticmethod
-        def _get_border_region_indices(region, intersection):
+        def _get_border_region_indices(self, region, intersection):
             """
             Returns:
                 list of indices of points in region which are in intersection
@@ -110,8 +106,7 @@ class BorderProcessor:
                     indices.append(i)
             return indices
 
-        @staticmethod
-        def _get_intersecting_borders(region1, region2):
+        def _get_intersecting_borders(self, region1, region2):
             """
             Returns:
                 list of lists of tuples which represents the aligned indices of region1 and region2 in each contiguous
@@ -122,8 +117,8 @@ class BorderProcessor:
             region2_set = set(region2)
             intersection = region1_set & region2_set
             if intersection:
-                region1_border_idxs = BorderProcessor._get_border_region_indices(region1, intersection)
-                region2_border_idxs = BorderProcessor._get_border_region_indices(region2, intersection)
+                region1_border_idxs = self._get_border_region_indices(region1, intersection)
+                region2_border_idxs = self._get_border_region_indices(region2, intersection)
 
                 # align lists, taking orientation into account
                 search_point = region1[region1_border_idxs[0]]
@@ -146,18 +141,17 @@ class BorderProcessor:
                 else:
                     region2_border_idxs = np.roll(region2_border_idxs, -offset)
 
-                return BorderProcessor._get_consensus_border_intersection(
+                return self._get_consensus_border_intersection(
                     region1_border_idxs, region2_border_idxs, len(region1), len(region2), reverse
                 )
             return [], False
 
-        @staticmethod
-        def _make_new_regions(region1, region2):
+        def _make_new_regions(self, region1, region2):
             """
             Returns:
                 region1 and region2 with their intersecting points modified
             """
-            consensus_lists, circular = BorderProcessor._get_intersecting_borders(region1, region2)
+            consensus_lists, circular = self._get_intersecting_borders(region1, region2)
             processed = []
             for contiguous in consensus_lists:
                 # sanity check
@@ -165,7 +159,7 @@ class BorderProcessor:
                     assert region1[indices[0]] == region2[indices[1]]
                 indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
                 processed.append(
-                    BorderProcessor._blur_points([region1[i] for i in indices[0]], circular)
+                    self._blur_points([region1[i] for i in indices[0]], circular)
                 )
             for i, contiguous in enumerate(processed):
                 for j, point in enumerate(contiguous):
@@ -175,8 +169,7 @@ class BorderProcessor:
                     region2[reg2_idx] = point
             return region1, region2
 
-        @staticmethod
-        def _make_region_adj_matrix_and_index_key(borders):
+        def _make_region_adj_matrix_and_index_key(self, borders):
             """
             Returns:
                 an adjacency matrix and a dictionary mapping group labels to indices
@@ -194,7 +187,7 @@ class BorderProcessor:
             Returns:
                 the borders object where the intersecting borders are made more natural
             """
-            adj_matrix, index_key = BorderProcessor._make_region_adj_matrix_and_index_key(self.borders)
+            adj_matrix, index_key = self._make_region_adj_matrix_and_index_key(self.borders)
             for group_label in self.borders.keys():
                 for reg_idx, region in enumerate(self.borders[group_label]):
                     reg_adj_idx = index_key[group_label] + reg_idx
@@ -205,6 +198,6 @@ class BorderProcessor:
                                 if not adj_matrix[reg_adj_idx][search_reg_adj_idx]:
                                     self.borders[group_label][reg_idx], \
                                         self.borders[search_group_label][search_reg_idx] = \
-                                        BorderProcessor._make_new_regions(region, search_region)
+                                        self._make_new_regions(region, search_region)
                                     adj_matrix[reg_adj_idx][search_reg_adj_idx] = 1
                                     adj_matrix[search_reg_adj_idx][reg_adj_idx] = 1
