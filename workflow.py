@@ -440,14 +440,13 @@ class CreateContours(MTimeMixin, luigi.Task):
                                           config.FILE_NAME_KEEP,
                                           config.FILE_NAME_NUMBERED_VECS)
 
+        densityContour = DensityContours.ContourCreator()
+        densityContour.buildContours(featuresDict)
+        densityContour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 
         centroidContour = CentroidContours.ContourCreator()
         centroidContour.buildContours(featuresDict)
         centroidContour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
-
-        densityContour = DensityContours.ContourCreator()
-        densityContour.buildContours(featuresDict)
-        densityContour.makeContourFeatureCollection(config.FILE_NAME_CONTOUR_DATA)
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
