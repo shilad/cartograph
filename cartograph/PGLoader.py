@@ -62,7 +62,6 @@ class LoadGeoJsonTask(CopyToTable):
         self._user = config.get('PG', 'user') or None
         self._password = config.get('PG', 'password') or None
         self._table = table
-        self._update_id = str(int(os.path.getmtime(geoJsonFilename)))
         self.geoJsonFilename = geoJsonFilename
         logger.info('loading %s.%s from %s' % (self._database, self._table, self.geoJsonFilename))
         super(LoadGeoJsonTask, self).__init__()
@@ -78,7 +77,7 @@ class LoadGeoJsonTask(CopyToTable):
     @property
     def table(self): return self._table
     @property
-    def update_id(self): return self._update_id
+    def update_id(self): return str(int(os.path.getmtime(self.geoJsonFilename)))
 
     def run(self):
         # Part 1: Read in GeoJson and calculate property names and types

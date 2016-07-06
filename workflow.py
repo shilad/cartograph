@@ -11,7 +11,7 @@ from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
-from cartograph.Config import initConf
+from cartograph.Config import initConf, COLORWHEEL
 from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
 import numpy as np
@@ -453,7 +453,6 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.get("MapData", "contours_geojson"))
 
     def run(self):
-
         featuresDict = Util.read_features(config.get("PreprocessingFiles",
                                                      "article_coordinates"),
                                           config.get("PreprocessingFiles",
@@ -462,21 +461,21 @@ class CreateContours(MTimeMixin, luigi.Task):
                                                      "denoised_with_id"),
                                           config.get("ExternalFiles",
                                                      "vecs_with_id"))
+        for key in featuresDict.keys():
+            if key[0] == "w":
+                del featuresDict[key]
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         numContours = config.getint('PreprocessingConstants', 'num_contours')
         writeFile = config.get("MapData", "countries_geojson")
 
-        densityContour = DensityContours.ContourCreator(numClusters)
-        densityContour.buildContours(featuresDict, writeFile, numContours)
-        densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
-
         centroidContour = CentroidContours.ContourCreator(numClusters)
         centroidContour.buildContours(featuresDict, writeFile, numContours)
         centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
-
-
+        densityContour = DensityContours.ContourCreator(numClusters)
+        densityContour.buildContours(featuresDict, writeFile, numContours)
+        densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
@@ -574,8 +573,8 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
-        colorwheel = config.get("MapData", "colorwheel")[2:-2].split("', '")
-        ms = MapStyler.MapStyler(config)
+        colorwheel = COLORWHEEL
+        ms = MapStyler.MapStyler(config, colorwheel)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -656,7 +655,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                              config.get("MapData", "title_by_zoom"),
                              config.get("MapData", "scale_dimensions"))
         labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
-                                           config.get("MapConstants", "max_zoom"),
+                                           config.getint("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
                                                               "img_dot"))
 
@@ -679,7 +678,8 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        ms = MapStyler.MapStyler(config)
+        colorwheel = COLORWHEEL
+        ms = MapStyler.MapStyler(config, COLORWHEEL)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),

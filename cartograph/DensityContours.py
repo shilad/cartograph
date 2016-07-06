@@ -42,6 +42,7 @@ class ContourCreator:
     def _calc_contour(clusterXs, clusterYs, binSize, numContours):
         CSs = []
         for (xs, ys) in zip(clusterXs, clusterYs):
+            if not xs: continue
             H, yedges, xedges = np.histogram2d(ys, xs,
                                                bins=binSize,
                                                range=[[np.min(ys),
