@@ -1,22 +1,23 @@
 from ConfigParser import SafeConfigParser
+from os import getcwd
 
 EXTERNAL_FILES = 'ExternalFiles'
 PREPROCESSING_FILES = 'PreprocessingFiles'
-ANALYZER_CONSTANTS = 'AnalyzerConstants'
-BORDER_FACTORY_CONSTANTS = 'BorderFactoryConstants'
+PREPROCESSING_CONSTANTS = 'PreprocessingConstants'
+MAP_CONSTANTS = 'MapConstants'
 MAP_DATA = 'MapData'
 MAP_IMG_RESOURCES = 'MapResources'
 MAP_OUTPUT = 'MapOutput'
 COLORWHEEL = []
 
 _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
-                     ANALYZER_CONSTANTS, BORDER_FACTORY_CONSTANTS,
+                     PREPROCESSING_CONSTANTS, MAP_CONSTANTS,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
 
 def initConf(confFile=None):
     conf = SafeConfigParser()
-    with open("../data/conf/defaultconfig.txt", "r") as configFile:
+    with open("./data/conf/defaultconfig.txt", "r") as configFile:
         conf.readfp(configFile)
 
     if confFile is not None:
@@ -25,7 +26,7 @@ def initConf(confFile=None):
 
         _verifyRequiredSections(conf, _requiredSections)
 
-    num_clusters = conf.getint(ANALYZER_CONSTANTS, 'num_clusters')
+    num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
     conf.set(MAP_DATA, 'colorwheel', str(_coloringFeatures(num_clusters)))
 
     return conf
