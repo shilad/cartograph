@@ -70,9 +70,9 @@ class ContourCreator:
             extent = [xedgess.min(), xedgess.max(), 
                       yedgess.min(), yedgess.max()]
 
-            # smoothH = spn.zoom(centrality, 4)
-            # smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(centrality, extent=extent))
+            smoothH = spn.zoom(centrality, 4)
+            smoothH[smoothH < 0] = 0
+            CSs.append(plt.contour(smoothH, extent=extent))
 
         return CSs
 
@@ -135,7 +135,7 @@ class ContourCreator:
                 for polygon in contour.polygons:
                     geoPolys.append(polygon.points)
                 newMultiPolygon = MultiPolygon(geoPolys)
-                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum})
+                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum, "identity": str(index) + str(clusterNum)})
                 featureAr.append(newFeature)
 
         return featureAr

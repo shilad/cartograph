@@ -55,3 +55,4 @@ def _coloringFeatures(num_clusters):
                   "#540021", "#e5a0c4", "#80003e", "#ff86ac", "#512745"]
 
         return colors[:num_clusters]
+>>>>>>> 4db0d38a3ac41fe540000c1d3695c7b6080c0fdd

@@ -445,6 +445,7 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.get("MapData", "contours_geojson"))
 
     def run(self):
+
         featuresDict = Util.read_features(config.get("PreprocessingFiles",
                                                      "article_coordinates"),
                                           config.get("PreprocessingFiles",
@@ -456,13 +457,16 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         writeFile = config.get("MapData", "countries_geojson")
+        densityContour = DensityContours.ContourCreator(numClusters)
+        densityContour.buildContours(featuresDict, writeFile)
+        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+
         centroidContour = CentroidContours.ContourCreator(numClusters)
         centroidContour.buildContours(featuresDict, writeFile)
         centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
-        densityContour = DensityContours.ContourCreator(numClusters)
-        densityContour.buildContours(featuresDict, writeFile)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+
+
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
@@ -527,8 +531,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
         colorwheel = config.get("MapData", "colorwheel")[2:-2].split("', '")
-        ms = MapStyler.MapStyler(config.getint("PreprocessingConstants",
-                                               "num_clusters"), colorwheel)
+        ms = MapStyler.MapStyler(config)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -606,7 +609,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
             zoomValues.add(zoomInfo['maxZoom'])
 
         labelCities = Labels(config.get("MapOutput", "map_file"),
-                             config.get("MapData", "title_by_zoom"))
+                             config.get("MapData", "title_by_zoom"),
+                             config.get("MapData", "scale_dimensions"))
         labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
                                            config.MAX_ZOOM,
                                            imgFile=config.get("MapResources",
@@ -631,9 +635,7 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        numClusters = config.get("PreprocessingConstants", "num_clusters")
-        colorwheel = config.get("MapData", "colorwheel")[2:-2].split("', '")
-        ms = MapStyler.MapStyler(numClusters, colorwheel)
+        ms = MapStyler.MapStyler(config)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),
