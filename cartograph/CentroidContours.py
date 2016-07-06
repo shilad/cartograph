@@ -5,18 +5,17 @@ import scipy.ndimage as spn
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 import scipy.stats as sps
-import Config
 import json
 import shapely.geometry as shply
-config = Config.BAD_GET_CONFIG()
 
 
 class ContourCreator:
 
-    def __init__(self):
+    def __init__(self, numClusters):
+        self.numClusters = numClusters
         pass
 
-    def buildContours(self, featureDict):
+    def buildContours(self, featureDict, writeFile):
         xs, ys, vectors = self._sortClusters(featureDict)
         centralities = self._centroidValues(vectors)
         self.CSs = self._calc_contour(xs, ys, centralities, 200)
@@ -25,13 +24,12 @@ class ContourCreator:
         # One child inner list for each contour (n=~7)
         # One grandchild list for each polygon within the contour
         self.plyList = self._get_contours(self.CSs)
-        self.newPlys = self._cleanContours(self.plyList)
+        self.newPlys = self._cleanContours(self.plyList, writeFile)
 
-    @staticmethod
-    def _sortClusters(featureDict):
-        xs = [[] for i in range(config.NUM_CLUSTERS)]
-        ys = [[] for i in range(config.NUM_CLUSTERS)]
-        vectors = [[] for i in range(config.NUM_CLUSTERS)]
+    def _sortClusters(self, featureDict):
+        xs = [[] for i in range(self.numClusters)]
+        ys = [[] for i in range(self.numClusters)]
+        vectors = [[] for i in range(self.numClusters)]
 
         keys = featureDict.keys()
         for index in keys:
@@ -60,19 +58,17 @@ class ContourCreator:
     def _calc_contour(clusterXs, clusterYs, clusterValues, binSize):
         CSs = []
         for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues):
-            centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(ys, xs,
-                                            values,
-                                            statistic='mean',
-                                            bins=binSize,
-                                            range=[[np.min(ys),
-                                            np.max(ys)],
-                                            [np.min(xs),
-                                            np.max(xs)]])
+            centrality, yedgess, xedgess, binNumber = sps.binned_statistic_2d(ys, xs,
+                                                        values, statistic='mean',
+                                                        bins=binSize, range=[[np.min(ys),
+                                                        np.max(ys)], [np.min(xs),
+                                                        np.max(xs)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
             centrality = spn.filters.gaussian_filter(centrality, 2)
-            extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
+            extent = [xedgess.min(), xedgess.max(), 
+                      yedgess.min(), yedgess.max()]
 
             smoothH = spn.zoom(centrality, 4)
             smoothH[smoothH < 0] = 0
@@ -96,8 +92,8 @@ class ContourCreator:
         return plyList
 
     @staticmethod
-    def _cleanContours(plyList):
-        js = json.load(open(config.FILE_NAME_COUNTRIES, 'r'))
+    def _cleanContours(plyList, writeFile):
+        js = json.load(open(writeFile, 'r'))
 
         newPlys = []
         for (clusterId, clusterFeatures) in enumerate(js['features']):
