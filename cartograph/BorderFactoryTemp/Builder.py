@@ -1,22 +1,18 @@
 from _VoronoiWrapper import VoronoiWrapper
 from _BorderProcessor import BorderProcessor
-from cartograph import Util, Config
+from cartograph import Util
 from collections import defaultdict
-
-config = Config.BAD_GET_CONFIG()
 
 
 class Builder:
-    def __init__(self, x, y, clusterLabels):
+    def __init__(self, x, y, clusterLabels, minNumInCluster):
         self.x = x
         self.y = y
         self.clusterLabels = clusterLabels
+        self.minNumInCluster = minNumInCluster
 
     @classmethod
-    def from_file(cls, ):
-        featureDict = Util.read_features(config.FILE_NAME_WATER_AND_ARTICLES,
-                                         config.FILE_NAME_KEEP,
-                                         config.FILE_NAME_WATER_CLUSTERS)
+    def from_file(cls, featureDict, minNumInCluster):
         idList = list(featureDict.keys())
         x, y, clusters = [], [], []
         for article in idList:
@@ -24,9 +20,9 @@ class Builder:
                 x.append(float(featureDict[article]["x"]))
                 y.append(float(featureDict[article]["y"]))
                 clusters.append(int(featureDict[article]["cluster"]))
-        return cls(x, y, clusters)
+        return cls(x, y, clusters, minNumInCluster)
 
-    def build(self):
+    def build(self, blurRadius):
         borders = defaultdict(list)
         vor = VoronoiWrapper(self.x, self.y, self.clusterLabels)
         for label in vor.edgeRidgeDict:
@@ -53,7 +49,7 @@ class Builder:
                     prevIndex = currentIndex
                     currentIndex = edgeVertexDict[nextIndex].index
                 del edgeVertexDict[firstIndex]
-                if len(continent) > config.MIN_NUM_IN_CLUSTER:
+                if len(continent) > self.minNumInCluster:
                     borders[label].append(continent)
 
         # temp debug code
@@ -62,6 +58,6 @@ class Builder:
                 for i, vertex in enumerate(continent):
                     continent[i] = tuple(vertex.point)
 
-        BorderProcessor(borders).process()
+        BorderProcessor(borders, blurRadius).process()
         del borders[len(borders)-1]
         return borders
