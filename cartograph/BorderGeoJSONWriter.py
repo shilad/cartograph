@@ -2,18 +2,15 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 import matplotlib.path as mplPath
 import Util
-import Config
-
-config = Config.BAD_GET_CONFIG()
 
 
 class BorderGeoJSONWriter:
 
-    def __init__(self, clusterList):
+    def __init__(self, clusterList, regionFile):
+        self.regionFile = regionFile
         self.clusterList = self._buildContinentTree(clusterList)
 
-    @staticmethod
-    def _buildContinentTree(clusterList):
+    def _buildContinentTree(self, clusterList):
         continents = []
         for cluster in clusterList:
             continentTree = ContinentTree()
@@ -24,9 +21,8 @@ class BorderGeoJSONWriter:
             continents.append(continentTree)
         return continents
 
-    @staticmethod
-    def _generateJSONFeature(index, continents):
-        label = Util.read_tsv(config.FILE_NAME_REGION_NAMES)
+    def _generateJSONFeature(self, index, continents):
+        label = Util.read_tsv(self.regionFile)
         shapeList = []
         for child in continents:
             shapeList.append(child.points)

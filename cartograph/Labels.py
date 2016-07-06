@@ -1,16 +1,14 @@
 from xml.etree.ElementTree import parse, SubElement
 import Util
-import Config
 
-config = Config.BAD_GET_CONFIG()
 
 class Labels():
-    def __init__(self, mapfile, geojson):
+    def __init__(self, mapfile, geojson, scaleDimensions):
         self.mapFileName = mapfile
         self.mapFile = parse(mapfile)
         self.geojson = geojson
         self.mapRoot = self.mapFile.getroot()
-        self.zoomScaleData = Util.read_zoom(config.FILE_NAME_SCALE_DENOMINATORS)
+        self.zoomScaleData = Util.read_zoom(scaleDimensions)
 
     def getMaxDenominator(self, zoomNum):
         zoomScaleData = self.zoomScaleData
