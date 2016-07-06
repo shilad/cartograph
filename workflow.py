@@ -459,7 +459,7 @@ class CreateContours(MTimeMixin, luigi.Task):
         writeFile = config.get("MapData", "countries_geojson")
         densityContour = DensityContours.ContourCreator(numClusters)
         densityContour.buildContours(featuresDict, writeFile)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+        densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
         centroidContour = CentroidContours.ContourCreator(numClusters)
         centroidContour.buildContours(featuresDict, writeFile)
@@ -612,7 +612,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                              config.get("MapData", "title_by_zoom"),
                              config.get("MapData", "scale_dimensions"))
         labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
-                                           config.MAX_ZOOM,
+                                           config.get("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
                                                               "img_dot"))
 
