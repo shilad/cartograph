@@ -9,7 +9,7 @@ class BorderProcessor:
         self.borders = borders
 
     @staticmethod
-    def _wrapRange(start, stop, length, reverse=False):
+    def wrapRange(start, stop, length, reverse=False):
         """
         Returns:
             range from start to stop *inclusively* modulo length
@@ -27,8 +27,7 @@ class BorderProcessor:
             else:
                 return range(start, stop + 1)
 
-    @staticmethod
-    def _blur(array, circular, radius):
+    def blur(self, array, circular, radius):
         # arrays which are shorter than this will be blurred to a single point
         if len(array) <= radius * 2 + 1:
             return array
@@ -38,7 +37,7 @@ class BorderProcessor:
                 start = i - radius
                 stop = i + radius
                 neighborhood = [
-                    array[j] for j in BorderProcessor._wrapRange(start, stop, len(array))]
+                    array[j] for j in self.wrapRange(start, stop, len(array))]
                 blurred.append(np.average(neighborhood))
         else:
             for i, _ in enumerate(array):
@@ -48,8 +47,7 @@ class BorderProcessor:
                 blurred.append(np.average(neighborhood))
         return blurred
 
-    @staticmethod
-    def _processVertices(vertices, circular):
+    def processVertices(self, vertices, circular):
         """
         Processes the list of vertices based on whether they are part of a coast or not
         Args:
@@ -64,20 +62,19 @@ class BorderProcessor:
         if vertices[0].isOnCoast and vertices[1].isOnCoast:
             # these vertices are on the coast
             # TODO: implement circular noising
-            # vertices = NoisyEdgesMaker(vertices).makeNoisyEdges()
-            pass
+            vertices = NoisyEdgesMaker(vertices).makeNoisyEdges()
         else:
             x = [vertex.x for vertex in vertices]
             y = [vertex.y for vertex in vertices]
-            x = BorderProcessor._blur(x, circular, config.BLUR_RADIUS)
-            y = BorderProcessor._blur(y, circular, config.BLUR_RADIUS)
+            x = self.blur(x, circular, config.BLUR_RADIUS)
+            y = self.blur(y, circular, config.BLUR_RADIUS)
             for i, vertex in enumerate(vertices):
                 vertex.x = x[i]
                 vertex.y = y[i]
         return vertices
 
     @staticmethod
-    def _getConsensusBorderIntersection(indices1, indices2, len1, len2, reverse2):
+    def getConsensusBorderIntersection(indices1, indices2, len1, len2, reverse2):
         """
         Args:
             indices1: *aligned* indices of points in points1 which are in intersection
@@ -119,7 +116,7 @@ class BorderProcessor:
         return consensusLists, False, reverse2
 
     @staticmethod
-    def _getBorderRegionIndices(points, intersection):
+    def getBorderRegionIndices(points, intersection):
         """
         Returns:
             list of indices of points in points which are in intersection
@@ -130,8 +127,7 @@ class BorderProcessor:
                 indices.append(i)
         return indices
 
-    @staticmethod
-    def _getIntersectingBorders(points1, points2):
+    def getIntersectingBorders(self, points1, points2):
         """
         Returns:
             list of lists of tuples which represents the aligned indices of points1 and points2 in each contiguous
@@ -143,8 +139,8 @@ class BorderProcessor:
         pointsSet2 = set(points2)
         intersection = pointsSet1 & pointsSet2
         if intersection:
-            pointsBorderIdxs1 = BorderProcessor._getBorderRegionIndices(points1, intersection)
-            pointsBorderIdxs2 = BorderProcessor._getBorderRegionIndices(points2, intersection)
+            pointsBorderIdxs1 = self.getBorderRegionIndices(points1, intersection)
+            pointsBorderIdxs2 = self.getBorderRegionIndices(points2, intersection)
 
             # align lists, taking orientation into account
             searchPoint = points1[pointsBorderIdxs1[0]]
@@ -168,17 +164,17 @@ class BorderProcessor:
             else:
                 pointsBorderIdxs2 = np.roll(pointsBorderIdxs2, -offset)
 
-            return BorderProcessor._getConsensusBorderIntersection(
+            return self.getConsensusBorderIntersection(
                 pointsBorderIdxs1, pointsBorderIdxs2, len(points1), len(points2), reverse
             )
         return [], False, False
 
-    @staticmethod
-    def _makeNewRegionFromProcessed(region, processedVertices, regionStartStopList, reverse=False):
+    def makeNewRegionFromProcessed(self, region, processedVertices, regionStartStopList, reverse=False):
+        assert len(processedVertices) == len(regionStartStopList)
         if reverse:
-            regionStartStopList = np.roll(regionStartStopList, 1, axis=1)  # swap start and stop
-            regionStartStopList = list(reversed(regionStartStopList))
-            processedVertices = [list(reversed(contiguous)) for contiguous in processedVertices]
+            # reverse both startStopList and processed vertices (both inner and outer lists)
+            regionStartStopList = [list(reversed(startStop)) for startStop in reversed(regionStartStopList)]
+            processedVertices = [list(reversed(contiguous)) for contiguous in reversed(processedVertices)]
         processedRegion = []
         index = 0
         startStopListIndex = 0
@@ -187,24 +183,26 @@ class BorderProcessor:
         for i, startStop in enumerate(regionStartStopList):
             if startStop[0] > startStop[1]:
                 regionStartStopList = np.roll(regionStartStopList, -i - 1, axis=0)
+                processedVertices = np.roll(processedVertices, -i - 1, axis=0)
                 index = startStop[1] + 1
                 break
-        # now that everything is in order, find the region with the smallest start value
+        # now that everything is in order, find the section with the smallest start value and move to to the front
+        # this will only be necessary if there were no regions overlapping 0
         smallestStartValIndex = np.argmin(regionStartStopList, axis=0)[0]
         regionStartStopList = np.roll(regionStartStopList, -smallestStartValIndex, axis=0)
+        processedVertices = np.roll(processedVertices, -smallestStartValIndex, axis=0)
         while index < len(region):
             if startStopListIndex < len(regionStartStopList) and index == regionStartStopList[startStopListIndex][0]:
                 processedRegion.extend(processedVertices[startStopListIndex])
                 start, stop = regionStartStopList[startStopListIndex]
-                index += len(BorderProcessor._wrapRange(start, stop, len(region)))
+                index += len(self.wrapRange(start, stop, len(region)))
                 startStopListIndex += 1
             else:
                 processedRegion.append(region[index])
                 index += 1
         return processedRegion
 
-    @staticmethod
-    def _makeNewRegions(region1, region2):
+    def makeNewRegions(self, region1, region2):
         """
         Args:
             region1: One region represented by Vertex objects
@@ -214,7 +212,7 @@ class BorderProcessor:
         """
         points1 = [(vertex.x, vertex.y) for vertex in region1]
         points2 = [(vertex.x, vertex.y) for vertex in region2]
-        consensusLists, circular, reverse2 = BorderProcessor._getIntersectingBorders(points1, points2)
+        consensusLists, circular, reverse2 = self.getIntersectingBorders(points1, points2)
         if len(consensusLists) == 0:
             return region1, region2
 
@@ -224,22 +222,19 @@ class BorderProcessor:
         for contiguous in consensusLists:
             # sanity check
             for indices in contiguous:
-                if points1[indices[0]] != points2[indices[1]]:
-                    print("Warning: Region points do not match completely.")
-                    break
+                assert points1[indices[0]] == points2[indices[1]]
             indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
             region1StartStopList.append((indices[0][0], indices[0][-1]))
             region2StartStopList.append((indices[1][0], indices[1][-1]))
             processed.append(
-                BorderProcessor._processVertices([region1[i] for i in indices[0]], circular)
+                self.processVertices([region1[i] for i in indices[0]], circular)
             )
 
-        processedRegion1 = BorderProcessor._makeNewRegionFromProcessed(region1, processed, region1StartStopList)
-        processedRegion2 = BorderProcessor._makeNewRegionFromProcessed(region2, processed, region2StartStopList, reverse2)
+        processedRegion1 = self.makeNewRegionFromProcessed(region1, processed, region1StartStopList)
+        processedRegion2 = self.makeNewRegionFromProcessed(region2, processed, region2StartStopList, reverse2)
         return processedRegion1, processedRegion2
 
-    @staticmethod
-    def _makeRegionAdjacencyMatrixAndIndexKey(borders):
+    def makeRegionAdjacencyMatrixAndIndexKey(self):
         """
         Returns:
             an adjacency matrix and a dictionary mapping group labels to indices
@@ -247,9 +242,9 @@ class BorderProcessor:
         """
         indexKey = {}
         n = 0
-        for label in range(len(borders)):
+        for label in range(len(self.borders)):
             indexKey[label] = n
-            n += len(borders[label])
+            n += len(self.borders[label])
         return np.zeros((n, n), dtype=np.int8), indexKey
 
     def process(self):
@@ -257,7 +252,7 @@ class BorderProcessor:
         Returns:
             the borders object where the intersecting borders are made more natural
         """
-        adjMatrix, indexKey = BorderProcessor._makeRegionAdjacencyMatrixAndIndexKey(self.borders)
+        adjMatrix, indexKey = self.makeRegionAdjacencyMatrixAndIndexKey()
         for groupLabel in self.borders:
             for regIdx, region in enumerate(self.borders[groupLabel]):
                 regAdjIdx = indexKey[groupLabel] + regIdx
@@ -268,7 +263,7 @@ class BorderProcessor:
                             if not adjMatrix[regAdjIdx][searchRegAdjIdx]:
                                 self.borders[groupLabel][regIdx], \
                                     self.borders[searchGroupLabel][searchRegIdx] = \
-                                    BorderProcessor._makeNewRegions(region, search_region)
+                                    self.makeNewRegions(region, search_region)
                                 # assert len(set(map(lambda v: v.x, search_region))) == len(search_region)
                                 adjMatrix[regAdjIdx][searchRegAdjIdx] = 1
                                 adjMatrix[searchRegAdjIdx][regAdjIdx] = 1

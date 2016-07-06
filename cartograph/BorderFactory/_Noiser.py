@@ -9,7 +9,7 @@ class NoisyEdgesMaker:
 
     def __init__(self, vertices):
         self.vertices = vertices
-        self.minLength = 0.05
+        self.minLength = 0.1
         self.edge = []
 
     @staticmethod
