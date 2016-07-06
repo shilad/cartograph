@@ -38,7 +38,7 @@ clusters_with_region_id: %(generatedDir)s/region_clusters.tsv
 borders_with_region_id: %(generatedDir)s/region_borders.tsv
 title_by_zoom: %(geojsonDir)s/maxZoom_of_articles.geojson
 top_titles: %(geojsonDir)s/top_100_articles.geojson
-scale_denominators: %(externalDir)s/scale_denominators.tsv
+scale_dimensions: %(externalDir)s/scale_denominators.tsv
 
 [MapResources]
 img_dot: %(generatedDir)s/blackDot.png
