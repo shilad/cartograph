@@ -6,8 +6,8 @@ import Util
 config = Config.BAD_GET_CONFIG()
 
 class ZoomGeoJSONWriter:
-    def __init__(self, feats):
-        self.articleData = feats
+    def __init__(self, featDict):
+        self.articleData = featDict
 
     def generateZoomJSONFeature(self, filename):
         featureAr = []
