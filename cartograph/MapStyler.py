@@ -3,13 +3,13 @@ import mapnik
 
 
 class MapStyler:
-    def __init__(self, numClusters, colorWheel, width=800, height=600):
-        self.m = None
-        self.width = width
-        self.height = height
-        self.colorWheel = colorWheel
-        self.numClusters = numClusters
 
+    def __init__(self, config, colorwheel):
+        self.numClusters = config.getint("PreprocessingConstants", "num_clusters")
+        self.colorWheel = colorwheel
+        self.width = config.getint("MapConstants", "map_width")
+        self.height = config.getint("MapConstants", "map_height")
+        self.m = None
         d = 3000000
         self.extents = mapnik.Box2d(-d, -d, d, d)
 
@@ -61,6 +61,16 @@ class MapStyler:
         self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 
+    def generateSinglePolygonStyle(self, filename, opacity, color, gamma=1):
+        s = mapnik.Style()
+        r = mapnik.Rule()
+        symbolizer = mapnik.PolygonSymbolizer()
+        symbolizer.fill = mapnik.Color('steelblue')
+        symbolizer.fill_opacity = opacity
+        symbolizer.gamma = gamma
+        r.symbols.append(symbolizer)
+        s.rules.append(r)
+        return s
 
     def generateCountryPolygonStyle(self, filename, opacity, clusterIds):
         babyColors = ["#fef7f8", "#76e696", "#ca6dec", "#ade095", "#aba5f8",

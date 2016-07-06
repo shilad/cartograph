@@ -459,13 +459,14 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         writeFile = config.get("MapData", "countries_geojson")
+
         centroidContour = CentroidContours.ContourCreator(numClusters)
         centroidContour.buildContours(featuresDict, writeFile)
         centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
         densityContour = DensityContours.ContourCreator(numClusters)
         densityContour.buildContours(featuresDict, writeFile)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+        densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
@@ -530,8 +531,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
         colorwheel = COLORWHEEL
-        ms = MapStyler.MapStyler(config.getint("PreprocessingConstants",
-                                               "num_clusters"), colorwheel)
+        ms = MapStyler.MapStyler(config, colorwheel)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -609,8 +609,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
             zoomValues.add(zoomInfo['maxZoom'])
 
         labelCities = Labels(config.get("MapOutput", "map_file"),
-                            config.get("MapData", "title_by_zoom"),
-                            config.get("MapData", "scale_dimensions"))
+                             config.get("MapData", "title_by_zoom"),
+                             config.get("MapData", "scale_dimensions"))
         labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
                                            config.getint("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
@@ -635,9 +635,8 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        numClusters = config.get("PreprocessingConstants", "num_clusters")
         colorwheel = COLORWHEEL
-        ms = MapStyler.MapStyler(numClusters, colorwheel)
+        ms = MapStyler.MapStyler(config, COLORWHEEL)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),
