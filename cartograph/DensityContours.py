@@ -4,59 +4,57 @@ import matplotlib.path as mplPath
 import scipy.ndimage as spn
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-import scipy.stats as sps
-import Config
 import json
 import shapely.geometry as shply
-config = Config.BAD_GET_CONFIG()
 
 
 class ContourCreator:
 
-    def __init__(self):
+    def __init__(self, numClusters):
+        self.numClusters = numClusters
         pass
 
-    def buildContours(self, featureDict):
+    def buildContours(self, featureDict, writeFile, numContours):
         xs, ys = self._sortClusters(featureDict)
-        self.CSs = self._calc_contour(xs, ys, 200)
+        self.CSs = self._calc_contour(xs, ys, 200, numContours)
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
         # One grandchild list for each polygon within the contour
         self.plyList = self._get_contours(self.CSs)
-        self.newPlys = self._cleanContours(self.plyList)
+        self.newPlys = self._cleanContours(self.plyList, writeFile)
 
-    @staticmethod
-    def _sortClusters(featureDict):
-        xs = [[] for i in range(config.NUM_CLUSTERS)]
-        ys = [[] for i in range(config.NUM_CLUSTERS)]
+    def _sortClusters(self, featureDict):
+        xs = [[] for i in range(self.numClusters)]
+        ys = [[] for i in range(self.numClusters)]
 
         keys = featureDict.keys()
         for index in keys:
             pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo:
+                continue
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
         return xs, ys
 
     @staticmethod
-    def _calc_contour(clusterXs, clusterYs, binSize):
+    def _calc_contour(clusterXs, clusterYs, binSize, numContours):
         CSs = []
         for (xs, ys) in zip(clusterXs, clusterYs):
             H, yedges, xedges = np.histogram2d(ys, xs,
-                                            bins=binSize,
-                                            range=[[np.min(ys),
-                                            np.max(ys)],
-                                            [np.min(xs),
-                                            np.max(xs)]])
+                                               bins=binSize,
+                                               range=[[np.min(ys),
+                                                      np.max(ys)],
+                                                      [np.min(xs),
+                                                      np.max(xs)]])
 
             H = spn.filters.gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
             smoothH = spn.zoom(H, 4)
             smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, config.NUM_CONTOURS, extent=extent))
+            CSs.append(plt.contour(smoothH, numContours, extent=extent))
 
         return CSs
 
@@ -76,8 +74,8 @@ class ContourCreator:
         return plyList
 
     @staticmethod
-    def _cleanContours(plyList):
-        js = json.load(open(config.FILE_NAME_COUNTRIES, 'r'))
+    def _cleanContours(plyList, writeFile):
+        js = json.load(open(writeFile, 'r'))
 
         newPlys = []
         for (clusterId, clusterFeatures) in enumerate(js['features']):
@@ -119,7 +117,7 @@ class ContourCreator:
                 for polygon in contour.polygons:
                     geoPolys.append(polygon.points)
                 newMultiPolygon = MultiPolygon(geoPolys)
-                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum})
+                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum, "identity": str(index) + str(clusterNum)})
                 featureAr.append(newFeature)
 
         return featureAr
@@ -152,7 +150,8 @@ class Contour:
         for poly in self.polygons:
             path = mplPath.Path(poly.points[0])
             for otherPolys in self.polygons:
-                if poly is not otherPolys and path.contains_points(otherPolys.points[0]).all():
+                if poly is not otherPolys \
+                   and path.contains_points(otherPolys.points[0]).all():
                     poly.children.add(otherPolys)
                     toRemove.add(otherPolys)
         for poly in toRemove:

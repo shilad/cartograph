@@ -1,16 +1,14 @@
 from xml.etree.ElementTree import parse, SubElement
 import Util
-import Config
 
-config = Config.BAD_GET_CONFIG()
 
 class Labels():
-    def __init__(self, mapfile, geojson):
+    def __init__(self, mapfile, geojson, scaleDimensions):
         self.mapFileName = mapfile
         self.mapFile = parse(mapfile)
         self.geojson = geojson
         self.mapRoot = self.mapFile.getroot()
-        self.zoomScaleData = Util.read_zoom(config.FILE_NAME_SCALE_DENOMINATORS)
+        self.zoomScaleData = Util.read_zoom(scaleDimensions)
 
     def getScaleDenominator(self, zoomNum):
         zoomScaleData = self.zoomScaleData
@@ -31,7 +29,10 @@ class Labels():
         textSym.set('face-name', 'DejaVu Sans Book')
         textSym.set('size', '12')
 
-    def _add_Filter_Rules(self, style, field, labelType, filterZoomNum, imgFile):
+
+    def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile):
+        style = SubElement(self.mapRoot, 'Style', 
+                           name=field[1:-1] + str(filterZoomNum) + 'LabelStyle')
         rule = SubElement(style, 'Rule')
 
         filterBy = SubElement(rule, 'Filter')

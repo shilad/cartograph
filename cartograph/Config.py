@@ -1,66 +1,56 @@
-import ConfigParser
+from ConfigParser import SafeConfigParser
+from os import getcwd
 
-class Config:
-    def __init__(self):
-        self.FILE_NAME_WIKIBRAIN_VECS = "./data/labdata/vecs.tsv"
-        self.FILE_NAME_WIKIBRAIN_NAMES = "./data/labdata/names.tsv"
-        self.FILE_NAME_NUMBERED_VECS = "./data/labdata/numberedVecsFull.tsv"
-        self.FILE_NAME_NUMBERED_NAMES = "./data/labdata/numberedNamesFull.tsv"
-        self.FILE_NAME_ARTICLE_EMBEDDING = "./data/labdata/tsne_cache_full.tsv"
-        self.FILE_NAME_ARTICLE_COORDINATES = "./data/tsv/coordinates.tsv"
-        self.FILE_NAME_WATER_AND_ARTICLES = "./data/tsv/water_and_article_coordinates.tsv"
-        self.FILE_NAME_WATER_CLUSTERS = "./data/tsv/clusters_with_water_pts.tsv"
-        self.FILE_NAME_NUMBERED_CLUSTERS = "./data/tsv/numberedClusters.tsv"
-        self.FILE_NAME_KEEP = "./data/tsv/keep.tsv"
-        self.FILE_NAME_POPULARITY = "./data/labdata/article_pageview_full.tsv"
-        self.FILE_NAME_NUMBERED_POPULARITY = "./data/tsv/popularity_with_id.tsv"
-        self.FILE_NAME_NUMBERED_NORM_POPULARITY = "./data/tsv/normalized_popularity_with_id.tsv"
-        self.FILE_NAME_SCALE_DENOMINATORS = "./data/labdata/scale_denominators.tsv"
-        self.FILE_NAME_NUMBERED_ZOOM = "./data/tsv/numberedZoom.tsv"
+EXTERNAL_FILES = 'ExternalFiles'
+PREPROCESSING_FILES = 'PreprocessingFiles'
+PREPROCESSING_CONSTANTS = 'PreprocessingConstants'
+MAP_CONSTANTS = 'MapConstants'
+MAP_DATA = 'MapData'
+MAP_IMG_RESOURCES = 'MapResources'
+MAP_OUTPUT = 'MapOutput'
+COLORWHEEL = []
 
-        self.MAX_COORDINATE = 40                # Maximum x / y coords. Too large distorts.
-        self.MAX_ZOOM = 20 # Maximum zoom level
-        self.NUM_CLUSTERS = 15  # number of clusters to generate from K-means
-        self.TSNE_THETA = 0.5  # lower values = more accurate maps, but take (much) longer
-        self.TSNE_PCA_DIMENSIONS = None  # None indicates not to use PCA first
-        self.PERCENTAGE_WATER = 0.05
-        self.NUM_CONTOURS = 8
-
-        self.COLORWHEEL = ["#795548", "#FF5722", "#FFC107", "#CDDC39", "#4CAF50", "#009688", "#00BCD4", "#2196F3", "#3F51B5", "#673AB7", "#22375a", "#4bfb29", "#2e2e2e", "#cc6733", "#00deaf"]
-
-        # ========== BorderFactory ==========
-        self.MIN_NUM_IN_CLUSTER = 30  # eliminates noise
-        self.BLUR_RADIUS = 5  # defines size of neighborhood for blurring
-        self.MAX_ZOOM_SIMULATION = 18
-
-        # ========== mapGenerator ==========
-        self._localTiles = "./data/tiles/"
-        self._serverTiles = "/var/www/html/tiles/"
-        self.DIRECTORY_NAME_TILES = self._localTiles
-        self.FILE_NAME_REGION_NAMES = "./data/labdata/top_categories_full.tsv"
-        self.FILE_NAME_IMGNAME = "./data/images/world"
-        self.FILE_NAME_IMGDOT = "./data/labdata/blackDot.png"
-        self.FILE_NAME_COUNTRIES = "./data/geojson/countries.geojson"
-        self.FILE_NAME_CONTOUR_DATA = "./data/geojson/contourData.geojson"
-        self.FILE_NAME_MAP = "map.xml"
-        self.FILE_NAME_REGION_CLUSTERS = "./data/tsv/region_clusters.tsv"
-        self.FILE_NAME_REGION_BORDERS = "./data/tsv/region_borders.tsv"
-        self.FILE_NAME_TOP_TITLES = "./data/geojson/top_100_articles.geojson"
-        self.FILE_NAME_TITLES_BY_ZOOM = "./data/geojson/maxZoom_of_articles.geojson"
-
-        # ====== Postgres ======
-        self.PG_HOST = 'localhost'
-        self.PG_DATABASE = 'mapnik'
-        self.PG_USER = None
-        self.PG_PASSWORD = None
+_requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
+                     PREPROCESSING_CONSTANTS, MAP_CONSTANTS,
+                     MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
 
-__config = Config()
+def initConf(confFile=None):
+    conf = SafeConfigParser()
+    with open("./data/conf/defaultconfig.txt", "r") as configFile:
+        conf.readfp(configFile)
+
+    if confFile is not None:
+        with open(confFile, "r") as updateFile:
+            conf.readfp(updateFile)
+
+        _verifyRequiredSections(conf, _requiredSections)
+
+    num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
+    conf.set(MAP_DATA, 'colorwheel', str(_coloringFeatures(num_clusters)))
+
+    return conf
 
 
-def BAD_GET_CONFIG():
-    """
-        TODO: Remove all calls to this,
-        replace with intiailization from a config file.
-    """
-    return __config
+def _verifyRequiredSections(conf, requiredSections):
+    confSections = conf.sections()
+    for section in requiredSections:
+        if section not in confSections:
+            conf.add_section(section)
+            print "Adding section %s" % (section)
+
+
+def _coloringFeatures(num_clusters):
+        assert(num_clusters < 50)
+        colors = ["#f19daa", "#26cf58", "#a51cd7", "#70c946", "#5346f1",
+                  "#7da400", "#9561ff", "#00711b", "#fd5cff", "#757b00",
+                  "#6e76ff", "#da6500", "#0048be", "#ff6031", "#026fdc",
+                  "#c3000f", "#019577", "#ff33c7", "#6bc789", "#af009b",
+                  "#686300", "#d081ff", "#a4bc86", "#002084", "#ff8b55",
+                  "#012870", "#d8ad6a", "#880076", "#eca473", "#210e3b",
+                  "#ff9285", "#005492", "#8b1300", "#8ba3ff", "#653000",
+                  "#f68ff6", "#4e0800", "#d5a1ef", "#350423", "#ff5596",
+                  "#0074a0", "#ce007a", "#93634d", "#88005b", "#cea8d3",
+                  "#540021", "#e5a0c4", "#80003e", "#ff86ac", "#512745"]
+
+        return colors[:num_clusters]
