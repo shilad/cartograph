@@ -5,27 +5,6 @@ import Util
 # Scale denom for each zoom level
 
 TOP_LEVEL_COORDINATES = (360, 170.1022)
-'''
-ZOOM_LEVEL_SCALE_DENOMS = [559082264]
-for i in range(config.MAX_ZOOM):
-    ZOOM_LEVEL_SCALE_DENOMS.append(ZOOM_LEVEL_SCALE_DENOMS[-1] / 2)
-
-# Proportion of map per tile.
-ZOOM_LEVEL_DEGREES_PER_TILE = [(360, 170.1022)]
-for i in range(config.MAX_ZOOM):
-    prev = ZOOM_LEVEL_DEGREES_PER_TILE[-1]
-    ZOOM_LEVEL_DEGREES_PER_TILE.append((prev[0] / 2, prev[1] / 2))
-
-# Proportion of map per zoom level.
-ZOOM_MAP_PROP_PER_TILE = []
-for i in range(config.MAX_ZOOM + 1):
-    frac = ZOOM_LEVEL_DEGREES_PER_TILE[i][1] / (config.MAX_COORDINATE * 2)
-    ZOOM_MAP_PROP_PER_TILE.append(frac)
-
-# Minimum zoom level that encompasses a whole map on a tile.
-MIN_FULL_MAP_ZOOM = max(z for z in range(config.MAX_ZOOM)
-                        if ZOOM_MAP_PROP_PER_TILE[z] >= 1.0)
-'''
 
 class QuadTree:
     def __init__(self, depth, leftX, topY, size, capacity, maxDepth):
@@ -98,7 +77,6 @@ class CalculateZooms:
             topPerCluster[c].append(id)
 
         coordRange = min(TOP_LEVEL_COORDINATES)
-        print coordRange, "TEST!!!"
         lastZoom = 0
         for i in range(18):
             if coordRange >= self.maxCoordinate:
@@ -129,7 +107,7 @@ class CalculateZooms:
                 if iterN < len(topPerCluster[i]):
                     maybeAddPoint(topPerCluster[i][iterN])
 
-            if iterN % 100 == 0: 
+            if iterN % 10000 == 0: 
                 print('Simulation added %d of %d points' % (nAdded[0], len(self.points)))
 
             iterN += 1
