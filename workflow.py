@@ -504,8 +504,11 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
 
     def requires(self):
-        return (ZoomLabeler(),
-                PercentilePopularityLabeler())
+        return (
+                ZoomLabeler(),
+                PercentilePopularityLabeler(),
+                ZoomGeoJSONWriterCode(),
+         )
 
 
     def run(self):
