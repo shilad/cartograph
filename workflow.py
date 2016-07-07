@@ -622,8 +622,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     def run(self):
         labelClust = Labels(config, config.get("MapOutput", "map_file"),
                             'countries', config.get("MapData", "scale_dimensions"))
-        maxScaleClust = labelClust.getScaleDenominator(0)
-        minScaleClust = labelClust.getScaleDenominator(5)
+        maxScaleClust = labelClust.getMaxDenominator(0)
+        minScaleClust = labelClust.getMinDenominator(5)
 
 
         labelClust.writeLabelsXml('[labels]', 'interior',

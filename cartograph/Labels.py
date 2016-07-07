@@ -43,21 +43,22 @@ class Labels():
         textSym.set('face-name', 'DejaVu Sans Book')
         textSym.set('size', '12')
 
-    def _add_Filter_Rules(self, style, zoomField, labelType, filterZoomNum, imgFile, numBins):
+    def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile, numBins):
         style = SubElement(self.mapRoot, 'Style', 
                            name=field[1:-1] + str(filterZoomNum) + 'LabelStyle')
-        rule = SubElement(style, 'Rule')
         sizeLabel = 12
 
         for b in range(numBins):
+            rule = SubElement(style, 'Rule')
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] = " + str(filterZoomNum) +"" and "([popbinscore].match('" + str(b) + "'))"
+            filterBy.text = "[maxzoom] = " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
 
+            minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
 
             shieldSym = SubElement(rule, 'ShieldSymbolizer', placement=labelType)
-            shieldSym.text = zoomField
+            shieldSym.text = field
             shieldSym.set('dx', '15')
             shieldSym.set('unlock-image', 'true')
             shieldSym.set('placement-type', 'simple')
@@ -82,12 +83,12 @@ class Labels():
         self.addDataSource(layer, self.table)
 
     def _add_Shield_Layer_By_Zoom(self, field, maxZoom):
-        for z in range(maxZoom):
+        for z in reversed(range(maxZoom)):
             layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + str(z) + 'Layer')
             layer.set('srs', '+init=epsg:4236')
             layer.set('cache-features', 'true')
             layer.set('minzoom', '0')
-            layer.set('maxzoom', self.getScaleDenominator(z))
+            layer.set('maxzoom', self.getMaxDenominator(z))
             addStyle = SubElement(layer, 'StyleName')
             addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
             self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom = ' + str(z) + ') as foo')
