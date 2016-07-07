@@ -4,25 +4,26 @@ from cartograph import Util
 from collections import defaultdict
 
 
-class Builder:
-    def __init__(self, x, y, clusterLabels, minNumInCluster):
-        self.x = x
-        self.y = y
-        self.clusterLabels = clusterLabels
-        self.minNumInCluster = minNumInCluster
+class BorderBuilder:
+    def __init__(self, config):
+        self.x, self.y, self.clusterLabels = [], [], []
+        self.minNumInCluster = config.getint("PreprocessingConstants", "min_num_in_cluster")
+        self.blurRadius = config.getint("PreprocessingConstants", "blur_radius")
+        self.minBorderNoiseLength = config.getfloat("PreprocessingConstants", "min_border_noise_length")
+        self._initialize(config)
 
-    @classmethod
-    def from_file(cls, featureDict, minNumInCluster):
+    def _initialize(self, config):
+        featureDict = Util.read_features(config.get("PreprocessingFiles", "coordinates_with_water"),
+                                         config.get("PreprocessingFiles", "clusters_with_water"),
+                                         config.get("PreprocessingFiles", "denoised_with_id"))
         idList = list(featureDict.keys())
-        x, y, clusters = [], [], []
         for article in idList:
             if featureDict[article]["keep"] == "True":
-                x.append(float(featureDict[article]["x"]))
-                y.append(float(featureDict[article]["y"]))
-                clusters.append(int(featureDict[article]["cluster"]))
-        return cls(x, y, clusters, minNumInCluster)
+                self.x.append(float(featureDict[article]["x"]))
+                self.y.append(float(featureDict[article]["y"]))
+                self.clusterLabels.append(int(featureDict[article]["cluster"]))
 
-    def build(self, blurRadius):
+    def build(self):
         borders = defaultdict(list)
         vor = VoronoiWrapper(self.x, self.y, self.clusterLabels)
         for label in vor.edgeRidgeDict:
@@ -49,15 +50,15 @@ class Builder:
                     prevIndex = currentIndex
                     currentIndex = edgeVertexDict[nextIndex].index
                 del edgeVertexDict[firstIndex]
+                # TODO: weight islands differently
                 if len(continent) > self.minNumInCluster:
                     borders[label].append(continent)
 
-        # temp debug code
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength).process()
+        # remove water points
+        del borders[len(borders) - 1]
         for label in borders:
             for continent in borders[label]:
                 for i, vertex in enumerate(continent):
-                    continent[i] = tuple(vertex.point)
-
-        BorderProcessor(borders, blurRadius).process()
-        del borders[len(borders)-1]
+                    continent[i] = (vertex.x, vertex.y)
         return borders

@@ -1,5 +1,6 @@
 from json import load
 import mapnik
+import Config
 
 
 class MapStyler:
