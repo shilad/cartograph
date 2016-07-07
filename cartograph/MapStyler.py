@@ -5,6 +5,8 @@ import mapnik
 class MapStyler:
 
     def __init__(self, config, colorwheel):
+        self.config = config
+        self.numContours =  config.getint("PreprocessingConstants", "num_contours")
         self.numClusters = config.getint("PreprocessingConstants", "num_clusters")
         self.colorWheel = colorwheel
         self.width = config.getint("MapConstants", "map_width")
@@ -18,29 +20,23 @@ class MapStyler:
         self.m.background = mapnik.Color('white')
         self.m.srs = '+init=epsg:3857'
 
-        jsContour = load(open(contourFilename, 'r'))
-        numContours = [0 for x in range(self.numClusters)]
-        for feat in jsContour['features']:
-            numContours[feat['properties']['clusterNum']] += 1
-
         self.m.append_style("countries",
                             self.generateCountryPolygonStyle(countryFilename,
                                                              .20, clusterIds))
-        self.m.layers.append(self.generateLayer(countryFilename,
-                                                "countries", "countries"))
+        self.m.layers.append(self.generateLayer('countries', "countries", ["countries"]))
 
+        numContours = [ self.numContours for x in range(self.numClusters)]
         styles = self.generateContourPolygonStyle(1.0, numContours, clusterIds)
         sNames = []
         for i, s in enumerate(styles):
             name = "contour" + str(i)
             self.m.append_style(name, s)
             sNames.append(name)
-        self.m.layers.append(self.generateLayer(contourFilename, "contour", sNames))
+        self.m.layers.append(self.generateLayer('contours', "contour", sNames))
 
         self.m.append_style("outline",
                             self.generateLineStyle("#999999", 1.0, '3,3'))
-        self.m.layers.append(self.generateLayer(countryFilename,
-                                                "outline", "outline"))
+        self.m.layers.append(self.generateLayer('countries', "outline", ["outline"]))
 
         # extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
         # print(extent)
@@ -84,7 +80,7 @@ class MapStyler:
             symbolizer.fill = mapnik.Color(babyColors[i])
             symbolizer.fill_opacity = opacity
             r.symbols.append(symbolizer)
-            r.filter = mapnik.Expression('[clusterNum].match("' + c + '")')
+            r.filter = mapnik.Expression('[clusternum].match("' + c + '")')
             s.rules.append(r)
         return s
 
@@ -122,11 +118,23 @@ class MapStyler:
         s.rules.append(r)
         return s
 
-    def generateLayer(self, jsonFile, name, styleNames):
-        ds = mapnik.GeoJSON(file=jsonFile)
+    def generateLayer(self, tableName, name, styleNames):
+        ds = self.getDatasource(tableName)
         layer = mapnik.Layer(name)
         layer.datasource = ds
+        layer.cache_features = True
         for s in styleNames:
             layer.styles.append(s)
         layer.srs = '+init=epsg:4236'
         return layer
+
+    def getDatasource(self, table):
+        return mapnik.PostGIS(
+            host = self.config.get('PG', 'host'),
+            user = self.config.get('PG', 'user') or None,
+            password = self.config.get('PG', 'password') or None,
+            dbname = self.config.get('PG', 'database'),
+            max_async_connection = 4,
+            #estimate_extent = True,
+            table = table
+        )

@@ -16,6 +16,7 @@ from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
+from cartograph.PGLoader import LoadGeoJsonTask, TimestampedPostgresTarget
 
 
 config = initConf("conf.txt")  # To be removed
@@ -36,22 +37,23 @@ class MTimeMixin:
                 return [obj]
 
         def mtime(path):
-            return os.path.getmtime(path)
+            return int(os.path.getmtime(path))
 
         if not all(os.path.exists(out.path) for out in to_list(self.output())):
             return False
 
         self_mtime = min(mtime(out.path) for out in to_list(self.output()))
 
-        # the below assumes a list of requirements,
-        # each with a list of outputs. YMMV
         for el in to_list(self.requires()):
             if not el.complete():
                 return False
             for output in to_list(el.output()):
-                if mtime(output.path) > self_mtime:
-                    return False
-
+                if isinstance(output, TimestampedPostgresTarget):
+                    if output.last_mtime() > self_mtime:
+                        return False
+                else:
+                    if mtime(output.path) > self_mtime:
+                        return False
         return True
 
 
@@ -109,6 +111,12 @@ class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
 class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
+
+class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (luigi.LocalTarget(cartograph.PGLoader.__file__))
+
+
 
 
 # ====================================================================
@@ -458,14 +466,15 @@ class CreateContours(MTimeMixin, luigi.Task):
                 del featuresDict[key]
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
+        numContours = config.getint('PreprocessingConstants', 'num_contours')
         writeFile = config.get("MapData", "countries_geojson")
 
         centroidContour = CentroidContours.ContourCreator(numClusters)
-        centroidContour.buildContours(featuresDict, writeFile)
+        centroidContour.buildContours(featuresDict, writeFile, numContours)
         centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
         densityContour = DensityContours.ContourCreator(numClusters)
-        densityContour.buildContours(featuresDict, writeFile)
+        densityContour.buildContours(featuresDict, writeFile, numContours)
         densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 
@@ -507,6 +516,40 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
         titleLabels = TopTitlesGeoJSONWriter(100)
         titleLabels.generateJSONFeature(config.get("MapData", "top_titles"))
 
+class LoadContours(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self, 
+            config, 
+            'contours', 
+            config.get('MapData', 'contours_geojson')
+        )
+
+    def requires(self):
+        return CreateContours(), PGLoaderCode()
+
+
+class LoadCoordinates(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self, 
+            config, 
+            'coordinates', 
+            config.get('MapData', 'title_by_zoom')
+        )
+
+    def requires(self):
+        return CreateCoordinates(), PGLoaderCode()
+
+
+class LoadCountries(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self,
+            config, 'countries',
+            config.get('MapData', 'countries_geojson')
+        )
+
+    def requires(self):
+        return CreateContinents(), PGLoaderCode()
+
 
 class CreateMapXml(MTimeMixin, luigi.Task):
     '''
@@ -520,9 +563,9 @@ class CreateMapXml(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (
-            CreateContours(),
-            CreateCoordinates(),
-            CreateContinents(),
+            LoadContours(),
+            LoadCoordinates(),
+            LoadCountries(),
             MapStylerCode()
         )
 
@@ -544,35 +587,6 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         ms.saveImage(mapfile, imgfile + ".svg")
 
 
-class LabelTopArticlesOnMap(MTimeMixin, luigi.Task):
-    '''
-    Mapnik's text renderer is unsupported by the wrapper we're using so
-    instead, labels must be written directly to the xml file to be rendered.
-    This is the hacky version that labels the x most popular articles.
-    '''
-    def requires(self):
-        return (CreateMapXml(),
-                CreateTopLabels(),
-                CreateContinents(),
-                LabelsCode())
-
-    def output(self):
-        return (luigi.LocalTarget(config.get("MapOutput", "map_file")))
-
-    def run(self):
-        label = Labels(config.get("MapOutput", "map_file"),
-                       config.get("MapData", "countries_geojson"))
-        label.writeLabelsXml('[labels]', 'interior',
-                             maxScale='559082264', minScale='17471321')
-
-        titleLabels = Labels(config.get("MapOutput", "map_file"),
-                             config.get("MapData", "top_titles"))
-        titleLabels.writeShieldXml('[titleLabel]', 'point',
-                                   imgFile=config.get("MapResources", "img_dot"),
-                                   minScale='1091958', maxScale='17471321'
-                                   )
-
-
 class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     '''
     Adding the labels directly into the xml file for map rendering.
@@ -592,9 +606,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                 )
 
     def run(self):
-        labelClust = Labels(config.get("MapOutput", "map_file"),
-                            config.get("MapData", "countries_geojson"),
-                            config.get("MapData", "scale_dimensions"))
+        labelClust = Labels(config, config.get("MapOutput", "map_file"),
+                            'countries', config.get("MapData", "scale_dimensions"))
         maxScaleClust = labelClust.getScaleDenominator(0)
         minScaleClust = labelClust.getScaleDenominator(5)
 
@@ -608,10 +621,9 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
         for zoomInfo in list(zoomValueData.values()):
             zoomValues.add(zoomInfo['maxZoom'])
 
-        labelCities = Labels(config.get("MapOutput", "map_file"),
-                             config.get("MapData", "title_by_zoom"),
-                             config.get("MapData", "scale_dimensions"))
-        labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
+        labelCities = Labels(config, config.get("MapOutput", "map_file"),
+                             'coordinates', config.get("MapData", "scale_dimensions"))
+        labelCities.writeLabelsByZoomToXml('[citylabel]', 'point',
                                            config.getint("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
                                                               "img_dot"))
