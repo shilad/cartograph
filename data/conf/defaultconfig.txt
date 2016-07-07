@@ -27,6 +27,7 @@ min_num_in_cluster: 30
 blur_radius: 5 
 water_level: .1 
 num_contours: 5
+min_border_noise_length: .1
 
 [MapConstants]
 max_coordinate: 40
