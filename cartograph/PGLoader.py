@@ -10,6 +10,7 @@ import json
 
 import psycopg2
 
+import random
 import shapely
 import shapely.wkt
 import shapely.geometry 
@@ -77,7 +78,11 @@ class LoadGeoJsonTask(CopyToTable):
     @property
     def table(self): return self._table
     @property
-    def update_id(self): return str(int(os.path.getmtime(self.geoJsonFilename)))
+    def update_id(self): 
+        if os.path.isfile(self.geoJsonFilename):
+            return str(int(os.path.getmtime(self.geoJsonFilename)))
+        else:
+            return '100000000000000000000000000'
 
     def run(self):
         # Part 1: Read in GeoJson and calculate property names and types

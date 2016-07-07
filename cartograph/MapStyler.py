@@ -23,7 +23,7 @@ class MapStyler:
         self.m.append_style("countries",
                             self.generateCountryPolygonStyle(countryFilename,
                                                              .20, clusterIds))
-        self.m.layers.append(self.generateLayer('countries', "countries", "countries"))
+        self.m.layers.append(self.generateLayer('countries', "countries", ["countries"]))
 
         numContours = [ self.numContours for x in range(self.numClusters)]
         styles = self.generateContourPolygonStyle(1.0, numContours, clusterIds)
@@ -36,7 +36,7 @@ class MapStyler:
 
         self.m.append_style("outline",
                             self.generateLineStyle("#999999", 1.0, '3,3'))
-        self.m.layers.append(self.generateLayer('countries', "outline", "outline"))
+        self.m.layers.append(self.generateLayer('countries', "outline", ["outline"]))
 
         # extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
         # print(extent)
@@ -133,5 +133,6 @@ class MapStyler:
             user = self.config.get('PG', 'user') or None,
             password = self.config.get('PG', 'password') or None,
             dbname = self.config.get('PG', 'database'),
+            #estimate_extent = True,
             table = table
         )
