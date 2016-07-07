@@ -287,7 +287,7 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         X = [float(points[k]['x']) for k in keys]
         Y = [float(points[k]['y']) for k in keys]
         maxVal = max(abs(v) for v in X + Y)
-        scaling = config.MAX_COORDINATE / maxVal
+        scaling = config.get("MapConstants", "max_coordinate") / maxVal
         X = [x * scaling for x in X]
         Y = [y * scaling for y in Y]
         Util.write_tsv(config.get("PreprocessingFiles",
