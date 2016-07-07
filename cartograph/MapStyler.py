@@ -5,6 +5,7 @@ import Config
 
 class MapStyler:
 
+
     def __init__(self, config, colorwheel):
         self.config = config
         self.numContours =  config.getint("PreprocessingConstants", "num_contours")
@@ -24,7 +25,7 @@ class MapStyler:
 
         self.m.append_style("countries",
                             self.generateCountryPolygonStyle(countryFilename,
-                                                             .20, clusterIds))
+                                                             1.0, clusterIds))
         self.m.layers.append(self.generateLayer('countries', "countries", ["countries"]))
 
         numContours = [ self.numContours for x in range(self.numClusters)]
@@ -45,6 +46,7 @@ class MapStyler:
         # self.m.zoom_to_box(self.extents)
 
         self.m.zoom_all()
+     
         # print(self.m.envelope())
 
     def saveMapXml(self, countryFilename, mapFilename):
@@ -72,10 +74,12 @@ class MapStyler:
         return s
 
     def generateCountryPolygonStyle(self, filename, opacity, clusterIds):
-        babyColors = ["#fef7f8", "#76e696", "#ca6dec", "#ade095", "#aba5f8",
-                  "#c4ff0c", "#d9c8ff", "#00d833", "#fec3ff", "#d6e200",
-                  "#d5d6ff", "#ff9942", "#2678ff", "#ffaf98", "#46a2fd",
-                  "#ff2b3b", "#02fac8", "#ff9ae3", "#b5e3c4", "#ff30e7"]
+        babyColors = ["#e9e1be", "#ddcdd3", "#d8e5bf", "#f7b2d6", "#b2d8cc",
+                    "#f8dac5", "#b2dede", "#f0cab2", "#b6e7e0", "#f5b2cc",
+                    "#bccfb9", "#f4d9e3", "#b2e5bb", "#d3c6d6", "#cee7d0",
+                    "#f2b2e5", "#e3e2cf", "#bac7f9", "#d4c9b2", "#ffc8fd",
+                    "#ded7b2", "#d4c1e4", "#ccd6b2", "#f4d7f0", "#f6b2c4",
+                    "#b2d2e2", "#fbd7d4", "#b2cfe7", "#e2b9c3", "#f0d7f9"]
         s = mapnik.Style()
         for i, c in enumerate(clusterIds):
             r = mapnik.Rule()
@@ -88,18 +92,13 @@ class MapStyler:
         return s
 
     def generateContourPolygonStyle(self, opacity, numContours, clusterIds, gamma=1):
-        color = ["#f19daa", "#26cf58", "#a51cd7", "#70c946", "#5346f1",
-              "#7da400", "#9561ff", "#00711b", "#fd5cff", "#757b00",
-              "#6e76ff", "#da6500", "#0048be", "#ff6031", "#026fdc",
-              "#c3000f"]
         styles = []
         for i in range(self.numClusters):
             for j in range(numContours[i]):
                 s = mapnik.Style()
                 r = mapnik.Rule()
                 symbolizer = mapnik.PolygonSymbolizer()
-                l = color[i]
-                symbolizer.fill = mapnik.Color(self.colorWheel[l][j])
+                symbolizer.fill = mapnik.Color(self.colorWheel[i][j])
                 symbolizer.fill_opacity = opacity
                 symbolizer.gamma = gamma
                 r.symbols.append(symbolizer)

@@ -14,7 +14,7 @@ from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.ZoomTSVWriter import ZoomTSVWriter
 from cartograph.Labels import Labels
-from cartograph.Config import initConf, COLORWHEEL
+from cartograph.Config import initConf
 from cartograph.CalculateZooms import CalculateZooms
 from cartograph.PopularityLabelSizer import PopularityLabelSizer
 from tsne import bh_sne
@@ -24,7 +24,7 @@ from sklearn.cluster import KMeans
 from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedPostgresTarget, TimestampedLocalTarget, MTimeMixin
 
 
-config = initConf("conf.txt")  # To be removed
+config, COLORWHEEL = initConf("conf.txt")  # To be removed
 
 
 # ====================================================================
@@ -444,13 +444,13 @@ class CreateContours(MTimeMixin, luigi.Task):
         numContours = config.getint('PreprocessingConstants', 'num_contours')
         writeFile = config.get("MapData", "countries_geojson")
 
-        centroidContour = CentroidContours.ContourCreator(numClusters)
-        centroidContour.buildContours(featuresDict, writeFile, numContours)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
-
         densityContour = DensityContours.ContourCreator(numClusters)
         densityContour.buildContours(featuresDict, writeFile, numContours)
         densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+
+        centroidContour = CentroidContours.ContourCreator(numClusters)
+        centroidContour.buildContours(featuresDict, writeFile, numContours)
+        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 class CreateStates(MTimeMixin, luigi.Task):
     '''
@@ -495,7 +495,6 @@ class CreateStates(MTimeMixin, luigi.Task):
        
         #then make sure those get borders created for them??
         #then create and color those polygons in xml
-
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
     '''
@@ -598,8 +597,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
-        colorwheel = COLORWHEEL
-        ms = MapStyler.MapStyler(config, colorwheel)
+        ms = MapStyler.MapStyler(config, COLORWHEEL)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -677,7 +675,6 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        colorwheel = COLORWHEEL
         ms = MapStyler.MapStyler(config, COLORWHEEL)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
