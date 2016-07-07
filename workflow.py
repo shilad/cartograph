@@ -89,7 +89,7 @@ class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
 
 class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return(luigi.LocalTarget(cartograph.PopularityLabelSizer.__file__))
+        return(TimestampedLocalTarget(cartograph.PopularityLabelSizer.__file__))
 
 
 # ====================================================================
