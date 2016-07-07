@@ -1,13 +1,9 @@
-from xml.dom import minidom
-from xml.etree import ElementTree
 from xml.etree.ElementTree import parse, SubElement
 
-import StringIO
 import Util
 
 import lxml.etree as letree
 
-import tempfile
 
 
 class Labels():
