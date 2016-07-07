@@ -67,6 +67,7 @@ class Labels():
     def _add_Text_Layer(self, field):
         layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + 'Layer')
         layer.set('srs', '+init=epsg:4236')
+        layer.set('cache-features', 'true')
 
         addStyle = SubElement(layer, 'StyleName')
         addStyle.text = field[1:-1] + 'LabelStyle'
@@ -77,6 +78,7 @@ class Labels():
         for z in range(maxZoom):
             layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + str(z) + 'Layer')
             layer.set('srs', '+init=epsg:4236')
+            layer.set('cache-features', 'true')
             layer.set('minzoom', '0')
             layer.set('maxzoom', self.getScaleDenominator(z))
             addStyle = SubElement(layer, 'StyleName')
@@ -99,6 +101,7 @@ class Labels():
             SubElement(data, 'Parameter', name=name).text = text
         addParam('type', 'postgis')
         addParam('table', table)
+        addParam('max_async_connection', '4')
         addParam('geometry_field', 'geom')
         addParam('host', self.config.get('PG', 'host'))
         addParam('dbname', self.config.get('PG', 'database'))
