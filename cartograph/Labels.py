@@ -60,6 +60,7 @@ class Labels():
             shieldSym.set('placement-type', 'simple')
             shieldSym.set('file', imgFile)
             shieldSym.set('avoid-edges', 'true')
+            shieldSym.set('minimum-padding', '30')
 
             shieldSym.set('face-name', 'DejaVu Sans Book')
             shieldSym.set('size', str(sizeLabel))
