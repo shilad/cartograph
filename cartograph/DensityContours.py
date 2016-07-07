@@ -14,9 +14,9 @@ class ContourCreator:
         self.numClusters = numClusters
         pass
 
-    def buildContours(self, featureDict, writeFile):
+    def buildContours(self, featureDict, writeFile, numContours):
         xs, ys = self._sortClusters(featureDict)
-        self.CSs = self._calc_contour(xs, ys, 200)
+        self.CSs = self._calc_contour(xs, ys, 200, numContours)
         # Nested list.
         # One outer parent list for each cluster. (n=~10)
         # One child inner list for each contour (n=~7)
@@ -39,9 +39,10 @@ class ContourCreator:
         return xs, ys
 
     @staticmethod
-    def _calc_contour(clusterXs, clusterYs, binSize):
+    def _calc_contour(clusterXs, clusterYs, binSize, numContours):
         CSs = []
         for (xs, ys) in zip(clusterXs, clusterYs):
+            if not xs: continue
             H, yedges, xedges = np.histogram2d(ys, xs,
                                                bins=binSize,
                                                range=[[np.min(ys),
@@ -54,7 +55,7 @@ class ContourCreator:
 
             smoothH = spn.zoom(H, 4)
             smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, extent=extent))
+            CSs.append(plt.contour(smoothH, numContours, extent=extent))
 
         return CSs
 
