@@ -1,2 +1,5 @@
 [PreprocessingConstants]
-serverOutput: ./web/data/server_output.txt
+
+
+[JSData]
+namedZoom: ./web/data/named_zoom.tsv

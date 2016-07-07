@@ -6,6 +6,7 @@ from cartograph import DensityContours
 from cartograph import CentroidContours
 from cartograph import Denoiser
 from cartograph import MapStyler
+from cartograph import Server
 from cartograph.BorderFactoryTemp.Builder import Builder
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
@@ -298,10 +299,11 @@ class ZoomDataWriter(MTimeMixin, luigi.Task):
         return (luigi.LocalTarget("./web/data/named_zoom.tsv"))
 
     def requires(self):
-        return (CalculateZoomsCode())
+        return (CalculateZoomsCode(),
+                ZoomLabeler())
 
     def run(self):
-        writer = ZoomGeoJSONWriter()
+        writer = ZoomTSVWriter()
         writer.writeZoomTSV()
 
 
@@ -714,3 +716,5 @@ class RenderMap(MTimeMixin, luigi.Task):
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".svg")
+
+
