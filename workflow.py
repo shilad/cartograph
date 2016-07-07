@@ -458,15 +458,11 @@ class CreateContours(MTimeMixin, luigi.Task):
                 del featuresDict[key]
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
-        writeFile = config.get("MapData", "countries_geojson")
+        countriesFile = config.get("MapData", "countries_geojson")
 
-        centroidContour = CentroidContours.ContourCreator(numClusters)
-        centroidContour.buildContours(featuresDict, writeFile)
+        centroidContour = CentroidContours.ContourCreator()
+        centroidContour.buildContours(featuresDict, numClusters, countriesFile)
         centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
-
-        densityContour = DensityContours.ContourCreator(numClusters)
-        densityContour.buildContours(featuresDict, writeFile)
-        densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
