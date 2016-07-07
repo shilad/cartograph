@@ -431,11 +431,17 @@ L.Control.Search = L.Control.extend({
 			i, jsonret = {};
 
 		if( L.Util.isArray(propLoc) )
-			for(i in json)
-				jsonret[ this._getPath(json[i],propName) ]= L.latLng( json[i][ propLoc[0] ], json[i][ propLoc[1] ] );
+			for(i in json) {
+				var t = this._getPath(json[i],propName);
+				jsonret[ t ]= L.latLng( json[i][ propLoc[0] ], json[i][ propLoc[1] ] );
+				jsonret[ t ].zoom = json[i][ propLoc[2] ];
+			}
 		else
-			for(i in json)
-				jsonret[ this._getPath(json[i],propName) ]= L.latLng( this._getPath(json[i],propLoc) );
+			for(i in json) {
+				var t = this._getPath(json[i],propName);
+				jsonret[ t ]= L.latLng( this._getPath(json[i],propLoc) );
+				jsonret[ t ].zoom = json[i][ propLoc[2] ];
+			}
 		//TODO throw new Error("propertyName '"+propName+"' not found in JSON data");
 		return jsonret;
 	},
@@ -806,11 +812,9 @@ L.Control.Search = L.Control.extend({
 	},
 
 	_defaultMoveToLocation: function(latlng, title, map, zoomData) {
-		if(this.options.zoomData){
-			
-			zoomLevel = this._zoomData[title]
-			console.log(zoomLevel)
- 			this._map.setView(latlng, zoomLevel);
+		if (latlng.zoom) {
+ 			this._map.setView(latlng, latlng.zoom);
+ 			
 		} else if(this.options.zoom){
 			this._map.setView(latlng, this.options.zoom);
 		} else{

@@ -13,6 +13,7 @@ from cartograph.BorderFactory.BorderBuilder import BorderBuilder
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
+from cartograph.ZoomTSVWriter import ZoomTSVWriter
 from cartograph.Labels import Labels
 from cartograph.Config import initConf, COLORWHEEL
 from cartograph.CalculateZooms import CalculateZooms
@@ -305,7 +306,7 @@ class ZoomDataWriter(MTimeMixin, luigi.Task):
                 ZoomLabeler())
 
     def run(self):
-        writer = ZoomTSVWriter()
+        writer = ZoomTSVWriter(config)
         writer.writeZoomTSV()
 
 
@@ -321,7 +322,6 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     def requires(self):
         return (RegionClustering(),
                 CalculateZoomsCode(),
-                ZoomDataWriter(),
                 CreateCoordinates(),
                 PopularityLabeler())
 
@@ -544,7 +544,8 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.get("MapData", "title_by_zoom"))
 
     def requires(self):
-        return (ZoomLabeler())
+        return (ZoomLabeler(),
+                ZoomDataWriter())
 
     def run(self):
         featureDict = Util.read_features(
