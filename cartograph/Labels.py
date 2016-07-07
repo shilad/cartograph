@@ -41,7 +41,7 @@ class Labels():
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Book')
-        textSym.set('size', '12')
+        textSym.set('size', '30')
 
     def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile, numBins):
         style = SubElement(self.mapRoot, 'Style', 
@@ -63,6 +63,7 @@ class Labels():
             shieldSym.set('unlock-image', 'true')
             shieldSym.set('placement-type', 'simple')
             shieldSym.set('file', imgFile)
+            shieldSym.set('avoid-edges', 'true')
 
             shieldSym.set('face-name', 'DejaVu Sans Book')
             shieldSym.set('size', str(sizeLabel))
