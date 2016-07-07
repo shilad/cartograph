@@ -1,12 +1,15 @@
 import luigi
 import os
+
 import cartograph
+
+from cartograph import Config
 from cartograph import Util
 from cartograph import DensityContours
 from cartograph import CentroidContours
 from cartograph import Denoiser
 from cartograph import MapStyler
-from cartograph.BorderFactoryTemp.Builder import Builder
+from cartograph.BorderFactory.BorderBuilder import BorderBuilder
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
@@ -86,7 +89,7 @@ class MapStylerCode(MTimeMixin, luigi.ExternalTask):
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.BorderFactoryTemp.Builder.__file__))
+        return (luigi.LocalTarget(cartograph.BorderFactory.BorderBuilder.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
@@ -426,13 +429,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
         return regionList, membershipList
 
     def run(self):
-        featureDict = Util.read_features(config.get("PreprocessingFiles", "coordinates_with_water"),
-                                         config.get("PreprocessingFiles", "clusters_with_water"),
-                                         config.get("PreprocessingFiles", "denoised_with_id"))
-        
-        minNumInCluster = config.getint("PreprocessingConstants", "min_num_in_cluster")
-        blurRadius = config.getint("PreprocessingConstants", "blur_radius")
-        clusterDict = Builder.from_file(featureDict, minNumInCluster).build(blurRadius)
+        clusterDict = BorderBuilder(config).build()
         clustList = list(clusterDict.values())
         regionList, membershipList = self.decomposeBorders(clusterDict)
 

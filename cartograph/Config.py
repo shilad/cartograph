@@ -64,7 +64,7 @@ def _verifyRequiredSections(conf, requiredSections):
 
 
 def _coloringFeatures(num_clusters):
-        assert(num_clusters <= 30)
+        assert(num_clusters <= 25)
         colors = {"#f19daa": {6: "#f19daa", 5: "#f2a6b2", 4: "#f3b0bb", 3: "#f5bac3", 2: "#f6c4cc", 1: "#f8ced4", 0: "#f9d7dd"},
                 "#26cf58": {6: "#26cf58", 5: "#3bd368", 4: "#51d879", 3: "#67dd8a", 2: "#7ce29a", 1: "#92e7ab", 0: "#a8ebbc"},
                 "#a51cd7": {6: "#a51cd7", 5: "#ae32db", 4: "#b749df", 3: "#c060e3", 2: "#c976e7", 1: "#d28deb", 0: "#dba4ef"},
