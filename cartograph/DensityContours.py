@@ -38,6 +38,7 @@ class ContourCreator:
             ys[c].append(float(pointInfo['y']))
         return xs, ys
 
+
     @staticmethod
     def _calc_contour(clusterXs, clusterYs, binSize, numContours):
         CSs = []
@@ -55,7 +56,7 @@ class ContourCreator:
 
             smoothH = spn.zoom(H, 4)
             smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, numContours, extent=extent))
+            CSs.append(plt.contour(smoothH, extent=extent))
 
         return CSs
 
