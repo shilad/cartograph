@@ -187,7 +187,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
             name = featureDict[featureID]["name"]
             popularityList.append(nameDict[name])
 
-        Util.write_tsv(config.FILE_NAME_NUMBERED_POPULARITY,
+        Util.write_tsv(config.get("PreprocessingFiles", "popularity_with_id"),
                        ("id", "popularity"),
                        idList, popularityList)
 

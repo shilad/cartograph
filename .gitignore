@@ -6,7 +6,11 @@
 /data/geojson
 /data/tiles
 /data/labdata.key
+/data/macademia_people
 map.xml
+
+*.geojson
+*.geoJSON
 
 .DS_Store
 /data/.DS_Store
@@ -15,3 +19,5 @@ map.xml
 
 __pycache__
 *.pyc
+
+conf.txt
