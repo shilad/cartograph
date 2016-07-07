@@ -40,7 +40,7 @@ class Labels():
 
         for b in range(numBins):
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = str(zoomField) + ".match('" + str(filterZoomNum) +"') and " + "[popBinScore].match('" + str(b) + "')"
+            filterBy.text = str(zoomField) + ".match('" + str(filterZoomNum) +"') and " + "([popBinScore].match('" + str(b) + "'))"
 
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
