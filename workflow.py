@@ -300,6 +300,18 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         Util.write_tsv(config.FILE_NAME_ARTICLE_COORDINATES,
                        ("index", "x", "y"), keys, X, Y)
 
+class ZoomDataWriter(MTimeMixin, luigi.Task):
+    def output(self):
+        #THIS NEEDS TO BE CONVERTED TO A CONSTANT AS WELL AS THE ONE IN ZOOMGEOJSONWRITER
+        return (luigi.LocalTarget("./web/data/named_zoom.tsv"))
+
+    def requires(self):
+        return (CalculateZoomsCode())
+
+    def run(self):
+        writer = ZoomGeoJSONWriter()
+        writer.writeZoomTSV()
+
 class ZoomLabeler(MTimeMixin, luigi.Task):
     '''
     Calculates a starting zoom level for every article point in the data,
@@ -311,6 +323,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     def requires(self):
         return (RegionClustering(),
                 CalculateZoomsCode(),
+                ZoomDataWriter(),
                 CreateCoordinates(),
                 PopularityLabeler())
 
@@ -324,6 +337,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
         keys = list(numberedZoomDict.keys())
         zoomValue = list(numberedZoomDict.values())
 
+        
         Util.write_tsv(config.FILE_NAME_NUMBERED_ZOOM, 
                         ("index","maxZoom"), keys, zoomValue)
 
