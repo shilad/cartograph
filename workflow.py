@@ -11,7 +11,7 @@ from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
-from cartograph.Config import initConf, COLORWHEEL
+from cartograph.Config import initConf
 from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
 import numpy as np
@@ -19,7 +19,7 @@ from sklearn.cluster import KMeans
 from cartograph.PGLoader import LoadGeoJsonTask, TimestampedPostgresTarget
 
 
-config = initConf("conf.txt")  # To be removed
+config, COLORWHEEL = initConf("conf.txt")  # To be removed
 
 
 class MTimeMixin:
@@ -469,13 +469,13 @@ class CreateContours(MTimeMixin, luigi.Task):
         numContours = config.getint('PreprocessingConstants', 'num_contours')
         writeFile = config.get("MapData", "countries_geojson")
 
-        centroidContour = CentroidContours.ContourCreator(numClusters)
-        centroidContour.buildContours(featuresDict, writeFile, numContours)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
-
         densityContour = DensityContours.ContourCreator(numClusters)
         densityContour.buildContours(featuresDict, writeFile, numContours)
         densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+
+        centroidContour = CentroidContours.ContourCreator(numClusters)
+        centroidContour.buildContours(featuresDict, writeFile, numContours)
+        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
@@ -573,8 +573,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
-        colorwheel = COLORWHEEL
-        ms = MapStyler.MapStyler(config, colorwheel)
+        ms = MapStyler.MapStyler(config, COLORWHEEL)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -647,7 +646,6 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        colorwheel = COLORWHEEL
         ms = MapStyler.MapStyler(config, COLORWHEEL)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
