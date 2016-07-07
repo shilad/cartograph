@@ -1,5 +1,1 @@
-[BorderFactoryConstants]
-min_num_in_cluster: 100'
-
-[AnalyzerConstants]
-num_clusters = 30
+[PreprocessingConstants]

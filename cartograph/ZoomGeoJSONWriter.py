@@ -15,10 +15,10 @@ class ZoomGeoJSONWriter:
         for pointInfo in zoomFeatures:
             pointTuple = (float(pointInfo['x']),float(pointInfo['y']))
             newPoint = Point(pointTuple)
-            properties = {'maxZoom':int(pointInfo['maxZoom']), 
+            properties = {'maxzoom':int(pointInfo['maxZoom']), 
                           'popularity':float(pointInfo['popularity']),
-                          'cityLabel':str(pointInfo['name']),
-                          'popBinScore':int(pointInfo['popBinScore'])
+                          'citylabel':str(pointInfo['name']),
+                          'popbinscore':int(pointInfo['popBinScore'])
                           }
             newFeature = Feature(geometry=newPoint, properties=properties)
             featureAr.append(newFeature)

@@ -26,11 +26,15 @@ tsne_theta: 0.5
 min_num_in_cluster: 30  
 blur_radius: 5 
 water_level: .1 
+num_contours: 5
 
 [MapConstants]
 max_coordinate: 40
 max_zoom: 18
 num_pop_bins: 3
+map_width: 800
+map_height: 600
+
 
 [MapData]
 countries_geojson: %(geojsonDir)s/countries.geojson
@@ -42,8 +46,15 @@ top_titles: %(geojsonDir)s/top_100_articles.geojson
 scale_dimensions: %(externalDir)s/scale_denominators.tsv
 
 [MapResources]
-img_dot: %(generatedDir)s/blackDot.png
+img_dot: %(externalDir)s/blackDot.png
 
 [MapOutput]
 map_file: map.xml
 img_src_name: ./data/images/world
+
+[PG]
+host = localhost
+database = mapnik
+user =
+password =
+

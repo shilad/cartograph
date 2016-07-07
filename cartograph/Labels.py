@@ -1,12 +1,21 @@
+from xml.dom import minidom
+from xml.etree import ElementTree
 from xml.etree.ElementTree import parse, SubElement
+
+import StringIO
 import Util
+
+import lxml.etree as letree
+
+import tempfile
 
 
 class Labels():
-    def __init__(self, mapfile, geojson, scaleDimensions):
+    def __init__(self, config, mapfile, table, scaleDimensions):
+        self.config = config
         self.mapFileName = mapfile
         self.mapFile = parse(mapfile)
-        self.geojson = geojson
+        self.table = table
         self.mapRoot = self.mapFile.getroot()
         self.zoomScaleData = Util.read_zoom(scaleDimensions)
 
@@ -34,13 +43,15 @@ class Labels():
         textSym.set('face-name', 'DejaVu Sans Book')
         textSym.set('size', '12')
 
-    def _add_Zoom_Filter_Rules(self, style, zoomField, labelType, filterZoomNum, imgFile, numBins):
+    def _add_Filter_Rules(self, style, zoomField, labelType, filterZoomNum, imgFile, numBins):
+        style = SubElement(self.mapRoot, 'Style', 
+                           name=field[1:-1] + str(filterZoomNum) + 'LabelStyle')
         rule = SubElement(style, 'Rule')
         sizeLabel = 12
 
         for b in range(numBins):
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = str(zoomField) + ".match('" + str(filterZoomNum) +"') and " + "([popBinScore].match('" + str(b) + "'))"
+            filterBy.text = "[maxzoom] = " + str(filterZoomNum) +"" and "([popbinscore].match('" + str(b) + "'))"
 
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
@@ -57,42 +68,59 @@ class Labels():
             sizeLabel += 5
 
     def _add_Shield_Style_By_Zoom(self, field, labelType, maxZoom, imgFile, numBins):
-        style = SubElement(self.mapRoot, 'Style', name=field[1:-1]+'LabelStyle')
         for z in range(maxZoom):
-            self._add_Zoom_Filter_Rules(style, field, labelType, z, imgFile, numBins)
+            self._add_Filter_Rules(field, labelType, z, imgFile, numBins)
 
-    def _add_Text_Layer(self, field, geojsonFile):
+    def _add_Text_Layer(self, field):
         layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + 'Layer')
         layer.set('srs', '+init=epsg:4236')
+        layer.set('cache-features', 'true')
 
         addStyle = SubElement(layer, 'StyleName')
         addStyle.text = field[1:-1] + 'LabelStyle'
 
-        data = SubElement(layer, 'Datasource')
-        dataParamType = SubElement(data, 'Parameter', name='type')
-        dataParamType.text = 'geojson'
-        dataParamFile = SubElement(data, 'Parameter', name='file')
-        dataParamFile.text = geojsonFile
+        self.addDataSource(layer, self.table)
 
-    def _add_Shield_Layer_By_Zoom(self, field, geojsonFile):
-        layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + 'Layer')
-        layer.set('srs', '+init=epsg:4236')
-
-        addStyle = SubElement(layer, 'StyleName')
-        addStyle.text = field[1:-1] + 'LabelStyle'
-
-        data = SubElement(layer, 'Datasource')
-        dataParamType = SubElement(data, 'Parameter', name='type')
-        dataParamType.text = 'geojson'
-        dataParamFile = SubElement(data, 'Parameter', name='file')
-        dataParamFile.text = geojsonFile
+    def _add_Shield_Layer_By_Zoom(self, field, maxZoom):
+        for z in range(maxZoom):
+            layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + str(z) + 'Layer')
+            layer.set('srs', '+init=epsg:4236')
+            layer.set('cache-features', 'true')
+            layer.set('minzoom', '0')
+            layer.set('maxzoom', self.getScaleDenominator(z))
+            addStyle = SubElement(layer, 'StyleName')
+            addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
+            self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom = ' + str(z) + ') as foo')
 
     def writeLabelsByZoomToXml(self, field, labelType, maxZoom, imgFile, numBins):
         self._add_Shield_Style_By_Zoom(field, labelType, maxZoom, imgFile, numBins)
-        self._add_Shield_Layer_By_Zoom(field, self.geojson)
-        self.mapFile.write(self.mapFileName)
+        self._add_Shield_Layer_By_Zoom(field, maxZoom)
+        self.write()
 
     def writeLabelsXml(self, field, labelType, minScale='1066', maxScale='559082264'):
         self._add_Text_Style(field, labelType, minScale, maxScale)
-        self._add_Text_Layer(field, self.geojson)
-        self.mapFile.write(self.mapFileName)
+        self._add_Text_Layer(field)
+        self.write()
+
+    def addDataSource(self, parent, table):
+        data = SubElement(parent, 'Datasource')
+        def addParam(name, text): 
+            SubElement(data, 'Parameter', name=name).text = text
+        addParam('type', 'postgis')
+        addParam('table', table)
+        addParam('max_async_connection', '4')
+        addParam('geometry_field', 'geom')
+        addParam('host', self.config.get('PG', 'host'))
+        addParam('dbname', self.config.get('PG', 'database'))
+        #addParam('estimate_extent', 'true')
+        if self.config.get('PG', 'user'):
+            addParam('user', self.config.get('PG', 'user'))
+        if self.config.get('PG', 'password'):
+            addParam('password', self.config.get('PG', 'password'))
+
+    def write(self):
+        self.mapFile.write(self.mapFileName, encoding='utf-8')
+        parser = letree.XMLParser(remove_blank_text=True)
+        tree = letree.parse(self.mapFileName, parser)
+        tree.write(self.mapFileName, pretty_print=True)
+
