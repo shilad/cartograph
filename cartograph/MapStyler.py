@@ -122,6 +122,7 @@ class MapStyler:
         ds = self.getDatasource(tableName)
         layer = mapnik.Layer(name)
         layer.datasource = ds
+        layer.cache_features = True
         for s in styleNames:
             layer.styles.append(s)
         layer.srs = '+init=epsg:4236'
@@ -133,6 +134,7 @@ class MapStyler:
             user = self.config.get('PG', 'user') or None,
             password = self.config.get('PG', 'password') or None,
             dbname = self.config.get('PG', 'database'),
+            max_async_connection = 4,
             #estimate_extent = True,
             table = table
         )
