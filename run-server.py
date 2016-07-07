@@ -7,5 +7,4 @@ import os
 
 from cartograph.Server import run_server
 
-config = initConf("conf.txt")  # To be removed
-run_server(os.path.abspath('./data/tilestache.cfg'), config)
+run_server(os.path.abspath("conf.txt"), os.path.abspath('./data/tilestache.cfg'))

@@ -2,6 +2,7 @@ import json, os, shutil
 
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
+from cartograph.Config import initConf
 
 import Util
 
@@ -9,17 +10,18 @@ import TileStache
 
 # this needs to go away because of new config config = Config.BAD_GET_CONFIG()
 
-def run_server(path_cfg, config):
-    config = config
-    path_cfg = os.path.abspath(path_cfg)
-    path_cache = json.load(open(path_cfg, 'r'))['cache']['path']
+def run_server(path_cartograph_cfg, path_tilestache_cfg):
+    config = initConf(path_cartograph_cfg) 
+    
+    path_tilestache_cfg = os.path.abspath(path_tilestache_cfg)
+    path_cache = json.load(open(path_tilestache_cfg, 'r'))['cache']['path']
     static_files =  { '/static': os.path.join(os.path.abspath('./web')) }
 
     if os.path.isdir(path_cache):
         assert(len(path_cache) > 5)
         shutil.rmtree(path_cache)
 
-    app = CartographServer(path_cfg, config)
+    app = CartographServer(path_tilestache_cfg, config)
     run_simple('0.0.0.0', 8080, app, static_files=static_files)
     with open(config.get("PreprocessingConstants", "serverOutput"), "w") as writeFile:
         writeFile.write("Server running")
@@ -29,24 +31,25 @@ def run_server(path_cfg, config):
 
 class CartographServer(TileStache.WSGITileServer):
 
-    def __init__(self, path_cfg, config):
-        self.config = config
-        super(CartographServer, self).__init__(path_cfg)
-
-    def __call__(self, environ, start_response):
-
-        xyDict = Util.read_features(config.get("PreprocessingFiles", "article_coordinates"),
-                                         config.get("External Files", "names_with_id"))
-        locList = []
+    def __init__(self, path_cfg, cartograph_cfg):
+        TileStache.WSGITileServer.__init__(self, path_cfg)
+        self.cartoconfig = cartograph_cfg
+        xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
+                                         self.cartoconfig.get("ExternalFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
+        self.locList = []
 
         for entry in xyDict:
             #x and y have to be flipped to get it to match up
             y = float(xyDict[entry]['x'])
             x = float(xyDict[entry]['y'])
             title = xyDict[entry]['name']
-            loc = [x, y]
+            zoom = xyDict[entry]['maxZoom']
+            loc = [x, y, zoom]
             jsonDict = {"loc": loc, "title": title}
-            locList.append(jsonDict)
+            self.locList.append(jsonDict)
+
+    def __call__(self, environ, start_response):
+
         
         path_info = environ.get('PATH_INFO', None)
         if path_info.startswith('/dynamic/search'):
@@ -54,7 +57,7 @@ class CartographServer(TileStache.WSGITileServer):
 
             jsList = []
             title = request.args['q']
-            for item in locList:
+            for item in self.locList:
                 if item['title'] == title:
                     jsDict = item
                     jsList.append(item)
