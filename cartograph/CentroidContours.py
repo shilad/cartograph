@@ -32,7 +32,6 @@ class ContourCreator:
         vectors = [[] for i in range(self.numClusters)]
 
         keys = featureDict.keys()
-        print keys
         for index in keys:
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
@@ -61,9 +60,8 @@ class ContourCreator:
         for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues):
             centrality, yedgess, xedgess, binNumber = sps.binned_statistic_2d(ys, xs,
                                                         values, statistic='mean',
-                                                        bins=binSize, range=[[np.min(ys),
-                                                        np.max(ys)], [np.min(xs),
-                                                        np.max(xs)]])
+                                                        bins=binSize,
+                                                        range=[[np.min(ys), np.max(ys)], [np.min(xs), np.max(xs)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
