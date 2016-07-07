@@ -139,7 +139,7 @@ class ContourCreator:
                 for polygon in contour.polygons:
                     geoPolys.append(polygon.points)
                 newMultiPolygon = MultiPolygon(geoPolys)
-                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum})
+                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum, "identity": str(index) + str(clusterNum)})
                 featureAr.append(newFeature)
 
         return featureAr
