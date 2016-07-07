@@ -15,3 +15,5 @@ map.xml
 
 __pycache__
 *.pyc
+
+conf.txt
