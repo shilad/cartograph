@@ -15,17 +15,57 @@ import shapely
 import shapely.wkt
 import shapely.geometry 
 
+import luigi
 from luigi.postgres import CopyToTable, PostgresTarget
 
 logger = logging.getLogger('luigi-interface')
 
 
+def to_list(obj):
+    if type(obj) in (type(()), type([])):
+        return obj
+    else:
+        return [obj]
+
+class TimestampedLocalTarget(luigi.LocalTarget):
+    def mtime(self):
+        if not os.path.exists(self.path):
+            return -1
+        else:
+            return int(os.path.getmtime(self.path))
+
+class MTimeMixin:
+    '''
+    Mixin that flags a task as incomplete if any requirement
+    is incomplete or has been updated more recently than this task
+    This is based on http://stackoverflow.com/a/29304506, but extends
+    it to support multiple input / output dependencies.
+    '''
+    def complete(self):
+
+        mtimes = [out.mtime() for out in to_list(self.output())]
+        if -1 in mtimes:    # something doesn't exist!
+            return False
+
+        self_mtime = min(mtimes)    # oldest of our outputs  
+
+        for el in to_list(self.requires()):
+            if not el.complete():
+                return False
+            for output in to_list(el.output()):
+                if output.mtime() > self_mtime:
+                    return False
+        return True
+
 class TimestampedPostgresTarget(PostgresTarget):
-    def last_mtime(self):
+    def mtime(self):
         with self.connect() as cnx:
+            if not self.exists(cnx):
+                return -1
             cursor = cnx.cursor()
             cursor.execute("""
-                SELECT max(update_id::integer) FROM %s
+                SELECT max(split_part(update_id, '_', 2)::integer)
+                FROM %s
                 WHERE target_table = %%s""" % self.marker_table,
                 (self.table, ))
             row = cursor.fetchone()
@@ -34,32 +74,7 @@ class TimestampedPostgresTarget(PostgresTarget):
             else:
                 return int(row[0])
 
-    def complete(self):
-        def to_list(obj):
-            if type(obj) in (type(()), type([])):
-                return obj
-            else:
-                return [obj]
-
-        if not self.exists(): 
-            return False
-
-        def mtime(path):
-            return int(os.path.getmtime(path))
-
-        self_mtime = self.last_mtime()
-
-        for el in to_list(self.requires()):
-            if not el.complete():
-                return False
-            for output in to_list(el.output()):
-                if mtime(output.path) > self_mtime:
-                    return False
-        return True
-
-
-
-class LoadGeoJsonTask(CopyToTable):
+class LoadGeoJsonTask(MTimeMixin, CopyToTable):
     def __init__(self, config, table, geoJsonFilename):
         self._host = config.get('PG', 'host')
         self._database = config.get('PG', 'database')
@@ -82,10 +97,13 @@ class LoadGeoJsonTask(CopyToTable):
     def table(self): return self._table
     @property
     def update_id(self): 
-        if os.path.isfile(self.geoJsonFilename):
-            return str(int(os.path.getmtime(self.geoJsonFilename)))
-        else:
-            return '100000000000000000000000000'
+        max_mtime = -1
+        for el in to_list(self.requires()):
+            if not el.complete():
+                return self.table + '_100000000000000000000000000'
+            for output in to_list(el.output()):
+                max_mtime = max(output.mtime(), max_mtime)
+        return self.table + '_' + str(max_mtime)
 
     def run(self):
         # Part 1: Read in GeoJson and calculate property names and types
