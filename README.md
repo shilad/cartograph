@@ -1,5 +1,5 @@
 # Procedural Map Generation
-Note: This architecture is based off of the stack designed on https://switch2osm.org/serving-tiles/. For reference, the original install instructions (which are quite out of date in a number of ways) are located [here] (https://switch2osm.org/serving-tiles/manually-building-a-tile-server-14-04/). 
+Note: This architecture is based off of the stack designed on https://switch2osm.org/serving-tiles/. For reference, the original install instructions (which are quite out of date in a number of ways) are located [here](https://switch2osm.org/serving-tiles/manually-building-a-tile-server-14-04/). 
 
 # Machine Setup
 ## Install Virtualbox and Ubuntu. 
