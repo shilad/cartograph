@@ -4,9 +4,11 @@
   <title> Leaflet Map </title>
   <link rel="stylesheet" href="leaflet.css"/>
   <link rel="stylesheet" href="leafletmap.css"/>
+  <link rel="stylesheet" href ="leaflet-search.css"/>
   <script src="leaflet.js"></script>
   <script src="leaflet-search.js"></script>
   <script src="jquery-3.0.0.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
 
 </head>
@@ -31,7 +33,7 @@
 
   var infobox = document.getElementById('infobox');
 
-
+/* taking these out for now
   var countryUtfGrid = new L.UtfGrid('http://localhost:8080/map_countries_utfgrid/{z}/{x}/{y}.json?callback={cb}', {
     		  resolution: 4
  		  });;
@@ -93,16 +95,47 @@ var baseLayers = {
 
 L.control.layers(baseLayers, null, {'collapsed': false}).addTo(map);
 
+*/
 
-//this is the search box - i think the url should be the dynamic/ thing, but I'm not sure how to put the {s} parameter in so that it actually searches for the right thing
-//TODO: actually import leaflet search
-map.addControl(new L.control.search({
+var namedZoom = {}
+
+
+d3.tsv("data/named_zoom.tsv", function(data) {	
+	 data.forEach(function(d) {
+	 	name = String(d.name)
+	 	zoom = parseInt(d.maxZoom)
+	 	namedZoom[name] = zoom
+	 	
+  	});
+
+	/* this goes in here becasue the d3 call is asynchronous and otherwise namedZoom is emtpy) */
+    map.addControl(new L.control.search({
 		url: '/dynamic/search?q={s}',
 		textPlaceholder: 'Search for an article',
 		collapsed: false,
 		markerLocation: true,
-		markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
-}));
+		markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]}),
+		zoom: 7,
+		zoomData: namedZoom
+	}));
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 

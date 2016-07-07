@@ -48,7 +48,8 @@ L.Control.Search = L.Control.extend({
 		markerLocation: false,		    //draw a marker in location found
 		hideMarkerOnCollapse: false,    //remove circle and marker on search control collapsed		
 		markerIcon: new L.Icon.Default(),//custom icon for maker location
-		position: 'topleft'
+		position: 'topleft',
+		zoomData: null					// option to create dynamic zoom based on points - takes in dict-like object of titles and zoom levels - CREATED BY ME
 		//TODO implement can do research on multiple sources layers and remote		
 		//TODO history: false,		//show latest searches in tooltip		
 	},
@@ -66,6 +67,8 @@ L.Control.Search = L.Control.extend({
 //	like this: _recordsCache = {"text-key1": {loc:[lat,lng], ..other attributes.. }, {"text-key2": {loc:[lat,lng]}...}, ...}
 //	in this mode every record can have a free structure of attributes, only 'loc' is required
 	
+
+	
 	initialize: function(options) {
 		L.Util.setOptions(this, options || {});
 		this._inputMinSize = this.options.textPlaceholder ? this.options.textPlaceholder.length : 10;
@@ -77,6 +80,7 @@ L.Control.Search = L.Control.extend({
 		this._countertips = 0;		//number of tips items
 		this._recordsCache = {};	//key,value table! that store locations! format: key,latlng
 		this._curReq = null;
+		this._zoomData = this.options.zoomData
 	},
 
 	onAdd: function (map) {
@@ -801,11 +805,17 @@ L.Control.Search = L.Control.extend({
 			return false;
 	},
 
-	_defaultMoveToLocation: function(latlng, title, map) {
-		if(this.options.zoom)
- 			this._map.setView(latlng, this.options.zoom);
- 		else
+	_defaultMoveToLocation: function(latlng, title, map, zoomData) {
+		if(this.options.zoomData){
+			
+			zoomLevel = this._zoomData[title]
+			console.log(zoomLevel)
+ 			this._map.setView(latlng, zoomLevel);
+		} else if(this.options.zoom){
+			this._map.setView(latlng, this.options.zoom);
+		} else{
 			this._map.panTo(latlng);
+		}
 	},
 
 	showLocation: function(latlng, title) {	//set location on map from _recordsCache
