@@ -270,19 +270,6 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
                                   "article_coordinates")
                        ("index", "x", "y"), keys, X, Y)
 
-class ZoomDataWriter(MTimeMixin, luigi.Task):
-    def output(self):
-        #THIS NEEDS TO BE CONVERTED TO A CONSTANT AS WELL AS THE ONE IN ZOOMGEOJSONWRITER
-        return (luigi.LocalTarget("./web/data/named_zoom.tsv"))
-
-    def requires(self):
-        return (CalculateZoomsCode(),
-                ZoomLabeler())
-
-    def run(self):
-        writer = ZoomTSVWriter(config)
-        writer.writeZoomTSV()
-
 
 class ZoomLabeler(MTimeMixin, luigi.Task):
     '''
@@ -475,7 +462,7 @@ class CreateStates(MTimeMixin, luigi.Task):
                CreateContours())
     def output(self):
         ''' TODO - figure out what this is going to return'''
-        return luigi.LocalTarget(config.FILE_NAME_STATE_CLUSTERS)
+        return TimestampedLocalTarget(config.FILE_NAME_STATE_CLUSTERS)
     def run(self):
         #create dictionary of article ids to a dictionary with cluster numbers and vectors representing them
         articleDict = Util.read_features(config.FILE_NAME_NUMBERED_CLUSTERS, config.FILE_NAME_NUMBERED_VECS)
@@ -519,7 +506,6 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (ZoomLabeler(),
-                ZoomDataWriter(),
                 PercentilePopularityLabeler())
 
 
