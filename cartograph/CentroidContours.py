@@ -11,11 +11,11 @@ import shapely.geometry as shply
 
 class ContourCreator:
 
-    def __init__(self):
-        pass
+    def __init__(self, numClusters):
+        self.numClusters = numClusters
 
-    def buildContours(self, featureDict, writeFile, numContours):
-        xs, ys, vectors = self._sortClusters(featureDict)
+    def buildContours(self, featureDict, countryFile, numContours):
+        xs, ys, vectors = self._sortClusters(featureDict, self.numClusters)
         centralities = self._centroidValues(vectors)
         self.CSs = self._calc_contour(xs, ys, centralities, 200, numContours)
         # Nested list.
