@@ -1,1 +1,2 @@
 [PreprocessingConstants]
+serverOutput: ./web/data/server_output.txt
