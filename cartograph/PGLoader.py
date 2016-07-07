@@ -44,6 +44,9 @@ class TimestampedPostgresTarget(PostgresTarget):
         if not self.exists(): 
             return False
 
+        def mtime(path):
+            return int(os.path.getmtime(path))
+
         self_mtime = self.last_mtime()
 
         for el in to_list(self.requires()):
