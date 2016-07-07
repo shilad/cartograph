@@ -1,5 +1,4 @@
 import luigi
-import os
 
 import cartograph
 
@@ -19,45 +18,10 @@ from cartograph.CalculateZooms import CalculateZooms
 from tsne import bh_sne
 import numpy as np
 from sklearn.cluster import KMeans
-from cartograph.PGLoader import LoadGeoJsonTask, TimestampedPostgresTarget
+from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedPostgresTarget, TimestampedLocalTarget, MTimeMixin
 
 
 config = initConf("conf.txt")  # To be removed
-
-
-class MTimeMixin:
-    '''
-    Mixin that flags a task as incomplete if any requirement
-    is incomplete or has been updated more recently than this task
-    This is based on http://stackoverflow.com/a/29304506, but extends
-    it to support multiple input / output dependencies.
-    '''
-    def complete(self):
-        def to_list(obj):
-            if type(obj) in (type(()), type([])):
-                return obj
-            else:
-                return [obj]
-
-        def mtime(path):
-            return int(os.path.getmtime(path))
-
-        if not all(os.path.exists(out.path) for out in to_list(self.output())):
-            return False
-
-        self_mtime = min(mtime(out.path) for out in to_list(self.output()))
-
-        for el in to_list(self.requires()):
-            if not el.complete():
-                return False
-            for output in to_list(el.output()):
-                if isinstance(output, TimestampedPostgresTarget):
-                    if output.last_mtime() > self_mtime:
-                        return False
-                else:
-                    if mtime(output.path) > self_mtime:
-                        return False
-        return True
 
 
 # ====================================================================
@@ -68,56 +32,56 @@ class MTimeMixin:
 
 class DensityContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.DensityContours.__file__))
+        return (TimestampedLocalTarget(cartograph.DensityContours.__file__))
 
 
 class CentroidContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.CentroidContours.__file__))
+        return (TimestampedLocalTarget(cartograph.CentroidContours.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.Denoiser.__file__))
+        return (TimestampedLocalTarget(cartograph.Denoiser.__file__))
 
 
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.MapStyler.__file__))
+        return (TimestampedLocalTarget(cartograph.MapStyler.__file__))
 
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.BorderFactory.BorderBuilder.__file__))
+        return (TimestampedLocalTarget(cartograph.BorderFactory.BorderBuilder.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.BorderGeoJSONWriter.__file__))
+        return (TimestampedLocalTarget(cartograph.BorderGeoJSONWriter.__file__))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.TopTitlesGeoJSONWriter.__file__))
+        return (TimestampedLocalTarget(cartograph.TopTitlesGeoJSONWriter.__file__))
 
 
 class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.Labels.__file__))
+        return (TimestampedLocalTarget(cartograph.Labels.__file__))
 
 
 class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.CalculateZooms.__file__))
+        return (TimestampedLocalTarget(cartograph.CalculateZooms.__file__))
 
 
 class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return(luigi.LocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
+        return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
 class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(cartograph.PGLoader.__file__))
+        return (TimestampedLocalTarget(cartograph.LuigiUtils.__file__))
 
 
 
@@ -133,12 +97,12 @@ class LabelNames(luigi.ExternalTask):
     and WikiBrain
     '''
     def output(self):
-        return (luigi.LocalTarget(config.get("ExternalFiles", "region_names")))
+        return (TimestampedLocalTarget(config.get("ExternalFiles", "region_names")))
 
 
 class ArticlePopularity(luigi.ExternalTask):
     def output(self):
-        return (luigi.LocalTarget(config.get("ExternalFiles", "popularity")))
+        return (TimestampedLocalTarget(config.get("ExternalFiles", "popularity")))
 
 
 class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
@@ -148,9 +112,9 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     use of any subset of features of interest
     '''
     def output(self):
-        return (luigi.LocalTarget(config.get("ExternalFiles",
+        return (TimestampedLocalTarget(config.get("ExternalFiles",
                                              "vecs_with_id")),
-                luigi.LocalTarget(config.get("ExternalFiles",
+                TimestampedLocalTarget(config.get("ExternalFiles",
                                              "names_with_id")))
 
 # ====================================================================
@@ -168,7 +132,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
                 ArticlePopularity())
 
     def output(self):
-        return (luigi.LocalTarget(config.get("PreprocessingFiles",
+        return (TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "popularity_with_id")))
 
     def run(self):
@@ -204,7 +168,7 @@ class PercentilePopularity(MTimeMixin, luigi.Task):
         return (PopularityLabeler())
 
     def output(self):
-        return (luigi.LocalTarget(config.get("PreprocessingFiles",
+        return (TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "normalized_popularity")))
 
     def run(self):
@@ -224,7 +188,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
     algorithm clusters numbers consistantly refer to the same entity
     '''
     def output(self):
-        return luigi.LocalTarget(config.get("PreprocessingFiles",
+        return TimestampedLocalTarget(config.get("PreprocessingFiles",
                                             "clusters_with_id"))
 
     def requires(self):
@@ -249,7 +213,7 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
     mapping purposes
     '''
     def output(self):
-        return luigi.LocalTarget(config.get("ExternalFiles",
+        return TimestampedLocalTarget(config.get("ExternalFiles",
                                             "article_embedding"))
 
     def requires(self):
@@ -274,7 +238,7 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
     mapping purposes
     '''
     def output(self):
-        return luigi.LocalTarget(config.get("PreprocessingFiles",
+        return TimestampedLocalTarget(config.get("PreprocessingFiles",
                                             "article_coordinates"))
 
     def requires(self):
@@ -301,7 +265,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     i.e. determines when each article label should appear.
     '''
     def output(self):
-        return luigi.LocalTarget(config.get("PreprocessingFiles",
+        return TimestampedLocalTarget(config.get("PreprocessingFiles",
                                             "zoom_with_id"))
 
     def requires(self):
@@ -336,11 +300,11 @@ class Denoise(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            luigi.LocalTarget(config.get("PreprocessingFiles",
+            TimestampedLocalTarget(config.get("PreprocessingFiles",
                                          "denoised_with_id")),
-            luigi.LocalTarget(config.get("PreprocessingFiles",
+            TimestampedLocalTarget(config.get("PreprocessingFiles",
                                          "clusters_with_water")),
-            luigi.LocalTarget(config.get("PreprocessingFiles",
+            TimestampedLocalTarget(config.get("PreprocessingFiles",
                                          "coordinates_with_water"))
         )
 
@@ -392,9 +356,9 @@ class CreateContinents(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            luigi.LocalTarget(config.get("MapData", "countries_geojson")),
-            luigi.LocalTarget(config.get("MapData", "clusters_with_region_id")),
-            luigi.LocalTarget(config.get("MapData", "borders_with_region_id")))
+            TimestampedLocalTarget(config.get("MapData", "countries_geojson")),
+            TimestampedLocalTarget(config.get("MapData", "clusters_with_region_id")),
+            TimestampedLocalTarget(config.get("MapData", "borders_with_region_id")))
 
     def requires(self):
         return (LabelNames(),
@@ -447,7 +411,7 @@ class CreateContours(MTimeMixin, luigi.Task):
                 CreateContinents())
 
     def output(self):
-        return luigi.LocalTarget(config.get("MapData", "contours_geojson"))
+        return TimestampedLocalTarget(config.get("MapData", "contours_geojson"))
 
     def run(self):
         featuresDict = Util.read_features(config.get("PreprocessingFiles",
@@ -480,7 +444,7 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
     Generates geojson data for relative zoom labelling in map.xml
     '''
     def output(self):
-        return luigi.LocalTarget(config.get("MapData", "title_by_zoom"))
+        return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
 
     def requires(self):
         return (ZoomLabeler())
@@ -507,7 +471,7 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
                 TopTitlesGeoJSONWriterCode())
 
     def output(self):
-        return luigi.LocalTarget(config.get("MapData", "top_titles"))
+        return TimestampedLocalTarget(config.get("MapData", "top_titles"))
 
     def run(self):
         titleLabels = TopTitlesGeoJSONWriter(100)
@@ -556,7 +520,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            luigi.LocalTarget(config.get("MapOutput", "map_file")))
+            TimestampedLocalTarget(config.get("MapOutput", "map_file")))
 
     def requires(self):
         return (
@@ -591,7 +555,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     the CalculateZooms.py
     '''
     def output(self):
-        return (luigi.LocalTarget(config.get("MapOutput", "map_file")))
+        return (TimestampedLocalTarget(config.get("MapOutput", "map_file")))
 
     def requires(self):
         return (CreateMapXml(),
@@ -633,14 +597,17 @@ class RenderMap(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateMapXml(),
+                LoadCoordinates(),
+                LoadCountries(),
+                LoadContours(),
                 LabelMapUsingZoom(),
                 MapStylerCode())
 
     def output(self):
         return(
-            luigi.LocalTarget(config.get("MapOutput",
+            TimestampedLocalTarget(config.get("MapOutput",
                                          "img_src_name") + '.png'),
-            luigi.LocalTarget(config.get("MapOutput",
+            TimestampedLocalTarget(config.get("MapOutput",
                                          "img_src_name") + '.svg'))
 
     def run(self):
