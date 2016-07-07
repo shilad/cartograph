@@ -1,3 +1,0 @@
-[PreprocessingConstants]
-min_num_in_cluster: 30
-num_clusters = 13
