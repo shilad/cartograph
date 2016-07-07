@@ -3,8 +3,6 @@ from geojson import dumps, Point
 import Config
 import Util
 
-config = Config.BAD_GET_CONFIG()
-
 class ZoomGeoJSONWriter:
     def __init__(self, featDict):
         self.articleData = featDict

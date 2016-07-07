@@ -208,7 +208,7 @@ class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
         popularity = list(map(float, readPopularData['popularity']))
         index = list(map(int, readPopularData['id']))
         
-        popLabel = PopularityLabelSizer(config.get("MapConstants", "num_pop_bins"),
+        popLabel = PopularityLabelSizer(config.getint("MapConstants", "num_pop_bins"),
                                                     popularity)
         popLabelScores = popLabel.calculatePopScore()
         
@@ -625,7 +625,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                                                                 "max_zoom"),
                                            imgFile=config.get("MapResources",
                                                               "img_dot"),
-                                           numBins=config.get("MapConstants",
+                                           numBins=config.getint("MapConstants",
                                                                 "num_pop_bins"))
 
 
