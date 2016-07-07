@@ -476,7 +476,7 @@ class CreateContours(MTimeMixin, luigi.Task):
         densityContour = DensityContours.ContourCreator(numClusters)
         densityContour.buildContours(featuresDict, writeFile, numContours)
         densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
-        
+
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
     '''
