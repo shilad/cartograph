@@ -587,35 +587,6 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         ms.saveImage(mapfile, imgfile + ".svg")
 
 
-class LabelTopArticlesOnMap(MTimeMixin, luigi.Task):
-    '''
-    Mapnik's text renderer is unsupported by the wrapper we're using so
-    instead, labels must be written directly to the xml file to be rendered.
-    This is the hacky version that labels the x most popular articles.
-    '''
-    def requires(self):
-        return (CreateMapXml(),
-                CreateTopLabels(),
-                CreateContinents(),
-                LabelsCode())
-
-    def output(self):
-        return (luigi.LocalTarget(config.get("MapOutput", "map_file")))
-
-    def run(self):
-        label = Labels(config.get("MapOutput", "map_file"),
-                       config.get("MapData", "countries_geojson"))
-        label.writeLabelsXml('[labels]', 'interior',
-                             maxScale='559082264', minScale='17471321')
-
-        titleLabels = Labels(config.get("MapOutput", "map_file"),
-                             config.get("MapData", "top_titles"))
-        titleLabels.writeShieldXml('[titleLabel]', 'point',
-                                   imgFile=config.get("MapResources", "img_dot"),
-                                   minScale='1091958', maxScale='17471321'
-                                   )
-
-
 class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     '''
     Adding the labels directly into the xml file for map rendering.
@@ -635,9 +606,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                 )
 
     def run(self):
-        labelClust = Labels(config.get("MapOutput", "map_file"),
-                            config.get("MapData", "countries_geojson"),
-                            config.get("MapData", "scale_dimensions"))
+        labelClust = Labels(config, config.get("MapOutput", "map_file"),
+                            'countries', config.get("MapData", "scale_dimensions"))
         maxScaleClust = labelClust.getScaleDenominator(0)
         minScaleClust = labelClust.getScaleDenominator(5)
 
@@ -651,10 +621,9 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
         for zoomInfo in list(zoomValueData.values()):
             zoomValues.add(zoomInfo['maxZoom'])
 
-        labelCities = Labels(config.get("MapOutput", "map_file"),
-                             config.get("MapData", "title_by_zoom"),
-                             config.get("MapData", "scale_dimensions"))
-        labelCities.writeLabelsByZoomToXml('[cityLabel]', 'point',
+        labelCities = Labels(config, config.get("MapOutput", "map_file"),
+                             'coordinates', config.get("MapData", "scale_dimensions"))
+        labelCities.writeLabelsByZoomToXml('[citylabel]', 'point',
                                            config.getint("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
                                                               "img_dot"))
