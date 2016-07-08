@@ -100,27 +100,13 @@ L.control.layers(baseLayers, null, {'collapsed': false}).addTo(map);
 var namedZoom = {}
 
 
-d3.tsv("data/named_zoom.tsv", function(data) {	
-	 data.forEach(function(d) {
-	 	name = String(d.name)
-	 	zoom = parseInt(d.maxZoom)
-	 	namedZoom[name] = zoom
-	 	
-  	});
-
-	/* this goes in here becasue the d3 call is asynchronous and otherwise namedZoom is emtpy) */
-    map.addControl(new L.control.search({
-		url: '/dynamic/search?q={s}',
-		textPlaceholder: 'Search for an article',
-		collapsed: false,
-		markerLocation: true,
-		markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]}),
-		zoom: 7,
-		zoomData: namedZoom
-	}));
-
-
-});
+map.addControl(new L.control.search({
+	url: '/dynamic/search?q={s}',
+	textPlaceholder: 'Search for an article',
+	collapsed: false,
+	markerLocation: true,
+	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
+}));
 
 
 
@@ -137,19 +123,14 @@ d3.tsv("data/named_zoom.tsv", function(data) {
 
 
 
-/*
 
-//this function should probably execute onclick of the search box or something like that!
-jQuery.ajax({
-    url: ',
-    type: 'GET',
-    contentType: 'application/json',
-    success: function (data){
-        alert(data);
-    }
- });
-});
-*/
+
+
+
+
+
+
+
 
 
   </script>
