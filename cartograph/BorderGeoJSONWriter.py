@@ -24,10 +24,12 @@ class BorderGeoJSONWriter:
     def _generateJSONFeature(self, index, continents):
         label = Util.read_tsv(self.regionFile)
         shapeList = []
+        holes = []
         for child in continents:
+            holes.append(child.points[1:])
             shapeList.append(child.points)
         newMultiPolygon = MultiPolygon(shapeList)
-        properties = {"clusterNum": index, "labels": label["label"][index]}
+        properties = {"clusterNum": index, "labels": label["label"][index], "holes": holes}
         return Feature(geometry=newMultiPolygon, properties=properties)
 
     def writeToFile(self, filename):

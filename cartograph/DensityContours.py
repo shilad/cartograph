@@ -38,7 +38,6 @@ class ContourCreator:
             ys[c].append(float(pointInfo['y']))
         return xs, ys
 
-
     @staticmethod
     def _calc_contour(clusterXs, clusterYs, binSize, numContours):
         CSs = []
