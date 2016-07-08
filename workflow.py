@@ -5,7 +5,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import cartograph
-
+import os
 from cartograph import Config
 from cartograph import Util
 from cartograph import DensityContours
