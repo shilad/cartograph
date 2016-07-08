@@ -17,22 +17,25 @@ coordinates_with_water: %(generatedDir)s/water_and_article_coordinates.tsv
 clusters_with_water: %(generatedDir)s/clusters_with_water_pts.tsv
 denoised_with_id: %(generatedDir)s/keep.tsv
 popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
-normalized_popularity: %(generatedDir)s/normalizedPopularity.tsv
+percentile_popularity_with_id: %(generatedDir)s/percentile_popularity_with_id.tsv
 zoom_with_id: %(generatedDir)s/numberedZoom.tsv
 
 [PreprocessingConstants]
-num_clusters: 13 
+num_clusters: 13
 tsne_theta: 0.5
 min_num_in_cluster: 30  
 blur_radius: 5 
 water_level: .1 
 num_contours: 5
+min_border_noise_length: .1
 
 [MapConstants]
 max_coordinate: 40
 max_zoom: 18
+num_pop_bins: 3
 map_width: 800
 map_height: 600
+
 
 [MapData]
 countries_geojson: %(geojsonDir)s/countries.geojson
