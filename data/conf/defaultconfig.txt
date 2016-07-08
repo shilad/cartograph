@@ -2,6 +2,8 @@
 externalDir: ./data/labdata
 generatedDir: ./data/tsv
 geojsonDir: ./data/geojson
+postprocessingDir: ./data/postprocess
+interpolateDir: none
 
 [ExternalFiles]
 vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
@@ -12,6 +14,8 @@ article_embedding = %(externalDir)s/tsne_cache_full.tsv
 
 [PreprocessingFiles]
 article_coordinates: %(externalDir)s/tsne_cache_full.tsv
+vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
+names_with_id: %(externalDir)s/numberedNamesFull.tsv
 clusters_with_id: %(generatedDir)s/numberedClusters.tsv
 coordinates_with_water: %(generatedDir)s/water_and_article_coordinates.tsv
 clusters_with_water: %(generatedDir)s/clusters_with_water_pts.tsv
@@ -28,6 +32,12 @@ blur_radius: 5
 water_level: .1 
 num_contours: 5
 min_border_noise_length: .1
+
+[PostprocessingFiles]
+article_coordinates: %(postprocessingDir)s/tsne_cache_full.tsv
+vecs_with_id: %(postprocessingDir)s/numberedVecsFull.tsv
+names_with_id: %(postProcessingDir)s/numberedNamesFull.tsv
+popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
 
 [MapConstants]
 max_coordinate: 40
