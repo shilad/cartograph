@@ -16,7 +16,9 @@ from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
 from cartograph.Config import initConf, COLORWHEEL
 from cartograph.CalculateZooms import CalculateZooms
+from cartograph.Interpolater import Interpolater
 from tsne import bh_sne
+from time import time
 import numpy as np
 from sklearn.cluster import KMeans
 from cartograph.PGLoader import LoadGeoJsonTask, TimestampedPostgresTarget
@@ -119,7 +121,9 @@ class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (luigi.LocalTarget(cartograph.PGLoader.__file__))
 
-
+class InterpolaterCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return(luigi.LocalTarget(cartograph.Interpolater.__file__))
 
 
 # ====================================================================
@@ -147,11 +151,73 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     article has a unique id corrosponding to all of its data for future
     use of any subset of features of interest
     '''
+
     def output(self):
         return (luigi.LocalTarget(config.get("ExternalFiles",
                                              "vecs_with_id")),
                 luigi.LocalTarget(config.get("ExternalFiles",
                                              "names_with_id")))
+
+
+class InterpolateNewPoints(MTimeMixin, luigi.Task):
+    def requires(self):
+        return (InterpolaterCode(),
+                CreateCoordinates())
+
+    def output(self):
+        return (luigi.LocalTarget(config.get("PostprocessingFiles",
+                                             "vecs_with_id")),
+                luigi.LocalTarget(config.get("PostprocessingFiles",
+                                             "names_with_id")),
+                luigi.LocalTarget(config.get("PostprocessingFiles",
+                                             "article_coordinates")),
+                luigi.LocalTarget(config.get("PostprocessingFiles", 
+                                             "popularity_with_id")))
+
+    def updateConfig(self):
+        if config.get("DEFAULT", "interpolateDir") != "none":
+            newNames = config.get("InterpolateFiles", "new_names")
+            newVecs = config.get("InterpolateFiles", "new_vecs")
+            newCoords = config.get("InterpolateFiles", "new_coords")
+            newPopularity = config.get("InterpolateFiles", "new_popularity")
+
+        else: 
+            newNames = config.get("ExternalFiles", "names_with_id")
+            newVecs = config.get("ExternalFiles", "vecs_with_id")
+            newCoords = config.get("PreprocessingFiles", "article_coordinates")
+            newPopularity = config.get("PreprocessingFiles", "popularity_with_id")
+            now = (time(), time())
+            os.utime(newNames, now)
+            os.utime(newVecs, now)
+            os.utime(newCoords, now)
+            os.utime(newPopularity, now)
+
+        config.set("PostprocessingFiles", "article_coordinates", newCoords)
+        config.set("PostprocessingFiles", "vecs_with_id", newVecs)
+        config.set("PostprocessingFiles", "names_with_id", newNames)
+        config.set("PostprocessingFiles", "popularity_with_id", newPopularity)
+
+    def run(self):
+        if config.get("DEFAULT", "interpolateDir") != "none":
+            print "Updating"
+            embeddingDict = Util.read_features(config.get("ExternalFiles",
+                                                          "vecs_with_id"),
+                                               config.get("ExternalFiles",
+                                                          "names_with_id"),
+                                               config.get("PreprocessingFiles",
+                                                          "article_coordinates"))
+            interpolateDict = Util.read_features(config.get("InterpolateFiles",
+                                                            "vecs"),
+                                                config.get("InterpolateFiles",
+                                                            "names"),
+                                                config.get("InterpolateFiles",
+                                                            "popularity"))
+            interpolater = Interpolater(embeddingDict, interpolateDict, config)
+            interpolater.interpolatePoints()
+        else:
+            print "not updating"
+        self.updateConfig()
+ 
 
 # ====================================================================
 # Data Training and Analysis Stage
@@ -228,10 +294,10 @@ class RegionClustering(MTimeMixin, luigi.Task):
                                             "clusters_with_id"))
 
     def requires(self):
-        return WikiBrainNumbering()
+        return (InterpolateNewPoints())
 
     def run(self):
-        featureDict = Util.read_features(config.get("ExternalFiles",
+        featureDict = Util.read_features(config.get("PostprocessingFiles",
                                                     "vecs_with_id"))
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
@@ -287,11 +353,11 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         X = [float(points[k]['x']) for k in keys]
         Y = [float(points[k]['y']) for k in keys]
         maxVal = max(abs(v) for v in X + Y)
-        scaling = config.MAX_COORDINATE / maxVal
+        scaling = config.getint("MapConstants", "max_coordinate") / maxVal
         X = [x * scaling for x in X]
         Y = [y * scaling for y in Y]
         Util.write_tsv(config.get("PreprocessingFiles",
-                                  "article_coordinates")
+                                  "article_coordinates"),
                        ("index", "x", "y"), keys, X, Y)
 
 
@@ -311,9 +377,9 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
                 PopularityLabeler())
 
     def run(self):
-        feats = Util.read_features(config.get("PreprocessingFiles",
+        feats = Util.read_features(config.get("PostprocessingFiles",
                                               "popularity_with_id"),
-                                   config.get("PreprocessingFiles",
+                                   config.get("PostprocessingFiles",
                                               "article_coordinates"),
                                    config.get("PreprocessingFiles",
                                               "clusters_with_id"))
@@ -347,10 +413,11 @@ class Denoise(MTimeMixin, luigi.Task):
     def requires(self):
         return (RegionClustering(),
                 CreateCoordinates(),
+                InterpolateNewPoints(),
                 DenoiserCode())
 
     def run(self):
-        featureDict = Util.read_features(config.get("PreprocessingFiles",
+        featureDict = Util.read_features(config.get("PostprocessingFiles",
                                                     "article_coordinates"),
                                          config.get("PreprocessingFiles",
                                                     "clusters_with_id"))
@@ -450,13 +517,13 @@ class CreateContours(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.get("MapData", "contours_geojson"))
 
     def run(self):
-        featuresDict = Util.read_features(config.get("PreprocessingFiles",
+        featuresDict = Util.read_features(config.get("PostprocessingFiles",
                                                      "article_coordinates"),
                                           config.get("PreprocessingFiles",
                                                      "clusters_with_id"),
                                           config.get("PreprocessingFiles",
                                                      "denoised_with_id"),
-                                          config.get("ExternalFiles",
+                                          config.get("PostprocessingFiles",
                                                      "vecs_with_id"))
         for key in featuresDict.keys():
             if key[0] == "w":
@@ -488,9 +555,9 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
     def run(self):
         featureDict = Util.read_features(
             config.get("PreprocessingFiles", "zoom_with_id"),
-            config.get("PreprocessingFiles", "article_coordinates"),
-            config.get("PreprocessingFiles", "popularity_with_id"),
-            config.get("ExternalFiles", "names_with_id"))
+            config.get("PostprocessingFiles", "article_coordinates"),
+            config.get("PostprocessingFiles", "popularity_with_id"),
+            config.get("PostprocessingFiles", "names_with_id"))
         titlesByZoom = ZoomGeoJSONWriter(featureDict)
         titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
 
@@ -510,7 +577,7 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
         return luigi.LocalTarget(config.get("MapData", "top_titles"))
 
     def run(self):
-        titleLabels = TopTitlesGeoJSONWriter(100)
+        titleLabels = TopTitlesGeoJSONWriter(9000)
         titleLabels.generateJSONFeature(config.get("MapData", "top_titles"))
 
 class LoadContours(LoadGeoJsonTask):
