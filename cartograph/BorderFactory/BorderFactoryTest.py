@@ -1,5 +1,5 @@
 import unittest
-from _BorderProcessor import BorderProcessor
+from BorderProcessor import BorderProcessor
 
 
 class BorderProcessorTest(unittest.TestCase):

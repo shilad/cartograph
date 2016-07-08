@@ -1,5 +1,5 @@
 import numpy as np
-from _Noiser import NoisyEdgesMaker
+from Noiser import NoisyEdgesMaker
 
 
 class BorderProcessor:
