@@ -11,7 +11,8 @@ import TileStache
 # this needs to go away because of new config config = Config.BAD_GET_CONFIG()
 
 def run_server(path_cartograph_cfg, path_tilestache_cfg):
-    config = initConf(path_cartograph_cfg) 
+    config = initConf(path_cartograph_cfg)[0]
+ 
     
     path_tilestache_cfg = os.path.abspath(path_tilestache_cfg)
     path_cache = json.load(open(path_tilestache_cfg, 'r'))['cache']['path']
@@ -23,8 +24,7 @@ def run_server(path_cartograph_cfg, path_tilestache_cfg):
 
     app = CartographServer(path_tilestache_cfg, config)
     run_simple('0.0.0.0', 8080, app, static_files=static_files)
-    with open(config.get("PreprocessingConstants", "serverOutput"), "w") as writeFile:
-        writeFile.write("Server running")
+   
         
 
 #how do i pass config into the cartographserver class?
@@ -34,6 +34,7 @@ class CartographServer(TileStache.WSGITileServer):
     def __init__(self, path_cfg, cartograph_cfg):
         TileStache.WSGITileServer.__init__(self, path_cfg)
         self.cartoconfig = cartograph_cfg
+      
         xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
                                          self.cartoconfig.get("ExternalFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
         self.locList = []
@@ -43,9 +44,9 @@ class CartographServer(TileStache.WSGITileServer):
             y = float(xyDict[entry]['x'])
             x = float(xyDict[entry]['y'])
             title = xyDict[entry]['name']
-            zoom = xyDict[entry]['maxZoom']
-            loc = [x, y, zoom]
-            jsonDict = {"loc": loc, "title": title}
+            zoom = int(xyDict[entry]['maxZoom'])
+            loc = [x, y]
+            jsonDict = {"loc": loc, "title": title, "zoom" : zoom}
             self.locList.append(jsonDict)
 
     def __call__(self, environ, start_response):
