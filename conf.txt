@@ -1,5 +1,0 @@
-[PreprocessingConstants]
-
-
-[JSData]
-namedZoom: ./web/data/named_zoom.tsv
