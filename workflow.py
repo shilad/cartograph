@@ -16,7 +16,6 @@ from cartograph.BorderFactory.BorderBuilder import BorderBuilder
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
-from cartograph.ZoomTSVWriter import ZoomTSVWriter
 from cartograph.Labels import Labels
 from cartograph.Config import initConf
 from cartograph.CalculateZooms import CalculateZooms
@@ -30,7 +29,8 @@ from sklearn.cluster import KMeans
 from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedPostgresTarget, TimestampedLocalTarget, MTimeMixin
 
 
-config, COLORWHEEL = initConf("conf.txt")  # To be removed
+config, COLORWHEEL = initConf("conf.txt") 
+RUN_TIME = time()
 
 
 # ====================================================================
@@ -138,7 +138,8 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
 class InterpolateNewPoints(MTimeMixin, luigi.Task):
     def requires(self):
         return (InterpolaterCode(),
-                CreateCoordinates())
+                CreateCoordinates(),
+                PopularityLabeler())
 
     def output(self):
         return (TimestampedLocalTarget(config.get("PostprocessingFiles",
@@ -162,7 +163,7 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
             newVecs = config.get("ExternalFiles", "vecs_with_id")
             newCoords = config.get("PreprocessingFiles", "article_coordinates")
             newPopularity = config.get("PreprocessingFiles", "popularity_with_id")
-            now = (time(), time())
+            now = (RUN_TIME, RUN_TIME)
             os.utime(newNames, now)
             os.utime(newVecs, now)
             os.utime(newCoords, now)
@@ -172,6 +173,9 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
         config.set("PostprocessingFiles", "vecs_with_id", newVecs)
         config.set("PostprocessingFiles", "names_with_id", newNames)
         config.set("PostprocessingFiles", "popularity_with_id", newPopularity)
+
+        with open("./data/conf/generatedConf.txt", "w") as generatedConf:
+            config.write(generatedConf)
 
     def run(self):
         if config.get("DEFAULT", "interpolateDir") != "none":
@@ -241,14 +245,16 @@ class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
     the unique article ID.
     '''
     def requires(self):
-        return (PopularityLabeler(), PopularityLabelSizerCode())
+        return (PopularityLabeler(), 
+                InterpolateNewPoints(),
+                PopularityLabelSizerCode())
 
     def output(self):
         return (TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "percentile_popularity_with_id")))
 
     def run(self):
-        readPopularData = Util.read_tsv(config.get("PreprocessingFiles",
+        readPopularData = Util.read_tsv(config.get("PostprocessingFiles",
                                                    "popularity_with_id"))
         popularity = list(map(float, readPopularData['popularity']))
         index = list(map(int, readPopularData['id']))

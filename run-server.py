@@ -7,4 +7,4 @@ import os
 
 from cartograph.Server import run_server
 
-run_server(os.path.abspath("conf.txt"), os.path.abspath('./data/tilestache.cfg'))
+run_server(os.path.abspath("./data/conf/generatedConf.txt"), os.path.abspath('./data/tilestache.cfg'))
