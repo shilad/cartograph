@@ -9,6 +9,7 @@ from cartograph import CentroidContours
 from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactory.BorderBuilder import BorderBuilder
+from cartograph.BorderFactory import BorderProcessor, Noiser, Vertex, VoronoiWrapper
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
@@ -52,7 +53,11 @@ class MapStylerCode(MTimeMixin, luigi.ExternalTask):
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (TimestampedLocalTarget(cartograph.BorderFactory.BorderBuilder.__file__))
+        return (TimestampedLocalTarget(cartograph.BorderFactory.BorderBuilder.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.BorderProcessor.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.Noiser.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.Vertex.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.VoronoiWrapper.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
@@ -398,6 +403,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        range(1, len(regionList) + 1),
                        regionList)
 
+# CreateContinents().run()
 
 class CreateContours(MTimeMixin, luigi.Task):
     '''

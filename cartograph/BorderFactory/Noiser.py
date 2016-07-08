@@ -1,5 +1,5 @@
 import numpy as np
-from _Vertex import Vertex
+from Vertex import Vertex
 
 
 class NoisyEdgesMaker:
