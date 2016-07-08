@@ -20,8 +20,4 @@ map.xml
 __pycache__
 *.pyc
 
-<<<<<<< HEAD
 conf.txt
-=======
-conf.txt
->>>>>>> 3eb884c2b023e0f719358b1e506adb67f28de185
