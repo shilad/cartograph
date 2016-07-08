@@ -1,3 +1,4 @@
+
 from ConfigParser import SafeConfigParser
 
 EXTERNAL_FILES = 'ExternalFiles'
