@@ -98,7 +98,14 @@ def append_to_tsv(parentName, writeName, *data):
     with open(writeName, "w") as writeFile:
         for line in lines:
             writeFile.write(line)
-
+            
+''' TODO: REFACTOR ME
+def append_tsv(filename, header, indexList, *data):
+    for index, dataList in enumerate(data):
+        if len(dataList) != len(data[0]):
+            raise InputError(index, "Lists must match to map together")
+    with open(filename, "a") as writeFile:
+        writeFile.write("\t".join(header) + "\n")
         if len(data) > 1:
             data = zip(*data)
             data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
@@ -111,6 +118,7 @@ def append_to_tsv(parentName, writeName, *data):
             if data[i][-1] != "\n":
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (index, data[i]))
+'''
 
 
 def sort_by_feature(articleDict, featureName, reverse=True):
@@ -121,6 +129,16 @@ def sort_by_feature(articleDict, featureName, reverse=True):
         allArticles.append((key, articleDict[key]))
     allArticles.sort(key=lambda x: float(x[1][featureName]), reverse=reverse)
     return allArticles
+
+def sort_by_percentile(numBins):
+    unitStep = 100/numBins
+    percentileDataValue = defaultdict(dict)
+    for i, percentile in enumerate(list(range(0,100,unitStep))):
+        print(i)
+        print("=========")
+        print(i+1)
+        # np.percentile(percentileList, (i, i+1))
+
 
 
 class InputError(Exception):
@@ -141,3 +159,8 @@ def calc_area(points):
     y = unzipped[1]
     # Shoelace Algorithm (a la Stackoverflow)
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
+if __name__=='__main__':
+
+    sort_by_percentile(4)
+
