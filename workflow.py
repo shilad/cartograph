@@ -144,6 +144,7 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
                 PopularityLabeler())
 
     def output(self):
+        if True: return []
         return (TimestampedLocalTarget(config.get("PostprocessingFiles",
                                              "vecs_with_id")),
                 TimestampedLocalTarget(config.get("PostprocessingFiles",
