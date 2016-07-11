@@ -187,7 +187,8 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
 
     def run(self):
         # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN
-        if True: return
+        if True:
+            return
 
         if config.get("DEFAULT", "interpolateDir") != "none":
             embeddingDict = Util.read_features(config.get("ExternalFiles",
