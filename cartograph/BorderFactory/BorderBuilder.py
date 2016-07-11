@@ -2,6 +2,9 @@ from VoronoiWrapper import VoronoiWrapper
 from BorderProcessor import BorderProcessor
 from cartograph import Util
 from collections import defaultdict
+import logging
+
+logger = logging.getLogger('luigi-interface')
 
 
 class BorderBuilder:
@@ -26,7 +29,9 @@ class BorderBuilder:
     def build(self):
         borders = defaultdict(list)
         waterLabel = max(self.clusterLabels)
+        logger.info("Starting Voronoi tessellation.")
         vor = VoronoiWrapper(self.x, self.y, self.clusterLabels, waterLabel)
+        logger.info("Building borders.")
         for label in vor.edgeRidgeDict:
             edgeRidgeDict = vor.edgeRidgeDict[label]
             edgeVertexDict = vor.edgeVertexDict[label]
@@ -54,11 +59,12 @@ class BorderBuilder:
                     prevIndex = currentIndex
                     currentIndex = edgeVertexDict[nextIndex].index
                 del edgeVertexDict[firstIndex]
-                minNumNecessary = self.minNumInCluster / 100 if isIsland else self.minNumInCluster
+                minNumNecessary = self.minNumInCluster / 10 if isIsland else self.minNumInCluster
                 if len(continent) > minNumNecessary:
                     borders[label].append(continent)
 
-        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength).process()
+        logger.info("Processing borders.")
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
         # remove water points
         del borders[waterLabel]
         for label in borders:
