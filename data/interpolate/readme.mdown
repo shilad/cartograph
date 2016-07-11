@@ -1,0 +1,10 @@
+## Required Files For Interpolation
+### Sample Conf.txt
+* [InterpolateFiles]
+* names: %(interpolateDir)s/interest_names.tsv
+* vecs: %(interpolateDir)s/interest_vecs.tsv
+* popularity: %(interpolateDir)s/interest_popularity.tsv
+* new_coords: %(interpolateDir)s/interpolated_points.tsv
+* new_names: %(interpolateDir)s/interpolated_names.tsv
+* new_vecs: %(interpolateDir)s/interpolated_vecs.tsv
+* new_popularity: %(interpolateDir)s/interpolated_popularity.tsv
