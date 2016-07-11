@@ -22,11 +22,8 @@ from cartograph.Interpolater import Interpolater
 from cartograph.PopularityLabelSizer import PopularityLabelSizer
 from collections import defaultdict
 from tsne import bh_sne
-<<<<<<< HEAD
 from collections import defaultdict
-=======
 from time import time
->>>>>>> cc278effeef1c281fd8c453d49b9dee03f9bffb0
 import numpy as np
 from sklearn.cluster import KMeans
 from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedPostgresTarget, TimestampedLocalTarget, MTimeMixin
