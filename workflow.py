@@ -3,12 +3,6 @@ import luigi
 # This needs to happen IMMEDIATELY to turn on headless rendering.
 import matplotlib
 matplotlib.use('Agg')
-<<<<<<< HEAD
-
-import cartograph
-=======
->>>>>>> cc278effeef1c281fd8c453d49b9dee03f9bffb0
-
 import cartograph
 import os
 from cartograph import Config
