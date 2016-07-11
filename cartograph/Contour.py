@@ -129,6 +129,12 @@ class ContourCreator:
                         newCoords = p.exterior.coords
                         if len(newCoords) > 0:
                             newPolygons.append(newCoords)
+                        newIntCoords = p.interiors
+                        if len(newIntCoords) > 0:
+                            print "int"
+                            print newIntCoords
+                            for ring in newIntCoords:
+                                newPolygons.append(ring.coords)
                 if len(newPolygons) > 0:
                     newClusterContours.append(newPolygons)
             newPlys.append(newClusterContours)
