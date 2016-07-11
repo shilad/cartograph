@@ -13,20 +13,17 @@ class ContourCreator:
 
     def __init__(self, numClusters):
         self.numClusters = numClusters
+        pass
 
-    def buildContours(self, featureDict, countryFile, numContours):
-        xs, ys, vectors = self._sortClusters(featureDict, self.numClusters)
-        centralities = self._centroidValues(vectors)
-        self.CSs = self._calc_contour(xs, ys, centralities, 200, numContours)
-        # Nested list.
-        # One outer parent list for each cluster. (n=~10)
-        # One child inner list for each contour (n=~7)
-        # One grandchild list for each polygon within the contour
-        self.plyList = self._get_contours(self.CSs)
-        self.newPlys = self._cleanContours(self.plyList, countryFile)
+    def buildContours(self, featureDict, countryFile):
+        self.xs, self.ys, self.vectors = self._sortClusters(featureDict, self.numClusters)
+        self.centralities = self._centroidValues(self.vectors)
+        self.countryFile = countryFile
+        self.binSize = 200
+        self.density_CSs = self._densityCalcContour()
+        self.centroid_CSs = self._centroidCalcContour()
 
-    @staticmethod
-    def _sortClusters(featureDict, numClusters):
+    def _sortClusters(self, featureDict, numClusters):
         xs = [[] for i in range(numClusters)]
         ys = [[] for i in range(numClusters)]
         vectors = [[] for i in range(numClusters)]
@@ -42,27 +39,25 @@ class ContourCreator:
 
         return xs, ys, vectors
 
-    @staticmethod
-    def _centroidValues(clusterVectors):
+    def _centroidValues(self):
         centralities = []
-        for vectors in clusterVectors:
-            centroid = np.mean(vectors, axis=0)
+        for vector in self.vectors:
+            centroid = np.mean(vector, axis=0)
             dotValues = []
-            for vec in vectors:
+            for vec in vector:
                 dotValues.append(centroid.dot(vec))
             centralities.append(dotValues)
 
         return centralities
 
-    @staticmethod
-    def _calc_contour(clusterXs, clusterYs, clusterValues, binSize, numContours):
+    def _centroidCalcContour(self):
         CSs = []
-        for (xs, ys, values) in zip(clusterXs, clusterYs, clusterValues):
-            if not xs: continue
-            centrality, yedgess, xedgess, binNumber = sps.binned_statistic_2d(ys, xs,
-                                            values,
+        for (x, y, value) in zip(self.xs, self.ys, self.values):
+            if not x: continue
+            centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
+                                            value,
                                             statistic='mean',
-                                            bins=binSize,
+                                            bins=self.binSize,
                                             range=[[np.min(ys),
                                             np.max(ys)],
                                             [np.min(xs),
@@ -71,17 +66,35 @@ class ContourCreator:
                 centrality[i] = np.nan_to_num(centrality[i])
 
             centrality = spn.filters.gaussian_filter(centrality, 2)
-            extent = [xedgess.min(), xedgess.max(), yedgess.min(), yedgess.max()]
+            extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
             smoothH = spn.zoom(centrality, 4)
             smoothH[smoothH < 0] = 0
-            CSs.append(plt.contour(smoothH, numContours, extent=extent))
-
+            CSs.append(plt.contour(smoothH, extent=extent))
 
         return CSs
 
-    @staticmethod
-    def _get_contours(CSs):
+    def _densityCalcContour(self):
+        CSs = []
+        for (x, y) in zip(self.xs, self.ys):
+            if not x: continue
+            H, yedges, xedges = np.histogram2d(y, x,
+                                               bins=self.binSize,
+                                               range=[[np.min(ys),
+                                                      np.max(ys)],
+                                                      [np.min(xs),
+                                                      np.max(xs)]])
+
+            H = spn.filters.gaussian_filter(H, 2)
+            extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
+
+            smoothH = spn.zoom(H, 4)
+            smoothH[smoothH < 0] = 0
+            CSs.append(plt.contour(smoothH, extent=extent))
+
+        return CSs
+
+    def _getContours(self, CSs):
         plyList = []
         for CS in CSs:
             plys = []
@@ -95,9 +108,9 @@ class ContourCreator:
             plyList.append(plys)
         return plyList
 
-    @staticmethod
-    def _cleanContours(plyList, countryFile):
-        js = json.load(open(countryFile, 'r'))
+    def _cleanContours(self, CSs):
+        js = json.load(open(self.countryFile, 'r'))
+        plyList = self._getContours(CSs)
 
         newPlys = []
         for (clusterId, clusterFeatures) in enumerate(js['features']):
@@ -121,8 +134,8 @@ class ContourCreator:
 
         return newPlys
 
-    @staticmethod
-    def _gen_contour_polygons(newPlys):
+    def _genContourPolygons(self, CSs):
+        newPlys = self._cleanContours(CSs)
         countryGroup = []
         for plys in newPlys:
             contourList = []
@@ -144,8 +157,15 @@ class ContourCreator:
 
         return featureAr
 
-    def makeContourFeatureCollection(self, outputfilename):
-        featureAr = self._gen_contour_polygons(self.newPlys)
+    def makeDensityContourFeatureCollection(self, outputfilename):
+        featureAr = self._genContourPolygons(self.density_CSs)
+        collection = FeatureCollection(featureAr)
+        textDump = dumps(collection)
+        with open(outputfilename, "w") as writeFile:
+            writeFile.write(textDump)
+
+    def makeCentroidContourFeatureCollection(self, outputfilename):
+        featureAr = self._genContourPolygons(self.centroid_CSs)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
         with open(outputfilename, "w") as writeFile:
@@ -172,7 +192,8 @@ class Contour:
         for poly in self.polygons:
             path = mplPath.Path(poly.points[0])
             for otherPolys in self.polygons:
-                if poly is not otherPolys and path.contains_points(otherPolys.points[0]).all():
+                if poly is not otherPolys \
+                   and path.contains_points(otherPolys.points[0]).all():
                     poly.children.add(otherPolys)
                     toRemove.add(otherPolys)
         for poly in toRemove:

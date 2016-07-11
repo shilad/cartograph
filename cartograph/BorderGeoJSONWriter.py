@@ -26,8 +26,12 @@ class BorderGeoJSONWriter:
         shapeList = []
         holes = []
         for child in continents:
-            holes.append(child.points[1:])
-            shapeList.append(child.points)
+            polygon = child.points
+            shapeList.append(polygon)
+            if len(polygon) > 1:
+                for ply in polygon[1:]:
+                    holes.append(ply)
+
         newMultiPolygon = MultiPolygon(shapeList)
         properties = {"clusterNum": index, "labels": label["label"][index], "holes": holes}
         return Feature(geometry=newMultiPolygon, properties=properties)
