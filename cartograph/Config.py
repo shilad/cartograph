@@ -1,3 +1,4 @@
+
 from ConfigParser import SafeConfigParser
 
 EXTERNAL_FILES = 'ExternalFiles'
@@ -26,6 +27,18 @@ def initConf(confFile=None):
 
     num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
     colorWheel = _coloringFeatures(num_clusters)
+
+    # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN        # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN
+
+    newNames = conf.get("ExternalFiles", "names_with_id")
+    newVecs = conf.get("ExternalFiles", "vecs_with_id")
+    newCoords = conf.get("PreprocessingFiles", "article_coordinates")
+    newPopularity = conf.get("PreprocessingFiles", "popularity_with_id")
+
+    conf.set("PostprocessingFiles", "article_coordinates", newCoords)
+    conf.set("PostprocessingFiles", "vecs_with_id", newVecs)
+    conf.set("PostprocessingFiles", "names_with_id", newNames)
+    conf.set("PostprocessingFiles", "popularity_with_id", newPopularity)
 
     return conf, colorWheel
 

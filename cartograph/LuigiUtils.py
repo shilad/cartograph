@@ -4,17 +4,13 @@
 # pip2.7 install psycopg2
 
 import logging
-
 import os.path
 import json
-
 import psycopg2
-
 import random
 import shapely
 import shapely.wkt
 import shapely.geometry 
-
 import luigi
 from luigi.postgres import CopyToTable, PostgresTarget
 
@@ -46,6 +42,8 @@ class MTimeMixin:
         mtimes = [out.mtime() for out in to_list(self.output())]
         if -1 in mtimes:    # something doesn't exist!
             return False
+        elif not mtimes:
+            return True    # No real output?
 
         self_mtime = min(mtimes)    # oldest of our outputs  
 

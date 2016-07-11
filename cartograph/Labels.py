@@ -55,11 +55,13 @@ class Labels():
 
             shieldSym = SubElement(rule, 'ShieldSymbolizer', placement=labelType)
             shieldSym.text = field
-            shieldSym.set('dx', '15')
+            shieldSym.set('dy', '-10')
             shieldSym.set('unlock-image', 'true')
             shieldSym.set('placement-type', 'simple')
             shieldSym.set('file', imgFile)
             shieldSym.set('avoid-edges', 'true')
+            shieldSym.set('minimum-padding', '120')
+            shieldSym.set('wrap-width', '100')
 
             shieldSym.set('face-name', 'DejaVu Sans Book')
             shieldSym.set('size', str(sizeLabel))

@@ -35,8 +35,8 @@ class CartographServer(TileStache.WSGITileServer):
         TileStache.WSGITileServer.__init__(self, path_cfg)
         self.cartoconfig = cartograph_cfg
       
-        xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
-                                         self.cartoconfig.get("ExternalFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
+        xyDict = Util.read_features(self.cartoconfig.get("PostprocessingFiles", "article_coordinates"),
+                                         self.cartoconfig.get("PostprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
         self.locList = []
 
         for entry in xyDict:
