@@ -6,6 +6,8 @@ matplotlib.use('Agg')
 
 import cartograph
 import os
+import shutil
+
 from cartograph import Config
 from cartograph import Util
 from cartograph import DensityContours
@@ -178,6 +180,9 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
             config.write(generatedConf)
 
     def run(self):
+        # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN
+        if True: return
+
         if config.get("DEFAULT", "interpolateDir") != "none":
             embeddingDict = Util.read_features(config.get("ExternalFiles",
                                                           "vecs_with_id"),
