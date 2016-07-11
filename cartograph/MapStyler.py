@@ -22,6 +22,7 @@ class MapStyler:
         self.m.background = mapnik.Color('white')
         self.m.srs = '+init=epsg:3857'
 
+
         self.m.append_style("countries",
                             self.generateCountryPolygonStyle(countryFilename,
                                                              1.0, clusterIds))
@@ -43,6 +44,7 @@ class MapStyler:
         # extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
         # print(extent)
         # self.m.zoom_to_box(self.extents)
+
         self.m.zoom_all()
      
         # print(self.m.envelope())
