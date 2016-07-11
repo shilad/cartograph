@@ -4,8 +4,10 @@ import matplotlib.path as mplPath
 import scipy.ndimage as spn
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
+import scipy.stats as sps
 import json
 import shapely.geometry as shply
+
 
 
 class ContourCreator:
@@ -14,42 +16,75 @@ class ContourCreator:
         self.numClusters = numClusters
         pass
 
-    def buildContours(self, featureDict, writeFile, numContours):
-        xs, ys = self._sortClusters(featureDict)
-        self.CSs = self._calc_contour(xs, ys, 200, numContours)
-        # Nested list.
-        # One outer parent list for each cluster. (n=~10)
-        # One child inner list for each contour (n=~7)
-        # One grandchild list for each polygon within the contour
-        self.plyList = self._get_contours(self.CSs)
-        self.newPlys = self._cleanContours(self.plyList, writeFile)
+    def buildContours(self, featureDict, countryFile):
+        self.xs, self.ys, self.vectors = self._sortClusters(featureDict, self.numClusters)
+        self.centralities = self._centroidValues()
+        self.countryFile = countryFile
+        self.binSize = 200
+        self.density_CSs = self._densityCalcContour()
+        self.centroid_CSs = self._centroidCalcContour()
 
-    def _sortClusters(self, featureDict):
-        xs = [[] for i in range(self.numClusters)]
-        ys = [[] for i in range(self.numClusters)]
+    def _sortClusters(self, featureDict, numClusters):
+        xs = [[] for i in range(numClusters)]
+        ys = [[] for i in range(numClusters)]
+        vectors = [[] for i in range(numClusters)]
 
         keys = featureDict.keys()
         for index in keys:
             pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo:
-                continue
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
-        return xs, ys
+            vectors[c].append(pointInfo['vector'])
 
+        return xs, ys, vectors
 
-    @staticmethod
-    def _calc_contour(clusterXs, clusterYs, binSize, numContours):
+    def _centroidValues(self):
+        centralities = []
+        for vector in self.vectors:
+            centroid = np.mean(vector, axis=0)
+            dotValues = []
+            for vec in vector:
+                dotValues.append(centroid.dot(vec))
+            centralities.append(dotValues)
+
+        return centralities
+
+    def _centroidCalcContour(self):
         CSs = []
-        for (xs, ys) in zip(clusterXs, clusterYs):
-            if not xs: continue
-            H, yedges, xedges = np.histogram2d(ys, xs,
-                                               bins=binSize,
-                                               range=[[np.min(ys),
-                                                      np.max(ys)],
-                                                      [np.min(xs),
-                                                      np.max(xs)]])
+        for (x, y, values) in zip(self.xs, self.ys, self.centralities):
+            if not x: continue
+            centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
+                                            values,
+                                            statistic='mean',
+                                            bins=self.binSize,
+                                            range=[[np.min(y),
+                                            np.max(y)],
+                                            [np.min(x),
+                                            np.max(x)]])
+            for i in range(len(centrality)):
+                centrality[i] = np.nan_to_num(centrality[i])
+
+            centrality = spn.filters.gaussian_filter(centrality, 2)
+            extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
+
+            smoothH = spn.zoom(centrality, 4)
+            smoothH[smoothH < 0] = 0
+            CSs.append(plt.contour(smoothH, extent=extent))
+
+        return CSs
+
+    def _densityCalcContour(self):
+        CSs = []
+        for (x, y) in zip(self.xs, self.ys):
+            if not x: continue
+            H, yedges, xedges = np.histogram2d(y, x,
+                                               bins=self.binSize,
+                                               range=[[np.min(y),
+                                                      np.max(y)],
+                                                      [np.min(x),
+                                                      np.max(x)]])
 
             H = spn.filters.gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
@@ -60,8 +95,7 @@ class ContourCreator:
 
         return CSs
 
-    @staticmethod
-    def _get_contours(CSs):
+    def _getContours(self, CSs):
         plyList = []
         for CS in CSs:
             plys = []
@@ -75,9 +109,9 @@ class ContourCreator:
             plyList.append(plys)
         return plyList
 
-    @staticmethod
-    def _cleanContours(plyList, writeFile):
-        js = json.load(open(writeFile, 'r'))
+    def _cleanContours(self, CSs):
+        js = json.load(open(self.countryFile, 'r'))
+        plyList = self._getContours(CSs)
 
         newPlys = []
         for (clusterId, clusterFeatures) in enumerate(js['features']):
@@ -101,8 +135,8 @@ class ContourCreator:
 
         return newPlys
 
-    @staticmethod
-    def _gen_contour_polygons(newPlys):
+    def _genContourPolygons(self, CSs):
+        newPlys = self._cleanContours(CSs)
         countryGroup = []
         for plys in newPlys:
             contourList = []
@@ -124,8 +158,15 @@ class ContourCreator:
 
         return featureAr
 
-    def makeContourFeatureCollection(self, outputfilename):
-        featureAr = self._gen_contour_polygons(self.newPlys)
+    def makeDensityContourFeatureCollection(self, outputfilename):
+        featureAr = self._genContourPolygons(self.density_CSs)
+        collection = FeatureCollection(featureAr)
+        textDump = dumps(collection)
+        with open(outputfilename, "w") as writeFile:
+            writeFile.write(textDump)
+
+    def makeCentroidContourFeatureCollection(self, outputfilename):
+        featureAr = self._genContourPolygons(self.centroid_CSs)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
         with open(outputfilename, "w") as writeFile:

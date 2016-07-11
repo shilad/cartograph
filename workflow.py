@@ -3,15 +3,13 @@ import luigi
 # This needs to happen IMMEDIATELY to turn on headless rendering.
 import matplotlib
 matplotlib.use('Agg')
-
 import cartograph
 import os
 import shutil
 
 from cartograph import Config
 from cartograph import Util
-from cartograph import DensityContours
-from cartograph import CentroidContours
+from cartograph import Contour
 from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactory.BorderBuilder import BorderBuilder
@@ -19,6 +17,7 @@ from cartograph.BorderFactory import BorderProcessor, Noiser, Vertex, VoronoiWra
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
+from cartograph.ZoomTSVWriter import ZoomTSVWriter
 from cartograph.Labels import Labels
 from cartograph.Config import initConf
 from cartograph.CalculateZooms import CalculateZooms
@@ -26,6 +25,7 @@ from cartograph.Interpolater import Interpolater
 from cartograph.PopularityLabelSizer import PopularityLabelSizer
 from collections import defaultdict
 from tsne import bh_sne
+from collections import defaultdict
 from time import time
 import numpy as np
 from sklearn.cluster import KMeans
@@ -42,14 +42,9 @@ RUN_TIME = time()
 # NOTE: Any new .py files that will run *must* go here for automation
 # ====================================================================
 
-class DensityContourCode(MTimeMixin, luigi.ExternalTask):
+class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (TimestampedLocalTarget(cartograph.DensityContours.__file__))
-
-
-class CentroidContourCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.CentroidContours.__file__))
+        return (TimestampedLocalTarget(cartograph.Contour.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
@@ -244,7 +239,6 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
         for featureID in idList:
             name = featureDict[featureID]["name"]
             popularityList.append(nameDict[name])
-
 
         Util.write_tsv(config.get('PreprocessingFiles', 'popularity_with_id'),
                        ("id", "popularity"),
@@ -507,12 +501,11 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (CreateCoordinates(),
-                CentroidContourCode(),
-                DensityContourCode(),
+                ContourCode(),
                 CreateContinents())
 
     def output(self):
-        return TimestampedLocalTarget(config.get("MapData", "contours_geojson"))
+        return TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson"))
 
     def run(self):
         featuresDict = Util.read_features(config.get("PostprocessingFiles",
@@ -531,13 +524,11 @@ class CreateContours(MTimeMixin, luigi.Task):
         numContours = config.getint('PreprocessingConstants', 'num_contours')
         writeFile = config.get("MapData", "countries_geojson")
 
-        densityContour = DensityContours.ContourCreator(numClusters)
-        densityContour.buildContours(featuresDict, writeFile, numContours)
-        densityContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
+        contour = Contour.ContourCreator(numClusters)
+        contour.buildContours(featuresDict, writeFile)
+        contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
+        contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
 
-        centroidContour = CentroidContours.ContourCreator(numClusters)
-        centroidContour.buildContours(featuresDict, writeFile, numContours)
-        centroidContour.makeContourFeatureCollection(config.get("MapData", "contours_geojson"))
 
 class CreateStates(MTimeMixin, luigi.Task):
     '''
@@ -634,7 +625,7 @@ class LoadContours(LoadGeoJsonTask):
         LoadGeoJsonTask.__init__(self, 
             config, 
             'contours', 
-            config.get('MapData', 'contours_geojson')
+            config.get('MapData', 'centroid_contours_geojson')
         )
 
     def requires(self):
@@ -691,7 +682,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
-        ms.makeMap(config.get("MapData", "contours_geojson"),
+        ms.makeMap(config.get("MapData", "centroid_contours_geojson"),
                    config.get("MapData", "countries_geojson"),
                    regionIds)
         ms.saveMapXml(config.get("MapData", "countries_geojson"),
