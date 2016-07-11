@@ -9,6 +9,7 @@ import json
 import shapely.geometry as shply
 
 
+
 class ContourCreator:
 
     def __init__(self, numClusters):
@@ -17,7 +18,7 @@ class ContourCreator:
 
     def buildContours(self, featureDict, countryFile):
         self.xs, self.ys, self.vectors = self._sortClusters(featureDict, self.numClusters)
-        self.centralities = self._centroidValues(self.vectors)
+        self.centralities = self._centroidValues()
         self.countryFile = countryFile
         self.binSize = 200
         self.density_CSs = self._densityCalcContour()
@@ -52,16 +53,16 @@ class ContourCreator:
 
     def _centroidCalcContour(self):
         CSs = []
-        for (x, y, value) in zip(self.xs, self.ys, self.values):
+        for (x, y, values) in zip(self.xs, self.ys, self.centralities):
             if not x: continue
             centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
-                                            value,
+                                            values,
                                             statistic='mean',
                                             bins=self.binSize,
-                                            range=[[np.min(ys),
-                                            np.max(ys)],
-                                            [np.min(xs),
-                                            np.max(xs)]])
+                                            range=[[np.min(y),
+                                            np.max(y)],
+                                            [np.min(x),
+                                            np.max(x)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
@@ -80,10 +81,10 @@ class ContourCreator:
             if not x: continue
             H, yedges, xedges = np.histogram2d(y, x,
                                                bins=self.binSize,
-                                               range=[[np.min(ys),
-                                                      np.max(ys)],
-                                                      [np.min(xs),
-                                                      np.max(xs)]])
+                                               range=[[np.min(y),
+                                                      np.max(y)],
+                                                      [np.min(x),
+                                                      np.max(x)]])
 
             H = spn.filters.gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
