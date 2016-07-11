@@ -13,6 +13,7 @@ from cartograph import Contour
 from cartograph import Denoiser
 from cartograph import MapStyler
 from cartograph.BorderFactory.BorderBuilder import BorderBuilder
+from cartograph.BorderFactory import BorderProcessor, Noiser, Vertex, VoronoiWrapper
 from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
 from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
@@ -31,7 +32,7 @@ from sklearn.cluster import KMeans
 from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedPostgresTarget, TimestampedLocalTarget, MTimeMixin
 
 
-config, COLORWHEEL = initConf("conf.txt") 
+config, COLORWHEEL = initConf("conf.txt")
 RUN_TIME = time()
 
 
@@ -58,7 +59,11 @@ class MapStylerCode(MTimeMixin, luigi.ExternalTask):
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (TimestampedLocalTarget(cartograph.BorderFactory.BorderBuilder.__file__))
+        return (TimestampedLocalTarget(cartograph.BorderFactory.BorderBuilder.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.BorderProcessor.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.Noiser.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.Vertex.__file__),
+                TimestampedLocalTarget(cartograph.BorderFactory.VoronoiWrapper.__file__))
 
 
 class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
@@ -146,7 +151,7 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
                                              "names_with_id")),
                 TimestampedLocalTarget(config.get("PostprocessingFiles",
                                              "article_coordinates")),
-                TimestampedLocalTarget(config.get("PostprocessingFiles", 
+                TimestampedLocalTarget(config.get("PostprocessingFiles",
                                              "popularity_with_id")))
 
     def updateConfig(self):
@@ -156,7 +161,7 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
             newCoords = config.get("InterpolateFiles", "new_coords")
             newPopularity = config.get("InterpolateFiles", "new_popularity")
 
-        else: 
+        else:
             newNames = config.get("ExternalFiles", "names_with_id")
             newVecs = config.get("ExternalFiles", "vecs_with_id")
             newCoords = config.get("PreprocessingFiles", "article_coordinates")
@@ -177,7 +182,8 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
 
     def run(self):
         # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN
-        if True: return
+        if True:
+            return
 
         if config.get("DEFAULT", "interpolateDir") != "none":
             embeddingDict = Util.read_features(config.get("ExternalFiles",
@@ -195,7 +201,7 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
             interpolater = Interpolater(embeddingDict, interpolateDict, config)
             interpolater.interpolatePoints()
         self.updateConfig()
- 
+
 
 # ====================================================================
 # Data Training and Analysis Stage
@@ -245,7 +251,7 @@ class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
     the unique article ID.
     '''
     def requires(self):
-        return (PopularityLabeler(), 
+        return (PopularityLabeler(),
                 InterpolateNewPoints(),
                 PopularityLabelSizerCode())
 
@@ -588,7 +594,7 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
             config.get("PreprocessingFiles", "zoom_with_id"),
             config.get("PostprocessingFiles", "article_coordinates"),
             config.get("PostprocessingFiles", "popularity_with_id"),
-            config.get("PostprocessingFiles", "names_with_id"), 
+            config.get("PostprocessingFiles", "names_with_id"),
             config.get("PreprocessingFiles", "percentile_popularity_with_id"))
 
         titlesByZoom = ZoomGeoJSONWriter(featureDict)
