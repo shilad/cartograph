@@ -49,13 +49,23 @@ def read_zoom(filename):
 
 def read_features(id_set=None, *files):
     values = defaultdict(dict)
+    t = type(id_set)
+    if t is str:
+        id_set = None
+    elif t is int:
+        id_set = range(id_set)
+    else:
+        id_set = id_set
     for fn in files:
         with open(fn, "r") as f:
             fields = [s.strip() for s in f.readline().split('\t')]
             if fields[-1] == 'vector': # SUCH A HACK!
                 for line in f:
                     tokens = line.split('\t')
-                    id = tokens[0]
+                    try:
+                        id = int(tokens[0])
+                    except ValueError:
+                        id = tokens[0]
                     if id_set == None or id in id_set:
                         values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
             else:
@@ -63,7 +73,10 @@ def read_features(id_set=None, *files):
                     if line[-1] == '\n': line = line[:-1]
                     tokens = line.split('\t')
                     if len(tokens) == len(fields):
-                        id = tokens[0]
+                        try:
+                            id = int(tokens[0])
+                        except ValueError:
+                            id = tokens[0]
                         if id_set == None or id in id_set:
                             values[id].update(zip(fields[1:], tokens[1:]))
                     else:
