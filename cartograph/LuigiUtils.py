@@ -4,17 +4,13 @@
 # pip2.7 install psycopg2
 
 import logging
-
 import os.path
 import json
-
 import psycopg2
-
 import random
 import shapely
 import shapely.wkt
 import shapely.geometry 
-
 import luigi
 from luigi.postgres import CopyToTable, PostgresTarget
 
