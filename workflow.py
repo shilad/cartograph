@@ -331,6 +331,8 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         return CreateEmbedding()
 
     def run(self):
+
+        # Rescale sampled embedded points
         points = Util.read_features(config.get("ExternalFiles",
                                                "article_embedding"))
         keys = list(points.keys())
@@ -340,6 +342,14 @@ class CreateCoordinates(MTimeMixin, luigi.Task):
         scaling = config.getint("MapConstants", "max_coordinate") / maxVal
         X = [x * scaling for x in X]
         Y = [y * scaling for y in Y]
+
+
+        # Move the interpolation here
+        # Read in sampled embedded points
+        # Iterate through all points
+        # If they are in sample, write out actual coordinates
+        # If they are out of sample interpolate
+        # X and Y
         Util.write_tsv(config.get("PreprocessingFiles",
                                   "article_coordinates"),
                        ("index", "x", "y"), keys, X, Y)

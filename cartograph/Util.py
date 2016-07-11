@@ -47,7 +47,7 @@ def read_zoom(filename):
     return values
 
 
-def read_features(*files):
+def read_features(id_set=None, *files):
     values = defaultdict(dict)
     for fn in files:
         with open(fn, "r") as f:
@@ -56,14 +56,16 @@ def read_features(*files):
                 for line in f:
                     tokens = line.split('\t')
                     id = tokens[0]
-                    values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
+                    if id_set == None or id in id_set:
+                        values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
             else:
                 for line in f:
                     if line[-1] == '\n': line = line[:-1]
                     tokens = line.split('\t')
                     if len(tokens) == len(fields):
                         id = tokens[0]
-                        values[id].update(zip(fields[1:], tokens[1:]))
+                        if id_set == None or id in id_set:
+                            values[id].update(zip(fields[1:], tokens[1:]))
                     else:
                         sys.stderr.write('invalid line %s in %s\n' % (`line`, `fn`))
     return values

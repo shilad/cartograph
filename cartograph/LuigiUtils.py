@@ -1,5 +1,3 @@
-#!/usr/bin/python
-#
 # export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin/:$PATH
 # pip2.7 install psycopg2
 
