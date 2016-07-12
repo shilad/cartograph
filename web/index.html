@@ -17,7 +17,7 @@
 
   <div id="map"></div>
   <div id = "infobox">
-	<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>
+	<h1 id = "title" class = "centered"> Welcome to the World of Wikipedia </h1>
   </div>
 
   <script>
@@ -202,7 +202,7 @@ function handleUTFGrid() {
 			var title = e.data.citylabel;
 			console.log(title);
 			var labelstrings = title.split(" ");
-			var url = "https://simple.wikipedia.org/wiki/";
+			var url = "https://wikipedia.org/wiki/";
 			for(var i = 0; i < labelstrings.length; i++){
 				url += labelstrings[i];
 				if(i < labelstrings.length -1) {
@@ -211,9 +211,9 @@ function handleUTFGrid() {
 			}
 
 			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
-		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Simple English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Welcome to the World of English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
 		} else {
-			infobox.innerHTML = '<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>';
+			infobox.innerHTML = '<h1 id = "title" class = "centered"> Welcome to the World of English Wikipedia </h1>';
    		 }
 
 });
