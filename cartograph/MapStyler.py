@@ -1,6 +1,4 @@
-from json import load
 import mapnik
-import Config
 
 
 class MapStyler:
@@ -139,5 +137,4 @@ class MapStyler:
             dbname = self.config.get('PG', 'database'),
             max_async_connection = 4,
             #estimate_extent = True,
-            table = table
-        )
+            table = table)
