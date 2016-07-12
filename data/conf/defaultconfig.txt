@@ -23,6 +23,7 @@ denoised_with_id: %(generatedDir)s/keep.tsv
 popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
 percentile_popularity_with_id: %(generatedDir)s/percentile_popularity_with_id.tsv
 zoom_with_id: %(generatedDir)s/numberedZoom.tsv
+country_borders: %(generatedDir)s/country_borders.tsv
 
 [PreprocessingConstants]
 num_clusters: 13

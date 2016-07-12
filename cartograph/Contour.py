@@ -9,7 +9,6 @@ import json
 import shapely.geometry as shply
 
 
-
 class ContourCreator:
 
     def __init__(self, numClusters):
