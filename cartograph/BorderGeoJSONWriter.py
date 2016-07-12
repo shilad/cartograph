@@ -25,7 +25,9 @@ class BorderGeoJSONWriter:
         label = Util.read_tsv(self.regionFile)
         shapeList = []
         for child in continents:
-            shapeList.append(child.points)
+            polygon = child.points
+            shapeList.append(polygon)
+
         newMultiPolygon = MultiPolygon(shapeList)
         properties = {"clusterNum": index, "labels": label["label"][index]}
         return Feature(geometry=newMultiPolygon, properties=properties)

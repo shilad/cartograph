@@ -1,12 +1,14 @@
 import numpy as np
-from _Noiser import NoisyEdgesMaker
+from Noiser import NoisyEdgesMaker
 
 
 class BorderProcessor:
-    def __init__(self, borders, blurRadius, minBorderNoiseLength):
+    def __init__(self, borders, blurRadius, minBorderNoiseLength, waterLabel):
         self.borders = borders
         self.blurRadius = blurRadius
         self.minBorderNoiseLength = minBorderNoiseLength
+        self.waterLabel = waterLabel
+        self.noise = False
 
     @staticmethod
     def wrapRange(start, stop, length, reverse=False):
@@ -59,10 +61,9 @@ class BorderProcessor:
         """
         if len(vertices) < 2:
             return vertices
-        if vertices[0].isOnCoast and vertices[1].isOnCoast:
+        if self.noise:
             # these vertices are on the coast
-            # TODO: implement circular noising
-            vertices = NoisyEdgesMaker(vertices, self.minBorderNoiseLength).makeNoisyEdges()
+            vertices = NoisyEdgesMaker(vertices, self.minBorderNoiseLength).makeNoisyEdges(circular)
         else:
             x = [vertex.x for vertex in vertices]
             y = [vertex.y for vertex in vertices]
@@ -258,13 +259,13 @@ class BorderProcessor:
                 regAdjIdx = indexKey[groupLabel] + regIdx
                 for searchGroupLabel in self.borders:
                     if groupLabel is not searchGroupLabel:
+                        self.noise = searchGroupLabel == self.waterLabel
                         for searchRegIdx, search_region in enumerate(self.borders[searchGroupLabel]):
                             searchRegAdjIdx = indexKey[searchGroupLabel] + searchRegIdx
                             if not adjMatrix[regAdjIdx][searchRegAdjIdx]:
                                 self.borders[groupLabel][regIdx], \
                                     self.borders[searchGroupLabel][searchRegIdx] = \
                                     self.makeNewRegions(region, search_region)
-                                # assert len(set(map(lambda v: v.x, search_region))) == len(search_region)
                                 adjMatrix[regAdjIdx][searchRegAdjIdx] = 1
                                 adjMatrix[searchRegAdjIdx][regAdjIdx] = 1
         return self.borders

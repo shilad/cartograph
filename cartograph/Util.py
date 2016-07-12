@@ -50,16 +50,14 @@ def read_zoom(filename):
 def read_features(id_set=None, *files):
     values = defaultdict(dict)
     t = type(id_set)
-    if t is str:
-        id_set = None
-    elif t is int:
+    if t is int:
         id_set = range(id_set)
     else:
         id_set = id_set
     for fn in files:
         with open(fn, "r") as f:
             fields = [s.strip() for s in f.readline().split('\t')]
-            if fields[-1] == 'vector': # SUCH A HACK!
+            if fields[-1] == 'vector':  # SUCH A HACK!
                 for line in f:
                     tokens = line.split('\t')
                     try:

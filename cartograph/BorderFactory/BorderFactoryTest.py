@@ -1,11 +1,15 @@
 import unittest
-from _BorderProcessor import BorderProcessor
+from BorderProcessor import BorderProcessor
+from Noiser import NoisyEdgesMaker
+from Vertex import Vertex
+from matplotlib import pyplot as plt
+import math
 
 
 class BorderProcessorTest(unittest.TestCase):
 
     def test_makeNewRegionFromProcessed(self):
-        processor = BorderProcessor({})
+        processor = BorderProcessor({}, 5, 0.1, 13)
         region = [(1, 1), (2, 2), (3, 3), (4, 5), (5, 5)]
         processed = [[(1, 2), (3, 4)]]
         stopStartList = [(1, 2)]
@@ -60,6 +64,33 @@ class BorderProcessorTest(unittest.TestCase):
                            (7, 7),
                            (5, 6), (3, 4), (2, 3), (1, 2)])
 
+    def test_Noiser(self):
+        points = [(0, 0), (1, 0), (0.5, math.sqrt(3)/2)]  # , (10, 5), (10,10)]
+        vertices = [Vertex(None, point, True) for point in points]
+        center = (0.5, 1/(2*math.sqrt(3)))
+        circular = True
+        regionPoints = [(center[0], -center[1]), center, (1, 1/math.sqrt(3)), center, (0.1, 0.3), center]
+        for i in range(len(vertices) - 1):
+            regionPts = [regionPoints[2*i], regionPoints[2*i + 1]]
+            vertices[i].addRegionPoints(regionPts)
+            vertices[i+1].addRegionPoints(regionPts)
+        if circular:
+            vertices[-1].addRegionPoints([regionPoints[-1], regionPoints[-2]])
+            vertices[0].addRegionPoints([regionPoints[-1], regionPoints[-2]])
+        maker = NoisyEdgesMaker(vertices, 0.001)
+        noisedVertices = maker.makeNoisyEdges(circular)
+        x = [v.x for v in noisedVertices]
+        y = [v.y for v in noisedVertices]
+        plt.plot(x, y)
+        xPoints = zip(*points)[0]
+        yPoints = zip(*points)[1]
+        plt.scatter(xPoints, yPoints, c="r")
+        xRegion = zip(*regionPoints)[0]
+        yRegion = zip(*regionPoints)[1]
+        plt.scatter(xRegion, yRegion, c="g")
+        # debug = maker.debug
+        # plt.scatter(zip(*debug)[0], zip(*debug)[1], c="y")
+        plt.show()
 
 if __name__ == '__main__':
     unittest.main()

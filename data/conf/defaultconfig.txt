@@ -29,9 +29,10 @@ num_clusters: 13
 tsne_theta: 0.5
 min_num_in_cluster: 30  
 blur_radius: 5 
-water_level: .1 
+water_level: .05
 num_contours: 5
 min_border_noise_length: .1
+sample_size: 100000
 
 [PostprocessingFiles]
 article_coordinates: %(postprocessingDir)s/tsne_cache_full.tsv
@@ -49,7 +50,8 @@ map_height: 600
 
 [MapData]
 countries_geojson: %(geojsonDir)s/countries.geojson
-contours_geojson: %(geojsonDir)s/contourData.geojson
+density_contours_geojson: %(geojsonDir)s/densityContourData.geojson
+centroid_contours_geojson: %(geojsonDir)s/centroidContourData.geojson
 clusters_with_region_id: %(generatedDir)s/region_clusters.tsv
 borders_with_region_id: %(generatedDir)s/region_borders.tsv
 title_by_zoom: %(geojsonDir)s/maxZoom_of_articles.geojson
