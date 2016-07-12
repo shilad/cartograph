@@ -1,7 +1,10 @@
-from _VoronoiWrapper import VoronoiWrapper
-from _BorderProcessor import BorderProcessor
+from VoronoiWrapper import VoronoiWrapper
+from BorderProcessor import BorderProcessor
 from cartograph import Util
 from collections import defaultdict
+import logging
+
+logger = logging.getLogger('luigi-interface')
 
 
 class BorderBuilder:
@@ -25,7 +28,10 @@ class BorderBuilder:
 
     def build(self):
         borders = defaultdict(list)
-        vor = VoronoiWrapper(self.x, self.y, self.clusterLabels)
+        waterLabel = max(self.clusterLabels)
+        logger.info("Starting Voronoi tessellation.")
+        vor = VoronoiWrapper(self.x, self.y, self.clusterLabels, waterLabel)
+        logger.info("Building borders.")
         for label in vor.edgeRidgeDict:
             edgeRidgeDict = vor.edgeRidgeDict[label]
             edgeVertexDict = vor.edgeVertexDict[label]
@@ -38,9 +44,12 @@ class BorderBuilder:
                 continent.append(firstVertex)
                 # there are two options, just pick the first one
                 currentIndex = edgeRidgeDict[firstIndex][0]
+                isIsland = firstVertex.isOnCoast
                 while currentIndex != firstIndex:
+                    vertex = edgeVertexDict[currentIndex]
+                    isIsland = isIsland and vertex.isOnCoast
                     # add to border
-                    continent.append(edgeVertexDict[currentIndex])
+                    continent.append(vertex)
                     # remove from available edge vertices
                     del edgeVertexDict[currentIndex]
                     # get list of two adjacent vertex indices
@@ -50,13 +59,14 @@ class BorderBuilder:
                     prevIndex = currentIndex
                     currentIndex = edgeVertexDict[nextIndex].index
                 del edgeVertexDict[firstIndex]
-                # TODO: weight islands differently
-                if len(continent) > self.minNumInCluster:
+                minNumNecessary = self.minNumInCluster / 10 if isIsland else self.minNumInCluster
+                if len(continent) > minNumNecessary:
                     borders[label].append(continent)
 
-        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength).process()
+        logger.info("Processing borders.")
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
         # remove water points
-        del borders[len(borders) - 1]
+        del borders[waterLabel]
         for label in borders:
             for continent in borders[label]:
                 for i, vertex in enumerate(continent):
