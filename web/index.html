@@ -60,7 +60,7 @@
     handleUTFGrid();
 	});
 
-handleUTFGrid();
+//handleUTFGrid();
 
 function handleUTFGrid() {
     var currentZoom = map.getZoom();
@@ -266,6 +266,13 @@ function handleUTFGrid() {
 
 //function to check if any other utfgrid layers currently exist and if so, remove them (helper function for handleUTFGRID)
 function clearUTFLayers(){
+	map.eachLayer(function(layer){
+		if(layer instanceof L.UtfGrid){
+			map.removeLayer(layer);
+			console.log("removed");
+		}
+	})
+	/*
 	if(map.hasLayer(utfgrid0)){
 		map.removeLayer(utfgrid0);
 	}
@@ -320,6 +327,7 @@ function clearUTFLayers(){
 	if(map.hasLayer(utfgrid16)){
 		map.removeLayer(utfgrid16);
 	}
+	*/
 
 }
 

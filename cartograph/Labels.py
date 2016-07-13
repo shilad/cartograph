@@ -80,7 +80,6 @@ class Labels():
             pointSym.file = imgFile
             pointSym.opacity = 0.1
             pointSym.ignore_placement = True
-            pointSym.set('avoid-edges', 'true')
             #shieldSym.set('minimum-padding', '120')
             pointSym.allow_overlap = True
 
