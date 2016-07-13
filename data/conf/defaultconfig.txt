@@ -28,11 +28,11 @@ country_borders: %(generatedDir)s/country_borders.tsv
 [PreprocessingConstants]
 num_clusters: 13
 tsne_theta: 0.5
-min_num_in_cluster: 30  
+min_num_in_cluster: 100
 blur_radius: 5 
 water_level: .05
 num_contours: 5
-min_border_noise_length: .1
+min_border_noise_length: .01
 
 [PostprocessingFiles]
 article_coordinates: %(postprocessingDir)s/tsne_cache_full.tsv

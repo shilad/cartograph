@@ -211,6 +211,7 @@ class BorderProcessor:
         Returns:
             new regions with their intersecting points modified
         """
+        # print('a lens are ', len(region1), 'to', len(region2))
         points1 = [(vertex.x, vertex.y) for vertex in region1]
         points2 = [(vertex.x, vertex.y) for vertex in region2]
         consensusLists, circular, reverse2 = self.getIntersectingBorders(points1, points2)
@@ -233,39 +234,24 @@ class BorderProcessor:
 
         processedRegion1 = self.makeNewRegionFromProcessed(region1, processed, region1StartStopList)
         processedRegion2 = self.makeNewRegionFromProcessed(region2, processed, region2StartStopList, reverse2)
+        # print('b, from', len(region1), 'to', len(processedRegion1))
+        # print('c, from', len(region2), 'to', len(processedRegion2))
         return processedRegion1, processedRegion2
-
-    def makeRegionAdjacencyMatrixAndIndexKey(self):
-        """
-        Returns:
-            an adjacency matrix and a dictionary mapping group labels to indices
-            (i.e., adjMatrix[indexKey[groupLabel] + regionIndex]
-        """
-        indexKey = {}
-        n = 0
-        for label in range(len(self.borders)):
-            indexKey[label] = n
-            n += len(self.borders[label])
-        return np.zeros((n, n), dtype=np.int8), indexKey
 
     def process(self):
         """
         Returns:
             the borders object where the intersecting borders are made more natural
         """
-        adjMatrix, indexKey = self.makeRegionAdjacencyMatrixAndIndexKey()
-        for groupLabel in self.borders:
-            for regIdx, region in enumerate(self.borders[groupLabel]):
-                regAdjIdx = indexKey[groupLabel] + regIdx
-                for searchGroupLabel in self.borders:
-                    if groupLabel is not searchGroupLabel:
-                        self.noise = searchGroupLabel == self.waterLabel
-                        for searchRegIdx, search_region in enumerate(self.borders[searchGroupLabel]):
-                            searchRegAdjIdx = indexKey[searchGroupLabel] + searchRegIdx
-                            if not adjMatrix[regAdjIdx][searchRegAdjIdx]:
-                                self.borders[groupLabel][regIdx], \
-                                    self.borders[searchGroupLabel][searchRegIdx] = \
-                                    self.makeNewRegions(region, search_region)
-                                adjMatrix[regAdjIdx][searchRegAdjIdx] = 1
-                                adjMatrix[searchRegAdjIdx][regAdjIdx] = 1
+        regionIds = []
+        for group in self.borders:
+            regionIds.extend((group, i) for i in range(len(self.borders[group])))
+
+        for (group1, i) in regionIds:
+            for (group2, j) in regionIds:
+                if group1 < group2:
+                        self.noise = group2 == self.waterLabel
+                        self.borders[group1][i], self.borders[group2][j] = \
+                            self.makeNewRegions(self.borders[group1][i], self.borders[group2][j])
+
         return self.borders
