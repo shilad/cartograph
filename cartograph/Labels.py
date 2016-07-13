@@ -37,7 +37,7 @@ class Labels():
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Book')
-        textSym.set('size', '30')
+        textSym.set('size', '15')
 
     def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile, numBins):
         style = SubElement(self.mapRoot, 'Style', 
@@ -105,11 +105,13 @@ class Labels():
             layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + str(z) + 'Layer')
             layer.set('srs', '+init=epsg:4236')
             layer.set('cache-features', 'true')
-            layer.set('minzoom', '0')
+            layer.set('minzoom', self.getMinDenominator(z+1))
+            print self.getMinDenominator(z+1)
             layer.set('maxzoom', self.getMaxDenominator(z))
+            print self.getMaxDenominator(z) + "\n\n\n"
             addStyle = SubElement(layer, 'StyleName')
             addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
-            self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom = ' + str(z) + ') as foo')
+            self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z) + ' order by maxzoom) as foo')
 
     def writeLabelsByZoomToXml(self, field, labelType, maxZoom, imgFile, numBins):
         self._add_Shield_Style_By_Zoom(field, labelType, maxZoom, imgFile, numBins)
