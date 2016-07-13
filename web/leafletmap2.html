@@ -17,14 +17,13 @@
 
   <div id="map"></div>
   <div id = "infobox">
-	<h1 id = "title" class = "centered"> Welcome to the World of Wikipedia </h1>
+	<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>
   </div>
 
   <script>
 //=================== MAP INITIALIZATION========================//
   var map = L.map('map').setView([0, 0], 3);
   var infobox = document.getElementById('infobox');
- 
   var utfgrid0;
   var utfgrid1;
   var utfgrid2;
@@ -52,8 +51,36 @@
       attribution: "WikiBrain / Sen Research Lab 2016"
     }).addTo(map);
 
+ utfgrid5 = new L.UtfGrid('http://localhost:8080/map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+ var currentLayer = utfgrid5;
+ map.addLayer(utfgrid5);
+ if(map.hasLayer(utfgrid5)){
+ 	console.log("added utfgrid5")
+ }
 
+  currentLayer.on('click', function(e) {
+		if(e.data){
+			console.log("clicked on a city");
+			var title = e.data.citylabel;
+			console.log(title);
+			var labelstrings = title.split(" ");
+			var url = "https://simple.wikipedia.org/wiki/";
+			for(var i = 0; i < labelstrings.length; i++){
+				url += labelstrings[i];
+				if(i < labelstrings.length -1) {
+					url += "_";
+				}
+			}
 
+			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
+		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Simple English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		} else {
+			infobox.innerHTML = '<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>';
+   		 }
+
+});
+
+/* commented out for testing purposes
 
   //function to handle which utfgrid layers gets shown
   map.on('zoomend', function (e) {
@@ -71,117 +98,73 @@ function handleUTFGrid() {
         	clearUTFLayers();
         	var utfgrid0 = new L.UtfGrid('http://localhost:8080/map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid0;
+        	console.log("current grid is 0")
 			map.addLayer(utfgrid0);
-			console.log("current grid is 0");
+			va
         break;
         case 1:
         	clearUTFLayers();
         	var utfgrid1 = new L.UtfGrid('http://localhost:8080/map_1_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid1;
+        	console.log("current grid is 1")
 			map.addLayer(utfgrid1);
-			console.log("current grid is 1");
         break;
         case 2:
         	clearUTFLayers();
         	var utfgrid2 = new L.UtfGrid('http://localhost:8080/map_2_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid2;
+        	console.log("current grid is 2")
 			map.addLayer(utfgrid2);
-			console.log("current grid is 2");
         break;
         case 3:
         	clearUTFLayers();
         	var utfgrid3 = new L.UtfGrid('http://localhost:8080/map_3_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	console.log("utfgrid3added");
         	currentLayer = utfgrid3;
+        	console.log("current grid is 3")
 			map.addLayer(utfgrid3);
-			if(map.hasLayer(utfgrid3)){
-				console.log("current grid utf 3");
-			}
-			
         break;
         case 4:
         	clearUTFLayers();
         	var utfgrid4 = new L.UtfGrid('http://localhost:8080/map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid4;
+        	console.log("current grid is 4")
 			map.addLayer(utfgrid4);
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 exists")
-			}
         break;
         case 5:
         	clearUTFLayers();
         	var utfgrid5 = new L.UtfGrid('http://localhost:8080/map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid5;
+        	console.log("current grid is 5")
 			map.addLayer(utfgrid5);
-			console.log("current grid is 5");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 exists")
-			}
-			
         break;
         case 6:
         	clearUTFLayers();
         	var utfgrid6 = new L.UtfGrid('http://localhost:8080/map_6_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid6;
+        	console.log("current grid is 6")
 			map.addLayer(utfgrid6);
-			console.log("current grid is 6");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 still exists")
-			}
-			if(map.hasLayer(utfgrid6)){
-				console.log("utfgrid6 exists")
-			}
-			
         break;
         case 7:
         	clearUTFLayers();
         	var utfgrid7 = new L.UtfGrid('http://localhost:8080/map_7_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid7;
+        	console.log("current grid is 7")
 			map.addLayer(utfgrid7);
-			console.log("current grid is 7");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 still exists")
-			}
-			if(map.hasLayer(utfgrid6)){
-				console.log("utfgrid6 still exists")
-			}
-			if(map.hasLayer(utfgrid7)){
-				console.log("utfgrid7 exists")
-			}
         break;
         case 8:
         	clearUTFLayers();
         	var utfgrid8 = new L.UtfGrid('http://localhost:8080/map_8_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid8;
+        	console.log("current grid is 8")
 			map.addLayer(utfgrid8);
-			console.log("current grid is 8");
         break;
         case 9:
         	clearUTFLayers();
         	var utfgrid9 = new L.UtfGrid('http://localhost:8080/map_9_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid9;
+        	console.log("current grid is 9")
 			map.addLayer(utfgrid9);
-			console.log("current grid is 9");
         break;
         case 10:
         	clearUTFLayers();
@@ -246,7 +229,7 @@ function handleUTFGrid() {
 			var title = e.data.citylabel;
 			console.log(title);
 			var labelstrings = title.split(" ");
-			var url = "https://wikipedia.org/wiki/";
+			var url = "https://simple.wikipedia.org/wiki/";
 			for(var i = 0; i < labelstrings.length; i++){
 				url += labelstrings[i];
 				if(i < labelstrings.length -1) {
@@ -255,9 +238,9 @@ function handleUTFGrid() {
 			}
 
 			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
-		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Welcome to the World of English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Simple English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
 		} else {
-			infobox.innerHTML = '<h1 id = "title" class = "centered"> Welcome to the World of English Wikipedia </h1>';
+			infobox.innerHTML = '<h1 id = "title" class = "centered"> Simple English Wikipedia </h1>';
    		 }
 
 });
@@ -323,16 +306,39 @@ function clearUTFLayers(){
 
 }
 
-
-
+*/
+	
 
 map.addControl(new L.control.search({
-	url: '../dynamic/search?q={s}',
+	url: '/dynamic/search?q={s}',
 	textPlaceholder: 'Search for an article',
 	collapsed: false,
 	markerLocation: true,
 	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
 }));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -37,12 +37,12 @@ class Labels():
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Book')
-        textSym.set('size', '30')
+        textSym.set('size', '15')
 
     def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile, numBins):
         style = SubElement(self.mapRoot, 'Style', 
                            name=field[1:-1] + str(filterZoomNum) + 'LabelStyle')
-        sizeLabel = 12
+        sizeLabel = 8
 
         for b in range(numBins):
             rule = SubElement(style, 'Rule')
@@ -53,19 +53,38 @@ class Labels():
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
 
-            shieldSym = SubElement(rule, 'ShieldSymbolizer', placement=labelType)
+            shieldSym = SubElement(rule, 'ShieldSymbolizer', placement = labelType)
             shieldSym.text = field
             shieldSym.set('dy', '-10')
             shieldSym.set('unlock-image', 'true')
             shieldSym.set('placement-type', 'simple')
             shieldSym.set('file', imgFile)
             shieldSym.set('avoid-edges', 'true')
-            shieldSym.set('minimum-padding', '120')
-            shieldSym.set('wrap-width', '100')
+            #shieldSym.set('minimum-padding', '120')
+            shieldSym.set('wrap-width', '50')
 
             shieldSym.set('face-name', 'DejaVu Sans Book')
             shieldSym.set('size', str(sizeLabel))
-            sizeLabel += 5
+            sizeLabel += 3
+
+        for c in range(numBins):
+            rule = SubElement(style, 'Rule')
+            filterBy = SubElement(rule, 'Filter')
+            filterBy.text = "[maxzoom] = " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
+
+            minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+            maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
+            maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
+
+            pointSym = SubElement(rule, 'PointSymbolizer')
+            pointSym.file = imgFile
+            pointSym.opacity = 0.1
+            pointSym.ignore_placement = True
+            pointSym.set('avoid-edges', 'true')
+            #shieldSym.set('minimum-padding', '120')
+            pointSym.allow_overlap = True
+
+            
 
     def _add_Shield_Style_By_Zoom(self, field, labelType, maxZoom, imgFile, numBins):
         for z in range(maxZoom):
@@ -86,11 +105,13 @@ class Labels():
             layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + str(z) + 'Layer')
             layer.set('srs', '+init=epsg:4236')
             layer.set('cache-features', 'true')
-            layer.set('minzoom', '0')
+            layer.set('minzoom', self.getMinDenominator(z+1))
+            print self.getMinDenominator(z+1)
             layer.set('maxzoom', self.getMaxDenominator(z))
+            print self.getMaxDenominator(z) + "\n\n\n"
             addStyle = SubElement(layer, 'StyleName')
             addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
-            self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom = ' + str(z) + ') as foo')
+            self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z) + ' order by maxzoom) as foo')
 
     def writeLabelsByZoomToXml(self, field, labelType, maxZoom, imgFile, numBins):
         self._add_Shield_Style_By_Zoom(field, labelType, maxZoom, imgFile, numBins)
