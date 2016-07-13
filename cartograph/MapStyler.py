@@ -72,17 +72,11 @@ class MapStyler:
         return s
 
     def generateCountryPolygonStyle(self, filename, opacity, clusterIds):
-        babyColors = ["#e9e1be", "#ddcdd3", "#d8e5bf", "#f7b2d6", "#b2d8cc",
-                    "#f8dac5", "#b2dede", "#f0cab2", "#b6e7e0", "#f5b2cc",
-                    "#bccfb9", "#f4d9e3", "#b2e5bb", "#d3c6d6", "#cee7d0",
-                    "#f2b2e5", "#e3e2cf", "#bac7f9", "#d4c9b2", "#ffc8fd",
-                    "#ded7b2", "#d4c1e4", "#ccd6b2", "#f4d7f0", "#f6b2c4",
-                    "#b2d2e2", "#fbd7d4", "#b2cfe7", "#e2b9c3", "#f0d7f9"]
         s = mapnik.Style()
         for i, c in enumerate(clusterIds):
             r = mapnik.Rule()
             symbolizer = mapnik.PolygonSymbolizer()
-            symbolizer.fill = mapnik.Color(babyColors[i])
+            symbolizer.fill = mapnik.Color(self.colorWheel[i][7])
             symbolizer.fill_opacity = opacity
             r.symbols.append(symbolizer)
             r.filter = mapnik.Expression('[clusternum].match("' + c + '")')
@@ -137,4 +131,5 @@ class MapStyler:
             dbname = self.config.get('PG', 'database'),
             max_async_connection = 4,
             #estimate_extent = True,
-            table = table)
+            table = table
+        )

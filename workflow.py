@@ -484,7 +484,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
 
     def run(self):
         clusterDict = BorderBuilder(config).build()
-        clustList = list(clusterDict.values())
+        clustList = [list(clusterDict[x]) for x in list(clusterDict.keys())]
         regionList, membershipList = self.decomposeBorders(clusterDict)
         regionFile = config.get("ExternalFiles", "region_names")
         BorderGeoJSONWriter(clustList, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
