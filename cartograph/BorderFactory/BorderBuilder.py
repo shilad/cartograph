@@ -59,9 +59,11 @@ class BorderBuilder:
                     prevIndex = currentIndex
                     currentIndex = edgeVertexDict[nextIndex].index
                 del edgeVertexDict[firstIndex]
-                minNumNecessary = self.minNumInCluster / 10 if isIsland else self.minNumInCluster
+                minNumNecessary = self.minNumInCluster / 50 if isIsland else self.minNumInCluster
                 if len(continent) > minNumNecessary:
                     borders[label].append(continent)
+                else:
+                    borders[waterLabel].append(continent)
 
         logger.info("Processing borders.")
         BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
