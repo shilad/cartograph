@@ -4,14 +4,15 @@ from Vertex import Vertex
 
 class NoisyEdgesMaker:
     """
-    Implementation based on https://github.com/amitp/mapgen2/blob/master/NoisyEdges.as
+    Implementation based on https://github.com/amitp/mapgen2/blob/master/NoisyEdges.as,
+    but improved to account for concave quadrilaterals formed by the Voronoi vertices and the
+    region points.
     """
 
     def __init__(self, vertices, minBorderNoiseLength):
         self.vertices = vertices
         self.minBorderNoiseLength = minBorderNoiseLength
         self.edge = []
-        self.debug = []
 
     @staticmethod
     def perpendicular(v):
@@ -37,6 +38,9 @@ class NoisyEdgesMaker:
         return pt1 + (np.subtract(pt0, pt1) * value)
 
     def _subdivide(self, a, b, c, d):
+        """
+        Subdivide the quadrilateral into smaller segments, adding the center to the edge
+        """
         if np.linalg.norm(np.subtract(b, a)) < self.minBorderNoiseLength or \
                 np.linalg.norm(np.subtract(c, d)) < self.minBorderNoiseLength:
             return
@@ -50,8 +54,6 @@ class NoisyEdgesMaker:
 
         h = self.interpolate(e, f, rand1)  # center
 
-        self.debug.extend([e, f, g, i])
-
         # make new quadrilaterals and recurse
         rand2, rand3 = np.random.uniform(0.6, 1.4, 2)
         self._subdivide(a, self.interpolate(g, b, rand2), h, self.interpolate(e, d, rand3))
@@ -59,10 +61,14 @@ class NoisyEdgesMaker:
         self._subdivide(h, self.interpolate(f, c, rand2), c, self.interpolate(i, d, rand3))
 
     def _makeNoisyEdge(self, pt0, pt1, pt2, pt3, processed=False):
+        """
+        Make a noisy edge from two Voronoi vertices (pt0 and pt2) and two region points (pt1 and pt3)
+        """
         u = np.subtract(pt2, pt0)
         v = np.subtract(pt1, pt0)
+
+        # check concavity
         if not processed:
-            # check concavity
             w = np.subtract(pt1, pt2)
             bool0 = np.dot(u, v) > 0
             bool1 = np.dot(u, w) > 0
@@ -72,20 +78,23 @@ class NoisyEdgesMaker:
                 perp = self.perpendicular(u)
                 pointToUse = pt0 if bool0 and bool1 else pt2  # are the region points behind the second vertex?
                 perpendicularPoint = np.add(midpoint, perp)
-                newRegionPoint0 = self.intersect(pointToUse, pt1, midpoint, perpendicularPoint)
-                newRegionPoint1 = self.intersect(pointToUse, pt3, midpoint, perpendicularPoint)
-                self._makeNoisyEdge(pt0, newRegionPoint0, pt2, newRegionPoint1, True)
+                pt1 = self.intersect(pointToUse, pt1, midpoint, perpendicularPoint)
+                pt3 = self.intersect(pointToUse, pt3, midpoint, perpendicularPoint)
+                self._makeNoisyEdge(pt0, pt1, pt2, pt3, True)
                 return
 
-        # check for large
-        u = u / np.linalg.norm(u)
-        dist = np.linalg.norm(v - u * np.dot(u, v))
-        if dist > self.minBorderNoiseLength * 50:
-            midpoint = self.interpolate(pt0, pt2)
-            perp = self.perpendicular(u) * self.minBorderNoiseLength * 5
-            pt1 = midpoint + perp
-            pt3 = midpoint - perp
+        # check for large or small
+        dist = np.linalg.norm(u)
+        u = u / dist  # numpy doesn't like augmented assignment here
+        distToRegionPoint = np.linalg.norm(v - u * np.dot(u, v))
+        multiplier = np.clip(distToRegionPoint,
+                             min(self.minBorderNoiseLength / 10, dist * 1.61803398875),  # golden ratio, cause why not?
+                             self.minBorderNoiseLength * 10)
+
         midpoint = self.interpolate(pt0, pt2)
+        perp = self.perpendicular(u) * multiplier
+        pt1 = midpoint + perp
+        pt3 = midpoint - perp
 
         mid0 = self.interpolate(pt0, pt1)
         mid1 = self.interpolate(pt1, pt2)
@@ -96,6 +105,16 @@ class NoisyEdgesMaker:
         self._subdivide(midpoint, mid1, pt2, mid2)
 
     def makeNoisyEdges(self, circular):
+        """
+        Make a noisy edge from the list of vertices given in the constructor
+        Args:
+            circular: Whether or not the region is circular
+
+        Returns:
+            A new list of Vertex objects defining the new noised border. The new vertices will have index None, but
+            the original information from the input vertices is preserved (i.e., new vertices are added in between
+            the input ones).
+        """
         if circular:
             self.vertices.append(self.vertices[0])
         noisedVertices = [self.vertices[0]]
