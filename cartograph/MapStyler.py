@@ -30,6 +30,7 @@ class MapStyler:
         styles = self.generateContourPolygonStyle(1.0, self.numContours, clusterIds)
         sNames = []
         for i, s in enumerate(styles):
+            print i
             name = "contour" + str(i)
             self.m.append_style(name, s)
             sNames.append(name)
