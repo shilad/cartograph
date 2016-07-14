@@ -650,7 +650,7 @@ class LoadCoordinates(LoadGeoJsonTask):
         )
 
     def requires(self):
-        return CreateCoordinates(), PGLoaderCode()
+        return CreateCoordinates(), PGLoaderCode(), CreateLabelsFromZoom()
 
 
 class LoadCountries(LoadGeoJsonTask):
