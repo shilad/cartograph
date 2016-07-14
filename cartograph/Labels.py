@@ -49,7 +49,7 @@ class Labels():
             filterBy = SubElement(rule, 'Filter')
             filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
 
-            minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+            #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
 
@@ -67,22 +67,21 @@ class Labels():
             shieldSym.set('size', str(sizeLabel))
             sizeLabel += 3
 
-        for c in range(numBins):
+        for c in range(1):
             rule = SubElement(style, 'Rule')
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(c) + ""
+            filterBy.text = "[maxzoom] <= " + str(filterZoomNum)
 
-            minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+            #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
             assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
 
             pointSym = SubElement(rule, 'PointSymbolizer')
             pointSym.file = imgFile
-            pointSym.opacity = 0.1
-            pointSym.ignore_placement = True
-            #shieldSym.set('minimum-padding', '120')
-            pointSym.allow_overlap = True
+            pointSym.set('opacity', '0.0')
+            pointSym.set('ignore-placement', 'true')
+            pointSym.set('allow-overlap', 'true')
 
             
 
