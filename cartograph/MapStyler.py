@@ -4,6 +4,7 @@ import mapnik
 class MapStyler:
 
 
+
     def __init__(self, config, colorwheel):
         self.config = config
         self.numContours =  config.getint("PreprocessingConstants", "num_contours")
@@ -26,8 +27,7 @@ class MapStyler:
                                                              1.0, clusterIds))
         self.m.layers.append(self.generateLayer('countries', "countries", ["countries"]))
 
-        numContours = [ self.numContours for x in range(self.numClusters)]
-        styles = self.generateContourPolygonStyle(1.0, numContours, clusterIds)
+        styles = self.generateContourPolygonStyle(1.0, self.numContours, clusterIds)
         sNames = []
         for i, s in enumerate(styles):
             name = "contour" + str(i)
@@ -44,7 +44,7 @@ class MapStyler:
         # self.m.zoom_to_box(self.extents)
 
         self.m.zoom_all()
-     
+
         # print(self.m.envelope())
 
     def saveMapXml(self, countryFilename, mapFilename):
@@ -86,7 +86,7 @@ class MapStyler:
     def generateContourPolygonStyle(self, opacity, numContours, clusterIds, gamma=1):
         styles = []
         for i in range(self.numClusters):
-            for j in range(numContours[i]):
+            for j in range(numContours):
                 s = mapnik.Style()
                 r = mapnik.Rule()
                 symbolizer = mapnik.PolygonSymbolizer()
