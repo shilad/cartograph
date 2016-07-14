@@ -37,7 +37,7 @@ class Labels():
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Bold')
-        textSym.set('size', '15')
+        textSym.set('size', '18')
         textSym.set('wrap-width', '100')
         textSym.set('placement-type', 'simple')
         textSym.set('placements', 'N,S,14,13,12,11')
@@ -53,10 +53,10 @@ class Labels():
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
         textSym.set('face-name', 'DejaVu Sans Bold')
-        textSym.set('size', '28')
+        textSym.set('size', '30')
         textSym.set('wrap-width', '100')
         textSym.set('placement-type', 'simple')
-        textSym.set('placements', 'N,S,27,26,25,24')
+        textSym.set('placements', 'N,S,29,28,27,26')
         textSym.set('opacity', '0.5')
 
     def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile, numBins):
@@ -77,14 +77,19 @@ class Labels():
             shieldSym.text = field
             shieldSym.set('dy', '-10')
             shieldSym.set('unlock-image', 'true')
-            shieldSym.set('placement-type', 'simple')
+
             shieldSym.set('file', imgFile)
             shieldSym.set('avoid-edges', 'true')
-            #shieldSym.set('minimum-padding', '120')
+            # shieldSym.set('minimum-padding', '120')
             shieldSym.set('wrap-width', '50')
 
-            shieldSym.set('face-name', 'DejaVu Sans Book')
+            shieldSym.set('face-name', 'DejaVu Serif Book')
             shieldSym.set('size', str(sizeLabel))
+
+            shieldSym.set('placement-type', 'simple')
+            placementList = 'N,S,' + str((sizeLabel-1)) + ',' + str((sizeLabel-2)) + ',' + str((sizeLabel-3))
+            shieldSym.set('placements', placementList)
+
             sizeLabel += 3
 
         for c in range(numBins):
@@ -99,12 +104,10 @@ class Labels():
 
             pointSym = SubElement(rule, 'PointSymbolizer')
             pointSym.file = imgFile
-            pointSym.opacity = 0.1
-            pointSym.ignore_placement = True
-            #shieldSym.set('minimum-padding', '120')
-            pointSym.allow_overlap = True
+            pointSym.set('opacity',  '0.1')
+            pointSym.set('ignore-placement', 'true')
+            pointSym.set('allow-overlap', 'true')
 
-            
 
     def _add_Shield_Style_By_Zoom(self, field, labelType, maxZoom, imgFile, numBins):
         for z in range(maxZoom):
