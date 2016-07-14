@@ -47,7 +47,7 @@ class Labels():
         for b in range(numBins):
             rule = SubElement(style, 'Rule')
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] = " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
+            filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
 
             minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
@@ -70,11 +70,12 @@ class Labels():
         for c in range(numBins):
             rule = SubElement(style, 'Rule')
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] = " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
+            filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
 
             minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
+            assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
 
             pointSym = SubElement(rule, 'PointSymbolizer')
             pointSym.file = imgFile
@@ -104,10 +105,10 @@ class Labels():
             layer = SubElement(self.mapRoot, 'Layer', name=field[1:-1] + str(z) + 'Layer')
             layer.set('srs', '+init=epsg:4236')
             layer.set('cache-features', 'true')
-            layer.set('minzoom', self.getMinDenominator(z+1))
-            print self.getMinDenominator(z+1)
+            layer.set('minzoom', self.getMinDenominator(z))
             layer.set('maxzoom', self.getMaxDenominator(z))
-            print self.getMaxDenominator(z) + "\n\n\n"
+            assert layer.get('minzoom') != None, 'no min denominator for %s' % z
+            assert layer.get('maxzoom') != None, 'no max denominator for %s' % z
             addStyle = SubElement(layer, 'StyleName')
             addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
             self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z) + ' order by maxzoom) as foo')
