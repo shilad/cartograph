@@ -2,6 +2,7 @@ from collections import defaultdict
 import codecs
 import numpy as np
 import sys
+import os
 
 
 def read_tsv(filename):
@@ -47,36 +48,33 @@ def read_zoom(filename):
     return values
 
 
-def read_features(id_set=None, *files):
+def read_features(sampleSize=None, *files):
     values = defaultdict(dict)
-    t = type(id_set)
-    if t is int:
-        id_set = range(id_set)
-    else:
-        id_set = id_set
     for fn in files:
         with open(fn, "r") as f:
+            content = f.readlines()[1:]
+            content = [line.split("\t") for line in content]
+            content.sort(key=lambda x: x[0])
+
             fields = [s.strip() for s in f.readline().split('\t')]
             if fields[-1] == 'vector':  # SUCH A HACK!
-                for line in f:
-                    tokens = line.split('\t')
-                    try:
-                        id = int(tokens[0])
-                    except ValueError:
-                        id = tokens[0]
-                    if id_set == None or id in id_set:
-                        values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
+                count = 0
+                for line in content:
+                    count += 1
+                    id = line[0]
+                    if sampleSize is None or count < sampleSize:
+                        values[id]['vector'] = np.array([float(t.strip()) for t in line[1:]])
+
             else:
-                for line in f:
-                    if line[-1] == '\n': line = line[:-1]
-                    tokens = line.split('\t')
-                    if len(tokens) == len(fields):
-                        try:
-                            id = int(tokens[0])
-                        except ValueError:
-                            id = tokens[0]
-                        if id_set == None or id in id_set:
-                            values[id].update(zip(fields[1:], tokens[1:]))
+                count = 0
+                for line in content:
+                    count += 1
+                    if line[1][-1] == '\n':
+                        line[1] = line[1][:-1]
+                    if len(line) == len(fields):
+                        id = line[0]
+                        if sampleSize is None or count <= sampleSize:
+                            values[id].update(zip(fields[1:], line[1:]))
                     else:
                         sys.stderr.write('invalid line %s in %s\n' % (`line`, `fn`))
     return values
@@ -86,6 +84,7 @@ def write_tsv(filename, header, indexList, *data):
     for index, dataList in enumerate(data):
         if len(dataList) != len(data[0]):
             raise InputError(index, "Lists must match to map together")
+
     with open(filename, "w") as writeFile:
         writeFile.write("\t".join(header) + "\n")
         if len(data) > 1:
@@ -93,11 +92,38 @@ def write_tsv(filename, header, indexList, *data):
             data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
         else:
             data = data[0]
+
+        content = zip(indexList, data)
+        content.sort(key=lambda x: x[0])
         for i in range(len(data)):
             data[i] = str(data[i])
             if data[i][-1] != "\n":
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
+
+
+def sort_tsv(filename):
+    ctime = os.path.getctime(filename)
+    mtime = os.path.getmtime(filename)
+    with open(filename, "r") as f:
+        content = f.readlines()
+        content = [line.split("\t") for line in content]
+        header = content[0]
+        content = content[1:]
+        content.sort(key=lambda x: x[0])
+
+    with open(filename, "w") as f:
+        f.write("%s\t%s" % (header[0], header[1]))
+        for line in content:
+            if len(line) < 2:
+                print line
+            if content[1][-1] != "\n":
+                content[1] += "\n"
+            f.write("%s\t%s" % (line[0], line[1]))
+
+    os.utime(filename, (ctime, mtime))
+
+
 
 def append_to_tsv(parentName, writeName, *data):
     with open(parentName, "r") as parentFile:
