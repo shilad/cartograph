@@ -1,0 +1,44 @@
+
+body {	
+	font-family: Futura, Verdana, sans-serif;
+	color: #f0f0f0;
+}
+
+ #map{
+	 height: 100%;
+	 width: 75%;
+	 display: inline-block;
+	 float: left;
+     }
+
+ #infobox {
+	height: 100%;
+	width: 25%;
+	display: inline-block;
+	float: right;
+	background-color: #404040;
+	border-radius: 10px;
+
+	
+}
+
+.centered {
+	text-align: center;
+}
+
+a {
+	font-weight: bold;
+	color: #2eb82e;
+	text-decoration: none;	
+}
+
+#infobox h1, h3 {
+	padding: 10px;
+}
+
+
+#infobox a {
+	text-align: center;
+}
+
+
