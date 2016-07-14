@@ -104,7 +104,6 @@ class Labels():
 
             pointSym = SubElement(rule, 'PointSymbolizer')
             pointSym.set('file', imgFile)
-
             pointSym.set('opacity', '0.0')
 
             pointSym.set('ignore-placement', 'true')
