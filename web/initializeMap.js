@@ -86,29 +86,13 @@ function handleUTFGrid() {
         	var utfgrid4 = new L.UtfGrid('../map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid4;
 			map.addLayer(utfgrid4);
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 exists")
-			}
         break;
         case 5:
         	clearUTFLayers();
         	var utfgrid5 = new L.UtfGrid('../map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid5;
 			map.addLayer(utfgrid5);
-			console.log("current grid is 5");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 exists")
-			}
-			
+			console.log("current grid is 5");		
         break;
         case 6:
         	clearUTFLayers();
@@ -116,18 +100,6 @@ function handleUTFGrid() {
         	currentLayer = utfgrid6;
 			map.addLayer(utfgrid6);
 			console.log("current grid is 6");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 still exists")
-			}
-			if(map.hasLayer(utfgrid6)){
-				console.log("utfgrid6 exists")
-			}
 			
         break;
         case 7:
@@ -136,21 +108,6 @@ function handleUTFGrid() {
         	currentLayer = utfgrid7;
 			map.addLayer(utfgrid7);
 			console.log("current grid is 7");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 still exists")
-			}
-			if(map.hasLayer(utfgrid6)){
-				console.log("utfgrid6 still exists")
-			}
-			if(map.hasLayer(utfgrid7)){
-				console.log("utfgrid7 exists")
-			}
         break;
         case 8:
         	clearUTFLayers();
