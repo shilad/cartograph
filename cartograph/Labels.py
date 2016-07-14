@@ -103,7 +103,7 @@ class Labels():
             assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
 
             pointSym = SubElement(rule, 'PointSymbolizer')
-            pointSym.file = imgFile
+            pointSym.set('file', imgFile)
 
             pointSym.set('opacity', '0.0')
 
