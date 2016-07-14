@@ -75,6 +75,7 @@ class Labels():
             minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
+            assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
 
             pointSym = SubElement(rule, 'PointSymbolizer')
             pointSym.file = imgFile
@@ -106,6 +107,8 @@ class Labels():
             layer.set('cache-features', 'true')
             layer.set('minzoom', self.getMinDenominator(z))
             layer.set('maxzoom', self.getMaxDenominator(z))
+            assert layer.get('minzoom') != None, 'no min denominator for %s' % z
+            assert layer.get('maxzoom') != None, 'no max denominator for %s' % z
             addStyle = SubElement(layer, 'StyleName')
             addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
             self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z) + ' order by maxzoom) as foo')
