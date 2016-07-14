@@ -6,7 +6,7 @@ var createMap = function(){
   	var page_info_box = document.getElementById('page-info-box');
 
   // load a tile layer
-  	L.tileLayer('http://localhost:8080/map/{z}/{x}/{y}.png',
+  	L.tileLayer('../map/{z}/{x}/{y}.png',
     {
       maxZoom: 18,
       attribution: "WikiBrain / Sen Research Lab 2016"
@@ -47,33 +47,33 @@ handleUTFGrid();
 //determines which utf grid gets shown
 function handleUTFGrid() {
     var currentZoom = map.getZoom();
-    var currentLayer = new L.UtfGrid('http://localhost:8080/map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+    var currentLayer = new L.UtfGrid('../map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
     
     switch (currentZoom) {
         case 0:
         	clearUTFLayers();
-        	var utfgrid0 = new L.UtfGrid('http://localhost:8080/map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid0 = new L.UtfGrid('../map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid0;
 			map.addLayer(utfgrid0);
 			console.log("current grid is 0");
         break;
         case 1:
         	clearUTFLayers();
-        	var utfgrid1 = new L.UtfGrid('http://localhost:8080/map_1_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid1 = new L.UtfGrid('../map_1_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid1;
 			map.addLayer(utfgrid1);
 			console.log("current grid is 1");
         break;
         case 2:
         	clearUTFLayers();
-        	var utfgrid2 = new L.UtfGrid('http://localhost:8080/map_2_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid2 = new L.UtfGrid('../map_2_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid2;
 			map.addLayer(utfgrid2);
 			console.log("current grid is 2");
         break;
         case 3:
         	clearUTFLayers();
-        	var utfgrid3 = new L.UtfGrid('http://localhost:8080/map_3_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid3 = new L.UtfGrid('../map_3_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid3;
 			map.addLayer(utfgrid3);
 			if(map.hasLayer(utfgrid3)){
@@ -83,7 +83,7 @@ function handleUTFGrid() {
         break;
         case 4:
         	clearUTFLayers();
-        	var utfgrid4 = new L.UtfGrid('http://localhost:8080/map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid4 = new L.UtfGrid('../map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid4;
 			map.addLayer(utfgrid4);
 			if(map.hasLayer(utfgrid3)){
@@ -95,7 +95,7 @@ function handleUTFGrid() {
         break;
         case 5:
         	clearUTFLayers();
-        	var utfgrid5 = new L.UtfGrid('http://localhost:8080/map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid5 = new L.UtfGrid('../map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid5;
 			map.addLayer(utfgrid5);
 			console.log("current grid is 5");
@@ -112,7 +112,7 @@ function handleUTFGrid() {
         break;
         case 6:
         	clearUTFLayers();
-        	var utfgrid6 = new L.UtfGrid('http://localhost:8080/map_6_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid6 = new L.UtfGrid('../map_6_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid6;
 			map.addLayer(utfgrid6);
 			console.log("current grid is 6");
@@ -132,7 +132,7 @@ function handleUTFGrid() {
         break;
         case 7:
         	clearUTFLayers();
-        	var utfgrid7 = new L.UtfGrid('http://localhost:8080/map_7_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid7 = new L.UtfGrid('../map_7_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid7;
 			map.addLayer(utfgrid7);
 			console.log("current grid is 7");
@@ -154,70 +154,70 @@ function handleUTFGrid() {
         break;
         case 8:
         	clearUTFLayers();
-        	var utfgrid8 = new L.UtfGrid('http://localhost:8080/map_8_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid8 = new L.UtfGrid('../map_8_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid8;
 			map.addLayer(utfgrid8);
 			console.log("current grid is 8");
         break;
         case 9:
         	clearUTFLayers();
-        	var utfgrid9 = new L.UtfGrid('http://localhost:8080/map_9_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid9 = new L.UtfGrid('../map_9_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid9;
 			map.addLayer(utfgrid9);
 			console.log("current grid is 9");
         break;
         case 10:
         	clearUTFLayers();
-        	var utfgrid10 = new L.UtfGrid('http://localhost:8080/map_10_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid10 = new L.UtfGrid('../map_10_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid10;
 			map.addLayer(utfgrid10);
         break;
         case 11:
         	clearUTFLayers();
-        	var utfgrid11 = new L.UtfGrid('http://localhost:8080/map_11_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid11 = new L.UtfGrid('../map_11_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid11;
 			map.addLayer(utfgrid11);
         break;
         case 12:
          	clearUTFLayers();
-        	var utfgrid12 = new L.UtfGrid('http://localhost:8080/map_12_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid12 = new L.UtfGrid('../map_12_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid12;
 			map.addLayer(utfgrid12);
         break;
         case 13:
         	clearUTFLayers();
-        	var utfgrid13 = new L.UtfGrid('http://localhost:8080/map_13_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid13 = new L.UtfGrid('../map_13_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid13;
 			map.addLayer(utfgrid13);
         break;
         case 14:
         	clearUTFLayers();
-        	var utfgrid14 = new L.UtfGrid('http://localhost:8080/map_14_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid14 = new L.UtfGrid('../map_14_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid14;
 			map.addLayer(utfgrid14);
         break;
         case 15:
         	clearUTFLayers();
-        	var utfgrid15 = new L.UtfGrid('http://localhost:8080/map_15_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid15 = new L.UtfGrid('../map_15_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid15;
 			map.addLayer(utfgrid15);
         break;
         case 16:
         	clearUTFLayers();
-        	var utfgrid16 = new L.UtfGrid('http://localhost:8080/map_16_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid16 = new L.UtfGrid('../map_16_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid16;
 			map.addLayer(utfgrid16);
         break;
         case 17:
         	clearUTFLayers();
-        	var utfgrid17 = new L.UtfGrid('http://localhost:8080/map_17_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid17 = new L.UtfGrid('../map_17_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid17;
 			map.addLayer(utfgrid17);
         break;
         default:
         	//default is 17 for when users zoom past there but there's no more data to show
         	clearUTFLayers();
-        	var utfgrid17 = new L.UtfGrid('http://localhost:8080/map_17_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+        	var utfgrid17 = new L.UtfGrid('../map_17_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid17;
 			map.addLayer(utfgrid17);
         break;

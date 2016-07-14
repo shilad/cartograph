@@ -8,6 +8,7 @@ import os
 import shutil
 
 from cartograph import Config
+from cartograph import Colors
 from cartograph import Util
 from cartograph import Contour
 from cartograph import Denoiser
@@ -45,6 +46,10 @@ RUN_TIME = time()
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.Contour.__file__))
+
+class ColorsCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(cartograph.Colors.__file__))
 
 
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
@@ -452,6 +457,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
     def output(self):
         return (
             TimestampedLocalTarget(config.get("MapData", "countries_geojson")),
+            TimestampedLocalTarget(config.get("PreprocessingFiles", "country_borders")),
             TimestampedLocalTarget(config.get("MapData", "clusters_with_region_id")),
             TimestampedLocalTarget(config.get("MapData", "borders_with_region_id")))
 
@@ -479,9 +485,8 @@ class CreateContinents(MTimeMixin, luigi.Task):
 
     def run(self):
         clusterDict = BorderBuilder(config).build()
-        clustList = list(clusterDict.values())
+        clustList = [list(clusterDict[x]) for x in list(clusterDict.keys())]
         regionList, membershipList = self.decomposeBorders(clusterDict)
-
         regionFile = config.get("ExternalFiles", "region_names")
         BorderGeoJSONWriter(clustList, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
         Util.write_tsv(config.get("MapData", "clusters_with_region_id"),
@@ -492,6 +497,10 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        ("region_id", "border_list"),
                        range(1, len(regionList) + 1),
                        regionList)
+        Util.write_tsv(config.get("PreprocessingFiles", "country_borders"),
+                       ("cluster_id", "border_list"),
+                       range(len(clustList)),
+                       clustList)
 
 
 class CreateContours(MTimeMixin, luigi.Task):
@@ -671,14 +680,18 @@ class CreateMapXml(MTimeMixin, luigi.Task):
             LoadContours(),
             LoadCoordinates(),
             LoadCountries(),
-            MapStylerCode()
+            MapStylerCode(),
+            ColorsCode()
         )
 
     def run(self):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
-        ms = MapStyler.MapStyler(config, COLORWHEEL)
+        countryBorders = Util.read_features(config.get("PreprocessingFiles", "country_borders"))
+        colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
+        colors = colorFactory.optimalColoring()
+        ms = MapStyler.MapStyler(config, colors)
         mapfile = config.get("MapOutput", "map_file")
         imgfile = config.get("MapOutput", "img_src_name")
 
@@ -746,7 +759,8 @@ class RenderMap(MTimeMixin, luigi.Task):
                 LoadCountries(),
                 LoadContours(),
                 LabelMapUsingZoom(),
-                MapStylerCode())
+                MapStylerCode(),
+                ColorsCode())
 
     def output(self):
         return(
@@ -756,10 +770,12 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
+        countryBorders = Util.read_features(config.get("PreprocessingFiles", "country_borders"))
+        colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
+        colors = colorFactory.optimalColoring()
+        ms = MapStyler.MapStyler(config, colors)
         ms = MapStyler.MapStyler(config, COLORWHEEL)
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".png")
         ms.saveImage(config.get("MapOutput", "map_file"),
                      config.get("MapOutput", "img_src_name") + ".svg")
-
-
