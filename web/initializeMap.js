@@ -3,7 +3,7 @@ var createMap = function(){
 //=================== MAP INITIALIZATION========================//
 
 	var map = L.map('map').setView([0, 0], 3);
-  	var infobox = document.getElementById('infobox');
+  	var page_info_box = document.getElementById('page-info-box');
 
   // load a tile layer
   	L.tileLayer('http://localhost:8080/map/{z}/{x}/{y}.png',
@@ -239,9 +239,9 @@ function handleUTFGrid() {
 			}
 
 			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
-		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Welcome to the World of English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		  	page_info_box.innerHTML = '<div class = "centered"> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
 		} else {
-			infobox.innerHTML = '<h1 id = "title" class = "centered"> Welcome to the World of English Wikipedia </h1>';
+			page_info_box.innerHTML = '';
    		 }
 
 });
@@ -259,15 +259,24 @@ function clearUTFLayers(){
 }
 
 //========================== MAP SEARCH FUNCTIONALITY===========================//
-
-map.addControl(new L.control.search({
+var search = new L.control.search({
 	url: '../dynamic/search?q={s}',
 	textPlaceholder: 'Search for an article',
 	collapsed: false,
 	markerLocation: true,
 	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
-}));
+});
 
+search.addTo(map);
 
+//move search to sidebar rather than map itself
+var htmlObject = search.getContainer();
+var searchdiv = document.getElementById('search-box');
+
+function setParent(elem, newParent){
+	newParent.appendChild(elem);
+}
+
+setParent(htmlObject, searchdiv);
 
 }

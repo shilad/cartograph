@@ -70,7 +70,7 @@ class Labels():
         for c in range(numBins):
             rule = SubElement(style, 'Rule')
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
+            filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(c) + ""
 
             minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
