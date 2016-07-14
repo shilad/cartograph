@@ -5,8 +5,6 @@ import matplotlib
 matplotlib.use('Agg')
 import cartograph
 import os
-import shutil
-
 from cartograph import Config
 from cartograph import Util
 from cartograph import Contour
@@ -132,6 +130,8 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
 
     def output(self):
+        Util.sort_tsv(config.get("ExternalFiles", "vecs_with_id"))
+        Util.sort_tsv(config.get("ExternalFiles", "names_with_id"))
         return (TimestampedLocalTarget(config.get("ExternalFiles",
                                                   "vecs_with_id")),
                 TimestampedLocalTarget(config.get("ExternalFiles",
@@ -255,7 +255,6 @@ class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (PopularityLabeler(),
-                InterpolateNewPoints(),
                 PopularityLabelSizerCode())
 
     def output(self):
@@ -287,7 +286,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
                                             "clusters_with_id"))
 
     def requires(self):
-        return (InterpolateNewPoints())
+        return (WikiBrainNumbering())
 
     def run(self):
         featureDict = Util.read_features(SAMPLE_SIZE, config.get("PostprocessingFiles",
@@ -436,7 +435,6 @@ class Denoise(MTimeMixin, luigi.Task):
     def requires(self):
         return (RegionClustering(),
                 CreateCoordinates(),
-                InterpolateNewPoints(),
                 DenoiserCode())
 
     def run(self):
