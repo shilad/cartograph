@@ -150,13 +150,13 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
 
     def output(self):
         if True: return []
-        return (TimestampedLocalTarget(config.get("PostprocessingFiles",
+        return (TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "vecs_with_id")),
-                TimestampedLocalTarget(config.get("PostprocessingFiles",
+                TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "names_with_id")),
-                TimestampedLocalTarget(config.get("PostprocessingFiles",
+                TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "article_coordinates")),
-                TimestampedLocalTarget(config.get("PostprocessingFiles",
+                TimestampedLocalTarget(config.get("PreprocessingFiles",
                                              "popularity_with_id")))
 
     def updateConfig(self):
@@ -177,10 +177,10 @@ class InterpolateNewPoints(MTimeMixin, luigi.Task):
             os.utime(newCoords, now)
             os.utime(newPopularity, now)
 
-        config.set("PostprocessingFiles", "article_coordinates", newCoords)
-        config.set("PostprocessingFiles", "vecs_with_id", newVecs)
-        config.set("PostprocessingFiles", "names_with_id", newNames)
-        config.set("PostprocessingFiles", "popularity_with_id", newPopularity)
+        config.set("PreprocessingFiles", "article_coordinates", newCoords)
+        config.set("PreprocessingFiles", "vecs_with_id", newVecs)
+        config.set("PreprocessingFiles", "names_with_id", newNames)
+        config.set("PreprocessingFiles", "popularity_with_id", newPopularity)
 
         with open("./data/conf/generatedConf.txt", "w") as generatedConf:
             config.write(generatedConf)
@@ -224,7 +224,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
 
     def output(self):
         return (TimestampedLocalTarget(config.get("PreprocessingFiles",
-                                             "popularity_with_id")))
+                                                 "popularity_with_id")))
 
     def run(self):
         featureDict = Util.read_features(config.get("ExternalFiles",
@@ -248,6 +248,7 @@ class PopularityLabeler(MTimeMixin, luigi.Task):
         Util.write_tsv(config.get('PreprocessingFiles', 'popularity_with_id'),
                        ("id", "popularity"),
                        idList, popularityList)
+        print "Write popularity file"
 
 
 class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
@@ -265,7 +266,7 @@ class PercentilePopularityLabeler(MTimeMixin, luigi.Task):
                                              "percentile_popularity_with_id")))
 
     def run(self):
-        readPopularData = Util.read_tsv(config.get("PostprocessingFiles",
+        readPopularData = Util.read_tsv(config.get("PreprocessingFiles",
                                                    "popularity_with_id"))
         popularity = list(map(float, readPopularData['popularity']))
         index = list(map(int, readPopularData['id']))
@@ -292,7 +293,7 @@ class RegionClustering(MTimeMixin, luigi.Task):
         return (InterpolateNewPoints())
 
     def run(self):
-        featureDict = Util.read_features(config.get("PostprocessingFiles",
+        featureDict = Util.read_features(config.get("PreprocessingFiles",
                                                     "vecs_with_id"))
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
@@ -363,7 +364,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return TimestampedLocalTarget(config.get("PreprocessingFiles",
-                                            "zoom_with_id"))
+                                                 "zoom_with_id"))
 
     def requires(self):
         return (RegionClustering(),
@@ -372,9 +373,9 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
                 PopularityLabeler())
 
     def run(self):
-        feats = Util.read_features(config.get("PostprocessingFiles",
+        feats = Util.read_features(config.get("PreprocessingFiles",
                                               "popularity_with_id"),
-                                   config.get("PostprocessingFiles",
+                                   config.get("PreprocessingFiles",
                                               "article_coordinates"),
                                    config.get("PreprocessingFiles",
                                               "clusters_with_id"))
@@ -414,7 +415,7 @@ class Denoise(MTimeMixin, luigi.Task):
                 DenoiserCode())
 
     def run(self):
-        featureDict = Util.read_features(config.get("PostprocessingFiles",
+        featureDict = Util.read_features(config.get("PreprocessingFiles",
                                                     "article_coordinates"),
                                          config.get("PreprocessingFiles",
                                                     "clusters_with_id"))
@@ -517,13 +518,13 @@ class CreateContours(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson"))
 
     def run(self):
-        featuresDict = Util.read_features(config.get("PostprocessingFiles",
+        featuresDict = Util.read_features(config.get("PreprocessingFiles",
                                                      "article_coordinates"),
                                           config.get("PreprocessingFiles",
                                                      "clusters_with_id"),
                                           config.get("PreprocessingFiles",
                                                      "denoised_with_id"),
-                                          config.get("PostprocessingFiles",
+                                          config.get("PreprocessingFiles",
                                                      "vecs_with_id"))
         for key in featuresDict.keys():
             if key[0] == "w":
@@ -601,9 +602,9 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
     def run(self):
         featureDict = Util.read_features(
             config.get("PreprocessingFiles", "zoom_with_id"),
-            config.get("PostprocessingFiles", "article_coordinates"),
-            config.get("PostprocessingFiles", "popularity_with_id"),
-            config.get("PostprocessingFiles", "names_with_id"),
+            config.get("PreprocessingFiles", "article_coordinates"),
+            config.get("PreprocessingFiles", "popularity_with_id"),
+            config.get("PreprocessingFiles", "names_with_id"),
             config.get("PreprocessingFiles", "percentile_popularity_with_id"))
 
         titlesByZoom = ZoomGeoJSONWriter(featureDict)

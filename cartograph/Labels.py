@@ -18,12 +18,12 @@ class Labels():
     def getMaxDenominator(self, zoomNum):
         zoomScaleData = self.zoomScaleData
         scaleDenKey = "maxscale_zoom" + str(zoomNum)
-        return zoomScaleData.get(str(scaleDenKey))
+        return str(int(zoomScaleData.get(str(scaleDenKey))) + 1)
 
     def getMinDenominator(self, zoomNum):
         zoomScaleData = self.zoomScaleData
-        scaleDenKey = "minscale_zoom" + str(zoomNum)
-        return zoomScaleData.get(str(scaleDenKey))
+        scaleDenKey = "maxscale_zoom" + str(zoomNum)
+        return str(int(zoomScaleData.get(str(scaleDenKey))) - 1)
 
     def _add_Text_Style(self, field, labelType, minScale, maxScale, breakZoom):
         style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + 'LabelStyle')
@@ -69,7 +69,7 @@ class Labels():
             filterBy = SubElement(rule, 'Filter')
             filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
 
-            minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+            #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
 
@@ -92,19 +92,21 @@ class Labels():
 
             sizeLabel += 3
 
-        for c in range(numBins):
+        for c in range(1):
             rule = SubElement(style, 'Rule')
             filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] <= " + str(filterZoomNum) + " and [popbinscore] = " + str(b) + ""
+            filterBy.text = "[maxzoom] <= " + str(filterZoomNum)
 
-            minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+            #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
             maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
             maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
             assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
 
             pointSym = SubElement(rule, 'PointSymbolizer')
             pointSym.file = imgFile
-            pointSym.set('opacity',  '0.1')
+
+            pointSym.set('opacity', '0.0')
+
             pointSym.set('ignore-placement', 'true')
             pointSym.set('allow-overlap', 'true')
 
