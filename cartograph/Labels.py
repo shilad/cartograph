@@ -25,19 +25,39 @@ class Labels():
         scaleDenKey = "minscale_zoom" + str(zoomNum)
         return zoomScaleData.get(str(scaleDenKey))
 
-    def _add_Text_Style(self, field, labelType, minScale, maxScale):
+    def _add_Text_Style(self, field, labelType, minScale, maxScale, breakZoom):
         style = SubElement(self.mapRoot, 'Style', name=field[1:-1] + 'LabelStyle')
         rule = SubElement(style, 'Rule')
 
         minScaleSym = SubElement(rule, 'MinScaleDenominator')
         maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
-        minScaleSym.text = str(minScale)
-        maxScaleSym.text = str(maxScale)
+        minScaleSym.text = self.getMinDenominator(maxScale + breakZoom)
+        maxScaleSym.text = self.getMaxDenominator(maxScale)
 
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
-        textSym.set('face-name', 'DejaVu Sans Book')
+        textSym.set('face-name', 'DejaVu Sans Bold')
         textSym.set('size', '15')
+        textSym.set('wrap-width', '100')
+        textSym.set('placement-type', 'simple')
+        textSym.set('placements', 'N,S,14,13,12,11')
+        textSym.set('opacity', '0.65')
+
+        rule = SubElement(style, 'Rule')
+
+        minScaleSym = SubElement(rule, 'MinScaleDenominator')
+        maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
+        minScaleSym.text = self.getMinDenominator(minScale)
+        maxScaleSym.text = self.getMaxDenominator(maxScale + breakZoom)
+
+        textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
+        textSym.text = field
+        textSym.set('face-name', 'DejaVu Sans Bold')
+        textSym.set('size', '28')
+        textSym.set('wrap-width', '100')
+        textSym.set('placement-type', 'simple')
+        textSym.set('placements', 'N,S,27,26,25,24')
+        textSym.set('opacity', '0.5')
 
     def _add_Filter_Rules(self, field, labelType, filterZoomNum, imgFile, numBins):
         style = SubElement(self.mapRoot, 'Style', 
@@ -118,8 +138,8 @@ class Labels():
         self._add_Shield_Layer_By_Zoom(field, maxZoom)
         self.write()
 
-    def writeLabelsXml(self, field, labelType, minScale='1066', maxScale='559082264'):
-        self._add_Text_Style(field, labelType, minScale, maxScale)
+    def writeLabelsXml(self, field, labelType, breakZoom, minScale='1066', maxScale='559082264'):
+        self._add_Text_Style(field, labelType, minScale, maxScale, breakZoom)
         self._add_Text_Layer(field)
         self.write()
 

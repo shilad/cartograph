@@ -730,8 +730,9 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
 
 
         labelClust.writeLabelsXml('[labels]', 'interior',
-                                  minScale=minScaleClust,
-                                  maxScale=maxScaleClust)
+                                  breakZoom=5,
+                                  minScale=10,
+                                  maxScale=0)
         # zoomValues = set()
         # zoomValueData = Util.read_features(config.get("PreprocessingFiles",
         #                                               "zoom_with_id"))
