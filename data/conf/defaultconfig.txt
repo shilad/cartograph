@@ -3,6 +3,7 @@ baseDir: ./data/fullEn
 externalDir: ./data/labdata/fullEn
 generatedDir: %(baseDir)s/tsv
 geojsonDir: %(baseDir)s/geojson
+interpolateDir: none
 
 [ExternalFiles]
 vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
@@ -35,16 +36,11 @@ water_level: .05
 num_contours: 7
 min_border_noise_length: .01
 
-[PostprocessingFiles]
-article_coordinates: %(postprocessingDir)s/tsne_cache_full.tsv
-vecs_with_id: %(postprocessingDir)s/numberedVecsFull.tsv
-names_with_id: %(postProcessingDir)s/numberedNamesFull.tsv
-popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
-
 [MapConstants]
 max_coordinate: 40
 max_zoom: 18
 num_pop_bins: 3
+first_zoom_label: 5
 map_width: 800
 map_height: 600
 
