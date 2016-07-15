@@ -383,7 +383,8 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
         zoom = CalculateZooms(feats,
                               config.getint("MapConstants", "max_coordinate"),
                               config.getint("PreprocessingConstants", "num_clusters"))
-        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"))
+        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"),
+                                             config.getint("MapConstants", "first_zoom_label"))
 
         keys = list(numberedZoomDict.keys())
         zoomValue = list(numberedZoomDict.values())
@@ -731,8 +732,9 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
 
 
         labelClust.writeLabelsXml('[labels]', 'interior',
-                                  minScale=minScaleClust,
-                                  maxScale=maxScaleClust)
+                                  breakZoom=config.getint('MapConstants', 'first_zoom_label'),
+                                  minScale=10,
+                                  maxScale=0)
         # zoomValues = set()
         # zoomValueData = Util.read_features(config.get("PreprocessingFiles",
         #                                               "zoom_with_id"))

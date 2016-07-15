@@ -38,6 +38,7 @@ min_border_noise_length: .01
 max_coordinate: 40
 max_zoom: 18
 num_pop_bins: 3
+first_zoom_label: 5
 map_width: 800
 map_height: 600
 
