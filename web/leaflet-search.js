@@ -34,7 +34,7 @@ L.Control.Search = L.Control.extend({
 		casesensitive: false,			//search elements in case sensitive text
 		autoType: true,					//complete input with first suggested result and select this filled-in text.
 		delayType: 400,					//delay while typing for show tooltip
-		tooltipLimit: -1,				//limit max results to show in tooltip. -1 for no limit.
+		tooltipLimit: 20,				//limit max results to show in tooltip. -1 for no limit.
 		tipAutoSubmit: true,			//auto map panTo when click on tooltip
 		autoResize: true,				//autoresize on input change
 		collapsed: true,				//collapse search control at startup
@@ -255,7 +255,7 @@ L.Control.Search = L.Control.extend({
 		input.type = 'text';
 		input.size = this._inputMinSize;
 		input.value = '';
-		input.autocomplete = 'on';
+		input.autocomplete = 'off';
 		input.autocorrect = 'off';
 		input.autocapitalize = 'off';
 		input.placeholder = text;
