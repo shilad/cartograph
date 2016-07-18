@@ -2,6 +2,7 @@ var createMap = function(){
 
 //=================== MAP INITIALIZATION========================//
 
+	
 	var map = L.map('map').setView([0, 0], 3);
   	var page_info_box = document.getElementById('page-info-box');
 
@@ -55,30 +56,27 @@ function handleUTFGrid() {
         	var utfgrid0 = new L.UtfGrid('../map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid0;
 			map.addLayer(utfgrid0);
-			console.log("current grid is 0");
+			
         break;
         case 1:
         	clearUTFLayers();
         	var utfgrid1 = new L.UtfGrid('../map_1_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid1;
 			map.addLayer(utfgrid1);
-			console.log("current grid is 1");
+		
         break;
         case 2:
         	clearUTFLayers();
         	var utfgrid2 = new L.UtfGrid('../map_2_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid2;
 			map.addLayer(utfgrid2);
-			console.log("current grid is 2");
+			
         break;
         case 3:
         	clearUTFLayers();
         	var utfgrid3 = new L.UtfGrid('../map_3_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid3;
 			map.addLayer(utfgrid3);
-			if(map.hasLayer(utfgrid3)){
-				console.log("current grid utf 3");
-			}
 			
         break;
         case 4:
@@ -86,20 +84,20 @@ function handleUTFGrid() {
         	var utfgrid4 = new L.UtfGrid('../map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid4;
 			map.addLayer(utfgrid4);
+
         break;
         case 5:
         	clearUTFLayers();
         	var utfgrid5 = new L.UtfGrid('../map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid5;
 			map.addLayer(utfgrid5);
-			console.log("current grid is 5");		
+
         break;
         case 6:
         	clearUTFLayers();
         	var utfgrid6 = new L.UtfGrid('../map_6_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid6;
 			map.addLayer(utfgrid6);
-			console.log("current grid is 6");
 			
         break;
         case 7:
@@ -107,21 +105,21 @@ function handleUTFGrid() {
         	var utfgrid7 = new L.UtfGrid('../map_7_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid7;
 			map.addLayer(utfgrid7);
-			console.log("current grid is 7");
+
         break;
         case 8:
         	clearUTFLayers();
         	var utfgrid8 = new L.UtfGrid('../map_8_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid8;
 			map.addLayer(utfgrid8);
-			console.log("current grid is 8");
+			
         break;
         case 9:
         	clearUTFLayers();
         	var utfgrid9 = new L.UtfGrid('../map_9_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid9;
 			map.addLayer(utfgrid9);
-			console.log("current grid is 9");
+			
         break;
         case 10:
         	clearUTFLayers();
@@ -216,14 +214,15 @@ function clearUTFLayers(){
 }
 
 //========================== MAP SEARCH FUNCTIONALITY===========================//
+
 var search = new L.control.search({
 	url: '../dynamic/search?q={s}',
 	textPlaceholder: 'Search for an article',
 	collapsed: false,
 	markerLocation: true,
-	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20],
-	tooltipLimit: 20})
-    });
+	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
+});
+
 search.addTo(map);
 
 //move search to sidebar rather than map itself
@@ -235,5 +234,11 @@ function setParent(elem, newParent){
 }
 
 setParent(htmlObject, searchdiv);
+
+//========================= MAP HASH FOR SOCIAL MEDIA LINK SHARING/LINKING TO SPECIFIC LOCATIONS =============================//
+
+var hash = new L.Hash(map);
+
+//========================= SOCIAL SHARING FUNCTIONALITY ============================//
 
 }
