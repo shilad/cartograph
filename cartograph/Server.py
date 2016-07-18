@@ -10,7 +10,6 @@ import Util
 
 import TileStache
 
-# this needs to go away because of new config config = Config.BAD_GET_CONFIG()
 
 def run_server(path_cartograph_cfg, path_tilestache_cfg):
     config = initConf(path_cartograph_cfg)[0]
@@ -27,9 +26,6 @@ def run_server(path_cartograph_cfg, path_tilestache_cfg):
     app = CartographServer(path_tilestache_cfg, config)
     run_simple('0.0.0.0', 8080, app, static_files=static_files)
    
-        
-
-#how do i pass config into the cartographserver class?
 
 class CartographServer(TileStache.WSGITileServer):
 
@@ -43,60 +39,64 @@ class CartographServer(TileStache.WSGITileServer):
         self.keyList = []
         self.tupleLocZoom = []
 
+        self.titleLookupDict = dict()
 
         for entry in xyDict:
             #x and y have to be flipped to get it to match up
             y = float(xyDict[entry]['x'])
             x = float(xyDict[entry]['y'])
             title = xyDict[entry]['name']
+            self.titleLookupDict[entry] = title
             zoom = int(xyDict[entry]['maxZoom'])
             loc = [x, y]
-            uppertitle = title
-            
+            idnum = int(entry)
             #second part = add to trie (trying new method for autocomplete)
-            locZoom = (x, y, zoom, uppertitle)
+            locZoom = (x, y, zoom, idnum)
             lowertitle = unicode(title.lower(), 'utf-8')
            
-            
             self.keyList.append(lowertitle)
             self.tupleLocZoom.append(locZoom)
 
         #after creating lists of all titles and location/zoom, zip them into a trie (will need to extract to json format later)
-        fmt = "<ddi100s" #a tuple of double, double, int, string (x, y, zoom, regular case title)
+        fmt = "<ddii" #a tuple of double, double, int, string (x, y, zoom, regular case title)
         self.trie = marisa_trie.RecordTrie(fmt, zip(self.keyList, self.tupleLocZoom))
 
     def __call__(self, environ, start_response):
-
         
         path_info = environ.get('PATH_INFO', None)
         if path_info.startswith('/dynamic/search'):
-            request = Request(environ)
+                request = Request(environ)
 
-            title = request.args['q']
+                title = request.args['q']
+
+                print title
+                
+                #trie autocomplete reponse
+
+                results = self.trie.items(unicode(title))
+
+                #empty list to hold json-formatted results
+                jsonList = []
+
+                #extract values from tuple in trie
+                for item in results:
+                    idnum = str(item[1][3])
+                    titlestring = self.titleLookupDict[idnum]
+                    x = item[1][0]
+                    y = item[1][1]
+                    locat = [x,y]
+                    zoom = item[1][2]
+                    rJsonDict = {"loc": locat, "title": titlestring, "zoom" : zoom}
+                    print rJsonDict
+                    jsonList.append(rJsonDict)
+                
+                
+                response = Response (json.dumps(jsonList))
+                response.headers['Content-type'] = 'application/json'
+               
+                return response(environ, start_response)
             
-            #trie autocomplete reponse
 
-            results = self.trie.items(unicode(title))
-
-            #empty list to hold json-formatted results
-            jsonList = []
-
-            #extract values from tuple in trie
-            for item in results:
-                titlestring = item[1][3]
-                print titlestring
-                x = item[1][0]
-                y = item[1][1]
-                locat = [x,y]
-                zoom = item[1][2]
-                rJsonDict = {"loc": locat, "title": titlestring, "zoom" : zoom}
-                jsonList.append(rJsonDict)
-            
-            
-            response = Response (json.dumps(jsonList))
-            response.headers['Content-type'] = 'application/json'
-           
-            return response(environ, start_response)
         else:
             return TileStache.WSGITileServer.__call__(self, environ, start_response)
 
