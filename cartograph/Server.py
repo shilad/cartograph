@@ -51,14 +51,18 @@ class CartographServer(TileStache.WSGITileServer):
             title = xyDict[entry]['name']
             zoom = int(xyDict[entry]['maxZoom'])
             loc = [x, y]
+            uppertitle = title
+            
             #second part = add to trie (trying new method for autocomplete)
-            locZoom = (x, y, zoom)
-            utitle = unicode(title, 'utf-8')
-            self.keyList.append(utitle)
+            locZoom = (x, y, zoom, uppertitle)
+            lowertitle = unicode(title.lower(), 'utf-8')
+           
+            
+            self.keyList.append(lowertitle)
             self.tupleLocZoom.append(locZoom)
 
         #after creating lists of all titles and location/zoom, zip them into a trie (will need to extract to json format later)
-        fmt = "<ddi" #a tuple of double, double, int (x, y, zoom
+        fmt = "<ddi100s" #a tuple of double, double, int, string (x, y, zoom, regular case title)
         self.trie = marisa_trie.RecordTrie(fmt, zip(self.keyList, self.tupleLocZoom))
 
     def __call__(self, environ, start_response):
@@ -69,6 +73,7 @@ class CartographServer(TileStache.WSGITileServer):
             request = Request(environ)
 
             title = request.args['q']
+            
             #trie autocomplete reponse
 
             results = self.trie.items(unicode(title))
@@ -78,7 +83,8 @@ class CartographServer(TileStache.WSGITileServer):
 
             #extract values from tuple in trie
             for item in results:
-                titlestring = item[0]
+                titlestring = item[1][3]
+                print titlestring
                 x = item[1][0]
                 y = item[1][1]
                 locat = [x,y]
