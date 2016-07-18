@@ -3,7 +3,7 @@ var createMap = function(){
 //=================== MAP INITIALIZATION========================//
 
 	var map = L.map('map').setView([0, 0], 3);
-  	var infobox = document.getElementById('infobox');
+  	var page_info_box = document.getElementById('page-info-box');
 
   // load a tile layer
   	L.tileLayer('../map/{z}/{x}/{y}.png',
@@ -86,29 +86,13 @@ function handleUTFGrid() {
         	var utfgrid4 = new L.UtfGrid('../map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid4;
 			map.addLayer(utfgrid4);
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 exists")
-			}
         break;
         case 5:
         	clearUTFLayers();
         	var utfgrid5 = new L.UtfGrid('../map_5_utfgrid/{z}/{x}/{y}.json?callback={cb}');
         	currentLayer = utfgrid5;
 			map.addLayer(utfgrid5);
-			console.log("current grid is 5");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 exists")
-			}
-			
+			console.log("current grid is 5");		
         break;
         case 6:
         	clearUTFLayers();
@@ -116,18 +100,6 @@ function handleUTFGrid() {
         	currentLayer = utfgrid6;
 			map.addLayer(utfgrid6);
 			console.log("current grid is 6");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 still exists")
-			}
-			if(map.hasLayer(utfgrid6)){
-				console.log("utfgrid6 exists")
-			}
 			
         break;
         case 7:
@@ -136,21 +108,6 @@ function handleUTFGrid() {
         	currentLayer = utfgrid7;
 			map.addLayer(utfgrid7);
 			console.log("current grid is 7");
-			if(map.hasLayer(utfgrid3)){
-				console.log("utfgrid3 still exists")
-			}
-			if(map.hasLayer(utfgrid4)){
-				console.log("utfgrid4 still exists")
-			}
-			if(map.hasLayer(utfgrid5)){
-				console.log("utfgrid5 still exists")
-			}
-			if(map.hasLayer(utfgrid6)){
-				console.log("utfgrid6 still exists")
-			}
-			if(map.hasLayer(utfgrid7)){
-				console.log("utfgrid7 exists")
-			}
         break;
         case 8:
         	clearUTFLayers();
@@ -239,9 +196,9 @@ function handleUTFGrid() {
 			}
 
 			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
-		  	infobox.innerHTML = '<div class = "centered"> <h1 id = "title"> Welcome to the World of English Wikipedia </h1> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		  	page_info_box.innerHTML = '<div class = "centered"> <h3> City Name: <strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
 		} else {
-			infobox.innerHTML = '<h1 id = "title" class = "centered"> Welcome to the World of English Wikipedia </h1>';
+			page_info_box.innerHTML = '';
    		 }
 
 });
@@ -259,15 +216,24 @@ function clearUTFLayers(){
 }
 
 //========================== MAP SEARCH FUNCTIONALITY===========================//
-
-map.addControl(new L.control.search({
+var search = new L.control.search({
 	url: '../dynamic/search?q={s}',
 	textPlaceholder: 'Search for an article',
 	collapsed: false,
 	markerLocation: true,
 	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
-}));
+});
 
+search.addTo(map);
 
+//move search to sidebar rather than map itself
+var htmlObject = search.getContainer();
+var searchdiv = document.getElementById('search-box');
+
+function setParent(elem, newParent){
+	newParent.appendChild(elem);
+}
+
+setParent(htmlObject, searchdiv);
 
 }

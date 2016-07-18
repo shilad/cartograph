@@ -7,7 +7,9 @@ import Util
 TOP_LEVEL_COORDINATES = (360, 170.1022)
 
 class QuadTree:
-    def __init__(self, depth, leftX, topY, size, capacity, maxDepth):
+    def __init__(self, depth, leftX, topY, size, capacity, maxDepth, isTopLevel=True):
+        self.isTopLevel = isTopLevel
+        self.capacityAtTop = 45
         self.depth = depth
         self.children = []
         self.points = []
@@ -18,7 +20,12 @@ class QuadTree:
         self.maxDepth = maxDepth
 
     def insert(self, x, y, pid):
-        if self.depth >= self.maxDepth or len(self.points) < self.capacity:
+        c = self.capacity
+
+        if self.isTopLevel == True:
+            c = self.capacityAtTop
+
+        if self.depth >= self.maxDepth or len(self.points) < c:
             self.points.append(pid)
             return
 
@@ -51,7 +58,7 @@ class QuadTree:
 class CalculateZooms:
 
     def __init__(self, points, maxCoordinate, numClusters):
-        self.pointsPerTile = 2
+        self.pointsPerTile = 20
         self.maxCoordinate = maxCoordinate
         self.points = points
         self.numberedZoom= {}   # mapping from point ids to the zoom level at which they appear
@@ -64,7 +71,7 @@ class CalculateZooms:
         for p in self.points.values():
             p['popularity'] = float(p['popularity'])
 
-    def simulateZoom(self, maxZoom):
+    def simulateZoom(self, maxZoom, firstZoomLevel):
 
         # Order ids by overall popualarity
         idsByPopularity = [pair[0] for pair in Util.sort_by_feature(self.points, 'popularity')]
@@ -77,11 +84,11 @@ class CalculateZooms:
             topPerCluster[c].append(id)
 
         coordRange = min(TOP_LEVEL_COORDINATES)
-        lastZoom = 0
-        for i in range(18):
-            if coordRange >= self.maxCoordinate:
-                lastZoom = i
-            coordRange /= 2.0
+        lastZoom = firstZoomLevel
+        # for i in range(18):
+        #     if coordRange >= self.maxCoordinate:
+        #         lastZoom = i
+        #     coordRange /= 2.0
         added = set()
 
         nAdded = [0]
