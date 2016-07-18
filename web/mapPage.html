@@ -6,23 +6,28 @@
   <link rel="stylesheet" href ="./css/leaflet-search.css"/>
   <link rel="stylesheet" href="./css/leaflet.css"/>
   <link rel="stylesheet" href="./css/leafletmap.css"/>
+  <link rel="stylesheet" href=./css/chardinjs.css>
   <script src="./js/leaflet.js"></script>
   <script src="./js/leaflet-search.js"></script>
+  <script src="./js/social-share-kit.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js'></script>
   <script src = "./js/initializeMap.js"></script>
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
+  <script src="./js/chardin.min.js" ></script>
 
 </head>
 <body>
 
-  <div id="map"></div>
+  <div id="map" ><div id="descriptionPlaceholder" data-intro="This is our map of Wikipedia. Continents give you an idea of what type of article you might find inside, and the closer two article 'cities' (marked as points on the map) are together the more related they are." data-position="top"></div></div>
   <div id = "infobox">
-  <h1 id = "title" class = "centered"> Welcome to the World of English Wikipedia </h1>
-  <div id = "search-box"></div>
-  <div id = "page-info-box"></div>
-  <div id = "social">
+  <button onclick="$('body').chardinJs('start')">Or open it again</button>
+  <h1 id="title" class="centered"> 
+    Welcome to the World of English Wikipedia </h1>
+  <div id="search-box" data-intro="You can search for an article here." data-position="left"></div>
+  <div id="page-info-box" data-intro="Information about any article you click on will pop up here" data-position="left"></div>
+  <div id="social" data-intro="If you feel like sharing this map with a friend, these links will do the trick" data-position="left">
     <div class="ssk-group">
         <a href="" class="ssk ssk-facebook"></a>
         <a href="" class="ssk ssk-twitter"></a>
@@ -34,15 +39,12 @@
 
   </div>
 
- <script>
+<script>
   $(document).ready(function() {
       createMap();
   });
 
- </script>
-
-<script type="text/javascript">
-SocialShareKit.init();
+  SocialShareKit.init();
 </script>
 
 </body>
