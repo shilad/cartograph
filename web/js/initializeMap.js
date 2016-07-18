@@ -221,9 +221,9 @@ var search = new L.control.search({
 	textPlaceholder: 'Search for an article',
 	collapsed: false,
 	markerLocation: true,
-	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20]})
-});
-
+	markerIcon: new L.Icon({iconUrl:'blue-circleicon.png', iconSize: [20,20],
+	tooltipLimit: 20})
+    });
 search.addTo(map);
 
 //move search to sidebar rather than map itself

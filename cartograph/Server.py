@@ -4,6 +4,8 @@ from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
 from cartograph.Config import initConf
 
+import marisa_trie
+
 import Util
 
 import TileStache
@@ -37,7 +39,10 @@ class CartographServer(TileStache.WSGITileServer):
       
         xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
                                          self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
-        self.locList = []
+
+        self.keyList = []
+        self.tupleLocZoom = []
+
 
         for entry in xyDict:
             #x and y have to be flipped to get it to match up
@@ -46,8 +51,19 @@ class CartographServer(TileStache.WSGITileServer):
             title = xyDict[entry]['name']
             zoom = int(xyDict[entry]['maxZoom'])
             loc = [x, y]
-            jsonDict = {"loc": loc, "title": title, "zoom" : zoom}
-            self.locList.append(jsonDict)
+            uppertitle = title
+            
+            #second part = add to trie (trying new method for autocomplete)
+            locZoom = (x, y, zoom, uppertitle)
+            lowertitle = unicode(title.lower(), 'utf-8')
+           
+            
+            self.keyList.append(lowertitle)
+            self.tupleLocZoom.append(locZoom)
+
+        #after creating lists of all titles and location/zoom, zip them into a trie (will need to extract to json format later)
+        fmt = "<ddi100s" #a tuple of double, double, int, string (x, y, zoom, regular case title)
+        self.trie = marisa_trie.RecordTrie(fmt, zip(self.keyList, self.tupleLocZoom))
 
     def __call__(self, environ, start_response):
 
@@ -56,15 +72,28 @@ class CartographServer(TileStache.WSGITileServer):
         if path_info.startswith('/dynamic/search'):
             request = Request(environ)
 
-            jsList = []
             title = request.args['q']
-            for item in self.locList:
-                if item['title'] == title:
-                    jsDict = item
-                    jsList.append(item)
-                    break
             
-            response = Response (json.dumps(jsList))
+            #trie autocomplete reponse
+
+            results = self.trie.items(unicode(title))
+
+            #empty list to hold json-formatted results
+            jsonList = []
+
+            #extract values from tuple in trie
+            for item in results:
+                titlestring = item[1][3]
+                print titlestring
+                x = item[1][0]
+                y = item[1][1]
+                locat = [x,y]
+                zoom = item[1][2]
+                rJsonDict = {"loc": locat, "title": titlestring, "zoom" : zoom}
+                jsonList.append(rJsonDict)
+            
+            
+            response = Response (json.dumps(jsonList))
             response.headers['Content-type'] = 'application/json'
            
             return response(environ, start_response)
