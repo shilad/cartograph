@@ -85,8 +85,8 @@ L.Control.Search = L.Control.extend({
 
 	onAdd: function (map) {
 		this._map = map;
-		this._container = L.DomUtil.create('div', 'leaflet-control-search');
-		this._input = this._createInput(this.options.textPlaceholder, 'search-input');
+		this._container = L.DomUtil.create('div', 'leaflet-control-search input-group');
+		this._input = this._createInput(this.options.textPlaceholder, 'search-input form-control');
 		this._tooltip = this._createTooltip('search-tooltip');
 		this._cancel = this._createCancel(this.options.textCancel, 'search-cancel');
 		this._button = this._createButton(this.options.textPlaceholder, 'search-button');
@@ -292,9 +292,12 @@ L.Control.Search = L.Control.extend({
 	},
 	
 	_createButton: function (title, className) {
-		var button = L.DomUtil.create('a', className, this._container);
-		button.href = '#';
-		button.title = title;
+		var spanButtGroup = L.DomUtil.create('span', 'input-group-btn', this._container);
+
+		var button = L.DomUtil.create('button','btn btn-danger ' + className, spanButtGroup)
+		button.type = 'button'
+
+		var spanGlyph = L.DomUtil.create('span','glyphicon glyphicon-search', button)
 
 		L.DomEvent
 			.on(button, 'click', L.DomEvent.stop, this)
