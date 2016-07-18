@@ -3,11 +3,12 @@
 <head>
   <title> Leaflet Map </title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
+  <link rel="stylesheet" href="./css/mapPage.css">
   <link rel="stylesheet" href ="./css/leaflet-search.css"/>
   <link rel="stylesheet" href="./css/leaflet.css"/>
   <link rel="stylesheet" href="./css/leafletmap.css"/>
   <link rel="stylesheet" href=./css/chardinjs.css>
-  <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
   <script src="./js/leaflet.js"></script>
   <script src="./js/leaflet-search.js"></script>
   <script src="./js/leaflet-hash.js"></script>
@@ -22,15 +23,19 @@
 </head>
 <body>
 
-  <div id="map" ><div id="descriptionPlaceholder" data-intro="This is our map of Wikipedia. Continents give you an idea of what type of article you might find inside, and the closer two article 'cities' (marked as points on the map) are together the more related they are." data-position="top"></div></div>
+  <div id="map" >
+    <div id="mapHolder" data-intro="This is our map of Wikipedia. Continents give you an idea of what type of article you might find inside, and the closer two article 'cities' (marked as points on the map) are together the more related they are." data-position="bottom"></div>
+    <div id="zoomHolder" data-intro="You can zoom in and out by clicking here or scrolling" data-position="right"></div>
+  </div>
+  
   <div id = "infobox">
-  <button onclick="$('body').chardinJs('start')">Or open it again</button>
   <h1 id="title" class="centered"> 
-    Welcome to the World of English Wikipedia </h1>
+    Explore the World of Wikipedia </h1>
   <div id="search-box" data-intro="You can search for an article here." data-position="left"></div>
-  <div id="page-info-box" data-intro="Information about any article you click on will pop up here" data-position="left"></div>
-  <div id="social" data-intro="If you feel like sharing this map with a friend, these links will do the trick" data-position="left">
-    <div class="ssk-group">
+  <div id="page-info-box" data-intro="Information about any article you click on will pop up here" data-position="left">
+  </div>
+  <div class="fullWidthParent" id="social">
+    <div class="ssk-group centerChild" data-intro="If you feel like sharing this map with a friend, these links will do the trick" data-position="bottom">
         <a href="" class="ssk ssk-facebook"></a>
         <a href="" class="ssk ssk-twitter"></a>
         <a href="" class="ssk ssk-google-plus"></a>
@@ -38,7 +43,8 @@
         <a href="" class="ssk ssk-tumblr"></a>
     </div>
    </div>
-
+   <div class="fullWidthParent">
+     <button class="centerChild" id="howButton" onclick="$('body').chardinJs('toggle')"  data-intro="Click here again to turn this guide off." data-position="bottom">Show Me How</button>
   </div>
 
 <script>
