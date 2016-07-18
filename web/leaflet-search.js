@@ -34,7 +34,7 @@ L.Control.Search = L.Control.extend({
 		casesensitive: false,			//search elements in case sensitive text
 		autoType: true,					//complete input with first suggested result and select this filled-in text.
 		delayType: 400,					//delay while typing for show tooltip
-		tooltipLimit: -1,				//limit max results to show in tooltip. -1 for no limit.
+		tooltipLimit: 20,				//limit max results to show in tooltip. -1 for no limit.
 		tipAutoSubmit: true,			//auto map panTo when click on tooltip
 		autoResize: true,				//autoresize on input change
 		collapsed: true,				//collapse search control at startup
@@ -255,7 +255,7 @@ L.Control.Search = L.Control.extend({
 		input.type = 'text';
 		input.size = this._inputMinSize;
 		input.value = '';
-		input.autocomplete = 'on';
+		input.autocomplete = 'off';
 		input.autocorrect = 'off';
 		input.autocapitalize = 'off';
 		input.placeholder = text;
@@ -350,7 +350,7 @@ L.Control.Search = L.Control.extend({
 				.disableClickPropagation(tip)		
 				.on(tip, 'click', L.DomEvent.stop, this)
 				.on(tip, 'click', function(e) {
-					this._input.value = text;
+					this._input.value = text.toLowerCase();
 					this._handleAutoresize();
 					this._input.focus();
 					this._hideTooltip();	
@@ -672,6 +672,7 @@ L.Control.Search = L.Control.extend({
 
 		this._autoTypeTmp = false;
 
+
 		this._handleKeypress({keyCode: code});
 	},
 	
@@ -687,7 +688,7 @@ L.Control.Search = L.Control.extend({
 //	like this: _recordsCache = {"text-key1": {loc:[lat,lng], ..other attributes.. }, {"text-key2": {loc:[lat,lng]}...}, ...}
 //	in this way every record can have a free structure of attributes, only 'loc' is required
 	
-		var inputText = this._input.value,
+		var inputText = this._input.value.toLowerCase(),
 			that = this, records;
 
 		if(this._curReq && this._curReq.abort)

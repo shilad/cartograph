@@ -17,9 +17,29 @@ body {
 	display: inline-block;
 	float: right;
 	background-color: #404040;
-	border-radius: 10px;
+	border-radius: 10px;	
+}
 
-	
+#infobox h1, h3 {
+	padding: 10px;
+}
+
+
+#infobox a {
+	text-align: center;
+}
+
+#search-box {
+	width: 40%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#page-info-box {
+	text-align: center;
+	width: 50%;
+	margin: 0 auto;
+	padding-top: 10%;
 }
 
 .centered {
@@ -32,13 +52,5 @@ a {
 	text-decoration: none;	
 }
 
-#infobox h1, h3 {
-	padding: 10px;
-}
-
-
-#infobox a {
-	text-align: center;
-}
 
 
