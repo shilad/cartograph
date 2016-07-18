@@ -2,15 +2,18 @@
 
 <head>
   <title> Leaflet Map </title>
-  <link rel="stylesheet" href="leaflet.css"/>
-  <link rel="stylesheet" href="leafletmap.css"/>
-  <link rel="stylesheet" href ="leaflet-search.css"/>
-  <script src="leaflet.js"></script>
-  <script src="leaflet-search.js"></script>
-  <script src="jquery-3.0.0.js"></script>
+  <link rel="stylesheet" href="./css/leaflet.css"/>
+  <link rel="stylesheet" href="./css/leafletmap.css"/>
+  <link rel="stylesheet" href ="./css/leaflet-search.css"/>
+  <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
+  <script src="./js/leaflet.js"></script>
+  <script src="./js/leaflet-search.js"></script>
+  <script src="./js/leaflet-hash.js"></script>
+  <script src="./js/jquery-3.0.0.js"></script>
+   <script type="text/javascript" src="./js/social-share-kit.js"></script>
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
-  <script src = "initializeMap.js"></script>
+  <script src = "./js/initializeMap.js"></script>
 
 </head>
 
@@ -21,6 +24,15 @@
 	<h1 id = "title" class = "centered"> Welcome to the World of English Wikipedia </h1>
 	<div id = "search-box"></div>
 	<div id = "page-info-box"></div>
+	<div id = "social">
+		<div class="ssk-group">
+    		<a href="" class="ssk ssk-facebook"></a>
+    		<a href="" class="ssk ssk-twitter"></a>
+    		<a href="" class="ssk ssk-google-plus"></a>
+    		<a href="" class="ssk ssk-pinterest"></a>
+    		<a href="" class="ssk ssk-tumblr"></a>
+		</div>
+	 </div>
 
   </div>
 
@@ -28,8 +40,12 @@
  	$(document).ready(function() {
     	createMap();
 	});
+
  </script>
 
+<script type="text/javascript">
+SocialShareKit.init();
+</script>
 
 </body>
 </html>
