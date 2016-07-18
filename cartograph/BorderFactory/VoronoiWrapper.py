@@ -1,14 +1,14 @@
 from scipy.spatial import Voronoi
 from collections import defaultdict
-from _Vertex import Vertex
+from Vertex import Vertex
 
 
 class VoronoiWrapper:
 
-    def __init__(self, x, y, clusterLabels):
+    def __init__(self, x, y, clusterLabels, waterLabel):
         self.points = zip(x, y)
         self._clusterLabels = clusterLabels
-        self.waterLabel = max(clusterLabels)
+        self.waterLabel = waterLabel
         self.vor = Voronoi(self.points)
 
         # cluster label -> vertex index -> list of adjacent vertices

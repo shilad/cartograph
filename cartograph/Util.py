@@ -109,7 +109,7 @@ def append_to_tsv(parentName, writeName, *data):
             data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
         else:
             data = data[0]
-        
+
         for i in range(len(data)):
             index = lastIndex + i + 1
             data[i] = str(data[i])
