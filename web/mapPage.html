@@ -1,0 +1,59 @@
+<html>
+
+<head>
+  <title> Leaflet Map </title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
+  <link rel="stylesheet" href="./css/mapPage.css">
+  <link rel="stylesheet" href ="./css/leaflet-search.css"/>
+  <link rel="stylesheet" href="./css/leaflet.css"/>
+  <link rel="stylesheet" href="./css/leafletmap.css"/>
+  <link rel="stylesheet" href=./css/chardinjs.css>
+  <script src="./js/leaflet.js"></script>
+  <script src="./js/leaflet-search.js"></script>
+  <script src="./js/leaflet-hash.js"></script>
+  <script src="./js/social-share-kit.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js'></script>
+  <script src = "./js/initializeMap.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
+  <script src="./js/chardin.min.js" ></script>
+
+</head>
+<body>
+
+  <div id="map" >
+    <div id="mapHolder" data-intro="This is our map of Wikipedia. Continents give you an idea of what type of article you might find inside, and the closer two article 'cities' (marked as points on the map) are together the more related they are." data-position="bottom"></div>
+    <div id="zoomHolder" data-intro="You can zoom in and out by clicking here or scrolling" data-position="right"></div>
+  </div>
+  
+  <div id = "infobox">
+  <h1 id="title" class="centered"> 
+    Explore the World of Wikipedia </h1>
+  <div id="search-box" data-intro="You can search for an article here." data-position="left"></div>
+  <div id="page-info-box" data-intro="Information about any article you click on will pop up here" data-position="left">
+  </div>
+  <div class="fullWidthParent" id="social">
+    <div class="ssk-group ssk-grayscale centerChild" data-intro="If you feel like sharing this map with a friend, these links will do the trick" data-position="bottom">
+        <a href="" class="ssk ssk-facebook"></a>
+        <a href="" class="ssk ssk-twitter"></a>
+        <a href="" class="ssk ssk-google-plus"></a>
+        <a href="" class="ssk ssk-pinterest"></a>
+        <a href="" class="ssk ssk-tumblr"></a>
+    </div>
+   </div>
+   <div class="fullWidthParent">
+     <button class="centerChild btn btn-primary btn-lg" id="howButton" onclick="$('body').chardinJs('toggle')"  data-intro="Click here again to turn this guide off." data-position="bottom">Show Me How</button>
+  </div>
+
+<script>
+  $(document).ready(function() {
+      createMap();
+  });
+
+    SocialShareKit.init();
+</script>
+
+</body>
+</html>

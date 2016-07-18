@@ -2,7 +2,7 @@
 externalDir: ./data/labdata
 generatedDir: ./data/tsv
 geojsonDir: ./data/geojson
-postprocessingDir: ./data/postprocess
+postprocessingDir: ./data/tsv
 interpolateDir: none
 
 [ExternalFiles]
@@ -23,33 +23,30 @@ denoised_with_id: %(generatedDir)s/keep.tsv
 popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
 percentile_popularity_with_id: %(generatedDir)s/percentile_popularity_with_id.tsv
 zoom_with_id: %(generatedDir)s/numberedZoom.tsv
+country_borders: %(generatedDir)s/country_borders.tsv
 
 [PreprocessingConstants]
 num_clusters: 13
 tsne_theta: 0.5
-min_num_in_cluster: 30  
+min_num_in_cluster: 100
 blur_radius: 5 
-water_level: .1 
-num_contours: 5
-min_border_noise_length: .1
-
-[PostprocessingFiles]
-article_coordinates: %(postprocessingDir)s/tsne_cache_full.tsv
-vecs_with_id: %(postprocessingDir)s/numberedVecsFull.tsv
-names_with_id: %(postProcessingDir)s/numberedNamesFull.tsv
-popularity_with_id: %(generatedDir)s/popularity_with_id.tsv
+water_level: .05
+num_contours: 7
+min_border_noise_length: .01
 
 [MapConstants]
 max_coordinate: 40
 max_zoom: 18
 num_pop_bins: 3
+first_zoom_label: 5
 map_width: 800
 map_height: 600
 
 
 [MapData]
 countries_geojson: %(geojsonDir)s/countries.geojson
-contours_geojson: %(geojsonDir)s/contourData.geojson
+density_contours_geojson: %(geojsonDir)s/densityContourData.geojson
+centroid_contours_geojson: %(geojsonDir)s/centroidContourData.geojson
 clusters_with_region_id: %(generatedDir)s/region_clusters.tsv
 borders_with_region_id: %(generatedDir)s/region_borders.tsv
 title_by_zoom: %(geojsonDir)s/maxZoom_of_articles.geojson
