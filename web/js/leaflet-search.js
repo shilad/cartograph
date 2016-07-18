@@ -32,7 +32,7 @@ L.Control.Search = L.Control.extend({
 		minLength: 1,					//minimal text length for autocomplete
 		initial: true,					//search elements only by initial text
 		casesensitive: false,			//search elements in case sensitive text
-		autoType: true,					//complete input with first suggested result and select this filled-in text.
+		autoType: false,					//complete input with first suggested result and select this filled-in text.
 		delayType: 400,					//delay while typing for show tooltip
 		tooltipLimit: 20,				//limit max results to show in tooltip. -1 for no limit.
 		tipAutoSubmit: true,			//auto map panTo when click on tooltip
@@ -350,7 +350,7 @@ L.Control.Search = L.Control.extend({
 				.disableClickPropagation(tip)		
 				.on(tip, 'click', L.DomEvent.stop, this)
 				.on(tip, 'click', function(e) {
-					this._input.value = text.toLowerCase();
+					this._input.value = text;
 					this._handleAutoresize();
 					this._input.focus();
 					this._hideTooltip();	
