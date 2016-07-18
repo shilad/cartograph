@@ -41,6 +41,12 @@ body {
 	padding-top: 10%;
 }
 
+#search-box {
+	width: 40%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .centered {
 	text-align: center;
 }
