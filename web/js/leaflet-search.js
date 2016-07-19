@@ -32,7 +32,7 @@ L.Control.Search = L.Control.extend({
 		minLength: 1,					//minimal text length for autocomplete
 		initial: true,					//search elements only by initial text
 		casesensitive: false,			//search elements in case sensitive text
-		autoType: true,					//complete input with first suggested result and select this filled-in text.
+		autoType: false,					//complete input with first suggested result and select this filled-in text.
 		delayType: 400,					//delay while typing for show tooltip
 		tooltipLimit: 20,				//limit max results to show in tooltip. -1 for no limit.
 		tipAutoSubmit: true,			//auto map panTo when click on tooltip
@@ -85,8 +85,8 @@ L.Control.Search = L.Control.extend({
 
 	onAdd: function (map) {
 		this._map = map;
-		this._container = L.DomUtil.create('div', 'leaflet-control-search');
-		this._input = this._createInput(this.options.textPlaceholder, 'search-input');
+		this._container = L.DomUtil.create('div', 'leaflet-control-search input-group');
+		this._input = this._createInput(this.options.textPlaceholder, 'search-input form-control');
 		this._tooltip = this._createTooltip('search-tooltip');
 		this._cancel = this._createCancel(this.options.textCancel, 'search-cancel');
 		this._button = this._createButton(this.options.textPlaceholder, 'search-button');
@@ -292,9 +292,12 @@ L.Control.Search = L.Control.extend({
 	},
 	
 	_createButton: function (title, className) {
-		var button = L.DomUtil.create('a', className, this._container);
-		button.href = '#';
-		button.title = title;
+		var spanButtGroup = L.DomUtil.create('span', 'input-group-btn', this._container);
+
+		var button = L.DomUtil.create('button','btn btn-danger ' + className, spanButtGroup)
+		button.type = 'button'
+
+		var spanGlyph = L.DomUtil.create('span','glyphicon glyphicon-search', button)
 
 		L.DomEvent
 			.on(button, 'click', L.DomEvent.stop, this)
@@ -350,7 +353,7 @@ L.Control.Search = L.Control.extend({
 				.disableClickPropagation(tip)		
 				.on(tip, 'click', L.DomEvent.stop, this)
 				.on(tip, 'click', function(e) {
-					this._input.value = text.toLowerCase();
+					this._input.value = text;
 					this._handleAutoresize();
 					this._input.focus();
 					this._hideTooltip();	
