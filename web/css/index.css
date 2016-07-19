@@ -5,6 +5,10 @@
   align-items: center;
 }
 
+.welcome-header {
+	margin-bottom: 0 !important;
+}
+
 .map-image-bkgrd {
 	background-image: url('../images/opening-world.png');
 	width: 100%;
@@ -14,7 +18,33 @@
 }
 
 .header-nav {
+  border-radius:0 !important;
+  -webkit-border-radius:0 !important;
+  -moz-border-radius:0 !important;
+  margin-bottom: 0 !important;
+  font-size: 20px;
+}
 
+ul.nav {
+    width:100%;
+    margin:0 auto;
+    padding:0;
+    list-style:none;
+    text-align:center;
+}
+
+.nav li{
+    display:inline-block;
+    width:33%;
+    margin:0;
+    padding:0;
+}
+
+.nav li a{
+    text-align:center;
+
+    margin:0;
+    display:block;
 }
 
 .center-explore-btn{
