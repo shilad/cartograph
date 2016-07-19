@@ -5,6 +5,10 @@
   align-items: center;
 }
 
+.welcome-header {
+	margin-bottom: 0 !important;
+}
+
 .map-image-bkgrd {
 	background-image: url("http://www.marydelave.com/uploads/3/9/2/8/39280219/s434958156669525720_p60_i7_w2400.jpeg");
 	width: 100%;
@@ -13,7 +17,33 @@
 }
 
 .header-nav {
+  border-radius:0 !important;
+  -webkit-border-radius:0 !important;
+  -moz-border-radius:0 !important;
+  margin-bottom: 0 !important;
+  font-size: 20px;
+}
 
+ul.nav {
+    width:100%;
+    margin:0 auto;
+    padding:0;
+    list-style:none;
+    text-align:center;
+}
+
+.nav li{
+    display:inline-block;
+    width:33%;
+    margin:0;
+    padding:0;
+}
+
+.nav li a{
+    text-align:center;
+
+    margin:0;
+    display:block;
 }
 
 .center-explore-btn{
