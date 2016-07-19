@@ -4,3 +4,18 @@
   display: flex;
   align-items: center;
 }
+
+.map-image-bkgrd {
+	background-image: url("http://www.marydelave.com/uploads/3/9/2/8/39280219/s434958156669525720_p60_i7_w2400.jpeg");
+	width: 100%;
+	height: 40%;
+	background-repeat:no-repeat;
+}
+
+.header-nav {
+
+}
+
+.center-explore-btn{
+	/*css to center button*/
+}
