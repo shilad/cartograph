@@ -155,3 +155,9 @@ img.img-responsive{
   -webkit-transition-delay: .2s;
   transition-delay: .2s;
 }
+
+.horizontal-para {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
