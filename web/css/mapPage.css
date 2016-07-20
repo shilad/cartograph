@@ -45,6 +45,12 @@
 	display: inline;
 	float: right;
 	font-family: "GeosansLight";
+	src: url(../fonts/GeosansLight.ttf) format("truetype");
+	font-size: 15px;
+}
+
+.ssk-group {
+	padding-top: 10%;
 	font-size: 14;
 }
 
