@@ -257,3 +257,14 @@ ul.nav {
 	margin-bottom: 0.1%;
 }
 
+#powered-by{
+  display: inline;
+  float: left;
+}
+
+#fork-us{
+  display: inline;
+  float: left;
+  padding-left: 10%;
+}
+
