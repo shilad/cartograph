@@ -6,13 +6,6 @@ var createMap = function(){
 	var map = L.map('map').setView([0, 0], 3);
   	var page_info_box = document.getElementById('page-info-box');
 
-  // load a tile layer
-  	L.tileLayer('../map/{z}/{x}/{y}.png',
-    {
-      maxZoom: 18,
-      attribution: "WikiBrain / Sen Research Lab 2016"
-    }).addTo(map);
-
 	 var utfgrid0;
 	 var utfgrid1;
 	 var utfgrid2;
@@ -32,8 +25,26 @@ var createMap = function(){
 	 var utfgrid16;
 	 var utfgrid17;
   
+//set up layer toggling for density and centroid
 
+var density = L.tileLayer('../map_density/{z}/{x}/{y}.png',
+    {
+      maxZoom: 18,
+      attribution: "WikiBrain / Sen Research Lab 2016"
+    }).addTo(map);
 
+var centroid = L.tileLayer('../map_centroid/{z}/{x}/{y}.png',
+    {
+      maxZoom: 18,
+      attribution: "WikiBrain / Sen Research Lab 2016"
+    })
+
+var baseMaps = {
+    "Density Contours": density,
+    "Centroid Contours": centroid
+};
+
+L.control.layers(baseMaps).addTo(map);
   
 //================= MAP CLICK FUNCTIONALITY ====================//
 
