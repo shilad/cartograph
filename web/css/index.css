@@ -12,11 +12,14 @@ body {
 .welcome-header {
 	margin-bottom: 0;
 }
-.title-font-freight {
-  font-family: s
+
+@font-face{
+  font-family: "GeosansLight";
+  src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-.text-font-freight {
+h1.customfont {
+  font-family: "GeosansLight";
 
 }
 
@@ -27,12 +30,15 @@ body {
 }
 
 .explore-padding {
-	padding-bottom: 70px;
+	padding-bottom: 5vh;
+  padding-left: 3vh;
+  padding-right: 3vh
 }
 
 .algorithms-padding {
-  padding-right: 50px;
-  padding-left: 50px;
+  padding-right: 6vh;
+  padding-left: 6vh;
+  padding-bottom: 3vh
 }
 
 .header-nav {
@@ -44,25 +50,25 @@ body {
 }
 
 ul.nav {
-    width:100%;
-    margin:0 auto;
-    padding:0;
-    list-style:none;
-    text-align:center;
+  width:100%;
+  margin:0 auto;
+  padding:0;
+  list-style:none;
+  text-align:center;
 }
 
 .nav li{
-    display: inline-block;
-    width: 33%;
-    margin: 0;
-    padding: 0;
+  display: inline-block;
+  width: 33%;
+  margin: 0;
+  padding: 0;
 }
 
 .nav li a{
-    text-align: center;
+  text-align: center;
 
-    margin: 0;
-    display: block;
+  margin: 0;
+  display: block;
 }
 
 .header-nav {
@@ -89,20 +95,19 @@ ul.nav {
 }
 
 .btn-xlarge {
-    padding: 18px 28px;
-    font-size: 20px;
-    line-height: normal;
-    -webkit-border-radius: 8px;
-       -moz-border-radius: 8px;
-            border-radius: 8px;
+  padding: 18px 28px;
+  font-size: 20px;
+  line-height: normal;
+  -webkit-border-radius: 8px;
+     -moz-border-radius: 8px;
+          border-radius: 8px;
 }
 
 .my-btn-default {
-
-	background-opacity: .25;
-  	color: #eee;
-  	background-color: rgba(34, 34, 34, .60);
-  	border-color: rgba(12, 12, 12, .60);
+  background-opacity: .25;
+	color: #eee;
+	background-color: rgba(34, 34, 34, .60);
+	border-color: rgba(12, 12, 12, .60);
 }
 
 .my-btn-default:hover {
