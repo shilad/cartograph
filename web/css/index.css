@@ -61,10 +61,10 @@ ul.nav {
 }
 
 .header-nav {
-  border-radius: 0 !important;
-  -webkit-border-radius: 0 !important;
-  -moz-border-radius :0 !important;
-  margin-bottom: 0 !important;
+  border-radius: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius :0;
+  margin-bottom: 0;
   font-size: 20px;
 }
 
@@ -93,35 +93,31 @@ ul.nav {
 }
 
 .my-btn-default {
-	background-opacity: .25 !important;
-  	color: #eee !important;
-  	background-color: rgba(34, 34, 34, .60) !important;
-  	border-color: rgba(12, 12, 12, .60) !important;
+
+	background-opacity: .25;
+  	color: #eee;
+  	background-color: rgba(34, 34, 34, .60);
+  	border-color: rgba(12, 12, 12, .60);
 }
 
 .my-btn-default:hover {
-	color: #eee !important;
-	background-color: rgba(78, 78, 78, .60) !important;
-	border-color: rgba(56, 56, 56, .60) !important;
+	color: #eee;
+	background-color: rgba(78, 78, 78, .60);
+	border-color: rgba(56, 56, 56, .60);
 }
 
 .subheading-style{
 	text-align: center;
 	margin-bottom: 1.5%;
-}
-
-.center-example-image{
-	margin: 0 auto;
+  display: block;
 }
 
 .hovereffect {
-  /*width: 100%;
-  height: 100%;
-  float: left;*/
   overflow: hidden;
   position: relative;
   text-align: center;
   cursor: default;
+  margin: 0 auto;
 }
 
 .hovereffect .overlay {
@@ -205,9 +201,21 @@ ul.nav {
 .hovereffect:hover a.info {
   -webkit-transition-delay: .2s;
   transition-delay: .2s;
+
 }
 
-.center-holder {
-	display: inline-block;
-	margin: 0 auto;
+.horizontal-para {
+  display: inline;
+  width: 100%;
+  height: 100%;
+}
+
+#tsne-image {
+  width: 250px;
+  display: inline;
+  float: right;
+}
+
+.row.block {
+  display: block;
 }

@@ -2,10 +2,11 @@
 
 <head>
   <title> Leaflet Map </title>
-  <link href="chardinjs.css" rel="stylesheet">
+
+  <link href="./css/chardinjs.css" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="./css/index.css">
-  <script src="chardinjs.min.js"></script>
+  <link href="./css/index.css" rel="stylesheet" type = "text/css">
+  <script src="./js/chardinjs.min.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js'></script>
 </head>
@@ -113,8 +114,26 @@
   </div>
 
   <div class="vertical-center" id="grayBlock">
-    <a name="algorithms"></a>
-    <h1>Algorithms - Learn How to Make Your Own Maps</h1>
+    
+    <div class="row block">
+      <div class="col-sm-6 col-sm-offset-3">
+        <a name="algorithms"></a>
+        <h2 class="subheading-style">Algorithms - Learn How to Make Your Own Maps</h2>
+      </div>
+    </div>
+  
+    <div class="row block">
+      <div class="col-sm-12">
+        <p> We start with raw, vectorized data representing Wikipedia articles, which come from <a href="https://shilad.github.io/wikibrain/"> Wikibrain</a>. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm (<a href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">this </a> is the implementation we used.) These clusters will later become the colored countries that are seen on the map. </p>
+        <img src="images/tsne_small.jpg" id = "tsne-image"/> 
+        <p> The next step is to move from 100-dimensional vector space to a 2-dimensional embedding that we can represent visually. We do this using <a href="https://github.com/lvdmaaten/bhtsne"> tsne</a>, which stands for t-Distributed Stochastic Neighbor Embedding. This looks something like this: </p> 
+        <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our <a href="https://github.com/Bboatman/proceduralMapGeneration"> Github</a> page. </p>
+        <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space (closer to the center = brighter color) </p>
+        <p> The final generation step involves labeling the map. Labels are generally handled by <a href="http://mapnik.org/"> mapnik</a>, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing </p>
+        <p> User interaction is handled by <a href="http://leafletjs.com/">Leaflet.js</a>, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
+        <p> If you'd like to know more or want to check out our code, fork us on <a href="https://github.com/Bboatman/proceduralMapGeneration"> Github</a>! </p>
+      </div>
+    </div>
   </div>
 
 </body>
