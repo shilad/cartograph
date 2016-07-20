@@ -5,30 +5,37 @@
   align-items: center;
 }
 
+body {
+	background-color: #f4f4f4;
+}
+
 .welcome-header {
-	margin-bottom: 0 !important;
+	margin-bottom: 0;
+}
+.title-font-freight {
+
 }
 
-.map-image-bkgrd {
-	background-image: url('../images/opening-world.png');
-	width: 100%;
-	height: 50%;
-	background-repeat: no-repeat;
-	background-position: center;
+.text-font-freight {
+
 }
 
-.center-explore-btn{
-	text-align:center;
-	position: relative;
-	top: 50%;
+
+#grayBlock {
+	background-color: #222222;
+	color: #d6d6d6;
+}
+
+.explore-box {
+	padding-bottom: 70px;
 }
 
 .header-nav {
-  border-radius: 0 !important;
-  -webkit-border-radius: 0 !important;
-  -moz-border-radius :0 !important;
-  margin-bottom: 0 !important;
-  font-size: 20px;
+  border-radius:0;
+  -webkit-border-radius:0;
+  -moz-border-radius:0;
+  margin-bottom: 0;
+  font-size:20px;
 }
 
 ul.nav {
@@ -53,52 +60,64 @@ ul.nav {
     display: block;
 }
 
-.center-explore-btn{
-	/*css to center button*/
+.header-nav {
+  border-radius: 0;
+  -webkit-border-radius: 0;
+  -moz-border-radius :0;
+  margin-bottom: 0;
+  font-size: 20px;
 }
 
-/*.center-block{
-	background-image: url("../images/background.jpeg");
+.map-image-bkgrd {
+	background-image: url('../images/opening-world.png');
+	background-color: white;
 	width: 100%;
-	height: 40%;
-	background-repeat:no-repeat;
-	opacity: 1;
-}*/
+	height: 50%;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.center-explore-btn{
+	text-align:center;
+	position: relative;
+	top: 50%;
+}
+
+.btn-xlarge {
+    padding: 18px 28px;
+    font-size: 20px;
+    line-height: normal;
+    -webkit-border-radius: 8px;
+       -moz-border-radius: 8px;
+            border-radius: 8px;
+}
 
 .my-btn-default {
-	background-opacity: .25 !important;
-  	color: #fff !important;
-  	background-color: rgba(126, 126, 126, .70) !important;
-  	border-color: rgba(105, 105, 105, .70) !important;
+
+	background-opacity: .25;
+  	color: #eee;
+  	background-color: rgba(34, 34, 34, .60);
+  	border-color: rgba(12, 12, 12, .60);
 }
 
 .my-btn-default:hover {
-	color: white !important;
-	background-color: rgba(147, 147, 147, .70) !important;
-	border-color: rgba(126, 126, 126, .70) !important;
-}
-
-img.img-responsive{
-	margin: 0 auto;
+	color: #eee;
+	background-color: rgba(78, 78, 78, .60);
+	border-color: rgba(56, 56, 56, .60);
 }
 
 .subheading-style{
 	text-align: center;
 	margin-bottom: 1.5%;
-}
-
-.center-example-image{
-	margin: 0 auto;
+  display: block;
 }
 
 .hovereffect {
-/*  width: 100%;
-  height: 100%;*/
-  float: left;
   overflow: hidden;
   position: relative;
   text-align: center;
   cursor: default;
+  margin: 0 auto;
 }
 
 .hovereffect .overlay {
@@ -116,7 +135,7 @@ img.img-responsive{
 }
 
 .hovereffect img {
-  display: block;
+  display: inline-block;
   position: relative;
   -webkit-transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
   transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
@@ -182,6 +201,23 @@ img.img-responsive{
 .hovereffect:hover a.info {
   -webkit-transition-delay: .2s;
   transition-delay: .2s;
+
+}
+
+.horizontal-para {
+  display: inline;
+  width: 100%;
+  height: 100%;
+}
+
+#tsne-image {
+  width: 40%;
+  display: block;
+  margin: 0 auto;
+}
+
+.row.block {
+  display: block;
 }
 
 .sublogo-style{
