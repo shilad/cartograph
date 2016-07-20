@@ -1,0 +1,34 @@
+.btn.sharp {
+  border-radius:0;
+}
+
+@font-face{
+  font-family: "GeosansLight";
+  src: url(../fonts/GeosansLight.ttf) format("truetype");
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  font-family: "GeosansLight";
+  font-weight: bolder;
+}
+
+#website-title {
+  font-size: 70;
+  font-size: 4vw;
+  text-align: center;
+}
+
+h2 {
+  font-size: 45;
+  font-size: 2.8vw;
+}
+
+h3 {
+  font-size: 33;
+  font-size: 2.5vw;
+}
+
+p {
+  font-size: 20;
+  font-size: 1.4vw;
+}
