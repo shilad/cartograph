@@ -15,6 +15,9 @@ class Labels():
         self.mapRoot = self.mapFile.getroot()
         self.zoomScaleData = Util.read_zoom(scaleDimensions)
 
+    def addCustomFonts(self,fontDir):
+        self.mapRoot.set('font-directory',fontDir)
+
     def getMaxDenominator(self, zoomNum):
         zoomScaleData = self.zoomScaleData
         scaleDenKey = "maxscale_zoom" + str(zoomNum)
@@ -36,7 +39,7 @@ class Labels():
 
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
-        textSym.set('face-name', 'DejaVu Sans Bold')
+        textSym.set('face-name', 'Geo Bold')
         textSym.set('size', '18')
         textSym.set('wrap-width', '100')
         textSym.set('placement-type', 'simple')
@@ -52,7 +55,7 @@ class Labels():
 
         textSym = SubElement(rule, 'TextSymbolizer', placement=labelType)
         textSym.text = field
-        textSym.set('face-name', 'DejaVu Sans Bold')
+        textSym.set('face-name', 'Geo Bold')
         textSym.set('size', '30')
         textSym.set('wrap-width', '100')
         textSym.set('placement-type', 'simple')
@@ -83,7 +86,7 @@ class Labels():
             # shieldSym.set('minimum-padding', '120')
             shieldSym.set('wrap-width', '50')
 
-            shieldSym.set('face-name', 'DejaVu Serif Book')
+            shieldSym.set('face-name', 'GeosansLight Regular')
             shieldSym.set('size', str(sizeLabel))
 
             shieldSym.set('placement-type', 'simple')

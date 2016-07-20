@@ -697,16 +697,18 @@ class CreateMapXml(MTimeMixin, luigi.Task):
             ColorsCode()
         )
 
-    def generateXml(self, contourDB, contourFile, mapFile):
+    def generateXml(self, contourDB, contourFile, mapfile):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
         countryBorders = Util.read_features(config.get("PreprocessingFiles", "country_borders"))
         colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
         colors = colorFactory.optimalColoring()
+
         ms = MapStyler.MapStyler(config, colors)
-        mapfile = mapFile
         imgfile = config.get("MapOutput", "img_src_name")
+
+        ms.addCustomFonts(config.get("MapResources","fontDir"))
 
         ms.makeMap(contourFile,
                    config.get("MapData", "countries_geojson"),
@@ -748,6 +750,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     def generateLabels(self, contourFile, mapFile):
         labelClust = Labels(config, mapFile,
                             'countries', config.get("MapData", "scale_dimensions"))
+        labelClust.addCustomFonts(config.get('MapResources', 'fontDir'))
         maxScaleClust = labelClust.getMaxDenominator(0)
         minScaleClust = labelClust.getMinDenominator(5)
 
