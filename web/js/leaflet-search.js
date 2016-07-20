@@ -292,7 +292,7 @@ L.Control.Search = L.Control.extend({
 	},
 	
 	_createButton: function (title, className) {
-		var spanButtGroup = L.DomUtil.create('span', 'input-group-btn', this._container);
+		var spanButtGroup = L.DomUtil.create('span', 'input-group-btn sharp', this._container);
 
 		var button = L.DomUtil.create('button','btn btn-danger ' + className, spanButtGroup)
 		button.type = 'button'
