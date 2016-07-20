@@ -1,6 +1,6 @@
-.vertical-center {
-  min-height: 20%;  /* Fallback for browsers do NOT support vh unit */
-  min-height: 20vh; /* These two lines are counted as one :-)       */
+.welcome-header {
+  min-height: 15%;  /* Fallback for browsers do NOT support vh unit */
+  min-height: 15vh; /* These two lines are counted as one :-)       */
   display: flex;
   align-items: center;
 }
@@ -9,24 +9,39 @@ body {
 	background-color: #f4f4f4;
 }
 
-.welcome-header {
-	margin-bottom: 0;
-}
-
 @font-face{
   font-family: "GeosansLight";
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-h1.customfont {
+h1, h2, h3, h4, h5, h6, p {
   font-family: "GeosansLight";
-
+  font-weight: bolder;
 }
 
+#website-title {
+  font-size: 70;
+}
+
+h2 {
+  font-size: 45;
+}
+
+h3 {
+  font-size: 33;
+}
+
+p {
+  font-size: 20;
+}
 
 #grayBlock {
 	background-color: #222222;
 	color: #d6d6d6;
+}
+
+.image-padding {
+  padding: 3vh;
 }
 
 .explore-padding {
@@ -35,10 +50,14 @@ h1.customfont {
   padding-right: 3vh
 }
 
+.about-padding{
+  padding-bottom: 3vh;
+}
+
 .algorithms-padding {
-  padding-right: 6vh;
-  padding-left: 6vh;
-  padding-bottom: 3vh
+  padding-right: 25vh;
+  padding-left: 25vh;
+  padding-bottom: 3vh;
 }
 
 .header-nav {
@@ -66,7 +85,8 @@ ul.nav {
 
 .nav li a{
   text-align: center;
-
+  font-family: "GeosansLight";
+  font-size: 30;
   margin: 0;
   display: block;
 }
@@ -95,8 +115,9 @@ ul.nav {
 }
 
 .btn-xlarge {
+  font-family: "GeosansLight";
   padding: 18px 28px;
-  font-size: 20px;
+  font-size: 25;
   line-height: normal;
   -webkit-border-radius: 8px;
      -moz-border-radius: 8px;
@@ -165,6 +186,7 @@ ul.nav {
   transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
   padding: 10px;
 }
+
 
 .hovereffect p{
 	color:#fff;
