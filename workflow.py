@@ -631,13 +631,25 @@ class CreateTopLabels(MTimeMixin, luigi.Task):
         titleLabels = TopTitlesGeoJSONWriter(9000)
         titleLabels.generateJSONFeature(config.get("MapData", "top_titles"))
 
-class LoadContours(LoadGeoJsonTask):
+
+class LoadContoursDensity(LoadGeoJsonTask):
     def __init__(self):
         LoadGeoJsonTask.__init__(self, 
             config, 
-            'contours', 
-            config.get('MapData', 'centroid_contours_geojson')
+            'contoursdensity', 
+            config.get('MapData', 'density_contours_geojson')
         )
+
+    def requires(self):
+        return CreateContours(), PGLoaderCode()
+
+
+class LoadContoursCentroid(LoadGeoJsonTask):
+    def __init__(self):
+        LoadGeoJsonTask.__init__(self,
+                                 config,
+                                 'contourscentroid',
+                                 config.get('MapData', 'centroid_contours_geojson'))
 
     def requires(self):
         return CreateContours(), PGLoaderCode()
@@ -645,11 +657,10 @@ class LoadContours(LoadGeoJsonTask):
 
 class LoadCoordinates(LoadGeoJsonTask):
     def __init__(self):
-        LoadGeoJsonTask.__init__(self, 
-            config, 
-            'coordinates', 
-            config.get('MapData', 'title_by_zoom')
-        )
+        LoadGeoJsonTask.__init__(self,
+                                 config,
+                                 'coordinates',
+                                 config.get('MapData', 'title_by_zoom'))
 
     def requires(self):
         return CreateCoordinates(), PGLoaderCode(), CreateLabelsFromZoom()
@@ -658,9 +669,8 @@ class LoadCoordinates(LoadGeoJsonTask):
 class LoadCountries(LoadGeoJsonTask):
     def __init__(self):
         LoadGeoJsonTask.__init__(self,
-            config, 'countries',
-            config.get('MapData', 'countries_geojson')
-        )
+                                 config, 'countries',
+                                 config.get('MapData', 'countries_geojson'))
 
     def requires(self):
         return CreateContinents(), PGLoaderCode()
@@ -674,19 +684,21 @@ class CreateMapXml(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            TimestampedLocalTarget(config.get("MapOutput", "map_file")))
+            TimestampedLocalTarget(config.get("MapOutput", "map_file_density"))
+            TimestampedLocalTarget(config.get("MapOutput", "map_file_centroid")))
 
     def requires(self):
         return (
 
-            LoadContours(),
+            LoadContoursDensity(),
+            LoadContoursCentroid(),
             LoadCoordinates(),
             LoadCountries(),
             MapStylerCode(),
             ColorsCode()
         )
 
-    def run(self):
+    def generateXml(self, contourFile, mapFile):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
@@ -694,16 +706,24 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
         colors = colorFactory.optimalColoring()
         ms = MapStyler.MapStyler(config, colors)
-        mapfile = config.get("MapOutput", "map_file")
+        mapfile = mapFile
         imgfile = config.get("MapOutput", "img_src_name")
 
-        ms.makeMap(config.get("MapData", "centroid_contours_geojson"),
+        ms.makeMap(contourFile,
                    config.get("MapData", "countries_geojson"),
                    regionIds)
         ms.saveMapXml(config.get("MapData", "countries_geojson"),
                       mapfile)
         ms.saveImage(mapfile, imgfile + ".png")
         ms.saveImage(mapfile, imgfile + ".svg")
+
+    def run(self):
+        self.generateXml(config.get("MapData", "density_contours_geojson"),
+                         config.get("MapOutput", "map_file_density"))
+
+        self.generateXml(config.get("MapData", "centroid_contours_geojson"),
+                         config.get("MapOutput", "map_file_centroid"))
+
 
 
 class LabelMapUsingZoom(MTimeMixin, luigi.Task):
@@ -713,7 +733,9 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     the CalculateZooms.py
     '''
     def output(self):
-        return (TimestampedLocalTarget(config.get("MapOutput", "map_file")))
+        return (            
+            TimestampedLocalTarget(config.get("MapOutput", "map_file_density"))
+            TimestampedLocalTarget(config.get("MapOutput", "map_file_centroid")))
 
     def requires(self):
         return (CreateMapXml(),
@@ -724,8 +746,8 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                 ZoomGeoJSONWriterCode()
                 )
 
-    def run(self):
-        labelClust = Labels(config, config.get("MapOutput", "map_file"),
+    def generateLabels(self, contourFile, mapFile):
+        labelClust = Labels(config, mapFile,
                             'countries', config.get("MapData", "scale_dimensions"))
         maxScaleClust = labelClust.getMaxDenominator(0)
         minScaleClust = labelClust.getMinDenominator(5)
@@ -741,7 +763,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
         # for zoomInfo in list(zoomValueData.values()):
         #     zoomValues.add(zoomInfo['maxZoom'])
 
-        labelCities = Labels(config, config.get("MapOutput", "map_file"),
+        labelCities = Labels(config, mapFile,
                              'coordinates', config.get("MapData", "scale_dimensions"))
         labelCities.writeLabelsByZoomToXml('[citylabel]', 'point',
                                            config.getint("MapConstants", "max_zoom"),
@@ -749,6 +771,12 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                                                               "img_dot"),
                                            numBins=config.getint("MapConstants",
                                                                 "num_pop_bins"))
+
+    def run(self):
+        self.generateLabels(config.get("MapData", "density_contours_geojson"),
+                            config.get("MapOutput", "map_file_density"))
+        self.generateLabels(config.get("MapData", "centroid_contours_geojson"),
+                            config.get("MapOutput", "map_file_centroid"))
 
 
 class RenderMap(MTimeMixin, luigi.Task):
@@ -760,7 +788,8 @@ class RenderMap(MTimeMixin, luigi.Task):
         return (CreateMapXml(),
                 LoadCoordinates(),
                 LoadCountries(),
-                LoadContours(),
+                LoadContoursDensity(),
+                LoadContoursCentroid(),
                 LabelMapUsingZoom(),
                 MapStylerCode(),
                 ColorsCode())
