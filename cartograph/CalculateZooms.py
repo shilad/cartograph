@@ -58,7 +58,7 @@ class QuadTree:
 class CalculateZooms:
 
     def __init__(self, points, maxCoordinate, numClusters):
-        self.pointsPerTile = 20
+        self.pointsPerTile = 35
         self.maxCoordinate = maxCoordinate
         self.points = points
         self.numberedZoom= {}   # mapping from point ids to the zoom level at which they appear
