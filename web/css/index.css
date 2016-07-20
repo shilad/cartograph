@@ -27,7 +27,7 @@ body {
 }
 
 .explore-padding {
-	padding-bottom: 70px;
+	min-height: 20vh;
 }
 
 .algorithms-padding {
@@ -113,7 +113,8 @@ ul.nav {
 
 .subheading-style{
 	text-align: center;
-	margin-bottom: 1.5%;
+	margin-top: 2vh;
+  margin-bottom: 0;
   display: block;
 }
 
@@ -144,6 +145,7 @@ ul.nav {
   position: relative;
   -webkit-transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
   transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
+  padding: 3vh 0
 }
 
 .hovereffect h2 {
