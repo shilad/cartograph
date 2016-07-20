@@ -21,18 +21,23 @@ h1, h2, h3, h4, h5, h6, p {
 
 #website-title {
   font-size: 70;
+  font-size: 4vw;
+  text-align: center;
 }
 
 h2 {
   font-size: 45;
+  font-size: 2.8vw;
 }
 
 h3 {
   font-size: 33;
+  font-size: 2.5vw;
 }
 
 p {
   font-size: 20;
+  font-size: 1.4vw;
 }
 
 #grayBlock {
@@ -45,9 +50,7 @@ p {
 }
 
 .explore-padding {
-	padding-bottom: 5vh;
-  padding-left: 3vh;
-  padding-right: 3vh
+	min-height: 20vh;
 }
 
 .about-padding{
@@ -125,21 +128,22 @@ ul.nav {
 }
 
 .my-btn-default {
-  background-opacity: .25;
+  background-opacity: .75;
 	color: #eee;
-	background-color: rgba(34, 34, 34, .60);
-	border-color: rgba(12, 12, 12, .60);
+	background-color: rgba(34, 34, 34, .75);
+	border-color: rgba(12, 12, 12, .75);
 }
 
 .my-btn-default:hover {
 	color: #eee;
-	background-color: rgba(78, 78, 78, .60);
-	border-color: rgba(56, 56, 56, .60);
+	background-color: rgba(78, 78, 78, .75);
+	border-color: rgba(56, 56, 56, .75);
 }
 
 .subheading-style{
 	text-align: center;
-	margin-bottom: 1.5%;
+	margin-top: 2vh;
+  margin-bottom: 0;
   display: block;
 }
 
@@ -170,6 +174,7 @@ ul.nav {
   position: relative;
   -webkit-transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
   transition: all 0.4s cubic-bezier(0.88,-0.99, 0, 1.81);
+  padding: 3vh 0
 }
 
 .hovereffect h2 {
