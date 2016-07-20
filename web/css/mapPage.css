@@ -37,6 +37,10 @@
 	float: left;
 }
 
+.leaflet-control{
+	border-radius: 0;
+}
+
 .leaflet-control-layers{
 	display: inline;
 	float: right;
@@ -46,13 +50,14 @@
 
 .ssk-group {
 	padding-top: 10%;
+	font-size: 14;
 }
 
-@font-face{
+@font-face {
   font-family: "GeosansLight";
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, button {
 	font-family: "GeosansLight"
 }

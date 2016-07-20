@@ -6,7 +6,8 @@
 }
 
 body {
-	background-color: #f4f4f4;
+	background-color: #E2E1D9;
+  color: #222;
 }
 
 @font-face{
@@ -29,6 +30,11 @@ h1, h2, h3, h4, h5, h6, p {
   text-align: center;
 }
 
+.column-border {
+  padding-right: 5vw;
+  padding-left: 5vw
+}
+
 h2 {
   font-size: 45;
   font-size: 2.8vw;
@@ -46,11 +52,15 @@ p {
 
 #grayBlock {
 	background-color: #222222;
-	color: #d6d6d6;
+	color: #E2E1D9;
 }
 
-.image-padding {
+.tsn-image-padding {
   padding: 3vh;
+}
+
+.group-image-padding {
+  padding-bottom: 2vh;
 }
 
 .explore-padding {
