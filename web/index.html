@@ -13,9 +13,9 @@
 
 <body>
 
-  <div class="jumbotron vertical-center welcome-header">
+  <div class="vertical-center welcome-header">
     <div class="container">
-      <h1>Welcome to the World of Wikipedia</h1>
+      <h1 id="website-title">Welcome to the World of Wikipedia</h1>
     </div>
   </div>
 
@@ -43,27 +43,25 @@
   
   <div class="map-image-bkgrd">
     <div class="center-explore-btn">
-      <a class="btn my-btn-default btn-lg" href="mapPage.html" role="button">Click to Explore!</a>
+      <a class="btn my-btn-default btn-xlarge" href="mapPage.html" role="button">Click to Explore!</a>
     </div>
   </div>
 
-
-  <div class="container-fluid">
+  <div class="container-fluid explore-box" id="grayBlock">
     <a name="explore"></a>
-    <h2 class="subheading-style">Explore some fun examples</h3>
+    <h2 class="subheading-style">Explore some fun examples</h2>
  
     <div class="row">
 
       <div class="col-sm-3">
         <div class="hovereffect center-block">
-          <img class="img-responsive" src="images/example1.png" alt="">
+          <img class="img-responsive" src="images/example1.png" alt="music">
           <div class="overlay">
               <h2>Musical Artists</h2>
               <p>Look at how your favorite musical artist are related.</p>
               <p> 
                 <a class="info" href="http://localhost:8080/static/mapPage.html#10/13.3723/1.0320">See On Map</a>
               </p> 
-
           </div>
         </div>
       </div>
@@ -77,7 +75,6 @@
               <p> 
                 <a class="info" href="http://localhost:8080/static/mapPage.html#11/-4.2595/-9.2488">See On Map</a>
               </p> 
-
           </div>
         </div>
       </div>
@@ -85,7 +82,7 @@
 
       <div class="col-sm-3">
         <div class="hovereffect center-block">
-          <img class="img-responsive" src="images/example3.png" alt="">
+          <img class="img-responsive" src="images/example3.png" alt="medicine">
           <div class="overlay">
               <h2>Medicine</h2>
               <p>How similar are certain diseases?</p>
@@ -98,7 +95,7 @@
 
       <div class="col-sm-3">
         <div class="hovereffect center-block">
-          <img class="img-responsive" src="images/example4.png" alt="">
+          <img class="img-responsive" src="images/example4.png" alt="soccer">
           <div class="overlay">
               <h2>Sports</h2>
               <p>Learn some facts about the world's most watched sport - soccer!</p>
@@ -108,15 +105,15 @@
           </div>
         </div>
       </div>
-
+    </div>
   </div>
 
-  <div class="jumbotron vertical-center">
+  <div class="vertical-center">
     <a name="about"></a>
-    <h1>About us</h1>
+    <h1>About Us</h1>
   </div>
 
-  <div class="jumbotron vertical-center">
+  <div class="vertical-center" id="grayBlock">
     
     <div class="row">
       <div class="col-sm-6 col-sm-offset-3">
@@ -135,7 +132,6 @@
         <p> If you'd like to know more or want to check out our code, fork us on <a href="https://github.com/Bboatman/proceduralMapGeneration"> Github</a>! </p>
       </div>
     </div>
-
   </div>
 
 </body>
