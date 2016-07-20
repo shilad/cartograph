@@ -31,6 +31,7 @@
 	margin-bottom: -30vh; 
 }
 
+
 .leaflet-control-zoom{
 	display: inline;
 	float: left;
@@ -39,4 +40,16 @@
 .leaflet-control-layers{
 	display: inline;
 	float: right;
+
+.ssk-group {
+	padding-top: 10%;
+}
+
+@font-face{
+  font-family: "GeosansLight";
+  src: url(../fonts/GeosansLight.ttf) format("truetype");
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: "GeosansLight"
 }
