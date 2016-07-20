@@ -229,3 +229,9 @@ ul.nav {
 .row.block {
   display: block;
 }
+
+.sublogo-style{
+	text-align: center;
+	margin-bottom: 0.1%;
+}
+
