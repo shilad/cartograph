@@ -809,7 +809,7 @@ class RenderMap(MTimeMixin, luigi.Task):
         colors = colorFactory.optimalColoring()
         ms = MapStyler.MapStyler(config, colors)
         ms = MapStyler.MapStyler(config, COLORWHEEL)
-        ms.saveImage(config.get("MapOutput", "map_file"),
+        ms.saveImage(config.get("MapOutput", "map_file_density"),
                      config.get("MapOutput", "img_src_name") + ".png")
-        ms.saveImage(config.get("MapOutput", "map_file"),
+        ms.saveImage(config.get("MapOutput", "map_file_density"),
                      config.get("MapOutput", "img_src_name") + ".svg")
