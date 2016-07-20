@@ -55,6 +55,7 @@ scale_dimensions: %(externalDir)s/scale_denominators.tsv
 
 [MapResources]
 img_dot: %(externalDir)s/blackDot.png
+fontDir: ./data/fonts
 
 [MapOutput]
 map_file: map.xml
