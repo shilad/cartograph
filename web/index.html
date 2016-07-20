@@ -115,16 +115,16 @@
     <h2 class="sublogo-style">About Us</h2>
     <div class="center-block">
       <div class="row">
-        <div class="col-sm-4 col-sm-offset-1">
-            <h3 class="subheading-style">Who We Are</h3>
-            <div class="image-padding">
+        <div class="col-sm-6 column-border">
+            <h3 class="subheading-style">Who We Are</h3><br>
+            <div class="group-image-padding">
               <img class = "center-block" src="images/group-photo.png" alt="group-photo" width="300" id="image-border">
             </div>
-            <p class="center-block">The development of this website was led by <a href = "http://shilad.com/">Shilad Sen</a> at <a href = "https://www.macalester.edu">Macalester College</a> in Summer 2016. The development team includes Brooke Boatman, Jaco Dippenaar, Rebecca Gold, Qisheng Li, Monica Ngo, Sarah Pujol and Anja Beth Swoap.</p>
+            <p class="center-block">The development of this website was led by Shilad Sen at Macalester College in Summer 2016. The development team includes Brooke Boatman, Jaco Dippenaar, Rebecca Gold, Qisheng Li, Monica Ngo, Sarah Pujol and Anja Beth Swoap.</p>
         </div>
-        <div class="col-sm-4 col-sm-offset-2">
-            <h3 class="subheading-style">What We Do</h3>
-            <p>We are creating maps that visualize <a href = "https://en.wikipedia.org/wiki/Main_Page">English Wikipedia</a> in the form of real-world style geographical maps - with countries, borders, and so on. We want to create an intuitive, explorable map of information that makes exploratory search easier. </p>
+        <div class="col-sm-6 column-border">
+            <h3 class="subheading-style">What We Do</h3><br>
+            <p>We are creating maps that visualize English Wikipedia in the form of real-world style geographical maps - with countries, borders, and so on. We want to create an intuitive, explorable map of information that makes exploratory search easier. </p>
             <p>Search engines like Google are good for targeted search (e.g. "How does photosynthesis work?") but not as good for initial exploration ("Tell me more about the discipline of biology"). We want to translate a data problem into a visual problem: things that are close in meaning will be close together in the visual space, and geographical features will convey meaning as well - for example, an island might represent a group of data that are very distinct from all the rest.</p> 
             <p>The maps we make will allow people to explore information in a way that is familiar to them - geographically and spatially.</p>
         </div>
@@ -144,7 +144,7 @@
         <p> We start with raw, vectorized data representing Wikipedia articles, which come from Wikibrain. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm. These clusters will later become the colored countries that are seen on the map. </p>
         <p> The next step is to move from 100-dimensional vector space to a 2-dimensional embedding that we can represent visually. We do this using tsne, which stands for t-Distributed Stochastic Neighbor Embedding. This looks something like this: </p> 
         <p>
-        <div class="image-padding">
+        <div class="tsn-image-padding">
           <img src="images/tsne_med.jpg" id="tsne-image"/> </p>
         </div>
         <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our Github page. </p>
