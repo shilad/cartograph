@@ -4,8 +4,10 @@
   <title> Leaflet Map </title>
 
   <link href="./css/chardinjs.css" rel="stylesheet">
+   <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-  <link href="./css/index.css" rel="stylesheet" type = "text/css">
+  <link href="./css/index.css" rel="stylesheet">
+  <link href="./css/global.css" rel=stylesheet>
   <script src="./js/chardinjs.min.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js'></script>
@@ -21,7 +23,6 @@
 
   <nav class="navbar navbar-inverse header-nav">
     <div class="container-fluid">
-
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
           <span class = "icon-bar"></span>
@@ -43,7 +44,7 @@
   
   <div class="map-image-bkgrd container-fluid">
     <div class="center-explore-btn">
-      <a class="btn my-btn-default btn-xlarge" href="mapPage.html" role="button">Click to Explore!</a>
+      <a class="btn my-btn-default btn-xlarge sharp" href="mapPage.html" role="button">Click to Explore!</a>
     </div>
   </div>
 
@@ -112,7 +113,6 @@
   <div class="about-padding container-fluid">
     <a name="about"></a>
     <h2 class="sublogo-style">About Us</h2>
-    <a href = "http://www.macalester.edu/"><img class="center-block" src="images/mac-logo.png" alt=""></a>
     <div class="center-block">
       <div class="row">
         <div class="col-sm-4 col-sm-offset-1">
@@ -120,12 +120,12 @@
             <div class="image-padding">
               <img class = "center-block" src="images/group-photo.JPG" alt="" width="300">
             </div>
-            <p class="center-block">The development of this website is led by <a href = "http://shilad.com/">Shilad Sen</a> at <a href = "https://www.macalester.edu">Macalester College</a> in Summer 2016. The development team includes Brooke Boatman, Jaco Dippenaar, Rebecca Gold, Qisheng Li, Monica Ngo, Sarah Pujol and Anja Beth Swoap.</p>
+            <p class="center-block">The development of this website was led by <a href = "http://shilad.com/">Shilad Sen</a> at <a href = "https://www.macalester.edu">Macalester College</a> in Summer 2016. The development team includes Brooke Boatman, Jaco Dippenaar, Rebecca Gold, Qisheng Li, Monica Ngo, Sarah Pujol and Anja Beth Swoap.</p>
         </div>
         <div class="col-sm-4 col-sm-offset-2">
             <h3 class="subheading-style">What We Do</h3>
             <p>We are creating maps that visualize <a href = "https://en.wikipedia.org/wiki/Main_Page">English Wikipedia</a> in the form of real-world style geographical maps - with countries, borders, and so on. We want to create an intuitive, explorable map of information that makes exploratory search easier. </p>
-            <p>Search engines like Google are good for targeted search (e.g. "How does photosynthesis work?") but less good for initial exploration ("Tell me more about the discipline of biology"). We want to translate a data problem into a visual problem: things that are close in meaning will be close together in the visual space, and geographical features will convey meaning as well - for example, an island might represent a group of data that are very distinct from all the rest.</p> 
+            <p>Search engines like Google are good for targeted search (e.g. "How does photosynthesis work?") but not as good for initial exploration ("Tell me more about the discipline of biology"). We want to translate a data problem into a visual problem: things that are close in meaning will be close together in the visual space, and geographical features will convey meaning as well - for example, an island might represent a group of data that are very distinct from all the rest.</p> 
             <p>The maps we make will allow people to explore information in a way that is familiar to them - geographically and spatially.</p>
         </div>
       </div>
@@ -141,17 +141,31 @@
       </div>
     
       <div class="col-sm-12">
-        <p> We start with raw, vectorized data representing Wikipedia articles, which come from <a href="https://shilad.github.io/wikibrain/"> Wikibrain</a>. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm (<a href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">this </a> is the implementation we used.) These clusters will later become the colored countries that are seen on the map. </p>
-        <p> The next step is to move from 100-dimensional vector space to a 2-dimensional embedding that we can represent visually. We do this using <a href="https://github.com/lvdmaaten/bhtsne"> tsne</a>, which stands for t-Distributed Stochastic Neighbor Embedding. This looks something like this: </p> 
+        <p> We start with raw, vectorized data representing Wikipedia articles, which come from Wikibrain. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm. These clusters will later become the colored countries that are seen on the map. </p>
+        <p> The next step is to move from 100-dimensional vector space to a 2-dimensional embedding that we can represent visually. We do this using tsne, which stands for t-Distributed Stochastic Neighbor Embedding. This looks something like this: </p> 
         <p>
         <div class="image-padding">
           <img src="images/tsne_med.jpg" id = "tsne-image"/> </p>
         </div>
-        <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our <a href="https://github.com/Bboatman/proceduralMapGeneration"> Github</a> page. </p>
+        <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our Github page. </p>
         <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space (closer to the center = brighter color) </p>
-        <p> The final generation step involves labeling the map. Labels are generally handled by <a href="http://mapnik.org/"> mapnik</a>, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing </p>
-        <p> User interaction is handled by <a href="http://leafletjs.com/">Leaflet.js</a>, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
-        <p> If you'd like to know more or want to check out our code, fork us on <a href="https://github.com/Bboatman/proceduralMapGeneration"> Github</a>! </p>
+        <p> The final generation step involves labeling the map. Labels are generally handled by mapnik, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing </p>
+        <p> User interaction is handled by Leaflet.js, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
+        <p> If you'd like to know more or want to check out our code, fork us on Github! </p>
+
+        <div id = "powered-by">
+          <p> Powered by: </p>
+        
+          <a href="https://shilad.github.io/wikibrain/" class="btn btn-default">Wikibrain</a>
+          <a href="http://mapnik.org/" class="btn btn-default">Mapnik</a>
+          <a href="http://leafletjs.com/" class="btn btn-default">Leaflet.js</a>
+        </div>
+
+        <div id = "fork-us" class = "ssk-group ssk-grayscale">
+          <p> Fork us! </p>
+          <a href="https://github.com/Bboatman/proceduralMapGeneration" class="btn btn-default ssk ssk-github"></a>
+        </div>
+
       </div>
     </div>
   </div>
