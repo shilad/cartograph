@@ -750,6 +750,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     def generateLabels(self, contourFile, mapFile):
         labelClust = Labels(config, mapFile,
                             'countries', config.get("MapData", "scale_dimensions"))
+        labelClust.addCustomFonts(config.get('MapResources', 'fontDir'))
         maxScaleClust = labelClust.getMaxDenominator(0)
         minScaleClust = labelClust.getMinDenominator(5)
 
