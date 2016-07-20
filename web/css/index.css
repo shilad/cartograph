@@ -181,13 +181,12 @@ img.img-responsive{
 }
 
 #tsne-image {
-  height: 150px;
+  width: 250px;
   display: inline;
   float: right;
 }
 
-.para-80 {
-  display: inline;
-  width: 60%;
+.row.block {
+  display: block;
 }
 
