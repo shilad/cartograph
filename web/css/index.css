@@ -13,7 +13,7 @@ body {
 	margin-bottom: 0;
 }
 .title-font-freight {
-
+  font-family: s
 }
 
 .text-font-freight {
@@ -26,8 +26,13 @@ body {
 	color: #d6d6d6;
 }
 
-.explore-box {
+.explore-padding {
 	padding-bottom: 70px;
+}
+
+.algorithms-padding {
+  padding-right: 50px;
+  padding-left: 50px;
 }
 
 .header-nav {
@@ -211,11 +216,17 @@ ul.nav {
 }
 
 #tsne-image {
-  width: 250px;
-  display: inline;
-  float: right;
+  width: 40%;
+  display: block;
+  margin: 0 auto;
 }
 
 .row.block {
   display: block;
 }
+
+.sublogo-style{
+	text-align: center;
+	margin-bottom: 0.1%;
+}
+
