@@ -684,12 +684,11 @@ class CreateMapXml(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            TimestampedLocalTarget(config.get("MapOutput", "map_file_density"))
+            TimestampedLocalTarget(config.get("MapOutput", "map_file_density")),
             TimestampedLocalTarget(config.get("MapOutput", "map_file_centroid")))
 
     def requires(self):
         return (
-
             LoadContoursDensity(),
             LoadContoursCentroid(),
             LoadCoordinates(),
@@ -698,7 +697,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
             ColorsCode()
         )
 
-    def generateXml(self, contourFile, mapFile):
+    def generateXml(self, contourDB, contourFile, mapFile):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
@@ -711,17 +710,17 @@ class CreateMapXml(MTimeMixin, luigi.Task):
 
         ms.makeMap(contourFile,
                    config.get("MapData", "countries_geojson"),
-                   regionIds)
+                   regionIds, contourDB)
         ms.saveMapXml(config.get("MapData", "countries_geojson"),
                       mapfile)
         ms.saveImage(mapfile, imgfile + ".png")
         ms.saveImage(mapfile, imgfile + ".svg")
 
     def run(self):
-        self.generateXml(config.get("MapData", "density_contours_geojson"),
+        self.generateXml('contoursdensity',config.get("MapData", "density_contours_geojson"),
                          config.get("MapOutput", "map_file_density"))
 
-        self.generateXml(config.get("MapData", "centroid_contours_geojson"),
+        self.generateXml('contourscentroid',config.get("MapData", "centroid_contours_geojson"),
                          config.get("MapOutput", "map_file_centroid"))
 
 
@@ -734,7 +733,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (            
-            TimestampedLocalTarget(config.get("MapOutput", "map_file_density"))
+            TimestampedLocalTarget(config.get("MapOutput", "map_file_density")),
             TimestampedLocalTarget(config.get("MapOutput", "map_file_centroid")))
 
     def requires(self):
