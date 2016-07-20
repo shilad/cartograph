@@ -45,7 +45,8 @@ var baseMaps = {
 };
 
 L.control.layers(baseMaps, null, {
-    collapsed: false
+    collapsed: false,
+    position: 'topleft'
 }
 ).addTo(map);
   
