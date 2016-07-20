@@ -8,6 +8,8 @@
 /data/labdata.key
 /data/macademia_people
 map.xml
+map_centroid.xml
+map_density.xml
 
 *.geojson
 *.geoJSON
