@@ -23,6 +23,25 @@
 	top: 50%;
 }
 
+.explore-bucket{
+	position: relative;
+	box-sizing: border-box;
+	text-align: center;
+	height:30%;
+}
+
+.explore-bucket .explore-feature{
+	position: relative;
+	height: 100%;
+	display: block;
+	width:25%;
+	float: left;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: 50%;
+	background-image: url("../images/example1.png");
+}
+
 .header-nav {
   border-radius: 0 !important;
   -webkit-border-radius: 0 !important;
