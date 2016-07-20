@@ -30,6 +30,11 @@ h1, h2, h3, h4, h5, h6, p {
   text-align: center;
 }
 
+.column-border {
+  padding-right: 5vw;
+  padding-left: 5vw
+}
+
 h2 {
   font-size: 45;
   font-size: 2.8vw;
