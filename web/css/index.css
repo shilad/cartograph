@@ -23,6 +23,15 @@
 	top: 50%;
 }
 
+.btn-xlarge {
+    padding: 18px 28px;
+    font-size: 20px;
+    line-height: normal;
+    -webkit-border-radius: 8px;
+       -moz-border-radius: 8px;
+            border-radius: 8px;
+}
+
 .header-nav {
   border-radius: 0 !important;
   -webkit-border-radius: 0 !important;
