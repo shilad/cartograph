@@ -50,8 +50,12 @@ p {
 	color: #E2E1D9;
 }
 
-.image-padding {
+.tsn-image-padding {
   padding: 3vh;
+}
+
+.group-image-padding {
+  padding-bottom: 2vh;
 }
 
 .explore-padding {
