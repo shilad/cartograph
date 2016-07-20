@@ -40,6 +40,8 @@
 .leaflet-control-layers{
 	display: inline;
 	float: right;
+	font-family: "GeosansLight";
+	src: url(../fonts/GeosansLight.ttf) format("truetype");
 
 .ssk-group {
 	padding-top: 50%;
