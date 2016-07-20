@@ -3,14 +3,14 @@ body {
 	color: #f0f0f0;
 }
 
- #map{
+#map{
 	 height: 100%;
 	 width: 75%;
 	 display: inline-block;
 	 float: left;
      }
 
- #infobox {
+#infobox {
 	height: 100%;
 	width: 25%;
 	display: inline-block;
@@ -19,9 +19,8 @@ body {
 }
 
 #infobox h1, h3 {
-	padding: 10px;
+	padding: 0 1vh;
 }
-
 
 #infobox a {
 	text-align: center;
@@ -59,8 +58,8 @@ a {
 	min-height: 50px;
 }
 #page-info-box {
-	margin-top: 2vh;
-	min-width: 4vh;
+	min-height: 20vh;
+	min-width: 5vh;
 }
 
 .fullWidthParent {
@@ -82,4 +81,19 @@ a {
 
 #howButton {
 	margin-bottom: -30vh; 
+}
+
+#mapHolder {
+  height: 20vh;
+  width: 20vw;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+}
+
+#zoomHolder {
+    height: 8vh;
+    width: 6.2vw;
+    top: 0;
+    left: 0;
 }

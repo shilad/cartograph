@@ -247,8 +247,12 @@ ul.nav {
   height: 100%;
 }
 
+.extraverticalbuffer {
+  padding: 2vh 0;
+}
+
 #tsne-image {
-  width: 40%;
+  width: 65%;
   display: block;
   margin: 0 auto;
 }
