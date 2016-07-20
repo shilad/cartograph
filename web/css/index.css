@@ -183,3 +183,9 @@ img.img-responsive{
   -webkit-transition-delay: .2s;
   transition-delay: .2s;
 }
+
+.sublogo-style{
+	text-align: center;
+	margin-bottom: 0.1%;
+}
+
