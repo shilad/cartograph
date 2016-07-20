@@ -209,7 +209,7 @@ function handleUTFGrid() {
 			}
 
 			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
-		  	page_info_box.innerHTML = '<div class = "centered"><style>#explanation {padding-top: 20px}</style> <h4 id="explanation"> Article Name: </h4><h3><strong> ' + e.data.citylabel + '</strong> </h3> <p> Visit the <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
+		  	page_info_box.innerHTML = '<div class = "centered"><style>#explanation {padding-top: 20px}</style> <h4 id="explanation"> Article Name: </h4><p style = "font-size: 23"><strong> ' + e.data.citylabel + '</strong> </p> <p style = "font-size: 21"> Visit the <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
 		} else {
 			page_info_box.innerHTML = '';
    		 }
