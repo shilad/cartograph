@@ -13,7 +13,7 @@
 
 <body>
 
-  <div class="vertical-center welcome-header">
+  <div class="welcome-header">
     <div class="container">
       <h1 id="website-title">Welcome to the World of Wikipedia</h1>
     </div>
@@ -41,7 +41,7 @@
     </div>
   </nav>
   
-  <div class="map-image-bkgrd">
+  <div class="map-image-bkgrd container-fluid">
     <div class="center-explore-btn">
       <a class="btn my-btn-default btn-xlarge" href="mapPage.html" role="button">Click to Explore!</a>
     </div>
@@ -109,7 +109,7 @@
   </div>
 
 
-  <div class="container-fluid">
+  <div class="about-padding container-fluid">
     <a name="about"></a>
     <h2 class="sublogo-style">About Us</h2>
     <a href = "http://www.macalester.edu/"><img class="center-block" src="images/mac-logo.png" alt=""></a>
@@ -117,7 +117,9 @@
       <div class="row">
         <div class="col-sm-4 col-sm-offset-1">
             <h3 class="subheading-style">Who We Are</h3>
-            <img class = "center-block" src="images/group-photo.JPG" alt="" width="300">
+            <div class="image-padding">
+              <img class = "center-block" src="images/group-photo.JPG" alt="" width="300">
+            </div>
             <p class="center-block">The development of this website is led by <a href = "http://shilad.com/">Shilad Sen</a> at <a href = "https://www.macalester.edu">Macalester College</a> in Summer 2016. The development team includes Brooke Boatman, Jaco Dippenaar, Qisheng Li, Monica Ngo, Sarah Pujol and Anja Beth Swoap. Etc...</p>
         </div>
         <div class="col-sm-4 col-sm-offset-2">
@@ -131,8 +133,7 @@
   </div>
 
 
-  <div class="vertical-center algorithms-padding" id="grayBlock">
-    
+  <div class="algorithms-padding" id="grayBlock">
     <div class="row">
       <div class="col-sm-6 col-sm-offset-3">
         <a name="algorithms"></a>
@@ -142,7 +143,10 @@
       <div class="col-sm-12">
         <p> We start with raw, vectorized data representing Wikipedia articles, which come from <a href="https://shilad.github.io/wikibrain/"> Wikibrain</a>. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm (<a href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html">this </a> is the implementation we used.) These clusters will later become the colored countries that are seen on the map. </p>
         <p> The next step is to move from 100-dimensional vector space to a 2-dimensional embedding that we can represent visually. We do this using <a href="https://github.com/lvdmaaten/bhtsne"> tsne</a>, which stands for t-Distributed Stochastic Neighbor Embedding. This looks something like this: </p> 
-        <p> <img src="images/tsne_med.jpg" id = "tsne-image"/> </p>
+        <p>
+        <div class="image-padding">
+          <img src="images/tsne_med.jpg" id = "tsne-image"/> </p>
+        </div>
         <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our <a href="https://github.com/Bboatman/proceduralMapGeneration"> Github</a> page. </p>
         <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space (closer to the center = brighter color) </p>
         <p> The final generation step involves labeling the map. Labels are generally handled by <a href="http://mapnik.org/"> mapnik</a>, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing </p>
@@ -156,6 +160,31 @@
 <!--   <footer class="footer">
     <p>&copy; Sen Research Lab 2016</p>
   </footer>   -->
+
+ <!--  Adding the scroll effect in taken from http://www.adventuresinwebdesign.com/samples/anchors/blog/ -->
+<script>$(document).ready(function() {
+  function filterPath(string) {
+    return string
+      .replace(/^\//,'')  
+      .replace(/(index|default).[a-zA-Z]{3,4}$/,'')  
+      .replace(/\/$/,'');
+  }
+  $('a[href*=#]').each(function() {
+    if ( filterPath(location.pathname) == filterPath(this.pathname)
+    && location.hostname == this.hostname
+    && this.hash.replace(/#/,'') ) {
+      var $targetId = $(this.hash), $targetAnchor = $('[name=' + this.hash.slice(1) +']');
+      var $target = $targetId.length ? $targetId : $targetAnchor.length ? $targetAnchor : false;
+       if ($target) {
+         var targetOffset = $target.offset().top;
+         $(this).click(function() {
+           $('html, body').animate({scrollTop: targetOffset}, 1500);
+           return false;
+         });
+      }
+    }
+  });
+});</script>
 
 </body>
 </html>
