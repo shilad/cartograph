@@ -37,6 +37,10 @@
 	float: left;
 }
 
+.leaflet-control{
+	border-radius: 0;
+}
+
 .leaflet-control-layers{
 	display: inline;
 	float: right;
