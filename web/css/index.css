@@ -171,9 +171,9 @@ ul.nav {
 }
 
 #tsne-image {
-  width: 250px;
-  display: inline;
-  float: right;
+  width: 40%;
+  display: block;
+  margin: 0 auto;
 }
 
 .row.block {
