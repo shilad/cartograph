@@ -15,6 +15,9 @@ class Labels():
         self.mapRoot = self.mapFile.getroot()
         self.zoomScaleData = Util.read_zoom(scaleDimensions)
 
+    def addCustomFonts(self,fontDir):
+        self.mapRoot.set('font-directory',fontDir)
+
     def getMaxDenominator(self, zoomNum):
         zoomScaleData = self.zoomScaleData
         scaleDenKey = "maxscale_zoom" + str(zoomNum)
