@@ -44,7 +44,10 @@ var baseMaps = {
     "Centroid Contours": centroid
 };
 
-L.control.layers(baseMaps).addTo(map);
+L.control.layers(baseMaps, null, {
+    collapsed: false
+}
+).addTo(map);
   
 //================= MAP CLICK FUNCTIONALITY ====================//
 
