@@ -31,6 +31,16 @@
 	margin-bottom: -30vh; 
 }
 
+
+.leaflet-control-zoom{
+	display: inline;
+	float: left;
+}
+
+.leaflet-control-layers{
+	display: inline;
+	float: right;
+
 .ssk-group {
 	padding-top: 50%;
 }
