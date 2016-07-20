@@ -19,6 +19,10 @@ h1, h2, h3, h4, h5, h6, p {
   font-weight: bolder;
 }
 
+#image-border {
+  border: 3px solid #222;
+}
+
 #website-title {
   font-size: 70;
   font-size: 4vw;
@@ -248,7 +252,7 @@ ul.nav {
 }
 
 #tsne-image {
-  width: 40%;
+  width: 60%;
   display: block;
   margin: 0 auto;
 }
