@@ -58,6 +58,8 @@ img_dot: %(externalDir)s/blackDot.png
 
 [MapOutput]
 map_file: map.xml
+map_file_density: map_density.xml
+map_file_centroid: map_centroid.xml
 img_src_name: ./data/images/world
 
 [PG]
