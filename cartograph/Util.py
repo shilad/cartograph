@@ -47,7 +47,8 @@ def read_zoom(filename):
     return values
 
 
-def read_features(id_set=None, *files):
+def read_features(*files, **kwargs):
+    id_set = kwargs.get('id_set', None)
     values = defaultdict(dict)
     for fn in files:
         with open(fn, "r") as f:

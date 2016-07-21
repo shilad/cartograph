@@ -1,16 +1,17 @@
 [DEFAULT]
-baseDir: ./data/fullEn
-externalDir: ./data/labdata/fullEn
+dataset: fullEn
+baseDir: ./data/%(dataset)s
 generatedDir: %(baseDir)s/tsv
 geojsonDir: %(baseDir)s/geojson
+externalDir: ./data/labdata/%(dataset)s
 interpolateDir: none
 
 [ExternalFiles]
-vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
-names_with_id: %(externalDir)s/numberedNamesFull.tsv
-popularity: %(externalDir)s/article_pageview_full.tsv
-region_names: %(externalDir)s/top_categories_full.tsv
-article_embedding = %(externalDir)s/tsne_cache_full.tsv
+vecs_with_id: %(externalDir)s/vecs.tsv
+names_with_id: %(externalDir)s/names.tsv
+popularity: %(externalDir)s/popularity.tsv
+region_names: %(externalDir)s/region_names.tsv
+article_embedding = %(externalDir)s/tsne_cache.tsv
 
 [PreprocessingFiles]
 sampled_ids: %(externalDir)s/sampled_ids.tsv
@@ -18,6 +19,7 @@ article_coordinates: %(externalDir)s/tsne_cache_full.tsv
 vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
 names_with_id: %(externalDir)s/numberedNamesFull.tsv
 clusters_with_id: %(generatedDir)s/numberedClusters.tsv
+
 coordinates_with_water: %(generatedDir)s/water_and_article_coordinates.tsv
 clusters_with_water: %(generatedDir)s/clusters_with_water_pts.tsv
 denoised_with_id: %(generatedDir)s/keep.tsv
@@ -27,7 +29,7 @@ zoom_with_id: %(generatedDir)s/numberedZoom.tsv
 country_borders: %(generatedDir)s/country_borders.tsv
 
 [PreprocessingConstants]
-sample_size: 100000
+sample_size: 10000
 num_clusters: 13
 tsne_theta: 0.5
 min_num_in_cluster: 100
@@ -68,3 +70,4 @@ database = mapnik
 user =
 password =
 
+[PostprocessingFiles]

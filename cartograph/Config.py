@@ -16,6 +16,15 @@ _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
 
+
+def samplePath(origPath, n):
+    i = origPath.rfind('.')
+    if i < 0:
+        return '%s.sample_%s' % (origPath, n)
+    else:
+        return '%s.sample_%s.%s' % (origPath[:i], n, origPath[i + 1:])
+
+
 def initConf(confFile=None):
     conf = SafeConfigParser()
     with open("./data/conf/defaultconfig.txt", "r") as configFile:
@@ -25,13 +34,7 @@ def initConf(confFile=None):
         with open(confFile, "r") as updateFile:
             conf.readfp(updateFile)
 
-    _verifyRequiredSections(conf, _requiredSections)
-
-    num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
-    colorWheel = _coloringFeatures(num_clusters)
-
     # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN        # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN
-
     newNames = conf.get("ExternalFiles", "names_with_id")
     newVecs = conf.get("ExternalFiles", "vecs_with_id")
     newCoords = conf.get("PreprocessingFiles", "article_coordinates")
@@ -41,8 +44,16 @@ def initConf(confFile=None):
     conf.set("PostprocessingFiles", "vecs_with_id", newVecs)
     conf.set("PostprocessingFiles", "names_with_id", newNames)
     conf.set("PostprocessingFiles", "popularity_with_id", newPopularity)
-    def confSample(target, section, key):
-        return target.get(section, key) + '.sample'
+
+    _verifyRequiredSections(conf, _requiredSections)
+
+    num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
+    colorWheel = _coloringFeatures(num_clusters)
+
+    def confSample(target, section, key, n=None):
+        if n is None:
+            n = target.getint('PreprocessingConstants', 'sample_size')
+        return samplePath(target.get(section, key), n)
 
     conf.getSample = types.MethodType(confSample, conf)
 

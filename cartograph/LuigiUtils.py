@@ -49,7 +49,7 @@ class MTimeMixin:
             if not el.complete():
                 return False
             for output in to_list(el.output()):
-                if output.mtime() > self_mtime:
+                if hasattr(output, 'mtime') and output.mtime() > self_mtime:
                     return False
         return True
 
