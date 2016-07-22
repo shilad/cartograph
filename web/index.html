@@ -44,7 +44,7 @@
   
   <div class="map-image-bkgrd container-fluid">
     <div class="center-explore-btn">
-      <a class="btn my-btn-default btn-xlarge sharp" href="mapPage.html" role="button">Click to Explore!</a>
+      <a class="btn my-btn-default btn-xlarge sharp" href="mapPage.html" role="button">Click to Explore Map!</a>
     </div>
   </div>
 
@@ -72,7 +72,7 @@
           <img class="img-responsive" src="images/example2.png" alt="">
           <div class="overlay">
               <h2>U.S. Law</h2>
-              <p>Have some fun reading up on court cases</p>
+              <p>Have some fun reading up on court cases.</p>
               <p> 
                 <a class="info" href="http://nokomis.macalester.edu/cartograph/static/mapPage.html#11/-4.2595/-9.2488">See On Map</a>
               </p> 
@@ -124,8 +124,8 @@
         </div>
         <div class="col-sm-6 column-border">
             <h3 class="subheading-style">What We Do</h3><br>
-            <p>We are creating maps that visualize English Wikipedia in the form of real-world style geographical maps - with countries, borders, and so on. We want to create an intuitive, explorable map of information that makes exploratory search easier. </p>
-            <p>Search engines like Google are good for targeted search (e.g. "How does photosynthesis work?") but not as good for initial exploration ("Tell me more about the discipline of biology"). We want to translate a data problem into a visual problem: things that are close in meaning will be close together in the visual space, and geographical features will convey meaning as well - for example, an island might represent a group of data that are very distinct from all the rest.</p> 
+            <p>We are creating maps that visualize English Wikipedia in the form of real-world style geographical maps - with countries, borders, and so on. We want to create intuitive, interactive maps of information that facilitates exploratory search. </p>
+            <p>Search engines like Google are good for targeted search (e.g. "How does photosynthesis work?") but not as helpful for initial exploration ("Tell me more about the discipline of biology"). We want to translate a data problem into a visual problem: things that are close in meaning will be close together in the visual space, and geographical features will convey meaning as well - for example, an island might represent a group of data that are very distinct from all the rest.</p> 
             <p>The maps we make will allow people to explore information in a way that is familiar to them - geographically and spatially.</p>
         </div>
       </div>
@@ -147,9 +147,9 @@
         <div class="tsn-image-padding">
           <img src="images/tsne_med.jpg" id="tsne-image"/> </p>
         </div>
-        <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our Github page. </p>
-        <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space (closer to the center = brighter color) </p>
-        <p> The final generation step involves labeling the map. Labels are generally handled by mapnik, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing </p>
+        <p> From there, we draw the country borders. This involves setting a "water level", which floods water points into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our Github page. </p>
+        <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space - the closer to the center the brighter the color. </p>
+        <p> The final generation step involves labeling the map. Labels are generally handled by mapnik, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing based off popularity.</p>
         <p> User interaction is handled by Leaflet.js, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
         <p> If you'd like to know more or want to check out our code, fork us on Github! </p><br>
 
@@ -175,7 +175,7 @@
     <p>&copy; Sen Research Lab 2016</p>
   </footer>   -->
 
- <!--  Adding the scroll effect in taken from http://www.adventuresinwebdesign.com/samples/anchors/blog/ -->
+ <!--  Adding the scroll effect in. Taken from http://www.adventuresinwebdesign.com/samples/anchors/blog/ -->
 <script>$(document).ready(function() {
   function filterPath(string) {
     return string
