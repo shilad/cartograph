@@ -172,3 +172,9 @@ class Labels():
         tree = letree.parse(self.mapFileName, parser)
         tree.write(self.mapFileName, pretty_print=True)
 
+    #For stesting purposes. Move this elsewhere. 
+    def addWaterXml(self):
+        for elem in self.mapFile.iterfind('Style[@name="countries"]'):
+            elem.set('image-filters', 'emboss')
+ 
+
