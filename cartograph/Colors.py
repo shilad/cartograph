@@ -1,7 +1,7 @@
 import numpy as np
 import math
-import copy
 import matplotlib.colors as mc
+
 
 
 class ColorSelector:
@@ -17,19 +17,19 @@ class ColorSelector:
     def _sortColorsByDistances(self):
         colorDiff = {}
         used = []
-        for i, key in enumerate(self.colors):
-            used.append(i)
-            color1 = key[3]
-            for j, comp in enumerate(self.colors):
-                if comp is not key and j not in used:
-                    color2 = comp[3]
+        for key in self.colors:
+            used.append(key)
+            color1 = self.colors[key][6]
+            for comp in self.colors:
+                if comp is not key and comp not in used:
+                    color2 = self.colors[comp][6]
                     rgb1 = mc.hex2color(color1)
                     rgb2 = mc.hex2color(color2)
                     finalDif = 0
                     for i in range(3):
                         dif = math.fabs(rgb1[i] - rgb2[i])
                         finalDif += dif
-                    colorDiff.setdefault(finalDif, []).append([i, j])
+                    colorDiff.setdefault(finalDif, []).append([key, comp])
 
         return colorDiff
 
