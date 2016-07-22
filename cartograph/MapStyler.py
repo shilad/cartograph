@@ -95,7 +95,7 @@ class MapStyler:
                 s = mapnik.Style()
                 r = mapnik.Rule()
                 symbolizer = mapnik.PolygonSymbolizer()
-                symbolizer.fill = mapnik.Color(self.colorWheel[i][j])
+                symbolizer.fill = mapnik.Color(self.colorWheel[i][6 - j])
                 symbolizer.fill_opacity = opacity
                 symbolizer.gamma = gamma
                 r.symbols.append(symbolizer)

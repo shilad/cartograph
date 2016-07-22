@@ -148,8 +148,8 @@
           <img src="images/tsne_med.jpg" id="tsne-image"/> </p>
         </div>
         <p> From there, we draw the country borders. This involves setting a "water level", which floods water into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our Github page. </p>
-        <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space (closer to the center = brighter color) </p>
-        <p> The final generation step involves labeling the map. Labels are generally handled by mapnik, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing </p>
+        <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space (closer to the center = brighter color). </p>
+        <p> The final generation step involves labeling the map. Labels are generally handled by mapnik, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing. </p>
         <p> User interaction is handled by Leaflet.js, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
         <p> If you'd like to know more or want to check out our code, fork us on Github! </p><br>
 
