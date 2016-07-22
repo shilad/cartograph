@@ -250,8 +250,8 @@ ul.nav {
 }
 
 .hovereffect:hover a.info {
-  -webkit-transition-delay: .2s;
-  transition-delay: .2s;
+  -webkit-transition-delay: .1s;
+  transition-delay: .1s;
 
 }
 
@@ -283,6 +283,7 @@ ul.nav {
 #powered-by{
   display: inline;
   float: left;
+  font-family: "GeosansLight";
 }
 
 #fork-us{
