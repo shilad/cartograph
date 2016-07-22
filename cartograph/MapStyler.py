@@ -23,7 +23,7 @@ class MapStyler:
 
     def makeMap(self, contourFilename, countryFilename, clusterIds, contoursDB):
         self.m = mapnik.Map(self.width, self.height)
-        self.m.background = mapnik.Color('white')
+        self.m.background = mapnik.Color('steelblue')
         self.m.srs = '+init=epsg:3857'
 
 
@@ -95,7 +95,7 @@ class MapStyler:
                 s = mapnik.Style()
                 r = mapnik.Rule()
                 symbolizer = mapnik.PolygonSymbolizer()
-                symbolizer.fill = mapnik.Color(self.colorWheel[i][j])
+                symbolizer.fill = mapnik.Color(self.colorWheel[i][6 - j])
                 symbolizer.fill_opacity = opacity
                 symbolizer.gamma = gamma
                 r.symbols.append(symbolizer)
