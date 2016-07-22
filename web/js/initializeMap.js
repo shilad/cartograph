@@ -6,24 +6,6 @@ var createMap = function(){
 	var map = L.map('map').setView([0, 0], 3);
   	var page_info_box = document.getElementById('page-info-box');
 
-	 var utfgrid0;
-	 var utfgrid1;
-	 var utfgrid2;
-	 var utfgrid3;
-	 var utfgrid4;
-	 var utfgrid5;
-	 var utfgrid6;
-	 var utfgrid7;
-	 var utfgrid8;
-	 var utfgrid9;
-	 var utfgrid10;
-	 var utfgrid11;
-	 var utfgrid12;
-	 var utfgrid13;
-	 var utfgrid14;
-	 var utfgrid15;
-	 var utfgrid16;
-	 var utfgrid17;
   
 //set up layer toggling for density and centroid
 
@@ -64,41 +46,16 @@ handleUTFGrid();
 function handleUTFGrid() {
     var currentZoom = map.getZoom();
     var currentLayer = new L.UtfGrid('../map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
+    var countrygrid = new L.UtfGrid('../map_countrygrid/{z}/{x}/{y}.json?callback={cb}')
     
     switch (currentZoom) {
         case 0:
-        	clearUTFLayers();
-        	var utfgrid0 = new L.UtfGrid('../map_0_utfgrid/{z}/{x}/{y}.json?callback={cb}');
-        	currentLayer = utfgrid0;
-			map.addLayer(utfgrid0);
-			
-        break;
-        case 1:
-        	clearUTFLayers();
-        	var utfgrid1 = new L.UtfGrid('../map_1_utfgrid/{z}/{x}/{y}.json?callback={cb}');
-        	currentLayer = utfgrid1;
-			map.addLayer(utfgrid1);
-		
-        break;
+        case 1:	
         case 2:
-        	clearUTFLayers();
-        	var utfgrid2 = new L.UtfGrid('../map_2_utfgrid/{z}/{x}/{y}.json?callback={cb}');
-        	currentLayer = utfgrid2;
-			map.addLayer(utfgrid2);
-			
-        break;
         case 3:
-        	clearUTFLayers();
-        	var utfgrid3 = new L.UtfGrid('../map_3_utfgrid/{z}/{x}/{y}.json?callback={cb}');
-        	currentLayer = utfgrid3;
-			map.addLayer(utfgrid3);
-			
-        break;
         case 4:
-        	clearUTFLayers();
-        	var utfgrid4 = new L.UtfGrid('../map_4_utfgrid/{z}/{x}/{y}.json?callback={cb}');
-        	currentLayer = utfgrid4;
-			map.addLayer(utfgrid4);
+            clearUTFLayers();
+            map.addLayer(countrygrid);
 
         break;
         case 5:
@@ -212,11 +169,64 @@ function handleUTFGrid() {
 		  	page_info_box.innerHTML = '<div class = "centered"><style>#explanation {padding-top: 20px}</style> <h4 id="explanation"> Article Name: </h4><p style = "font-size: 23"><strong> ' + e.data.citylabel + '</strong> </p> <p style = "font-size: 21"> Visit the <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
 		} else {
 			page_info_box.innerHTML = '';
-   		 }
+   		}
 
-});
+    });
 
-}
+    countrygrid.on('click', function(e) {
+        if(e.data){
+            console.log("clicked on a country");
+            var title = e.data.labels;
+            console.log(title);
+            switch(title){
+                case "Music":
+                    map.setView(new L.LatLng(13.529, -2.131), 6);
+                    break;
+                case "Sports":
+                    map.setView(new L.LatLng(16.689, -7.778), 6);
+                    break;
+                case "Physics & Maths":
+                    map.setView(new L.LatLng(8.679, -4.592), 6);
+                    break;
+                case "Technology":
+                    map.setView(new L.LatLng(7.504, -14.603), 6);
+                    break;
+                case "Politics & Econ":
+                    map.setView(new L.LatLng(-3.917, -8.569), 6);
+                    break;
+                case "Aviaton & Warfare":
+                    map.setView(new L.LatLng(-2.274, -17.073), 6);
+                    break;
+                case "History & Geography":
+                    map.setView(new L.LatLng(-5.605, -1.978), 6);
+                    break;
+                case "Entertainers & Media":
+                    map.setView(new L.LatLng(-12.972, 4.460), 6);
+                    break;
+                case "TV & Movies":
+                    map.setView(new L.LatLng(-7.264, 9.141), 6);
+                    break;
+                case "Anime & Gaming":
+                    map.setView(new L.LatLng(-9.178, 4.788), 6);
+                    break;
+                case "Natural World":
+                    map.setView(new L.LatLng(2.449, 9.514), 6);
+                    break;
+                case "Biology & Medicine":
+                    map.setView(new L.LatLng(8.135, 9.778), 6);
+                    break;
+                case "India":
+                    map.setView(new L.LatLng(14.743, 11.470), 6);
+                    break;
+                default:
+                    map.setView()
+            }
+        }
+    });
+
+};
+
+
 
 //clears all existing utf grids layers (helper function for handleUTFGRID)
 function clearUTFLayers(){
