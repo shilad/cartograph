@@ -175,6 +175,6 @@ class Labels():
     #For stesting purposes. Move this elsewhere. 
     def addWaterXml(self):
         for elem in self.mapFile.iterfind('Style[@name="countries"]'):
-            elem.set('image-filters', 'emboss|agg-stack-blur(2,2)')
+            elem.set('image-filters', 'emboss')
  
 
