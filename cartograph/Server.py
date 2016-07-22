@@ -93,6 +93,7 @@ class CartographServer(TileStache.WSGITileServer):
                     tupleList.append(itemTuple)
 
                 sortedTupleList = sorted(tupleList, key=itemgetter(3))
+                sortedTupleList.reverse()
 
                 for item in sortedTupleList:
                     locat = item[0]
