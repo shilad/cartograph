@@ -325,6 +325,7 @@
 	background: #fff;
 	background: rgba(255, 255, 255, 0.7);
 	margin: 0;
+	font-family: "GeosansLight";
 	}
 .leaflet-control-attribution,
 .leaflet-control-scale-line {
