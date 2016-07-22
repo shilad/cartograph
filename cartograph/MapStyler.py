@@ -23,7 +23,7 @@ class MapStyler:
 
     def makeMap(self, contourFilename, countryFilename, clusterIds, contoursDB):
         self.m = mapnik.Map(self.width, self.height)
-        self.m.background = mapnik.Color('white')
+        self.m.background = mapnik.Color('#D0E0EB')
         self.m.srs = '+init=epsg:3857'
 
 
@@ -102,7 +102,6 @@ class MapStyler:
                 r.filter = mapnik.Expression('[identity].match("' + str(j) + str(i) + '")')
                 s.rules.append(r)
                 styles.append(s)
-
         return styles
 
     def generateLineStyle(self, color, opacity, dash=None):
@@ -111,11 +110,12 @@ class MapStyler:
         symbolizer = mapnik.LineSymbolizer()
         symbolizer.stroke = mapnik.Color(color)
         symbolizer.stroke_opacity = opacity
-        symbolizer.stroke_width = 0.5
+        symbolizer.stroke_width = 1.5
         if dash:
             symbolizer.stroke_dasharray = dash
         r.symbols.append(symbolizer)
         s.rules.append(r)
+        s.comp_op = mapnik.CompositeOp.overlay
         return s
 
     def generateLayer(self, tableName, name, styleNames):
