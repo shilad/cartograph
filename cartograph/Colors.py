@@ -16,21 +16,20 @@ class ColorSelector:
 
     def _sortColorsByDistances(self):
         colorDiff = {}
-        keys = self.colors.keys()
         used = []
-        for key in keys:
-            used.append(key)
-            color1 = self.colors[key][6]
-            for comp in keys:
-                if comp is not key and comp not in used:
-                    color2 = self.colors[comp][6]
+        for i, key in enumerate(self.colors):
+            used.append(i)
+            color1 = key[3]
+            for j, comp in enumerate(self.colors):
+                if comp is not key and j not in used:
+                    color2 = comp[3]
                     rgb1 = mc.hex2color(color1)
                     rgb2 = mc.hex2color(color2)
                     finalDif = 0
                     for i in range(3):
                         dif = math.fabs(rgb1[i] - rgb2[i])
                         finalDif += dif
-                    colorDiff.setdefault(finalDif, []).append([key, comp])
+                    colorDiff.setdefault(finalDif, []).append([i, j])
 
         return colorDiff
 
@@ -118,6 +117,12 @@ class ColorSelector:
                                     break
                         if stop:
                             break
+        colorNotFilled = [x for x in range(len(self.colors)) if x not in colorFilled]
+        countryNotFilled = [x for x in range(len(self.colors)) if x not in countryFilled]
+        if colorNotFilled is not 0:
+            for i in range(len(colorNotFilled)):
+                colorMatch[colorNotFilled[i]] = countryNotFilled[i]
+
 
         return colorMatch
 
