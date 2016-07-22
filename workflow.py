@@ -6,7 +6,6 @@ matplotlib.use('Agg')
 import cartograph
 import os
 import shutil
-
 from cartograph import Config
 from cartograph import Colors
 from cartograph import Util
