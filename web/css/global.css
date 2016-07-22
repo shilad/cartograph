@@ -32,3 +32,11 @@ p {
   font-size: 20;
   font-size: 1.4vw;
 }
+
+.col-sm-12 {
+  padding: 0 20vw !important;
+}
+
+.col-xs-12 {
+  padding: 0 10vw !important;
+}
