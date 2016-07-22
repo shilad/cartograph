@@ -8,7 +8,7 @@ interpolateDir: none
 [ExternalFiles]
 vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
 names_with_id: %(externalDir)s/numberedNamesFull.tsv
-popularity: %(externalDir)s/article_pageview_full.tsv
+popularity: %(externalDir)s/new_pop_full.tsv
 region_names: %(externalDir)s/top_categories_full.tsv
 article_embedding = %(externalDir)s/tsne_cache_full.tsv
 
