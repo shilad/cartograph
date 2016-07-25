@@ -34,7 +34,9 @@ class CartographServer(TileStache.WSGITileServer):
         self.cartoconfig = cartograph_cfg
       
         xyDict = Util.read_features(self.cartoconfig.get("GeneratedFiles", "article_coordinates"),
-                                         self.cartoconfig.get("GeneratedFiles", "names_with_id"), self.cartoconfig.get("GeneratedFiles", "zoom_with_id"))
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"), 
+                                    self.cartoconfig.get("GeneratedFiles", "zoom_with_id"),
+                                    required=('x', 'y', 'name', 'maxZoom'))
 
         self.keyList = []
         self.tupleLocZoom = []

@@ -2,6 +2,7 @@
 dataset: dev_en
 baseDir: ./data/%(dataset)s
 generatedDir: %(baseDir)s/tsv
+mapDir: %(baseDir)s/maps
 geojsonDir: %(baseDir)s/geojson
 externalDir: ./data/labdata/%(dataset)s
 
@@ -16,7 +17,6 @@ article_embedding = %(externalDir)s/tsne_cache.tsv
 sampled_ids: %(externalDir)s/sampled_ids.tsv
 article_coordinates: %(externalDir)s/coordinates.tsv
 vecs_with_id: %(externalDir)s/numberedVecs.tsv
-names_with_id: %(externalDir)s/numberedNames.tsv
 clusters_with_id: %(externalDir)s/numberedClusters.tsv
 denoised_with_id: %(externalDir)s/keep.tsv
 coordinates_with_water: %(externalDir)s/water_and_article_coordinates.tsv
@@ -51,19 +51,17 @@ density_contours_geojson: %(geojsonDir)s/densityContourData.geojson
 centroid_contours_geojson: %(geojsonDir)s/centroidContourData.geojson
 clusters_with_region_id: %(externalDir)s/region_clusters.tsv
 borders_with_region_id: %(externalDir)s/region_borders.tsv
-title_by_zoom: %(geojsonDir)s/maxZoom_of_articles.geojson
-top_titles: %(geojsonDir)s/top_100_articles.geojson
-scale_dimensions: %(externalDir)s/scale_denominators.tsv
+title_by_zoom: %(geojsonDir)s/coordinates.geojson
+scale_dimensions: ./data/labdata/scale_denominators.tsv
 
 [MapResources]
-img_dot: %(externalDir)s/blackDot.png
+img_dot: ./data/labdata/blackDot.png
 fontDir: ./data/fonts
 
 [MapOutput]
-map_file: map.xml
-map_file_density: map_density.xml
-map_file_centroid: map_centroid.xml
-img_src_name: ./data/images/world
+map_file_density: ./map_density.xml
+map_file_centroid: ./map_centroid.xml
+img_src_name: %(mapDir)s/world
 
 [PG]
 host = localhost

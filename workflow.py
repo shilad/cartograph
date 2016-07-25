@@ -144,7 +144,7 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
 class EnsureDirectoriesExist(luigi.Task):
     def __init__(self, *args, **kwargs):
         super(EnsureDirectoriesExist, self).__init__(*args, **kwargs)
-        self.configKeys = ('baseDir', 'externalDir', 'generatedDir', 'geojsonDir')
+        self.configKeys = ('baseDir', 'externalDir', 'generatedDir', 'geojsonDir', 'mapDir')
 
     def output(self):
         return list(
@@ -160,6 +160,14 @@ class EnsureDirectoriesExist(luigi.Task):
 
 
 def getSampleIds(n=None):
+    # First check if we have an explicitly specified sample
+    if config.has_option('ExternalFiles', 'sample_ids'):
+        with open(config.get('ExternalFiles', 'sample_ids'), 'r') as f:
+            return set(id.strip() for id in f)
+
+    # If there is no explicit sample, choose one by popularity.
+
+    # Lookup the sample size.
     if n is None:
         n = config.getint('PreprocessingConstants', 'sample_size')
     pops = Util.read_features(config.get("GeneratedFiles", "popularity_with_id"))
@@ -708,31 +716,13 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
             config.get("GeneratedFiles", "zoom_with_id"),
             config.get("GeneratedFiles", "article_coordinates"),
             config.get("GeneratedFiles", "popularity_with_id"),
-            config.get("GeneratedFiles", "names_with_id"),
-            config.get("GeneratedFiles", "percentile_popularity_with_id"))
+            config.get("ExternalFiles", "names_with_id"),
+            config.get("GeneratedFiles", "percentile_popularity_with_id"),
+            required=('x', 'y', 'popularity', 'name', 'maxZoom')
+        )
 
         titlesByZoom = ZoomGeoJSONWriter(featureDict)
         titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
-
-
-
-class CreateTopLabels(MTimeMixin, luigi.Task):
-    '''
-    Write the top 100 most popular articles to file for relative zoom
-    Generated as geojson data for use inside map.xml
-    '''
-    def requires(self):
-        return (PopularityIdentifier(),
-                CreateCoordinates(),
-                MakeRegions(),
-                TopTitlesGeoJSONWriterCode())
-
-    def output(self):
-        return TimestampedLocalTarget(config.get("MapData", "top_titles"))
-
-    def run(self):
-        titleLabels = TopTitlesGeoJSONWriter(9000)
-        titleLabels.generateJSONFeature(config.get("MapData", "top_titles"))
 
 
 class LoadContoursDensity(LoadGeoJsonTask):
