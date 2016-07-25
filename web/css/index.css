@@ -10,6 +10,10 @@ body {
   color: #222;
 }
 
+.nav {
+  color: red;
+}
+
 #image-border {
   border: 3px solid #222;
 }
@@ -95,6 +99,14 @@ ul.nav {
   font-size: 30;
   margin: 0;
   display: block;
+}
+
+.navbar-inverse .navbar-nav li a{
+  color: #E2E1D9;
+}
+
+.navbar-inverse .navbar-nav li a:hover{
+  color: white;
 }
 
 .header-nav {
