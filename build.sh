@@ -9,7 +9,7 @@ function usage() {
     exit 1
 }
 
-TASK=RenderMap
+TASK=LabelMapUsingZoom
 
 while [ "$1" != "" ]; do
     case $1 in

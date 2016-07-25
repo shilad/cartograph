@@ -776,37 +776,3 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                             config.get("MapOutput", "map_file_density"))
         self.generateLabels(config.get("MapData", "centroid_contours_geojson"),
                             config.get("MapOutput", "map_file_centroid"))
-
-
-class RenderMap(MTimeMixin, luigi.Task):
-    '''
-    Write the final product xml of all our data manipulations to an image file
-    to ensure that everything excuted as it should
-    '''
-    def requires(self):
-        return (CreateMapXml(),
-                LoadCoordinates(),
-                LoadCountries(),
-                LoadContoursDensity(),
-                LoadContoursCentroid(),
-                LabelMapUsingZoom(),
-                MapStylerCode(),
-                ColorsCode())
-
-    def output(self):
-        return(
-            TimestampedLocalTarget(config.get("MapOutput",
-                                         "img_src_name") + '.png'),
-            TimestampedLocalTarget(config.get("MapOutput",
-                                         "img_src_name") + '.svg'))
-
-    def run(self):
-        countryBorders = Util.read_features(config.get("PreprocessingFiles", "country_borders"))
-        colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
-        colors = colorFactory.optimalColoring()
-        ms = MapStyler.MapStyler(config, colors)
-        ms = MapStyler.MapStyler(config, COLORWHEEL)
-        ms.saveImage(config.get("MapOutput", "map_file_density"),
-                     config.get("MapOutput", "img_src_name") + ".png")
-        ms.saveImage(config.get("MapOutput", "map_file_density"),
-                     config.get("MapOutput", "img_src_name") + ".svg")
