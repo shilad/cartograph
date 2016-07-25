@@ -1,5 +1,5 @@
 [DEFAULT]
-dataset: devEn
+dataset: dev_en
 baseDir: ./data/%(dataset)s
 generatedDir: %(baseDir)s/tsv
 geojsonDir: %(baseDir)s/geojson
@@ -14,7 +14,7 @@ article_embedding = %(externalDir)s/tsne_cache.tsv
 
 [GeneratedFiles]
 sampled_ids: %(externalDir)s/sampled_ids.tsv
-article_coordinates: %(externalDir)s/tsne_cache.tsv
+article_coordinates: %(externalDir)s/coordinates.tsv
 vecs_with_id: %(externalDir)s/numberedVecs.tsv
 names_with_id: %(externalDir)s/numberedNames.tsv
 clusters_with_id: %(externalDir)s/numberedClusters.tsv
@@ -27,7 +27,7 @@ zoom_with_id: %(externalDir)s/numberedZoom.tsv
 country_borders: %(externalDir)s/country_borders.tsv
 
 [PreprocessingConstants]
-sample_size: 10000
+sample_size: 50000
 num_clusters: 13
 tsne_theta: 0.5
 min_num_in_cluster: 100
@@ -67,7 +67,7 @@ img_src_name: ./data/images/world
 
 [PG]
 host = localhost
-database = mapnik
+database = mapnik_%(dataset)s
 user =
 password =
 
