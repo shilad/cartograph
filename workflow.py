@@ -329,8 +329,8 @@ class MakeRegions(MTimeMixin, luigi.Task):
             if len(row['vector']) == 0: continue
             hood = knn.neighbors(row['vector'], 5)
             if not hood: continue
-            for (id, score) in hood:
-                c = sampleRegions[id].get('cluster')
+            for (id2, score) in hood:
+                c = sampleRegions[id2].get('cluster')
                 if c is not None:
                     sums[c] += score
             cluster = max(sums, key=sums.get)
@@ -456,9 +456,9 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
             scoreSums = 0.0
             if len(row['vector']) == 0: continue
             hood = knn.neighbors(row['vector'], 5)
-            for (id, score) in hood:
-                xSums += score * float(sampleCoords[id]['x'])
-                ySums += score * float(sampleCoords[id]['y'])
+            for (id2, score) in hood:
+                xSums += score * float(sampleCoords[id2]['x'])
+                ySums += score * float(sampleCoords[id2]['y'])
                 scoreSums += score
             X.append(xSums / scoreSums)
             Y.append(ySums / scoreSums)
@@ -484,12 +484,26 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
                 PopularityIdentifier())
 
     def run(self):
+        print(
+            (config.get("GeneratedFiles",
+                        "popularity_with_id"),
+             config.get("GeneratedFiles",
+                        "article_coordinates"),
+             config.get("GeneratedFiles",
+                        "clusters_with_id"))
+        )
         feats = Util.read_features(config.get("GeneratedFiles",
                                               "popularity_with_id"),
                                    config.get("GeneratedFiles",
                                               "article_coordinates"),
                                    config.get("GeneratedFiles",
                                               "clusters_with_id"))
+        print('FEATURES IS', len(feats))
+        counts = defaultdict(int)
+        for row in feats.values():
+            for k in row:
+                counts[k] += 1
+        print(counts)
 
         zoom = CalculateZooms(feats,
                               config.getint("MapConstants", "max_coordinate"),

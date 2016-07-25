@@ -35,8 +35,8 @@ class CartographServer(TileStache.WSGITileServer):
         self.cartoconfig = cartograph_cfg
       
         self.popularityDict = Util.read_features(
-                                    self.cartoconfig.get("PreprocessingFiles", "names_with_id"),
-                                    self.cartoconfig.get("PreprocessingFiles","popularity_with_id"))
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                    self.cartoconfig.get("GeneratedFiles","popularity_with_id"))
         xyDict = Util.read_features(self.cartoconfig.get("GeneratedFiles", "article_coordinates"),
                                     self.cartoconfig.get("ExternalFiles", "names_with_id"),
                                     self.cartoconfig.get("GeneratedFiles", "zoom_with_id"),
