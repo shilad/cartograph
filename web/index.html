@@ -199,6 +199,11 @@
     }
   });
 });</script>
-
+ <script> 
+    if (navigator.appVersion.includes('Windows NT 5.1')) {
+      var f = "Trebuchet MS"
+      document.getElementsByTagName('body')[0].style.fontFamily = f;
+    }
+  </script>
 </body>
 </html>
