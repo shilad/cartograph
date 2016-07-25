@@ -1,0 +1,64 @@
+#title {
+	margin-bottom: 5vh;
+}
+
+#search-box {
+	min-height: 50px;
+}
+#page-info-box {
+	margin-top: 2vh;
+	min-width: 4vh;
+}
+
+.fullWidthParent {
+	display: inline-flex;
+	padding-top: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.centerChild {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#social {
+	padding-top: 2vh;
+}
+
+#howButton {
+	margin-bottom: -30vh; 
+}
+
+
+.leaflet-control-zoom{
+	display: inline;
+	float: left;
+}
+
+.leaflet-control{
+	border-radius: 0;
+}
+
+.leaflet-control-layers{
+	display: inline;
+	float: right;
+	font-family: "GeosansLight";
+	src: url(../fonts/GeosansLight.ttf) format("truetype");
+	font-size: 15px;
+}
+
+.ssk-group {
+	padding-top: 10%;
+	font-size: 14;
+}
+
+@font-face {
+  font-family: "GeosansLight";
+  src: url(../fonts/GeosansLight.ttf) format("truetype");
+}
+
+h1, h2, h3, h4, h5, h6, button {
+	font-family: "GeosansLight"
+}
