@@ -145,8 +145,8 @@
 	font-weight:bold;
 	border-radius:.25em;
 	
-	right:70px;
-	margin:45px;
+	left:0em;
+	margin:3.5em;
 	position: absolute;
 	white-space:nowrap;
 }
