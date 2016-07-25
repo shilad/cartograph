@@ -32,7 +32,7 @@ class ContourCreator:
         keys = featureDict.keys()
         for index in keys:
             pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
+            if pointInfo.get('keep') != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))

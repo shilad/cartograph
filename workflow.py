@@ -23,7 +23,6 @@ from cartograph.ZoomTSVWriter import ZoomTSVWriter
 from cartograph.Labels import Labels
 from cartograph.Config import initConf
 from cartograph.CalculateZooms import CalculateZooms
-from cartograph.Interpolater import Interpolater
 from cartograph.PopularityLabelSizer import PopularityLabelSizer
 from collections import defaultdict
 from tsne import bh_sne
@@ -102,11 +101,6 @@ class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.LuigiUtils.__file__))
 
-
-class InterpolaterCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return(TimestampedLocalTarget(cartograph.Interpolater.__file__))
-
 class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(TimestampedLocalTarget(cartograph.PopularityLabelSizer.__file__))
@@ -168,7 +162,7 @@ class EnsureDirectoriesExist(luigi.Task):
 def getSampleIds(n=None):
     if n is None:
         n = config.getint('PreprocessingConstants', 'sample_size')
-    pops = Util.read_features(config.get("PostprocessingFiles", "popularity_with_id"))
+    pops = Util.read_features(config.get("GeneratedFiles", "popularity_with_id"))
     tuples = list((pops[id]['popularity'], id) for id in pops)
     tuples.sort()
     return set(id for (pop, id) in tuples[-n:])
@@ -217,7 +211,7 @@ class PopularityIdentifier(MTimeMixin, luigi.Task):
                 ArticlePopularity())
 
     def output(self):
-        return (TimestampedLocalTarget(config.get("PreprocessingFiles",
+        return (TimestampedLocalTarget(config.get("GeneratedFiles",
                                                  "popularity_with_id")))
 
     def run(self):
@@ -239,7 +233,7 @@ class PopularityIdentifier(MTimeMixin, luigi.Task):
             name = featureDict[featureID]["name"]
             popularityList.append(nameDict[name])
 
-        Util.write_tsv(config.get('PreprocessingFiles', 'popularity_with_id'),
+        Util.write_tsv(config.get('GeneratedFiles', 'popularity_with_id'),
                        ("id", "popularity"),
                        idList, popularityList)
 
@@ -251,15 +245,14 @@ class PercentilePopularityIdentifier(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         return (PopularityIdentifier(),
-                InterpolateNewPoints(),
                 PopularityLabelSizerCode())
 
     def output(self):
-        return (TimestampedLocalTarget(config.get("PreprocessingFiles",
+        return (TimestampedLocalTarget(config.get("GeneratedFiles",
                                              "percentile_popularity_with_id")))
 
     def run(self):
-        readPopularData = Util.read_tsv(config.get("PreprocessingFiles",
+        readPopularData = Util.read_tsv(config.get("GeneratedFiles",
                                                    "popularity_with_id"))
         popularity = list(map(float, readPopularData['popularity']))
         index = list(map(int, readPopularData['id']))
@@ -268,7 +261,7 @@ class PercentilePopularityIdentifier(MTimeMixin, luigi.Task):
                                                     popularity)
         popLabelScores = popLabel.calculatePopScore()
 
-        Util.write_tsv(config.get("PreprocessingFiles", "percentile_popularity_with_id"),
+        Util.write_tsv(config.get("GeneratedFiles", "percentile_popularity_with_id"),
                                     ("id", "popBinScore"), index, popLabelScores)
 
 
@@ -279,7 +272,7 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
     algorithm clusters numbers consistently refer to the same entity
     '''
     def output(self):
-        return TimestampedLocalTarget(config.getSample("PreprocessingFiles",
+        return TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                             "clusters_with_id"))
 
     def requires(self):
@@ -297,13 +290,13 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
                                            "num_clusters"),
                              random_state=42).fit(vectors).labels_)
 
-        Util.write_tsv(config.getSample("PreprocessingFiles", "clusters_with_id"),
+        Util.write_tsv(config.getSample("GeneratedFiles", "clusters_with_id"),
                        ("index", "cluster"), keys, labels)
 
 
 class MakeRegions(MTimeMixin, luigi.Task):
     def output(self):
-        return TimestampedLocalTarget(config.get("PreprocessingFiles", "clusters_with_id"))
+        return TimestampedLocalTarget(config.get("GeneratedFiles", "clusters_with_id"))
 
     def requires(self):
         return (
@@ -313,7 +306,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        sampleRegions = Util.read_features(config.getSample("PreprocessingFiles", "clusters_with_id"),)
+        sampleRegions = Util.read_features(config.getSample("GeneratedFiles", "clusters_with_id"),)
         vecs = Util.read_features(config.get("ExternalFiles", "vecs_with_id"))
         knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
         assert(knn.exists())
@@ -335,7 +328,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
             ids.append(id)
             clusters.append(cluster)
 
-        Util.write_tsv(config.get("PreprocessingFiles", "clusters_with_id"),
+        Util.write_tsv(config.get("GeneratedFiles", "clusters_with_id"),
                        ("index", "cluster"), ids, clusters)
 
 
@@ -358,7 +351,7 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
         # Create the embedding.
         featureDict = Util.read_features(config.getSample("ExternalFiles",
                                                           "vecs_with_id"),
-                                         id_set=getSample())
+                                         id_set=getSampleIds())
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
         out = bh_sne(vectors,
@@ -406,7 +399,7 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
     mapping purposes.
     '''
     def output(self):
-        return TimestampedLocalTarget(config.getSample("PreprocessingFiles",
+        return TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                             "article_coordinates"))
 
     def requires(self):
@@ -425,20 +418,20 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
         X = [x * scaling for x in X]
         Y = [y * scaling for y in Y]
 
-        Util.write_tsv(config.getSample("PreprocessingFiles",
+        Util.write_tsv(config.getSample("GeneratedFiles",
                                   "article_coordinates"),
                        ("index", "x", "y"), keys, X, Y)
 
 
 class CreateFullCoordinates(MTimeMixin, luigi.Task):
     def output(self):
-        return TimestampedLocalTarget(config.get("PreprocessingFiles", "article_coordinates"))
+        return TimestampedLocalTarget(config.get("GeneratedFiles", "article_coordinates"))
 
     def requires(self):
         return CreateSampleCoordinates(), WikiBrainNumbering(), CreateSampleAnnoyIndex()
 
     def run(self):
-        sampleCoords = Util.read_features(config.getSample("PreprocessingFiles", "article_coordinates"))
+        sampleCoords = Util.read_features(config.getSample("GeneratedFiles", "article_coordinates"))
         vecs = Util.read_features(config.get("ExternalFiles", "vecs_with_id"))
         knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
         assert(knn.exists())
@@ -462,7 +455,7 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
             Y.append(ySums / scoreSums)
             ids.append(id)
 
-        Util.write_tsv(config.get("PreprocessingFiles",
+        Util.write_tsv(config.get("GeneratedFiles",
                                   "article_coordinates"),
                        ("index", "x", "y"), ids, X, Y)
 
@@ -472,21 +465,21 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     i.e. determines when each article label should appear.
     '''
     def output(self):
-        return TimestampedLocalTarget(config.get("PreprocessingFiles",
+        return TimestampedLocalTarget(config.get("GeneratedFiles",
                                                  "zoom_with_id"))
 
     def requires(self):
         return (MakeRegions(),
                 CalculateZoomsCode(),
-                CreateCoordinates(),
+                CreateFullCoordinates(),
                 PopularityIdentifier())
 
     def run(self):
-        feats = Util.read_features(config.get("PreprocessingFiles",
+        feats = Util.read_features(config.get("GeneratedFiles",
                                               "popularity_with_id"),
-                                   config.get("PreprocessingFiles",
+                                   config.get("GeneratedFiles",
                                               "article_coordinates"),
-                                   config.get("PreprocessingFiles",
+                                   config.get("GeneratedFiles",
                                               "clusters_with_id"))
 
         zoom = CalculateZooms(feats,
@@ -499,7 +492,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
         zoomValue = list(numberedZoomDict.values())
 
 
-        Util.write_tsv(config.get("PreprocessingFiles", "zoom_with_id"),
+        Util.write_tsv(config.get("GeneratedFiles", "zoom_with_id"),
                        ("index", "maxZoom"), keys, zoomValue)
 
 
@@ -510,11 +503,11 @@ class Denoise(MTimeMixin, luigi.Task):
     '''
     def output(self):
         return (
-            TimestampedLocalTarget(config.getSample("PreprocessingFiles",
+            TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                          "denoised_with_id")),
-            TimestampedLocalTarget(config.getSample("PreprocessingFiles",
+            TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                          "clusters_with_water")),
-            TimestampedLocalTarget(config.getSample("PreprocessingFiles",
+            TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                          "coordinates_with_water"))
         )
 
@@ -524,9 +517,9 @@ class Denoise(MTimeMixin, luigi.Task):
                 DenoiserCode())
 
     def run(self):
-        featureDict = Util.read_features(config.getSample("PreprocessingFiles",
+        featureDict = Util.read_features(config.getSample("GeneratedFiles",
                                                     "article_coordinates"),
-                                         config.getSample("PreprocessingFiles",
+                                         config.getSample("GeneratedFiles",
                                                     "clusters_with_id"))
         featureIDs = list(featureDict.keys())
         x = [float(featureDict[fID]["x"]) for fID in featureIDs]
@@ -541,15 +534,15 @@ class Denoise(MTimeMixin, luigi.Task):
         for x in range(len(waterX) - len(featureIDs)):
             featureIDs.append("w" + str(x))
 
-        Util.write_tsv(config.getSample("PreprocessingFiles",
+        Util.write_tsv(config.getSample("GeneratedFiles",
                                   "denoised_with_id"),
                        ("index", "keep"),
                        featureIDs, keepBooleans)
 
-        Util.write_tsv(config.getSample("PreprocessingFiles",
+        Util.write_tsv(config.getSample("GeneratedFiles",
                                   "coordinates_with_water"),
                        ("index", "x", "y"), featureIDs, waterX, waterY)
-        Util.write_tsv(config.getSample("PreprocessingFiles", "clusters_with_water"),
+        Util.write_tsv(config.getSample("GeneratedFiles", "clusters_with_water"),
                        ("index", "cluster"), featureIDs, waterCluster)
 
 
@@ -567,7 +560,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
     def output(self):
         return (
             TimestampedLocalTarget(config.get("MapData", "countries_geojson")),
-            TimestampedLocalTarget(config.get("PreprocessingFiles", "country_borders")),
+            TimestampedLocalTarget(config.get("GeneratedFiles", "country_borders")),
             TimestampedLocalTarget(config.get("MapData", "clusters_with_region_id")),
             TimestampedLocalTarget(config.get("MapData", "borders_with_region_id")))
 
@@ -608,7 +601,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                        ("region_id", "border_list"),
                        range(1, len(regionList) + 1),
                        regionList)
-        Util.write_tsv(config.get("PreprocessingFiles", "country_borders"),
+        Util.write_tsv(config.get("GeneratedFiles", "country_borders"),
                        ("cluster_id", "border_list"),
                        range(len(clustList)),
                        clustList)
@@ -629,11 +622,11 @@ class CreateContours(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson"))
 
     def run(self):
-        featuresDict = Util.read_features(config.getSample("PreprocessingFiles",
+        featuresDict = Util.read_features(config.getSample("GeneratedFiles",
                                                      "article_coordinates"),
-                                          config.getSample("PreprocessingFiles",
+                                          config.getSample("GeneratedFiles",
                                                      "clusters_with_id"),
-                                          config.getSample("PreprocessingFiles",
+                                          config.getSample("GeneratedFiles",
                                                      "denoised_with_id"),
                                           config.getSample("ExternalFiles",
                                                      "vecs_with_id"))
@@ -712,11 +705,11 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
 
     def run(self):
         featureDict = Util.read_features(
-            config.get("PreprocessingFiles", "zoom_with_id"),
-            config.get("PreprocessingFiles", "article_coordinates"),
-            config.get("PreprocessingFiles", "popularity_with_id"),
-            config.get("PreprocessingFiles", "names_with_id"),
-            config.get("PreprocessingFiles", "percentile_popularity_with_id"))
+            config.get("GeneratedFiles", "zoom_with_id"),
+            config.get("GeneratedFiles", "article_coordinates"),
+            config.get("GeneratedFiles", "popularity_with_id"),
+            config.get("GeneratedFiles", "names_with_id"),
+            config.get("GeneratedFiles", "percentile_popularity_with_id"))
 
         titlesByZoom = ZoomGeoJSONWriter(featureDict)
         titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
@@ -774,7 +767,7 @@ class LoadCoordinates(LoadGeoJsonTask):
         )
 
     def requires(self):
-        return CreateCoordinates(), PGLoaderCode(), CreateLabelsFromZoom()
+        return CreateFullCoordinates(), PGLoaderCode(), CreateLabelsFromZoom()
 
 
 class LoadCountries(LoadGeoJsonTask):
@@ -813,7 +806,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionClusters = Util.read_features(config.get("MapData", "clusters_with_region_id"))
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
-        countryBorders = Util.read_features(config.get("PreprocessingFiles", "country_borders"))
+        countryBorders = Util.read_features(config.get("GeneratedFiles", "country_borders"))
         colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
         colors = colorFactory.optimalColoring()
 
@@ -872,7 +865,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                                   minScale=10,
                                   maxScale=0)
         # zoomValues = set()
-        # zoomValueData = Util.read_features(config.get("PreprocessingFiles",
+        # zoomValueData = Util.read_features(config.get("GeneratedFiles",
         #                                               "zoom_with_id"))
         # for zoomInfo in list(zoomValueData.values()):
         #     zoomValues.add(zoomInfo['maxZoom'])
@@ -916,7 +909,7 @@ class RenderMap(MTimeMixin, luigi.Task):
                                          "img_src_name") + '.svg'))
 
     def run(self):
-        countryBorders = Util.read_features(config.get("PreprocessingFiles", "country_borders"))
+        countryBorders = Util.read_features(config.get("GeneratedFiles", "country_borders"))
         colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
         colors = colorFactory.optimalColoring()
         ms = MapStyler.MapStyler(config, colors)

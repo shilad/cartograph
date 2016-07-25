@@ -4,7 +4,7 @@ import types
 from ConfigParser import SafeConfigParser
 
 EXTERNAL_FILES = 'ExternalFiles'
-PREPROCESSING_FILES = 'PreprocessingFiles'
+PREPROCESSING_FILES = 'GeneratedFiles'
 PREPROCESSING_CONSTANTS = 'PreprocessingConstants'
 MAP_CONSTANTS = 'MapConstants'
 MAP_DATA = 'MapData'
@@ -33,17 +33,6 @@ def initConf(confFile=None):
     if confFile is not None:
         with open(confFile, "r") as updateFile:
             conf.readfp(updateFile)
-
-    # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN        # TEMPORARAY HACK UNTIL BROOKE'S OUT OF SAMPLE STUFF IS IN
-    newNames = conf.get("ExternalFiles", "names_with_id")
-    newVecs = conf.get("ExternalFiles", "vecs_with_id")
-    newCoords = conf.get("PreprocessingFiles", "article_coordinates")
-    newPopularity = conf.get("PreprocessingFiles", "popularity_with_id")
-
-    conf.set("PostprocessingFiles", "article_coordinates", newCoords)
-    conf.set("PostprocessingFiles", "vecs_with_id", newVecs)
-    conf.set("PostprocessingFiles", "names_with_id", newNames)
-    conf.set("PostprocessingFiles", "popularity_with_id", newPopularity)
 
     _verifyRequiredSections(conf, _requiredSections)
 
