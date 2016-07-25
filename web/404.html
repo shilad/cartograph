@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html class="client-nojs" dir="ltr" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script language="JavaScript">
+    <!-- 
+    console.log("Waiting to refresh")
+    setTimeout("top.location.href = 'index.html'",10000); 
+    //--> 
+    </script>
+    <title>HTTP 404 - Wikipedia, the free encyclopedia</title>
+    <link href="//creativecommons.org/licenses/by-sa/3.0/" rel="copyright">
+    <link href="https://en.wikipedia.org/wiki/HTTP_404" rel="canonical">
+    <link href=
+    "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+    rel="stylesheet">
+    <link href="./css/404.css" rel="stylesheet">
+    <link href="./css/global.css" rel=stylesheet>
+    <script src=
+    "http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
+    </script>
+    <script src=
+    '//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js'>
+    </script>
+</head>
+<body class=
+"mediawiki ltr sitedir-ltr ns-0 ns-subject page-HTTP_404 rootpage-HTTP_404 skin-vector action-view">
+<div class="noprint" id="mw-page-base"></div>
+    <div class="noprint" id="mw-head-base"></div>
+    <div class="mw-body" id="content" role="main">
+        <a id="top"></a>
+        <div id="siteNotice">
+            <!-- CentralNotice -->
+        </div>
+        <div class="mw-indicators"></div>
+        <h1 class="firstHeading" id="firstHeading" lang="en">HTTP 404</h1>
+        <div class="mw-body-content" id="bodyContent">
+            <div id="siteSub">
+                From Wikipedia, the free encyclopedia
+            </div>
+            <div id="contentSub"></div>
+            <div class="mw-jump" id="jump-to-nav">
+                Jump to: <a href="#mw-head">navigation</a>, <a href=
+                "#p-search">search</a>
+            </div>
+            <p>The <b>404</b> or <b>Not Found</b> <a href="/wiki/Error_message"
+            title="Error message">error message</a> is a <a href=
+            "/wiki/Hypertext_Transfer_Protocol" title=
+            "Hypertext Transfer Protocol">Hypertext Transfer Protocol</a>
+            (HTTP) <a href="/wiki/List_of_HTTP_status_codes" title=
+            "List of HTTP status codes">standard response code</a>, in computer
+            network communications, to indicate that the <a href=
+            "/wiki/Web_browser" title="Web browser">client</a> was able to
+            communicate with a given <a href="/wiki/Server_(computing)" title=
+            "Server (computing)">server</a>, but the server could not find what
+            was requested.</p>
+            <p>The web site hosting server will typically generate a "404 Not
+            Found" web page when a user attempts to follow a <a href=
+            "/wiki/Link_rot" title="Link rot">broken or dead link</a>; hence
+            the 404 error is one of the most recognizable errors encountered on
+            the <a href="/wiki/World_Wide_Web" title="World Wide Web">World
+            Wide Web</a>.</p>
+            <p></p>
+            <div class="toc" id="toc">
+                <div id="toctitle">
+                    <h2>Contents</h2>
+                </div>
+                <ul>
+                    <li class="toclevel-1 tocsection-1">
+                        <a href="#Overview"><span class="tocnumber">1</span>
+                        <span class="toctext">Overview</span></a>
+                    </li>
+                    <li class="toclevel-1 tocsection-2">
+                        <a href="#Custom_error_pages"><span class=
+                        "tocnumber">2</span> <span class="toctext">Custom error
+                        pages</span></a>
+                        <ul>
+                            <li class="toclevel-2 tocsection-3">
+                                <a href=
+                                "#Tracking.2FChecking_404_errors"><span class=
+                                "tocnumber">2.1</span> <span class=
+                                "toctext">Tracking/Checking 404
+                                errors</span></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="toclevel-1 tocsection-4">
+                        <a href="#Phony_404_errors"><span class=
+                        "tocnumber">3</span> <span class="toctext">Phony 404
+                        errors</span></a>
+                    </li>
+                    <li class="toclevel-1 tocsection-5">
+                        <a href=
+                        "#404_substatus_error_codes_defined_by_IIS"><span class="tocnumber">
+                        4</span> <span class="toctext">404 substatus error
+                        codes defined by IIS</span></a>
+                        <ul>
+                            <li class="toclevel-2 tocsection-6">
+                                <a href="#Slang_usage"><span class=
+                                "tocnumber">4.1</span> <span class=
+                                "toctext">Slang usage</span></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="toclevel-1 tocsection-7">
+                        <a href="#See_also"><span class="tocnumber">5</span>
+                        <span class="toctext">See also</span></a>
+                    </li>
+                    <li class="toclevel-1 tocsection-8">
+                        <a href="#References"><span class="tocnumber">6</span>
+                        <span class="toctext">References</span></a>
+                    </li>
+                    <li class="toclevel-1 tocsection-9">
+                        <a href="#External_links"><span class=
+                        "tocnumber">7</span> <span class="toctext">External
+                        links</span></a>
+                    </li>
+                </ul>
+            </div>
+            <p></p>
+            <h2><span class="mw-headline" id=
+            "Overview">Overview</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=1" title=
+            "Edit section: Overview">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h2>
+            <p>When communicating via HTTP, a server is required to respond to
+            a request, such as a <a href="/wiki/Web_browser" title=
+            "Web browser">web browser</a> request for a <a href=
+            "/wiki/Web_page" title="Web page">web page</a>, with a numeric
+            response code and an optional, mandatory, or disallowed (based upon
+            the status code) message. In the code 404, the first digit
+            indicates a client error, such as a mistyped <a href=
+            "/wiki/Uniform_Resource_Locator" title=
+            "Uniform Resource Locator">Uniform Resource Locator</a> (URL). The
+            following two digits indicate the specific error encountered.
+            HTTP's use of three-digit codes is similar to the use of such codes
+            in earlier protocols such as <a href="/wiki/File_Transfer_Protocol"
+            title="File Transfer Protocol">FTP</a> and <a href=
+            "/wiki/Network_News_Transfer_Protocol" title=
+            "Network News Transfer Protocol">NNTP</a>.</p>
+            <p>At the HTTP level, a 404 response code is followed by a
+            human-readable "reason phrase". The HTTP specification suggests the
+            phrase "Not Found"<sup class="reference" id="cite_ref-1"><a href=
+            "#cite_note-1">[1]</a></sup> and many web servers by default issue
+            an HTML page that includes both the 404 code and the "Not Found"
+            phrase.</p>
+            <p>A 404 error is often returned when pages have been moved or
+            deleted. In the first case, it is better to employ <a class=
+            "mw-redirect" href="/wiki/URL_mapping" title="URL mapping">URL
+            mapping</a> or <a href="/wiki/URL_redirection" title=
+            "URL redirection">URL redirection</a> by returning a 301 Moved
+            Permanently response, which can be configured in most server
+            configuration files, or through <a class="mw-redirect" href=
+            "/wiki/URL_rewriting" title="URL rewriting">URL rewriting</a>; in
+            the second case, a 410 Gone should be returned. Because these two
+            options require special server configuration, most websites do not
+            make use of them.</p>
+            <p>404 errors should not be confused with <a href=
+            "/wiki/Domain_Name_System" title="Domain Name System">DNS</a>
+            errors, which appear when the given URL refers to a server name
+            that does not exist. A 404 error indicates that the server itself
+            was found, but that the server was not able to retrieve the
+            requested page.</p>
+            <h2><span class="mw-headline" id="Custom_error_pages">Custom error
+            pages</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=2" title=
+            "Edit section: Custom error pages">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h2>
+            <div class="thumb tright">
+                <div class="thumbinner" style="width:222px;">
+                    <a class="image" href=
+                    "/wiki/File:Wikimedia_error_404.png"><img alt="" class=
+                    "thumbimage" data-file-height="1200" data-file-width="1600"
+                    height="165" src=
+                    "//upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wikimedia_error_404.png/220px-Wikimedia_error_404.png"
+                    srcset=
+                    "//upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wikimedia_error_404.png/330px-Wikimedia_error_404.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wikimedia_error_404.png/440px-Wikimedia_error_404.png 2x"
+                    width="220"></a>
+                    <div class="thumbcaption">
+                        <div class="magnify">
+                            <a class="internal" href=
+                            "/wiki/File:Wikimedia_error_404.png" title=
+                            "Enlarge"></a>
+                        </div>The Wikimedia 404 message
+                    </div>
+                </div>
+            </div>
+            <p><a href="/wiki/Web_server" title="Web server">Web servers</a>
+            can typically be configured to display a customised 404 error page,
+            including a more natural description, the parent site's branding,
+            and sometimes a site map, a search form or 404 page widget. The
+            protocol level phrase, which is hidden from the user, is rarely
+            customized.</p>
+            <p><a href="/wiki/Internet_Explorer" title=
+            "Internet Explorer">Internet Explorer</a>, however, will not
+            display custom pages unless they are larger than 512 bytes, opting
+            instead to display a "friendly" error page.<sup class="reference"
+            id="cite_ref-2"><a href="#cite_note-2">[2]</a></sup> <a href=
+            "/wiki/Google_Chrome" title="Google Chrome">Google Chrome</a>
+            includes similar functionality, where the 404 is replaced with
+            alternative suggestions generated by Google algorithms, if the page
+            is under 512 bytes in size.<sup class=
+            "noprint Inline-Template Template-Fact" style=
+            "white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed"
+            title="Wikipedia:Citation needed"><span title=
+            "This claim needs references to reliable sources. (January 2013)">citation
+            needed</span></a></i>]</sup></p>
+            <p>Another problem is that if the page does not provide a <a href=
+            "/wiki/Favicon" title="Favicon">favicon</a>, and a separate custom
+            404 page exists, extra traffic and longer loading times will be
+            generated on every page view.<sup class="reference" id=
+            "cite_ref-3"><a href="#cite_note-3">[3]</a></sup><sup class=
+            "reference" id="cite_ref-4"><a href=
+            "#cite_note-4">[4]</a></sup></p>
+            <p>Many organizations use 404 error pages as an opportunity to
+            inject humor into what may otherwise be a serious website. For
+            example, Metro UK shows a polar bear on a skateboard, and the web
+            development agency Left Logic has a simple drawing
+            program.<sup class="reference" id="cite_ref-5"><a href=
+            "#cite_note-5">[5]</a></sup></p>
+            <p>While many websites send additional information in a 404 error
+            message—such as a link to the <a class="mw-redirect" href=
+            "/wiki/Homepage" title="Homepage">homepage</a> of a website or a
+            <a href="/wiki/Search_box" title="Search box">search box</a>—some
+            also endeavor to find the correct web page the user wanted.
+            Extensions are available for some popular <a href=
+            "/wiki/Content_management_system" title=
+            "Content management system">content management systems (CMSs)</a>
+            to do this.<sup class="reference" id="cite_ref-6"><a href=
+            "#cite_note-6">[6]</a></sup></p>
+            <p>In Europe, the <a class="mw-redirect" href=
+            "/wiki/NotFound_project" title="NotFound project">NotFound
+            project</a>, created by multiple European organizations including
+            <a href="/wiki/Missing_Children_Europe" title=
+            "Missing Children Europe">Missing Children Europe</a> and <a href=
+            "/wiki/Child_Focus" title="Child Focus">Child Focus</a>, encourages
+            site operators to add a <a href="/wiki/Snippet_(programming)"
+            title="Snippet (programming)">snippet of code</a> to serve
+            customised 404 error pages<sup class="reference" id=
+            "cite_ref-7"><a href="#cite_note-7">[7]</a></sup> which provide
+            data about <a class="mw-redirect" href="/wiki/Missing_children"
+            title="Missing children">missing children</a>.<sup class=
+            "reference" id="cite_ref-8"><a href=
+            "#cite_note-8">[8]</a></sup></p>
+            <h3><span class="mw-headline" id=
+            "Tracking.2FChecking_404_errors">Tracking/Checking 404
+            errors</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=3" title=
+            "Edit section: Tracking/Checking 404 errors">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h3>
+            <p>A number of tools exist that crawl through a website to find
+            pages that return 404 status codes. These tools can be helpful in
+            finding links that exist within a particular website. The
+            limitation of these tools is that they only find links within one
+            particular website, and ignore 404s resulting from links on other
+            websites. As a result, these tools miss out on 83% of the 404s on
+            websites.<sup class="reference" id="cite_ref-9"><a href=
+            "#cite_note-9">[9]</a></sup> One way around this is to find 404
+            errors by analyzing external links.<sup class="reference" id=
+            "cite_ref-10"><a href="#cite_note-10">[10]</a></sup></p>
+            <p>Another common method is tracking traffic to 404 pages using log
+            file analysis.<sup class="reference" id="cite_ref-11"><a href=
+            "#cite_note-11">[11]</a></sup> This can be useful to understand
+            more about what 404s users reached on the site. Another method of
+            tracking traffic to 404 pages is using JavaScript-based traffic
+            tracking tools.<sup class="reference" id="cite_ref-12"><a href=
+            "#cite_note-12">[12]</a></sup></p>
+            <h2><span class="mw-headline" id="Phony_404_errors">Phony 404
+            errors</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=4" title=
+            "Edit section: Phony 404 errors">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h2>
+            <p><span id="Soft_404"></span>Some websites report a "not found"
+            error by returning a standard web page with a "200 OK" response
+            code, falsely reporting that the page loaded properly; this is
+            known as a <b>soft 404</b>. Soft 404s are problematic for automated
+            methods of discovering whether a link is broken. Some search
+            engines, like Yahoo, use automated processes to detect soft
+            404s.<sup class="reference" id="cite_ref-13"><a href=
+            "#cite_note-13">[13]</a></sup> Soft 404s can occur as a result of
+            configuration errors when using certain HTTP server software, for
+            example with the <a href="/wiki/Apache_HTTP_Server" title=
+            "Apache HTTP Server">Apache</a> software, when an Error Document
+            404 (specified in a <a href="/wiki/.htaccess" title=
+            ".htaccess">.htaccess</a> file) is specified as an absolute path
+            (e.g. http://example.com/error.html) rather than a relative path
+            (/error.html).<sup class="reference" id="cite_ref-14"><a href=
+            "#cite_note-14">[14]</a></sup> This can also be done on purpose to
+            force some browsers (like <a href="/wiki/Internet_Explorer" title=
+            "Internet Explorer">Internet Explorer</a>) to display a customized
+            404 error message rather than replacing what is served with a
+            browser-specific "friendly" error message (in Internet Explorer,
+            this behavior is triggered when a 404 is served and the received
+            HTML is shorter than a certain length, and can be manually disabled
+            by the user).</p>
+            <p>Some proxy servers generate a 404 error when the remote host is
+            not present, rather than returning the correct 500-range code when
+            errors such as hostname resolution failures or refused TCP
+            connections prevent the proxy server from satisfying the request.
+            This can confuse programs that expect and act on specific
+            responses, as they can no longer easily distinguish between an
+            absent web server and a missing web page on a web server that is
+            present.</p>
+            <p>In July 2004, the UK telecom provider <a href="/wiki/BT_Group"
+            title="BT Group">BT Group</a> deployed the <a href=
+            "/wiki/Cleanfeed_(content_blocking_system)" title=
+            "Cleanfeed (content blocking system)">Cleanfeed</a> content
+            blocking system, which returns a 404 error to any request for
+            content identified as potentially illegal by the <a href=
+            "/wiki/Internet_Watch_Foundation" title=
+            "Internet Watch Foundation">Internet Watch
+            Foundation</a>.<sup class="reference" id="cite_ref-15"><a href=
+            "#cite_note-15">[15]</a></sup> Other ISPs return a <a href=
+            "/wiki/HTTP_403" title="HTTP 403">HTTP 403</a> "forbidden" error in
+            the same circumstances.<sup class="reference" id=
+            "cite_ref-16"><a href="#cite_note-16">[16]</a></sup> The practice
+            of employing fake 404 errors as a means to conceal <a href=
+            "/wiki/Censorship" title="Censorship">censorship</a> has also been
+            reported in <a href="/wiki/Thailand" title=
+            "Thailand">Thailand</a><sup class="reference" id=
+            "cite_ref-17"><a href="#cite_note-17">[17]</a></sup> and <a href=
+            "/wiki/Tunisia" title="Tunisia">Tunisia</a>.<sup class="reference"
+            id="cite_ref-18"><a href="#cite_note-18">[18]</a></sup> In Tunisia,
+            where censorship was severe before the <a href=
+            "/wiki/Tunisian_Revolution" title="Tunisian Revolution">2011
+            revolution</a>, people became aware of the nature of the fake 404
+            errors and created an imaginary character named "<a class=
+            "mw-redirect" href=
+            "/wiki/Ammar_404#Censorship_during_the_Ben_Ali_regime" title=
+            "Ammar 404">Ammar 404</a>" who represents "the invisible
+            censor".<sup class="reference" id="cite_ref-19"><a href=
+            "#cite_note-19">[19]</a></sup></p>
+            <h2><span class="mw-headline" id=
+            "404_substatus_error_codes_defined_by_IIS">404 substatus error
+            codes defined by IIS</span><span class=
+            "mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=HTTP_404&amp;action=edit&amp;section=5"
+            title=
+            "Edit section: 404 substatus error codes defined by IIS">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+            <p>The following nonstandard code are defined by <a href=
+            "/wiki/Internet_Information_Services" title=
+            "Internet Information Services">Microsoft's Internet Information
+            Services</a> (IIS) and are not officially recognized by <a href=
+            "/wiki/Internet_Assigned_Numbers_Authority" title=
+            "Internet Assigned Numbers Authority">IANA</a>. IIS 7.0, IIS 7.5,
+            and IIS 8.0 define the following HTTP status codes that indicate a
+            more specific cause of a 404 error:</p>
+            <ul>
+                <li>404.0 - Not found.</li>
+                <li>404.1 - Site Not Found.</li>
+                <li>404.2 - <a class="mw-redirect" href="/wiki/ISAPI"
+                    title="ISAPI">ISAPI</a> or <a href=
+                    "/wiki/Common_Gateway_Interface" title=
+                    "Common Gateway Interface">CGI</a> restriction.
+                </li>
+                <li>404.3 - <a href="/wiki/MIME" title="MIME">MIME</a> type
+                restriction.
+                </li>
+                <li>404.4 - No handler configured.</li>
+                <li>404.5 - Denied by request filtering configuration.</li>
+                <li>404.6 - Verb denied.</li>
+                <li>404.7 - File extension denied.</li>
+                <li>404.8 - Hidden namespace.</li>
+                <li>404.9 - File attribute hidden.</li>
+                <li>404.10 - Request header too long.</li>
+                <li>404.11 - Request contains double escape sequence.</li>
+                <li>404.12 - Request contains high-bit characters.</li>
+                <li>404.13 - Content length too large.</li>
+                <li>404.14 - Request URL too long.</li>
+                <li>404.15 - Query string too long.</li>
+                <li>404.16 - DAV request sent to the static file handler.</li>
+                <li>404.17 - Dynamic content mapped to the static file handler
+                via a wildcard MIME mapping.</li>
+                <li>404.18 - Query string sequence denied.</li>
+                <li>404.19 - Denied by filtering rule.</li>
+                <li>404.20 - Too Many URL Segments.</li>
+            </ul>
+            <h3><span class="mw-headline" id="Slang_usage">Slang
+            usage</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=6" title=
+            "Edit section: Slang usage">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h3>
+            <p>In 2008, a study carried out by the telecommunications arm of
+            the <a href="/wiki/Royal_Mail" title="Royal Mail">Royal
+            Mail</a><sup class="reference" id=
+            "cite_ref-autogenerated1_20-0"><a href=
+            "#cite_note-autogenerated1-20">[20]</a></sup> found that "404"
+            became a slang synonym for "clueless" in the <a href=
+            "/wiki/United_Kingdom" title="United Kingdom">United Kingdom</a>.
+            Slang <a class="mw-redirect" href="/wiki/Lexicographer" title=
+            "Lexicographer">lexicographer</a> Jonathon Green said that "404" as
+            a slang term had been driven by the "influence of technology" and
+            young people, but at the time, such usage was relatively confined
+            to London and <a class="mw-redirect" href=
+            "/wiki/List_of_conurbations_in_the_United_Kingdom" title=
+            "List of conurbations in the United Kingdom">other urban
+            areas</a>.<sup class="reference" id=
+            "cite_ref-autogenerated1_20-1"><a href=
+            "#cite_note-autogenerated1-20">[20]</a></sup></p>
+            <h2><span class="mw-headline" id="See_also">See
+            also</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=7" title=
+            "Edit section: See also">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h2>
+            <div class="noprint portal tright" style=
+            "border:solid #aaa 1px;margin:0.5em 0 0.5em 1em">
+                <table style=
+                "background:#f9f9f9;font-size:85%;line-height:110%;max-width:175px">
+                <tr style="vertical-align:middle">
+                        <td style="text-align:center">
+                            <a class="image" href=
+                            "/wiki/File:Crystal_Clear_app_browser.png"><img alt="Portal icon"
+                            class="noviewer" data-file-height="128"
+                            data-file-width="128" height="28" src=
+                            "//upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Crystal_Clear_app_browser.png/28px-Crystal_Clear_app_browser.png"
+                            srcset=
+                            "//upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Crystal_Clear_app_browser.png/42px-Crystal_Clear_app_browser.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Crystal_Clear_app_browser.png/56px-Crystal_Clear_app_browser.png 2x"
+                            width="28"></a>
+                        </td>
+                        <td style=
+                        "padding:0 0.2em;vertical-align:middle;font-style:italic;font-weight:bold">
+                        <a href="/wiki/Portal:Internet" title=
+                        "Portal:Internet">Internet portal</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <ul>
+                <li>
+                    <a href="/wiki/Link_rot" title="Link rot">Link rot</a>
+                </li>
+                <li>
+                    <a href="/wiki/List_of_HTTP_status_codes" title=
+                    "List of HTTP status codes">List of HTTP status codes</a>
+                </li>
+            </ul>
+            <h2><span class="mw-headline" id=
+            "References">References</span><span class=
+            "mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=8" title=
+            "Edit section: References">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h2>
+            <div class="reflist columns references-column-width" style=
+            "-moz-column-width: 40em; -webkit-column-width: 40em; column-width: 40em; list-style-type: decimal;">
+            <ol class="references">
+                    <li id="cite_note-1"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-1">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://tools.ietf.org/html/rfc7231#section-6.5.4" rel=
+                    "nofollow">"6.5.4 404 Not Found"</a>. ietf.org<span class=
+                    "reference-accessdate">. Retrieved <span class=
+                    "nowrap">2014-07-25</span></span>.</cite><span class=
+                    "Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=6.5.4+404+Not+Found&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc7231%23section-6.5.4&amp;rft.pub=ietf.org&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-2"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-2">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://blogs.msdn.com/b/ieinternals/archive/2010/08/19/http-error-pages-in-internet-explorer.aspx"
+                    rel="nofollow">"Friendly HTTP Error Pages"</a>. 18 August
+                    2010<span class="reference-accessdate">. Retrieved
+                    <span class="nowrap">14 June</span>
+                    2012</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Friendly+HTTP+Error+Pages&amp;rft.date=2010-08-18&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fblogs.msdn.com%2Fb%2Fieinternals%2Farchive%2F2010%2F08%2F19%2Fhttp-error-pages-in-internet-explorer.aspx&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-3"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-3">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web">Heng,
+                    Christopher (7 September 2008). <a class="external text"
+                    href="http://www.thesitewizard.com/archive/favicon.shtml"
+                    rel="nofollow">"What is Favicon.ico and How to Create a
+                    Favicon Icon for Your Website"</a>.
+                    thesitewizard.com<span class="reference-accessdate">.
+                    Retrieved <span class="nowrap">23 February</span>
+                    2011</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.aufirst=Christopher&amp;rft.aulast=Heng&amp;rft.btitle=What+is+Favicon.ico+and+How+to+Create+a+Favicon+Icon+for+Your+Website&amp;rft.date=2008-09-07&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fwww.thesitewizard.com%2Farchive%2Ffavicon.shtml&amp;rft.pub=thesitewizard.com&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-4"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-4">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://internetfolks.com/dastardly-favicon-ico-found-error/"
+                    rel="nofollow">"The Dastardly "favicon.ico not found"
+                    Error"</a>. <i>Internet Folks</i>. 3 August
+                    1999.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.atitle=The+Dastardly+%22favicon.ico+not+found%22+Error&amp;rft.date=1999-08-03&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Finternetfolks.com%2Fdastardly-favicon-ico-found-error%2F&amp;rft.jtitle=Internet+Folks&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-5"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-5">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation news"><a class=
+                    "external text" href=
+                    "http://metro.co.uk/2013/04/16/from-skateboarding-bears-to-missing-children-the-power-of-the-404-not-found-error-page-3591031/"
+                    rel="nofollow">"From skateboarding bears to missing
+                    children: The power of the 404 Not Found error page"</a>.
+                    Metro. 6 June 2011<span class="reference-accessdate">.
+                    Retrieved <span class="nowrap">16 April</span>
+                    2013</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.atitle=From+skateboarding+bears+to+missing+children%3A+The+power+of+the+404+Not+Found+error+page&amp;rft.date=2011-06-06&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fmetro.co.uk%2F2013%2F04%2F16%2Ffrom-skateboarding-bears-to-missing-children-the-power-of-the-404-not-found-error-page-3591031%2F&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-6"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-6">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web">Swenson, Sahala
+                    (19 August 2008). <a class="external text" href=
+                    "http://googlewebmastercentral.blogspot.com/2008/08/make-your-404-pages-more-useful.html"
+                    rel="nofollow">"Make your 404 pages more useful"</a>.
+                    <i>Official Google Webmaster Central Blog</i>. Google,
+                    Inc<span class="reference-accessdate">. Retrieved
+                    <span class="nowrap">28 August</span>
+                    2009</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.atitle=Make+your+404+pages+more+useful&amp;rft.aufirst=Sahala&amp;rft.aulast=Swenson&amp;rft.date=2008-08-19&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fgooglewebmastercentral.blogspot.com%2F2008%2F08%2Fmake-your-404-pages-more-useful.html&amp;rft.jtitle=Official+Google+Webmaster+Central+Blog&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-7"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-7">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href="http://notfound.org/notfound" rel=
+                    "nofollow">"Notfound.org"</a>.</cite><span class="Z3988"
+                    title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Notfound.org&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fnotfound.org%2Fnotfound&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-8"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-8">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation news"><a class=
+                    "external text" href=
+                    "http://www.bbc.com/news/technology-19741350" rel=
+                    "nofollow">"Missing children messages go on 404 error
+                    pages"</a>. <a class="mw-redirect" href=
+                    "/wiki/British_Broadcasting_Corporation" title=
+                    "British Broadcasting Corporation">BBC News</a>. 27
+                    September 2012<span class="reference-accessdate">.
+                    Retrieved <span class="nowrap">20 September</span>
+                    2014</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.atitle=Missing+children+messages+go+on+404+error+pages&amp;rft.date=2012-09-27&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fwww.bbc.com%2Fnews%2Ftechnology-19741350&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-9"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-9">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "https://springtrax.com/key-stats-about-404-errors/default.htm#/section4"
+                    rel="nofollow">"Sources Leading To 404s"</a>.
+                    SpringTrax<span class="reference-accessdate">. Retrieved
+                    <span class="nowrap">11 February</span>
+                    2013</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Sources+Leading+To+404s&amp;rft.genre=unknown&amp;rft_id=https%3A%2F%2Fspringtrax.com%2Fkey-stats-about-404-errors%2Fdefault.htm%23%2Fsection4&amp;rft.pub=SpringTrax&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-10"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-10">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web">Cushing, Anne
+                    (2 April 2013). <a class="external text" href=
+                    "http://searchengineland.com/a-data-centric-approach-to-identifying-404-pages-worth-saving-152844"
+                    rel="nofollow">"A Data-Centric Approach To Identifying 404
+                    Pages Worth Saving"</a>. Search Engine Land<span class=
+                    "reference-accessdate">. Retrieved <span class="nowrap">7
+                    June</span> 2013</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.aufirst=Anne&amp;rft.aulast=Cushing&amp;rft.btitle=A+Data-Centric+Approach+To+Identifying+404+Pages+Worth+Saving&amp;rft.date=2013-04-02&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fsearchengineland.com%2Fa-data-centric-approach-to-identifying-404-pages-worth-saving-152844&amp;rft.pub=Search+Engine+Land&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-11"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-11">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://www.404errorpages.com/#tracking" rel=
+                    "nofollow">"Tracking and Preventing 404 Errors"</a>.
+                    404errorpages.com<span class="reference-accessdate">.
+                    Retrieved <span class="nowrap">7 June</span>
+                    2013</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Tracking+and+Preventing+404+Errors&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fwww.404errorpages.com%2F%23tracking&amp;rft.pub=404errorpages.com&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-12"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-12">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "https://springtrax.com/how-springtrax-helps/understand-your-websites-404-errors.htm"
+                    rel="nofollow">"Understand 404 Errors"</a>.
+                    SpringTrax.com<span class="reference-accessdate">.
+                    Retrieved <span class="nowrap">7 June</span>
+                    2013</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Understand+404+Errors&amp;rft.genre=unknown&amp;rft_id=https%3A%2F%2Fspringtrax.com%2Fhow-springtrax-helps%2Funderstand-your-websites-404-errors.htm&amp;rft.pub=SpringTrax.com&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-13"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-13">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://help.yahoo.com/l/nl/yahoo/ysearch/slurp/slurp-10.html"
+                    rel="nofollow">"Why is your crawler asking for strange URLs
+                    that have never existed on my site?"</a>. Yahoo Ysearch
+                    Help page<span class="reference-accessdate">. Retrieved
+                    <span class="nowrap">4 September</span>
+                    2013</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Why+is+your+crawler+asking+for+strange+URLs+that+have+never+existed+on+my+site%3F&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fhelp.yahoo.com%2Fl%2Fnl%2Fyahoo%2Fysearch%2Fslurp%2Fslurp-10.html&amp;rft.pub=Yahoo+Ysearch+Help+page&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-14"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-14">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://googlewebmastercentral.blogspot.com/2008/08/farewell-to-soft-404s.html"
+                    rel="nofollow">"Farewell to soft 404s"</a>. Google Official
+                    Blog<span class="reference-accessdate">. Retrieved
+                    <span class="nowrap">20 September</span>
+                    2008</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Farewell+to+soft+404s&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fgooglewebmastercentral.blogspot.com%2F2008%2F08%2Ffarewell-to-soft-404s.html&amp;rft.pub=Google+Official+Blog&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-15"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-15">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "https://publicaffairs.linx.net/news/?p=154" rel=
+                    "nofollow">"LINX Public Affairs&#160;» Cleanfeed: the
+                    facts"</a>. Publicaffairs.linx.net. 10 September
+                    2004<span class="reference-accessdate">. Retrieved
+                    <span class="nowrap">6 March</span>
+                    2011</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=LINX+Public+Affairs+%BB+Cleanfeed%3A+the+facts&amp;rft.date=2004-09-10&amp;rft.genre=unknown&amp;rft_id=https%3A%2F%2Fpublicaffairs.linx.net%2Fnews%2F%3Fp%3D154&amp;rft.pub=Publicaffairs.linx.net&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-16"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-16">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://iwfwebfilter.thus.net/error/blocked.html" rel=
+                    "nofollow">"DEMON – Error 403"</a><span class=
+                    "reference-accessdate">. Retrieved <span class="nowrap">14
+                    June</span> 2012</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=DEMON+%93+Error+403&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fiwfwebfilter.thus.net%2Ferror%2Fblocked.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-17"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-17">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation news">Sambandaraksa,
+                    Don (18 February 2009). <a class="external text" href=
+                    "http://www.bangkokpost.com/tech/technews/11872/the-old-fake-404-not-found-routine"
+                    rel="nofollow">"The old fake '404 Not Found' routine"</a>.
+                    <i>Bangkok Post</i><span class="reference-accessdate">.
+                    Retrieved <span class="nowrap">12 September</span>
+                    2010</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.atitle=The+old+fake+%27404+Not+Found%27+routine&amp;rft.aufirst=Don&amp;rft.aulast=Sambandaraksa&amp;rft.date=2009-02-18&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fwww.bangkokpost.com%2Ftech%2Ftechnews%2F11872%2Fthe-old-fake-404-not-found-routine&amp;rft.jtitle=Bangkok+Post&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-18"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-18">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web">Noman, Helmi
+                    (12 September 2008). <a class="external text" href=
+                    "http://opennet.net/node/950" rel="nofollow">"Tunisian
+                    journalist sues government agency for blocking Facebook,
+                    claims damage for the use of 404 error message instead of
+                    403"</a>. Open Net Initiative<span class=
+                    "reference-accessdate">. Retrieved <span class="nowrap">21
+                    November</span> 2010</span>.</cite><span class="Z3988"
+                    title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.aufirst=Helmi&amp;rft.aulast=Noman&amp;rft.btitle=Tunisian+journalist+sues+government+agency+for+blocking+Facebook%2C+claims+damage+for+the+use+of+404+error+message+instead+of+403&amp;rft.date=2008-09-12&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fopennet.net%2Fnode%2F950&amp;rft.pub=Open+Net+Initiative&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-19"><span class=
+                    "mw-cite-backlink"><b><a href=
+                    "#cite_ref-19">^</a></b></span> <span class=
+                    "reference-text"><cite class="citation web"><a class=
+                    "external text" href=
+                    "http://archive.is/20120707/http://advocacy.globalvoicesonline.org/2010/05/27/anti-censorship-movement-in-tunisia-creativity-courage-and-hope/"
+                    rel="nofollow">"Anti-censorship movement in Tunisia:
+                    creativity, courage and hope!"</a>. Global Voices Advocacy.
+                    27 May 2010. Archived from <a class="external text" href=
+                    "http://advocacy.globalvoicesonline.org/2010/05/27/anti-censorship-movement-in-tunisia-creativity-courage-and-hope/"
+                    rel="nofollow">the original</a> on 7 July 2012<span class=
+                    "reference-accessdate">. Retrieved <span class="nowrap">28
+                    August</span> 2010</span>.</cite><span class="Z3988" title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.btitle=Anti-censorship+movement+in+Tunisia%3A+creativity%2C+courage+and+hope%21&amp;rft.date=2010-05-27&amp;rft.genre=unknown&amp;rft_id=http%3A%2F%2Fadvocacy.globalvoicesonline.org%2F2010%2F05%2F27%2Fanti-censorship-movement-in-tunisia-creativity-courage-and-hope%2F&amp;rft.pub=Global+Voices+Advocacy&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook"><span style="display:none;">&#160;</span></span></span></li>
+                    <li id="cite_note-autogenerated1-20"><span class=
+                    "mw-cite-backlink">^ <a href=
+                    "#cite_ref-autogenerated1_20-0"><sup><i><b>a</b></i></sup></a>
+                    <a href=
+                    "#cite_ref-autogenerated1_20-1"><sup><i><b>b</b></i></sup></a></span>
+                    <span class="reference-text"><cite class=
+                    "citation news"><a class="external text" href=
+                    "http://news.bbc.co.uk/1/hi/technology/7775013.stm" rel=
+                    "nofollow">"Don't be 404, know the tech slang"</a>. <i>BBC
+                    News Online</i>. 10 December 2008<span class=
+                    "reference-accessdate">. Retrieved <span class="nowrap">13
+                    December</span> 2008</span>.</cite><span class="Z3988"
+                    title=
+                    "ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AHTTP+404&amp;rft.atitle=Don%27t+be+404%2C+know+the+tech+slang&amp;rft.date=2008-12-10&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fnews.bbc.co.uk%2F1%2Fhi%2Ftechnology%2F7775013.stm&amp;rft.jtitle=BBC+News+Online&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal"><span style="display:none;">&#160;</span></span></span></li>
+                </ol>
+            </div>
+            <h2><span class="mw-headline" id="External_links">External
+            links</span><span class="mw-editsection"><span class=
+            "mw-editsection-bracket">[</span><a href=
+            "/w/index.php?title=HTTP_404&amp;action=edit&amp;section=9" title=
+            "Edit section: External links">edit</a><span class=
+            "mw-editsection-bracket">]</span></span></h2>
+            <table class="mbox-small plainlinks sistersitebox" style=
+            "border:1px solid #aaa;background-color:#f9f9f9">
+                <tr>
+                    <td class="mbox-image">
+                        <a class="image" href=
+                        "/wiki/File:Commons-logo.svg"><img alt=""
+                        data-file-height="1376" data-file-width="1024" height=
+                        "40" src=
+                        "//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/30px-Commons-logo.svg.png"
+                        srcset=
+                        "//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/45px-Commons-logo.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/59px-Commons-logo.svg.png 2x"
+                        width="30"></a>
+                    </td>
+                    <td class="mbox-text plainlist">Wikimedia Commons has media
+                    related to <i><b><a class="extiw" href=
+                    "//commons.wikimedia.org/wiki/Category:HTTP_404" title=
+                    "commons:Category:HTTP 404">HTTP 404</a></b></i>.</td>
+                </tr>
+            </table>
+            <ul>
+                <li>
+                    <a class="external text" href=
+                    "http://alistapart.com/article/amoreuseful404" rel=
+                    "nofollow">A More Useful 404</a>
+                </li>
+                <li>
+                    <a class="external text" href=
+                    "http://tools.ietf.org/html/rfc7231#section-6.5.4" rel=
+                    "nofollow">404 Not Found</a> of the <i>Hypertext Transfer
+                    Protocol (HTTP/1.1): Semantics and Content</i>
+                    specification, at the <a href=
+                    "/wiki/Internet_Engineering_Task_Force" title=
+                    "Internet Engineering Task Force">Internet Engineering Task
+                    Force</a>
+                </li>
+                <li>
+                    <a class="external text" href=
+                    "http://httpd.apache.org/docs/2.4/mod/core.html#errordocument"
+                    rel="nofollow">ErrorDocument Directive</a>&#160;–
+                    instructions on custom error pages for the <a href=
+                    "/wiki/Apache_HTTP_Server" title=
+                    "Apache HTTP Server">Apache 2.0 web server</a>
+                </li>
+            </ul>
+            <table class="navbox" style="border-spacing:0">
+                <tr>
+                    <td style="padding:2px">
+                        <table class=
+                        "nowraplinks collapsible autocollapse navbox-inner"
+                        style=
+                        "border-spacing:0;background:transparent;color:inherit">
+                        <tr>
+                                <th class="navbox-title" colspan="2" scope=
+                                "col">
+                                    <div class="plainlinks hlist navbar mini">
+                                        <ul>
+                                            <li class="nv-view">
+                                                <a href=
+                                                "/wiki/Template:Error_messages"
+                                                title=
+                                                "Template:Error messages"><abbr style=";;background:none transparent;border:none;"
+                                                title=
+                                                "View this template">v</abbr></a>
+                                            </li>
+                                            <li class="nv-talk">
+                                                <a href=
+                                                "/wiki/Template_talk:Error_messages"
+                                                title=
+                                                "Template talk:Error messages"><abbr style=";;background:none transparent;border:none;"
+                                                title=
+                                                "Discuss this template">t</abbr></a>
+                                            </li>
+                                            <li class="nv-edit">
+                                                <a class="external text" href=
+                                                "//en.wikipedia.org/w/index.php?title=Template:Error_messages&amp;action=edit">
+                                                <abbr style=
+                                                ";;background:none transparent;border:none;"
+                                                title=
+                                                "Edit this template">e</abbr></a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div style="font-size:114%">
+                                        <a href="/wiki/Error_message" title=
+                                        "Error message">Error messages</a>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr style="height:2px">
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <th class="navbox-group" scope="row">System
+                                failure</th>
+                                <td class="navbox-list navbox-odd hlist" style=
+                                "text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+                                <div style="padding:0em 0.25em">
+                                        <ul>
+                                            <li>
+                                                <a href="/wiki/Bomb_(icon)"
+                                                title="Bomb (icon)">Bomb
+                                                icon</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Fatal_system_error"
+                                                title=
+                                                "Fatal system error">Fatal
+                                                system error</a>
+                                            </li>
+                                            <li>
+                                                <a href="/wiki/Guru_Meditation"
+                                                title="Guru Meditation">Guru
+                                                Meditation</a>
+                                            </li>
+                                            <li>
+                                                <a href="/wiki/Kernel_panic"
+                                                title="Kernel panic">Kernel
+                                                panic</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Linux_kernel_oops"
+                                                title="Linux kernel oops">Linux
+                                                kernel oops</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Xbox_360_technical_problems#.22General_Hardware_Failure.22_errors"
+                                                title=
+                                                "Xbox 360 technical problems">Red
+                                                Ring of Death</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Macintosh_startup#Sad_Mac"
+                                                title="Macintosh startup">Sad
+                                                Mac</a>
+                                            </li>
+                                            <li>
+                                                <a href="/wiki/Screen_of_death"
+                                                title="Screen of death">Screen
+                                                of death</a>
+                                                <ul>
+                                                    <li>
+                                                        <a href=
+                                                        "/wiki/Blue_Screen_of_Death"
+                                                        title=
+                                                        "Blue Screen of Death">Blue</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href=
+                                                        "/wiki/Black_Screen_of_Death"
+                                                        title=
+                                                        "Black Screen of Death">
+                                                        Black</a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/PlayStation_3#Statistics_regarding_reliability"
+                                                title="PlayStation 3">Yellow
+                                                Light of Death</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="height:2px">
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <th class="navbox-group" scope="row">
+                                Application failure</th>
+                                <td class="navbox-list navbox-even hlist"
+                                style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+                                <div style="padding:0em 0.25em">
+                                        <ul>
+                                            <li>
+                                                <a href="/wiki/Abnormal_end"
+                                                title="Abnormal end">ABEND</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Fatal_exception_error"
+                                                title=
+                                                "Fatal exception error">Fatal
+                                                exception error</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Segmentation_fault"
+                                                title=
+                                                "Segmentation fault">Segmentation
+                                                fault</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="height:2px">
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <th class="navbox-group" scope="row">Device and
+                                data errors</th>
+                                <td class="navbox-list navbox-odd hlist" style=
+                                "text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+                                <div style="padding:0em 0.25em">
+                                        <ul>
+                                            <li>
+                                                <a class="mw-redirect" href=
+                                                "/wiki/Can%27t_extend" title=
+                                                "Can't extend">Can't extend</a>
+                                            </li>
+                                            <li><strong class="selflink">HTTP
+                                            404</strong></li>
+                                            <li>
+                                                <a href="/wiki/Lp0_on_fire"
+                                                title="Lp0 on fire">lp0 on
+                                                fire</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Not_a_typewriter" title=
+                                                "Not a typewriter">Not a
+                                                typewriter</a>
+                                            </li>
+                                            <li>
+                                                <a href="/wiki/PC_LOAD_LETTER"
+                                                title="PC LOAD LETTER">PC LOAD
+                                                LETTER</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="height:2px">
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <th class="navbox-group" scope="row">Other</th>
+                                <td class="navbox-list navbox-even hlist"
+                                style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+                                <div style="padding:0em 0.25em">
+                                        <ul>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Abort,_Retry,_Fail%3F"
+                                                title=
+                                                "Abort, Retry, Fail?">Abort,
+                                                Retry, Fail?</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Bad_command_or_file_name"
+                                                title=
+                                                "Bad command or file name">Bad
+                                                command or file name</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Halt_and_Catch_Fire"
+                                                title=
+                                                "Halt and Catch Fire">Halt and
+                                                Catch Fire</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Hyper_Text_Coffee_Pot_Control_Protocol"
+                                                title=
+                                                "Hyper Text Coffee Pot Control Protocol">
+                                                HTTP 418</a>
+                                            </li>
+                                            <li>
+                                                <a href="/wiki/Out_of_memory"
+                                                title="Out of memory">Out of
+                                                memory</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="height:2px">
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <th class="navbox-group" scope="row">Lists</th>
+                                <td class="navbox-list navbox-odd hlist" style=
+                                "text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+                                <div style="padding:0em 0.25em">
+                                        <ul>
+                                            <li>
+                                                <a href=
+                                                "/wiki/List_of_HTTP_status_codes"
+                                                title=
+                                                "List of HTTP status codes">List
+                                                of HTTP status codes</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/List_of_FTP_server_return_codes"
+                                                title=
+                                                "List of FTP server return codes">
+                                                List of FTP server return
+                                                codes</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="height:2px">
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr>
+                                <th class="navbox-group" scope="row">
+                                Related</th>
+                                <td class="navbox-list navbox-even hlist"
+                                style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px">
+                                <div style="padding:0em 0.25em">
+                                        <ul>
+                                            <li>
+                                                <a class="mw-redirect" href=
+                                                "/wiki/Kill_screen" title=
+                                                "Kill screen">Kill screen</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Spinning_pinwheel"
+                                                title="Spinning pinwheel">Spinning
+                                                pinwheel</a>
+                                            </li>
+                                            <li>
+                                                <a href=
+                                                "/wiki/Windows_wait_cursor"
+                                                title=
+                                                "Windows wait cursor">Windows
+                                                wait cursor</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <noscript><img alt="" height="1" src=
+            "//en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1"
+            style="border: none; position: absolute;" title="" width=
+            "1"></noscript>
+        </div>
+        <div class="printfooter">
+            Retrieved from "<a dir="ltr" href=
+            "https://en.wikipedia.org/w/index.php?title=HTTP_404&amp;oldid=728203165">https://en.wikipedia.org/w/index.php?title=HTTP_404&amp;oldid=728203165</a>"
+        </div>
+        <div class="catlinks" data-mw="interface" id="catlinks">
+            <div class="mw-normal-catlinks" id="mw-normal-catlinks">
+                <a href="/wiki/Help:Category" title=
+                "Help:Category">Categories</a>:
+                <ul>
+                    <li>
+                        <a href="/wiki/Category:Computer_errors" title=
+                        "Category:Computer errors">Computer errors</a>
+                    </li>
+                    <li>
+                        <a href=
+                        "/wiki/Category:Hypertext_Transfer_Protocol_status_codes"
+                        title=
+                        "Category:Hypertext Transfer Protocol status codes">Hypertext
+                        Transfer Protocol status codes</a>
+                    </li>
+                    <li>
+                        <a href="/wiki/Category:Internet_terminology" title=
+                        "Category:Internet terminology">Internet
+                        terminology</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="mw-hidden-catlinks mw-hidden-cats-hidden" id=
+            "mw-hidden-catlinks">
+                Hidden categories:
+                <ul>
+                    <li>
+                        <a href=
+                        "/wiki/Category:Wikipedia_indefinitely_move-protected_pages"
+                        title=
+                        "Category:Wikipedia indefinitely move-protected pages">Wikipedia
+                        indefinitely move-protected pages</a>
+                    </li>
+                    <li>
+                        <a href=
+                        "/wiki/Category:All_articles_with_unsourced_statements"
+                        title=
+                        "Category:All articles with unsourced statements">All
+                        articles with unsourced statements</a>
+                    </li>
+                    <li>
+                        <a href=
+                        "/wiki/Category:Articles_with_unsourced_statements_from_January_2013"
+                        title=
+                        "Category:Articles with unsourced statements from January 2013">
+                        Articles with unsourced statements from January
+                        2013</a>
+                    </li>
+                    <li>
+                        <a href=
+                        "/wiki/Category:Commons_category_with_page_title_same_as_on_Wikidata"
+                        title=
+                        "Category:Commons category with page title same as on Wikidata">
+                        Commons category with page title same as on
+                        Wikidata</a>
+                    </li>
+                    <li>
+                        <a href="/wiki/Category:Use_dmy_dates_from_June_2011"
+                        title="Category:Use dmy dates from June 2011">Use dmy
+                        dates from June 2011</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="visualClear"></div>
+    </div>
+    <div id="mw-navigation">
+        <h2>Navigation menu</h2>
+        <div id="mw-head">
+            <div aria-labelledby="p-personal-label" class="" id="p-personal"
+            role="navigation">
+                <h3 id="p-personal-label">Personal tools</h3>
+                <ul>
+                    <li id="pt-anonuserpage">Not logged in</li>
+                    <li id="pt-anontalk">
+                        <a accesskey="n" href="/wiki/Special:MyTalk" title=
+                        "Discussion about edits from this IP address [n]">Talk</a>
+                    </li>
+                    <li id="pt-anoncontribs">
+                        <a accesskey="y" href="/wiki/Special:MyContributions"
+                        title=
+                        "A list of edits made from this IP address [y]">Contributions</a>
+                    </li>
+                    <li id="pt-createaccount">
+                        <a href=
+                        "/w/index.php?title=Special:CreateAccount&amp;returnto=HTTP+404"
+                        title=
+                        "You are encouraged to create an account and log in; however, it is not mandatory">
+                        Create account</a>
+                    </li>
+                    <li id="pt-login">
+                        <a accesskey="o" href=
+                        "/w/index.php?title=Special:UserLogin&amp;returnto=HTTP+404"
+                        title=
+                        "You're encouraged to log in; however, it's not mandatory. [o]">
+                        Log in</a>
+                    </li>
+                </ul>
+            </div>
+            <div id="left-navigation">
+                <div aria-labelledby="p-namespaces-label" class="vectorTabs"
+                id="p-namespaces" role="navigation">
+                    <h3 id="p-namespaces-label">Namespaces</h3>
+                    <ul>
+                        <li class="selected" id="ca-nstab-main">
+                        <span><a accesskey="c" href="/wiki/HTTP_404" title=
+                        "View the content page [c]">Article</a></span></li>
+                        <li id="ca-talk"><span><a accesskey="t" href=
+                        "/wiki/Talk:HTTP_404" rel="discussion" title=
+                        "Discussion about the content page [t]">Talk</a></span></li>
+                    </ul>
+                </div>
+                <div aria-labelledby="p-variants-label" class=
+                "vectorMenu emptyPortlet" id="p-variants" role="navigation">
+                    <h3 id="p-variants-label"><span>Variants</span><a href=
+                    "#"></a></h3>
+                    <div class="menu">
+                        <ul></ul>
+                    </div>
+                </div>
+            </div>
+            <div id="right-navigation">
+                <div aria-labelledby="p-views-label" class="vectorTabs" id=
+                "p-views" role="navigation">
+                    <h3 id="p-views-label">Views</h3>
+                    <ul>
+                        <li class="selected" id="ca-view"><span><a href=
+                        "/wiki/HTTP_404">Read</a></span></li>
+                        <li id="ca-edit"><span><a accesskey="e" href=
+                        "/w/index.php?title=HTTP_404&amp;action=edit" title=
+                        "Edit this page [e]">Edit</a></span></li>
+                        <li class="collapsible" id="ca-history">
+                        <span><a accesskey="h" href=
+                        "/w/index.php?title=HTTP_404&amp;action=history" title=
+                        "Past revisions of this page [h]">View
+                        history</a></span></li>
+                    </ul>
+                </div>
+                <div aria-labelledby="p-cactions-label" class=
+                "vectorMenu emptyPortlet" id="p-cactions" role="navigation">
+                    <h3 id="p-cactions-label"><span>More</span><a href=
+                    "#"></a></h3>
+                    <div class="menu">
+                        <ul></ul>
+                    </div>
+                </div>
+                <div id="p-search" role="search">
+                    <h3><label for="searchInput">Search</label></h3>
+                    <form action="/w/index.php" id="searchform" name=
+                    "searchform">
+                        <div id="simpleSearch">
+                            <input accesskey="f" id="searchInput" name="search"
+                            placeholder="Search" title="Search Wikipedia [f]"
+                            type="search"><input name="title" type="hidden"
+                            value="Special:Search"><input class=
+                            "searchButton mw-fallbackSearchButton" id=
+                            "mw-searchButton" name="fulltext" title=
+                            "Search Wikipedia for this text" type="submit"
+                            value="Search"><input class="searchButton" id=
+                            "searchButton" name="go" title=
+                            "Go to a page with this exact name if it exists"
+                            type="submit" value="Go">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="mw-panel">
+            <div id="p-logo" role="banner">
+                <div class="vertical-center"></div><a class=
+                "btn btn-primary btn-lg sharp" href="index.html" id="backButton"
+                role="button">Take Me to the Maps!</a>
+            </div>
+            <div aria-labelledby='p-navigation-label' class="portal" id=
+            'p-navigation' role="navigation">
+                <h3 id='p-navigation-label'>Navigation</h3>
+                <div class="body">
+                    <ul>
+                        <li id="n-mainpage-description">
+                            <a accesskey="z" href="/wiki/Main_Page" title=
+                            "Visit the main page [z]">Main page</a>
+                        </li>
+                        <li id="n-contents">
+                            <a href="/wiki/Portal:Contents" title=
+                            "Guides to browsing Wikipedia">Contents</a>
+                        </li>
+                        <li id="n-featuredcontent">
+                            <a href="/wiki/Portal:Featured_content" title=
+                            "Featured content – the best of Wikipedia">Featured
+                            content</a>
+                        </li>
+                        <li id="n-currentevents">
+                            <a href="/wiki/Portal:Current_events" title=
+                            "Find background information on current events">Current
+                            events</a>
+                        </li>
+                        <li id="n-randompage">
+                            <a accesskey="x" href="/wiki/Special:Random" title=
+                            "Load a random article [x]">Random article</a>
+                        </li>
+                        <li id="n-sitesupport">
+                            <a href=
+                            "https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&amp;utm_medium=sidebar&amp;utm_campaign=C13_en.wikipedia.org&amp;uselang=en"
+                            title="Support us">Donate to Wikipedia</a>
+                        </li>
+                        <li id="n-shoplink">
+                            <a href="//shop.wikimedia.org" title=
+                            "Visit the Wikipedia store">Wikipedia store</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div aria-labelledby='p-interaction-label' class="portal" id=
+            'p-interaction' role="navigation">
+                <h3 id='p-interaction-label'>Interaction</h3>
+                <div class="body">
+                    <ul>
+                        <li id="n-help">
+                            <a href="/wiki/Help:Contents" title=
+                            "Guidance on how to use and edit Wikipedia">Help</a>
+                        </li>
+                        <li id="n-aboutsite">
+                            <a href="/wiki/Wikipedia:About" title=
+                            "Find out about Wikipedia">About Wikipedia</a>
+                        </li>
+                        <li id="n-portal">
+                            <a href="/wiki/Wikipedia:Community_portal" title=
+                            "About the project, what you can do, where to find things">
+                            Community portal</a>
+                        </li>
+                        <li id="n-recentchanges">
+                            <a accesskey="r" href="/wiki/Special:RecentChanges"
+                            title=
+                            "A list of recent changes in the wiki [r]">Recent
+                            changes</a>
+                        </li>
+                        <li id="n-contactpage">
+                            <a href=
+                            "//en.wikipedia.org/wiki/Wikipedia:Contact_us"
+                            title="How to contact Wikipedia">Contact page</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div aria-labelledby='p-tb-label' class="portal" id='p-tb' role=
+            "navigation">
+                <h3 id='p-tb-label'>Tools</h3>
+                <div class="body">
+                    <ul>
+                        <li id="t-whatlinkshere">
+                            <a accesskey="j" href=
+                            "/wiki/Special:WhatLinksHere/HTTP_404" title=
+                            "List of all English Wikipedia pages containing links to this page [j]">
+                            What links here</a>
+                        </li>
+                        <li id="t-recentchangeslinked">
+                            <a accesskey="k" href=
+                            "/wiki/Special:RecentChangesLinked/HTTP_404" title=
+                            "Recent changes in pages linked from this page [k]">
+                            Related changes</a>
+                        </li>
+                        <li id="t-upload">
+                            <a accesskey="u" href=
+                            "/wiki/Wikipedia:File_Upload_Wizard" title=
+                            "Upload files [u]">Upload file</a>
+                        </li>
+                        <li id="t-specialpages">
+                            <a accesskey="q" href="/wiki/Special:SpecialPages"
+                            title="A list of all special pages [q]">Special
+                            pages</a>
+                        </li>
+                        <li id="t-permalink">
+                            <a href=
+                            "/w/index.php?title=HTTP_404&amp;oldid=728203165"
+                            title=
+                            "Permanent link to this revision of the page">Permanent
+                            link</a>
+                        </li>
+                        <li id="t-info">
+                            <a href=
+                            "/w/index.php?title=HTTP_404&amp;action=info"
+                            title="More information about this page">Page
+                            information</a>
+                        </li>
+                        <li id="t-wikibase">
+                            <a accesskey="g" href=
+                            "https://www.wikidata.org/wiki/Q208219" title=
+                            "Link to connected data repository item [g]">Wikidata
+                            item</a>
+                        </li>
+                        <li id="t-cite">
+                            <a href=
+                            "/w/index.php?title=Special:CiteThisPage&amp;page=HTTP_404&amp;id=728203165"
+                            title="Information on how to cite this page">Cite
+                            this page</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div aria-labelledby='p-coll-print_export-label' class="portal" id=
+            'p-coll-print_export' role="navigation">
+                <h3 id='p-coll-print_export-label'>Print/export</h3>
+                <div class="body">
+                    <ul>
+                        <li id="coll-create_a_book">
+                            <a href=
+                            "/w/index.php?title=Special:Book&amp;bookcmd=book_creator&amp;referer=HTTP+404">
+                            Create a book</a>
+                        </li>
+                        <li id="coll-download-as-rdf2latex">
+                            <a href=
+                            "/w/index.php?title=Special:Book&amp;bookcmd=render_article&amp;arttitle=HTTP+404&amp;returnto=HTTP+404&amp;oldid=728203165&amp;writer=rdf2latex">
+                            Download as PDF</a>
+                        </li>
+                        <li id="t-print">
+                            <a accesskey="p" href=
+                            "/w/index.php?title=HTTP_404&amp;printable=yes"
+                            title=
+                            "Printable version of this page [p]">Printable
+                            version</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div aria-labelledby='p-wikibase-otherprojects-label' class=
+            "portal" id='p-wikibase-otherprojects' role="navigation">
+                <h3 id='p-wikibase-otherprojects-label'>In other projects</h3>
+                <div class="body">
+                    <ul>
+                        <li class=
+                        "wb-otherproject-link wb-otherproject-commons">
+                            <a href=
+                            "https://commons.wikimedia.org/wiki/Category:HTTP_404"
+                            hreflang="en">Wikimedia Commons</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div aria-labelledby='p-lang-label' class="portal" id='p-lang'
+            role="navigation">
+                <h3 id='p-lang-label'>Languages</h3>
+                <div class="body">
+                    <ul>
+                        <li class="interlanguage-link interwiki-ar">
+                            <a href=
+                            "https://ar.wikipedia.org/wiki/%D8%A5%D8%AA%D8%B4_%D8%AA%D9%8A_%D8%AA%D9%8A_%D8%A8%D9%8A_404"
+                            hreflang="ar" lang="ar" title=
+                            "إتش تي تي بي 404 – Arabic">العربية</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-ca">
+                            <a href="https://ca.wikipedia.org/wiki/Error_404"
+                            hreflang="ca" lang="ca" title=
+                            "Error 404 – Catalan">Català</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-cs">
+                            <a href="https://cs.wikipedia.org/wiki/HTTP_404"
+                            hreflang="cs" lang="cs" title=
+                            "HTTP 404 – Czech">Čeština</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-da">
+                            <a href="https://da.wikipedia.org/wiki/HTTP_404"
+                            hreflang="da" lang="da" title=
+                            "HTTP 404 – Danish">Dansk</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-el">
+                            <a href="https://el.wikipedia.org/wiki/HTTP_404"
+                            hreflang="el" lang="el" title=
+                            "HTTP 404 – Greek">Ελληνικά</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-es">
+                            <a href="https://es.wikipedia.org/wiki/Error_404"
+                            hreflang="es" lang="es" title=
+                            "Error 404 – Spanish">Español</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-eo">
+                            <a href="https://eo.wikipedia.org/wiki/Eraro_404"
+                            hreflang="eo" lang="eo" title=
+                            "Eraro 404 – Esperanto">Esperanto</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-fa">
+                            <a href=
+                            "https://fa.wikipedia.org/wiki/%D8%AE%D8%B7%D8%A7%DB%8C_%DB%B4%DB%B0%DB%B4"
+                            hreflang="fa" lang="fa" title=
+                            "خطای ۴۰۴ – Persian">فارسی</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-fr">
+                            <a href=
+                            "https://fr.wikipedia.org/wiki/Erreur_HTTP_404"
+                            hreflang="fr" lang="fr" title=
+                            "Erreur HTTP 404 – French">Français</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-gl">
+                            <a href="https://gl.wikipedia.org/wiki/HTTP_404"
+                            hreflang="gl" lang="gl" title=
+                            "HTTP 404 – Galician">Galego</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-ko">
+                            <a href="https://ko.wikipedia.org/wiki/HTTP_404"
+                            hreflang="ko" lang="ko" title=
+                            "HTTP 404 – Korean">한국어</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-hi">
+                            <a href=
+                            "https://hi.wikipedia.org/wiki/404_%E0%A4%A4%E0%A5%8D%E0%A4%B0%E0%A5%81%E0%A4%9F%E0%A4%BF"
+                            hreflang="hi" lang="hi" title=
+                            "404 त्रुटि – Hindi">हिन्दी</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-id">
+                            <a href="https://id.wikipedia.org/wiki/HTTP_404"
+                            hreflang="id" lang="id" title=
+                            "HTTP 404 – Indonesian">Bahasa Indonesia</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-it">
+                            <a href="https://it.wikipedia.org/wiki/Errore_404"
+                            hreflang="it" lang="it" title=
+                            "Errore 404 – Italian">Italiano</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-he">
+                            <a href=
+                            "https://he.wikipedia.org/wiki/%D7%A9%D7%92%D7%99%D7%90%D7%94_404"
+                            hreflang="he" lang="he" title=
+                            "שגיאה 404 – Hebrew">עברית</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-kn">
+                            <a href=
+                            "https://kn.wikipedia.org/wiki/404_%E0%B2%A6%E0%B3%8B%E0%B2%B7_(404_Error)"
+                            hreflang="kn" lang="kn" title=
+                            "404 ದೋಷ (404 Error) – Kannada">ಕನ್ನಡ</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-lv">
+                            <a href="https://lv.wikipedia.org/wiki/HTTP_404"
+                            hreflang="lv" lang="lv" title=
+                            "HTTP 404 – Latvian">Latviešu</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-hu">
+                            <a href="https://hu.wikipedia.org/wiki/404-es_hiba"
+                            hreflang="hu" lang="hu" title=
+                            "404-es hiba – Hungarian">Magyar</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-mk">
+                            <a href="https://mk.wikipedia.org/wiki/HTTP_404"
+                            hreflang="mk" lang="mk" title=
+                            "HTTP 404 – Macedonian">Македонски</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-nl">
+                            <a href="https://nl.wikipedia.org/wiki/Error_404"
+                            hreflang="nl" lang="nl" title=
+                            "Error 404 – Dutch">Nederlands</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-ja">
+                            <a href="https://ja.wikipedia.org/wiki/HTTP_404"
+                            hreflang="ja" lang="ja" title=
+                            "HTTP 404 – Japanese">日本語</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-no">
+                            <a href="https://no.wikipedia.org/wiki/HTTP_404"
+                            hreflang="no" lang="no" title=
+                            "HTTP 404 – Norwegian">Norsk bokmål</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-pl">
+                            <a href="https://pl.wikipedia.org/wiki/HTTP_404"
+                            hreflang="pl" lang="pl" title=
+                            "HTTP 404 – Polish">Polski</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-pt">
+                            <a href="https://pt.wikipedia.org/wiki/HTTP_404"
+                            hreflang="pt" lang="pt" title=
+                            "HTTP 404 – Portuguese">Português</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-ru">
+                            <a href="https://ru.wikipedia.org/wiki/HTTP_404"
+                            hreflang="ru" lang="ru" title=
+                            "HTTP 404 – Russian">Русский</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-sco">
+                            <a href="https://sco.wikipedia.org/wiki/HTTP_404"
+                            hreflang="sco" lang="sco" title=
+                            "HTTP 404 – Scots">Scots</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-sq">
+                            <a href="https://sq.wikipedia.org/wiki/HTTP_404"
+                            hreflang="sq" lang="sq" title=
+                            "HTTP 404 – Albanian">Shqip</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-simple">
+                            <a href=
+                            "https://simple.wikipedia.org/wiki/HTTP_404"
+                            hreflang="simple" lang="simple" title=
+                            "HTTP 404 – Simple English">Simple English</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-sl">
+                            <a href="https://sl.wikipedia.org/wiki/Napaka_404"
+                            hreflang="sl" lang="sl" title=
+                            "Napaka 404 – Slovenian">Slovenščina</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-ckb">
+                            <a href=
+                            "https://ckb.wikipedia.org/wiki/%DA%BE%DB%95%DA%B5%DB%95%DB%8C_%D9%A4%D9%A0%D9%A4"
+                            hreflang="ckb" lang="ckb" title=
+                            "ھەڵەی ٤٠٤ – Central Kurdish">کوردیی ناوەندی</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-sr">
+                            <a href=
+                            "https://sr.wikipedia.org/wiki/HTTP_%D0%B3%D1%80%D0%B5%D1%88%D0%BA%D0%B0_404"
+                            hreflang="sr" lang="sr" title=
+                            "HTTP грешка 404 – Serbian">Српски / srpski</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-sv">
+                            <a href="https://sv.wikipedia.org/wiki/404_error"
+                            hreflang="sv" lang="sv" title=
+                            "404 error – Swedish">Svenska</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-te">
+                            <a href=
+                            "https://te.wikipedia.org/wiki/404_%E0%B0%A6%E0%B1%8B%E0%B0%B7%E0%B0%82"
+                            hreflang="te" lang="te" title=
+                            "404 దోషం – Telugu">తెలుగు</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-th">
+                            <a href=
+                            "https://th.wikipedia.org/wiki/%E0%B9%80%E0%B8%AD%E0%B8%8A%E0%B8%97%E0%B8%B5%E0%B8%97%E0%B8%B5%E0%B8%9E%E0%B8%B5_404"
+                            hreflang="th" lang="th" title=
+                            "เอชทีทีพี 404 – Thai">ไทย</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-tr">
+                            <a href="https://tr.wikipedia.org/wiki/HTTP_404"
+                            hreflang="tr" lang="tr" title=
+                            "HTTP 404 – Turkish">Türkçe</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-uk">
+                            <a href="https://uk.wikipedia.org/wiki/HTTP_404"
+                            hreflang="uk" lang="uk" title=
+                            "HTTP 404 – Ukrainian">Українська</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-vi">
+                            <a href="https://vi.wikipedia.org/wiki/HTTP_404"
+                            hreflang="vi" lang="vi" title=
+                            "HTTP 404 – Vietnamese">Tiếng Việt</a>
+                        </li>
+                        <li class="interlanguage-link interwiki-zh">
+                            <a href="https://zh.wikipedia.org/wiki/HTTP_404"
+                            hreflang="zh" lang="zh" title=
+                            "HTTP 404 – Chinese">中文</a>
+                        </li>
+                        <li class="uls-p-lang-dummy">
+                            <a href="#"></a>
+                        </li>
+                    </ul>
+                    <div class='after-portlet after-portlet-lang'>
+                        <span class=
+                        "wb-langlinks-edit wb-langlinks-link"><a class=
+                        "wbc-editpage" href=
+                        "https://www.wikidata.org/wiki/Q208219#sitelinks-wikipedia"
+                        title="Edit interlanguage links">Edit links</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="footer" role="contentinfo">
+        <ul id="footer-info">
+            <li id="footer-info-lastmod">This page was last modified on 3 July
+            2016, at 22:58.</li>
+            <li id="footer-info-copyright">Text is available under the
+                <a href="//en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License"
+                rel="license">Creative Commons Attribution-ShareAlike
+                License</a><a href="//creativecommons.org/licenses/by-sa/3.0/"
+                rel="license" style="display:none;"></a>; additional terms may
+                apply. By using this site, you agree to the <a href=
+                "//wikimediafoundation.org/wiki/Terms_of_Use">Terms of Use</a>
+                and <a href=
+                "//wikimediafoundation.org/wiki/Privacy_policy">Privacy
+                Policy</a>. Wikipedia® is a registered trademark of the
+                <a href="//www.wikimediafoundation.org/">Wikimedia Foundation,
+                Inc.</a>, a non-profit organization.
+            </li>
+        </ul>
+        <ul id="footer-places">
+            <li id="footer-places-privacy">
+                <a class="extiw" href=
+                "//wikimediafoundation.org/wiki/Privacy_policy" title=
+                "wmf:Privacy policy">Privacy policy</a>
+            </li>
+            <li id="footer-places-about">
+                <a href="/wiki/Wikipedia:About" title="Wikipedia:About">About
+                Wikipedia</a>
+            </li>
+            <li id="footer-places-disclaimer">
+                <a href="/wiki/Wikipedia:General_disclaimer" title=
+                "Wikipedia:General disclaimer">Disclaimers</a>
+            </li>
+            <li id="footer-places-contact">
+                <a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact
+                Wikipedia</a>
+            </li>
+            <li id="footer-places-developers">
+                <a href=
+                "https://www.mediawiki.org/wiki/Special:MyLanguage/How_to_contribute">
+                Developers</a>
+            </li>
+            <li id="footer-places-cookiestatement">
+                <a href=
+                "//wikimediafoundation.org/wiki/Cookie_statement">Cookie
+                statement</a>
+            </li>
+            <li id="footer-places-mobileview">
+                <a class="noprint stopMobileRedirectToggle" href=
+                "//en.m.wikipedia.org/w/index.php?title=HTTP_404&amp;mobileaction=toggle_view_mobile">
+                Mobile view</a>
+            </li>
+        </ul>
+        <ul class="noprint" id="footer-icons">
+            <li id="footer-copyrightico">
+                <a href="https://wikimediafoundation.org/"></a>
+            </li>
+            <li id="footer-poweredbyico">
+                <a href="//www.mediawiki.org/"></a>
+            </li>
+        </ul>
+        <div style="clear:both"></div>
+    </div>
+</body>
+</html>

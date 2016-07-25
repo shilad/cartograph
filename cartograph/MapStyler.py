@@ -1,4 +1,5 @@
 import mapnik
+from mapnik import register_fonts, FontEngine
 
 
 class MapStyler:
@@ -16,7 +17,11 @@ class MapStyler:
         d = 3000000
         self.extents = mapnik.Box2d(-d, -d, d, d)
 
-    def makeMap(self, contourFilename, countryFilename, clusterIds):
+    def addCustomFonts(self, customFontsDir):
+        register_fonts(customFontsDir)
+        # for face in FontEngine.face_names():print face
+
+    def makeMap(self, contourFilename, countryFilename, clusterIds, contoursDB):
         self.m = mapnik.Map(self.width, self.height)
         self.m.background = mapnik.Color('white')
         self.m.srs = '+init=epsg:3857'
@@ -33,7 +38,7 @@ class MapStyler:
             name = "contour" + str(i)
             self.m.append_style(name, s)
             sNames.append(name)
-        self.m.layers.append(self.generateLayer('contours', "contour", sNames))
+        self.m.layers.append(self.generateLayer(contoursDB, "contour", sNames))
 
         self.m.append_style("outline",
                             self.generateLineStyle("#000000", 1.0))

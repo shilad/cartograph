@@ -1,26 +1,44 @@
-
 body {	
 	font-family: Futura, Verdana, sans-serif;
 	color: #f0f0f0;
 }
 
- #map{
+#map{
 	 height: 100%;
 	 width: 75%;
 	 display: inline-block;
 	 float: left;
      }
 
- #infobox {
+#infobox {
 	height: 100%;
 	width: 25%;
 	display: inline-block;
 	float: right;
-	background-color: #404040;
-	border-radius: 10px;
-
-	
+	background-color: #404040;	
 }
+
+#infobox h1, h3 {
+	padding: 0 1vh;
+}
+
+#infobox a {
+	text-align: center;
+}
+
+#search-box {
+	width: 60%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#page-info-box {
+	text-align: center;
+	width: 50%;
+	margin: 0 auto;
+	padding-top: 10%;
+}
+
 
 .centered {
 	text-align: center;
@@ -32,13 +50,50 @@ a {
 	text-decoration: none;	
 }
 
-#infobox h1, h3 {
-	padding: 10px;
+#title {
+	margin-bottom: 5vh;
 }
 
-
-#infobox a {
-	text-align: center;
+#search-box {
+	min-height: 50px;
+}
+#page-info-box {
+	min-height: 20vh;
+	min-width: 5vh;
 }
 
+.fullWidthParent {
+	display: inline-flex;
+	padding-top: 10px;
+    align-items: center;
+    width: 100%;
+}
 
+.centerChild {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#social {
+	padding-top: 2vh;
+}
+
+#howButton {
+	margin-bottom: -30vh; 
+}
+
+#mapHolder {
+  height: 20vh;
+  width: 20vw;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+}
+
+#zoomHolder {
+    height: 8vh;
+    width: 6.2vw;
+    top: 0;
+    left: 0;
+}

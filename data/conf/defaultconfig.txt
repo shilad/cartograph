@@ -19,7 +19,6 @@ article_coordinates: %(externalDir)s/tsne_cache_full.tsv
 vecs_with_id: %(externalDir)s/numberedVecsFull.tsv
 names_with_id: %(externalDir)s/numberedNamesFull.tsv
 clusters_with_id: %(generatedDir)s/numberedClusters.tsv
-
 coordinates_with_water: %(generatedDir)s/water_and_article_coordinates.tsv
 clusters_with_water: %(generatedDir)s/clusters_with_water_pts.tsv
 denoised_with_id: %(generatedDir)s/keep.tsv
@@ -59,9 +58,12 @@ scale_dimensions: %(externalDir)s/scale_denominators.tsv
 
 [MapResources]
 img_dot: %(externalDir)s/blackDot.png
+fontDir: ./data/fonts
 
 [MapOutput]
 map_file: map.xml
+map_file_density: map_density.xml
+map_file_centroid: map_centroid.xml
 img_src_name: ./data/images/world
 
 [PG]
@@ -70,4 +72,3 @@ database = mapnik
 user =
 password =
 
-[PostprocessingFiles]
