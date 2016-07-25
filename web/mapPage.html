@@ -1,7 +1,8 @@
 <html>
 
 <head>
-  <title> The World of Wikipedia </title>
+
+  <title> World of Wikipedia </title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
   <link rel="stylesheet" href ="./css/leaflet-search.css"/>
@@ -31,9 +32,13 @@
 
 </head>
 <body>
+<div>
   <div id="map" >
     <div id="mapHolder" data-intro="This is our map of Wikipedia. Countries give you an idea of the types of articles in them. The closer two article 'cities' (marked as white circles) are, the more related they are." data-position="bottom"></div>
     <div id="zoomHolder" data-intro="You can zoom in and out by clicking here or scrolling" data-position="right"></div>
+    <div id="centroidHolder" data-intro="These options tell you more about the density of points. Density contours show point distribution in 2D space, while centroid contours describe the original data." data-position="bottom"></div>
+  </div>
+  <a class="btn btn-primary btn-lg sharp" id="backButton" href="index.html" role="button"> Back </a>
   </div>
   
   <div id = "infobox">
@@ -59,6 +64,11 @@
   });
 
   SocialShareKit.init();
+
+  if (navigator.appVersion.includes('Windows NT 5.1')) {
+    var f = "Trebuchet MS"
+    document.getElementsByTagName('body')[0].style.fontFamily = f;
+  }
 </script>
 
 </body>

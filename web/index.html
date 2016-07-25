@@ -3,6 +3,7 @@
 <head>
   <title> The World of Wikipedia </title>
 
+
   <link href="./css/chardinjs.css" rel="stylesheet">
    <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
@@ -199,6 +200,11 @@
     }
   });
 });</script>
-
+ <script> 
+    if (navigator.appVersion.includes('Windows NT 5.1')) {
+      var f = "Trebuchet MS"
+      document.getElementsByTagName('body')[0].style.fontFamily = f;
+    }
+  </script>
 </body>
 </html>

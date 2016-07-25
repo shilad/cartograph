@@ -92,8 +92,23 @@ a {
 }
 
 #zoomHolder {
-    height: 8vh;
+    height: 7vh;
     width: 6.2vw;
     top: 0;
     left: 0;
+}
+
+#centroidHolder {
+    height: 7.5vh;
+    width: 11vw;
+    top: 8vh;
+    left: 0;
+    padding-left: 1vw;
+}
+
+#backButton {
+	position: absolute;
+	top: 1.5vh;
+	left: 4vw;
+	box-shadow: 4px 4px 2px #0f0f0f;
 }
