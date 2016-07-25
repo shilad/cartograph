@@ -16,7 +16,6 @@ class FastKnn:
         self.pathIds = self.pathVectors + ".annoyIds"
         self.index = None   # annoy index
         self.ids = None     # list of string ids, alphabetically sorted
-        assert(os.path.isfile(self.pathVectors))
 
     def exists(self):
         for p in self.pathAnnoy, self.pathIds:
