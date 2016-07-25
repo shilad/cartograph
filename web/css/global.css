@@ -7,7 +7,7 @@
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-h1, h2, h3, h4, h5, h6, p {
+body {
   font-family: "GeosansLight";
   font-weight: bolder;
 }
