@@ -1,7 +1,7 @@
 import numpy as np
 import math
-import copy
 import matplotlib.colors as mc
+
 
 
 class ColorSelector:
@@ -16,12 +16,11 @@ class ColorSelector:
 
     def _sortColorsByDistances(self):
         colorDiff = {}
-        keys = self.colors.keys()
         used = []
-        for key in keys:
+        for key in self.colors:
             used.append(key)
             color1 = self.colors[key][6]
-            for comp in keys:
+            for comp in self.colors:
                 if comp is not key and comp not in used:
                     color2 = self.colors[comp][6]
                     rgb1 = mc.hex2color(color1)
@@ -118,6 +117,12 @@ class ColorSelector:
                                     break
                         if stop:
                             break
+        colorNotFilled = [x for x in range(len(self.colors)) if x not in colorFilled]
+        countryNotFilled = [x for x in range(len(self.colors)) if x not in countryFilled]
+        if colorNotFilled is not 0:
+            for i in range(len(colorNotFilled)):
+                colorMatch[colorNotFilled[i]] = countryNotFilled[i]
+
 
         return colorMatch
 

@@ -1,5 +1,6 @@
 import json, os, shutil
 
+from operator import itemgetter
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
 from cartograph.Config import initConf
@@ -33,8 +34,11 @@ class CartographServer(TileStache.WSGITileServer):
         TileStache.WSGITileServer.__init__(self, path_cfg)
         self.cartoconfig = cartograph_cfg
       
+        self.popularityDict = Util.read_features(
+                                    self.cartoconfig.get("PreprocessingFiles", "names_with_id"),
+                                    self.cartoconfig.get("PreprocessingFiles","popularity_with_id"))
         xyDict = Util.read_features(self.cartoconfig.get("GeneratedFiles", "article_coordinates"),
-                                    self.cartoconfig.get("ExternalFiles", "names_with_id"), 
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
                                     self.cartoconfig.get("GeneratedFiles", "zoom_with_id"),
                                     required=('x', 'y', 'name', 'maxZoom'))
 
@@ -70,13 +74,13 @@ class CartographServer(TileStache.WSGITileServer):
                 request = Request(environ)
 
                 title = request.args['q']
-
-                print title
                 
                 #trie autocomplete reponse
 
                 results = self.trie.items(unicode(title))
 
+                #empty list to hold tuples to sort - TODO
+                tupleList = []
                 #empty list to hold json-formatted results
                 jsonList = []
 
@@ -84,12 +88,22 @@ class CartographServer(TileStache.WSGITileServer):
                 for item in results:
                     idnum = str(item[1][3])
                     titlestring = self.titleLookupDict[idnum]
+                    pop = float(self.popularityDict[idnum]['popularity'])
                     x = item[1][0]
                     y = item[1][1]
                     locat = [x,y]
                     zoom = item[1][2]
+                    itemTuple = (locat, zoom, titlestring, pop)
+                    tupleList.append(itemTuple)
+
+                sortedTupleList = sorted(tupleList, key=itemgetter(3))
+                sortedTupleList.reverse()
+
+                for item in sortedTupleList:
+                    locat = item[0]
+                    zoom = item[1]
+                    titlestring = item[2]
                     rJsonDict = {"loc": locat, "title": titlestring, "zoom" : zoom}
-                    print rJsonDict
                     jsonList.append(rJsonDict)
                 
                 

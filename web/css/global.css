@@ -7,7 +7,7 @@
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-h1, h2, h3, h4, h5, h6, p {
+body {
   font-family: "GeosansLight";
   font-weight: bolder;
 }
@@ -31,4 +31,12 @@ h3 {
 p {
   font-size: 20;
   font-size: 1.4vw;
+}
+
+.col-sm-12 {
+  padding: 0 20vw !important;
+}
+
+.col-xs-12 {
+  padding: 0 10vw !important;
 }
