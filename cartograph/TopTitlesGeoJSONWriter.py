@@ -1,6 +1,7 @@
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
-import Util
+
+from cartograph import Utils
 
 
 class TopTitlesGeoJSONWriter:
@@ -23,7 +24,7 @@ class TopTitlesGeoJSONWriter:
         return(topCountryArticles)
 
     def getTopArticles(self):
-        allArticles = Util.sort_by_feature(self.articleData, "popularity")
+        allArticles = Utils.sort_by_feature(self.articleData, "popularity")
         return allArticles[:self.numArticles]
 
     def generateTopJSONFeature(self, filename):
