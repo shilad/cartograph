@@ -1,9 +1,8 @@
 from xml.etree.ElementTree import parse, SubElement
 
-import Util
-
 import lxml.etree as letree
 
+from cartograph import Utils
 
 
 class Labels():
@@ -13,7 +12,7 @@ class Labels():
         self.mapFile = parse(mapfile)
         self.table = table
         self.mapRoot = self.mapFile.getroot()
-        self.zoomScaleData = Util.read_zoom(scaleDimensions)
+        self.zoomScaleData = Utils.read_zoom(scaleDimensions)
 
     def addCustomFonts(self,fontDir):
         self.mapRoot.set('font-directory',fontDir)

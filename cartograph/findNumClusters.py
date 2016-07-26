@@ -1,8 +1,9 @@
-import numpy as np
-from sklearn.cluster import KMeans
-from scipy.spatial import distance
-import Util
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import distance
+from sklearn.cluster import KMeans
+
+from cartograph import Utils
 
 n = 5
 
@@ -107,7 +108,7 @@ class findNumClusters():
         return True, clustID
 
 if __name__ == "__main__":
-    featureDict = Util.read_features("../data/labdata/numberedVecsFull.tsv")
+    featureDict = Utils.read_features("../data/labdata/numberedVecsFull.tsv")
     keys = list(featureDict.keys())
     data = [featureDict[key]["vector"] for key in keys]
     clusterSolver = findNumClusters(data, len(data) / 100)
