@@ -1,8 +1,9 @@
+import types
 
 from ConfigParser import SafeConfigParser
 
 EXTERNAL_FILES = 'ExternalFiles'
-PREPROCESSING_FILES = 'PreprocessingFiles'
+PREPROCESSING_FILES = 'GeneratedFiles'
 PREPROCESSING_CONSTANTS = 'PreprocessingConstants'
 MAP_CONSTANTS = 'MapConstants'
 MAP_DATA = 'MapData'
@@ -14,6 +15,15 @@ _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
 
+
+def samplePath(origPath, n):
+    i = origPath.rfind('.')
+    if i < 0:
+        return '%s.sample_%s' % (origPath, n)
+    else:
+        return '%s.sample_%s.%s' % (origPath[:i], n, origPath[i + 1:])
+
+
 def initConf(confFile=None):
     conf = SafeConfigParser()
     with open("./data/conf/defaultconfig.txt", "r") as configFile:
@@ -23,10 +33,17 @@ def initConf(confFile=None):
         with open(confFile, "r") as updateFile:
             conf.readfp(updateFile)
 
-        _verifyRequiredSections(conf, _requiredSections)
+    _verifyRequiredSections(conf, _requiredSections)
 
     num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
     colorWheel = _coloringFeatures(num_clusters)
+
+    def confSample(target, section, key, n=None):
+        if n is None:
+            n = target.getint('PreprocessingConstants', 'sample_size')
+        return samplePath(target.get(section, key), n)
+
+    conf.getSample = types.MethodType(confSample, conf)
 
     return conf, colorWheel
 
@@ -35,9 +52,23 @@ def _verifyRequiredSections(conf, requiredSections):
     confSections = conf.sections()
     for section in requiredSections:
         if section not in confSections:
-            conf.add_section(section)
-            print "Adding section %s" % (section)
+            raise Exception, 'Missing config section %s' % (section,)
 
+
+def selective_merge(base_obj, delta_obj):
+    """
+    Merges a delta configuration object into a base configuration.
+    See http://stackoverflow.com/a/29124916/141245
+    """
+    if not isinstance(base_obj, dict):
+        return delta_obj
+    common_keys = set(base_obj).intersection(delta_obj)
+    new_keys = set(delta_obj).difference(common_keys)
+    for k in common_keys:
+        base_obj[k] = selective_merge(base_obj[k], delta_obj[k])
+    for k in new_keys:
+        base_obj[k] = delta_obj[k]
+    return base_obj
 
 def _coloringFeatures(num_clusters):
         assert(num_clusters <= 30)

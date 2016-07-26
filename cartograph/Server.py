@@ -35,9 +35,13 @@ class CartographServer(TileStache.WSGITileServer):
         TileStache.WSGITileServer.__init__(self, path_cfg)
         self.cartoconfig = cartograph_cfg
       
-        xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
-                                         self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
-        self.popularityDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles","popularity_with_id"))
+        self.popularityDict = Util.read_features(
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                    self.cartoconfig.get("GeneratedFiles","popularity_with_id"))
+        xyDict = Util.read_features(self.cartoconfig.get("GeneratedFiles", "article_coordinates"),
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                    self.cartoconfig.get("GeneratedFiles", "zoom_with_id"),
+                                    required=('x', 'y', 'name', 'maxZoom'))
 
         self.keyList = []
         self.tupleLocZoom = []
