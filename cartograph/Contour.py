@@ -8,6 +8,7 @@ from geojson import dumps, MultiPolygon
 import scipy.stats as sps
 import json
 import shapely.geometry as shply
+from collections import defaultdict
 
 
 class ContourCreator:
@@ -16,13 +17,51 @@ class ContourCreator:
         self.numClusters = numClusters
         pass
 
-    def buildContours(self, featureDict, countryFile):
-        self.xs, self.ys, self.vectors = self._sortClusters(featureDict, self.numClusters)
+    def buildContours(self, featureDict, countryFile, countryBorders):
+        self.countryBorders = self._makeCountryBordersList(countryBorders)
+        self.xs, self.ys, self.vectors = self._sortClustersInBorders(featureDict, self.numClusters, self.countryBorders)
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
         self.binSize = 200
         self.density_CSs = self._densityCalcContour()
         self.centroid_CSs = self._centroidCalcContour()
+
+    def _makeCountryBordersList(self, countryBorders):
+        countryKeys = countryBorders.keys()
+        allBordersDict = defaultdict(dict)
+        for index in countryKeys: 
+            country = eval(countryBorders[str(index)]['border_list'])
+            allBordersDict[index] = country
+        return allBordersDict
+
+    def _sortClustersInBorders(self, featureDict, numClusters, countryBorders):
+        xs = [[] for i in range(numClusters)]
+        ys = [[] for i in range(numClusters)]
+        vectors = [[] for i in range(numClusters)]
+        keys = featureDict.keys()
+
+        # Precompute country polys
+        countryPolys = {}
+        for cid, polys in countryBorders.items():
+            countryPolys[cid] = list(mplPath.Path(np.array(p)) for p in polys)
+
+        for i, index in enumerate(keys):
+            if i % 100 == 0:
+                print('doing', i, 'of', len(keys))
+            pointInfo = featureDict[index]
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
+            c = int(pointInfo['cluster'])
+            xy = (float(pointInfo['x']),float(pointInfo['y']))
+            for poly in countryPolys[str(c)]:
+                if poly.contains_point(xy):
+                    xs[c].append(float(pointInfo['x']))
+                    ys[c].append(float(pointInfo['y']))
+                    vectors[c].append(pointInfo['vector'])
+                    break
+
+        return xs, ys, vectors
+
+
 
     def _sortClusters(self, featureDict, numClusters):
         xs = [[] for i in range(numClusters)]
@@ -37,6 +76,7 @@ class ContourCreator:
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
             vectors[c].append(pointInfo['vector'])
+
 
         return xs, ys, vectors
 
