@@ -3,6 +3,7 @@ import json, os, shutil
 from operator import itemgetter
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
+from werkzeug.utils import redirect
 from cartograph.Config import initConf
 
 import marisa_trie
@@ -70,6 +71,7 @@ class CartographServer(TileStache.WSGITileServer):
     def __call__(self, environ, start_response):
         
         path_info = environ.get('PATH_INFO', None)
+
         if path_info.startswith('/dynamic/search'):
                 request = Request(environ)
 
