@@ -6,7 +6,7 @@ class ZoomTSVWriter:
         self.config = config
 
     def writeZoomTSV(self):
-        zoomDict = Util.read_features(self.config.get("PreprocessingFiles", "zoom_with_id"),
+        zoomDict = Util.read_features(self.config.get("GeneratedFiles", "zoom_with_id"),
                 self.config.get("ExternalFiles", "names_with_id"))
         #THIS NEEDS TO CHANGE TO BE PART OF THE CONFIG FILE, BUT I'M HARDCODING IT FOR NOW
         filepath = "./web/data/named_zoom.tsv"
