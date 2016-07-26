@@ -1,5 +1,6 @@
-import Util
-# For information on the constants below see 
+from cartograph import Utils
+
+# For information on the constants below see
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 
 # Scale denom for each zoom level
@@ -75,7 +76,7 @@ class CalculateZooms:
     def simulateZoom(self, maxZoom, firstZoomLevel):
 
         # Order ids by overall popualarity
-        idsByPopularity = [pair[0] for pair in Util.sort_by_feature(self.points, 'popularity')]
+        idsByPopularity = [pair[0] for pair in Utils.sort_by_feature(self.points, 'popularity')]
 
         # Get top points per cluster 
         nClusters = self.numClusters
@@ -134,9 +135,9 @@ class CalculateZooms:
         return self.numberedZoom
 
 if __name__ == '__main__':
-    feats = Util.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
-                        config.FILE_NAME_ARTICLE_COORDINATES,
-                        config.FILE_NAME_NUMBERED_CLUSTERS)
+    feats = Utils.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
+                                config.FILE_NAME_ARTICLE_COORDINATES,
+                                config.FILE_NAME_NUMBERED_CLUSTERS)
     calc = CalculateZooms(feats)
     zoomDict = calc.simulateZoom()
     keys = list(zoomDict.keys())

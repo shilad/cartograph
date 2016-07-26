@@ -1,16 +1,14 @@
-# export PATH=/Applications/Postgres.app/Contents/Versions/latest/bin/:$PATH
-# pip2.7 install psycopg2
-
+import json
 import logging
 import os.path
-import json
-import psycopg2
-import random
-import shapely
-import shapely.wkt
-import shapely.geometry 
+
 import luigi
+import shapely
+import shapely.geometry
+import shapely.wkt
 from luigi.postgres import CopyToTable, PostgresTarget
+
+import Config, Utils
 
 logger = logging.getLogger('luigi-interface')
 
@@ -199,4 +197,22 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
             table=self.table,
             update_id=self.update_id
         )
+
+
+def getSampleIds(n=None):
+    config = Config.get()
+    # First check if we have an explicitly specified sample
+    if config.has_option('ExternalFiles', 'sample_ids'):
+        with open(config.get('ExternalFiles', 'sample_ids'), 'r') as f:
+            return set(id.strip() for id in f)
+
+    # If there is no explicit sample, choose one by popularity.
+
+    # Lookup the sample size.
+    if n is None:
+        n = config.getint('PreprocessingConstants', 'sample_size')
+    pops = Utils.read_features(config.get("GeneratedFiles", "popularity_with_id"))
+    tuples = list((pops[id]['popularity'], id) for id in pops)
+    tuples.sort()
+    return set(id for (pop, id) in tuples[-n:])
 

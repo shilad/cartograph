@@ -1,6 +1,7 @@
-import numpy as np
 from collections import defaultdict
-import bisect
+
+import numpy as np
+
 
 class PopularityLabelSizer:
     def __init__(self, numBins, popularityList):
@@ -43,10 +44,10 @@ class PopularityLabelSizer:
 
 if __name__=='__main__':
     import Config
-    import Util
-    
+    from cartograph import Utils
+
     config = Config.BAD_GET_CONFIG()
-    readPopularData = Util.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
+    readPopularData = Utils.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
     popularity = map(float, readPopularData['popularity'])
     popSizing = PopularityLabelSizer(5, popularity)
 
