@@ -295,10 +295,10 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
                                                     "vecs_with_id"))
         keys = list(k for k in featureDict.keys() if len(featureDict[k]['vector']) > 0)
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
-        labels = list(KMeans(config.getint("PreprocessingConstants",
-                                           "num_clusters"),
+        labels = list(KMeans((config.getint("PreprocessingConstants",
+                                           "num_clusters")),
                              random_state=42).fit(vectors).labels_)
-
+        
         Util.write_tsv(config.getSample("GeneratedFiles", "clusters_with_id"),
                        ("index", "cluster"), keys, labels)
 
@@ -639,7 +639,8 @@ class CreateContours(MTimeMixin, luigi.Task):
         return (CreateSampleCoordinates(),
                 SampleCreator(config.get("ExternalFiles", "vecs_with_id")),
                 ContourCode(),
-                CreateContinents())
+                CreateContinents(),
+                MakeRegions())
 
     def output(self):
         return TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson"))
@@ -659,6 +660,8 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         numContours = config.getint('PreprocessingConstants', 'num_contours')
+        print numClusters
+        print numContours
         writeFile = config.get("MapData", "countries_geojson")
 
         contour = Contour.ContourCreator(numClusters)
