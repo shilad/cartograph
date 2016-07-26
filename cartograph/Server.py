@@ -3,6 +3,7 @@ import json, os, shutil
 from operator import itemgetter
 from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
+from werkzeug.utils import redirect
 from cartograph.Config import initConf
 
 import marisa_trie
@@ -34,9 +35,13 @@ class CartographServer(TileStache.WSGITileServer):
         TileStache.WSGITileServer.__init__(self, path_cfg)
         self.cartoconfig = cartograph_cfg
       
-        xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
-                                         self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
-        self.popularityDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles","popularity_with_id"))
+        self.popularityDict = Util.read_features(
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                    self.cartoconfig.get("GeneratedFiles","popularity_with_id"))
+        xyDict = Util.read_features(self.cartoconfig.get("GeneratedFiles", "article_coordinates"),
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                    self.cartoconfig.get("GeneratedFiles", "zoom_with_id"),
+                                    required=('x', 'y', 'name', 'maxZoom'))
 
         self.keyList = []
         self.tupleLocZoom = []
@@ -66,6 +71,7 @@ class CartographServer(TileStache.WSGITileServer):
     def __call__(self, environ, start_response):
         
         path_info = environ.get('PATH_INFO', None)
+
         if path_info.startswith('/dynamic/search'):
                 request = Request(environ)
 
