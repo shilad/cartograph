@@ -45,7 +45,7 @@ class QuadTree:
                 c.insert(x, y, pid)
                 break
         else:
-            assert(False)
+            assert(False, '%s doesnt contain %s, %s' % (self, x, y))
 
     def contains(self, x, y):
         return (x >= self.leftX and x <= self.leftX + self.size
@@ -60,7 +60,8 @@ class CalculateZooms:
     def __init__(self, points, maxCoordinate, numClusters):
         self.pointsPerTile = 35
         self.maxCoordinate = maxCoordinate
-        self.points = points
+        self.points = { k : v for (k, v) in points.items() if 'x' in v and 'y' in v }
+        assert(len(points) > 0)
         self.numberedZoom= {}   # mapping from point ids to the zoom level at which they appear
         self.minX = min(float(p['x']) for p in self.points.values())
         self.maxX = max(float(p['x']) for p in self.points.values())

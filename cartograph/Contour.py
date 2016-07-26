@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
@@ -30,6 +29,22 @@ class ContourCreator:
         vectors = [[] for i in range(numClusters)]
 
         keys = featureDict.keys()
+        count = 0
+        badKeys = []
+        for index in keys:
+            if 'keep' not in featureDict[index].keys():
+                count += 1
+                badKeys.append(index)
+            elif 'cluster' not in featureDict[index].keys():
+                count += 1
+                badKeys.append(index)
+            elif 'x' not in featureDict[index].keys():
+                count += 1
+                badKeys.append(index)
+
+        for key in badKeys:
+            keys.remove(key)
+            del featureDict[key]
         for index in keys:
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
@@ -37,7 +52,6 @@ class ContourCreator:
             xs[c].append(float(pointInfo['x']))
             ys[c].append(float(pointInfo['y']))
             vectors[c].append(pointInfo['vector'])
-
         return xs, ys, vectors
 
     def _centroidValues(self):
