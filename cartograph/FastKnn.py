@@ -1,11 +1,11 @@
 import cPickle
 import logging
-import annoy
 import os.path
-
 from bisect import bisect_left
 
-import Util
+import annoy
+
+from cartograph import Utils
 
 logger = logging.getLogger("fast-knn")
 
@@ -26,7 +26,7 @@ class FastKnn:
         return True
 
     def rebuild(self):
-        vecs = Util.read_features(self.pathVectors)
+        vecs = Utils.read_features(self.pathVectors)
         assert(vecs)
 
         ids = []

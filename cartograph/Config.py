@@ -15,6 +15,10 @@ _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
                      PREPROCESSING_CONSTANTS, MAP_CONSTANTS,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
+CONFIG = None
+
+def get():
+    return CONFIG
 
 
 def samplePath(origPath, n):
@@ -26,6 +30,8 @@ def samplePath(origPath, n):
 
 
 def initConf(confFile=None):
+    global CONFIG
+
     conf = SafeConfigParser()
     with open("./data/conf/defaultconfig.txt", "r") as configFile:
         conf.readfp(configFile)
@@ -45,6 +51,10 @@ def initConf(confFile=None):
         return samplePath(target.get(section, key), n)
 
     conf.getSample = types.MethodType(confSample, conf)
+
+    CONFIG = conf
+
+    print("CONFIG IS", CONFIG)
 
     return conf, colorWheel
 
