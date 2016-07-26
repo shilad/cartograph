@@ -68,9 +68,21 @@ p {
 .algorithms-padding {
   padding-right: 25vh;
   padding-left: 25vh;
-  padding-bottom: 3vh;
+  padding-bottom: 10vh;
 }
 
+#algos {
+  padding-bottom: 5vh;
+}
+
+.img-button {
+  padding: 0;
+  border-width: 0;
+}
+
+#fork-button {
+  padding: .4vh;
+}
 .header-nav {
   border-radius:0;
   -webkit-border-radius:0;

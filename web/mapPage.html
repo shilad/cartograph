@@ -1,6 +1,7 @@
 <html>
 
 <head>
+
   <title> World of Wikipedia </title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href=./css/chardinjs.css>
   <link rel="stylesheet" href=./css/mapPage.css>
   <link href="./css/global.css" rel=stylesheet>
+  <link rel="shortcut icon" href="./images/favicon.ico">
   <script src="./js/leaflet.js"></script>
   <script src="./js/leaflet-search.js"></script>
   <script src="./js/leaflet-hash.js"></script>
@@ -33,7 +35,7 @@
 <body>
 <div>
   <div id="map" >
-    <div id="mapHolder" data-intro="This is our map of Wikipedia. Continents give you an idea of what type of article you might find inside, and the closer two article 'cities' (marked as points on the map) are together the more related they are." data-position="bottom"></div>
+    <div id="mapHolder" data-intro="This is our map of Wikipedia. Countries give you an idea of the types of articles in them. The closer two article 'cities' (marked as white circles) are, the more related they are." data-position="bottom"></div>
     <div id="zoomHolder" data-intro="You can zoom in and out by clicking here or scrolling" data-position="right"></div>
     <div id="centroidHolder" data-intro="These options tell you more about the density of points. Density contours show point distribution in 2D space, while centroid contours describe the original data." data-position="bottom"></div>
   </div>
@@ -47,7 +49,7 @@
   <div id="page-info-box" data-intro="Information about any article you click on will pop up here" data-position="left">
   </div>
   <div class="fullWidthParent" id="social">
-    <div class="ssk-group ssk-grayscale centerChild" data-intro="If you feel like sharing this map with a friend, these links will do the trick" data-position="left">
+    <div class="ssk-group ssk-grayscale centerChild" data-intro="Want to share the map with a friend? Click here. " data-position="left">
         <a href="" class="ssk ssk-facebook" title="facebook"></a>
         <a href="" class="ssk ssk-twitter" title="twitter"></a>
         <a href="" class="ssk ssk-pinterest" title="pinterest"></a>

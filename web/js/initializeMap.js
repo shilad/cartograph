@@ -153,9 +153,7 @@ function handleUTFGrid() {
     //click functionality/shows wikipedia link in sidebar
     currentLayer.on('click', function(e) {
 		if(e.data){
-			console.log("clicked on a city");
 			var title = e.data.citylabel;
-			console.log(title);
 			var labelstrings = title.split(" ");
 			var url = "https://wikipedia.org/wiki/";
 			for(var i = 0; i < labelstrings.length; i++){
@@ -175,9 +173,7 @@ function handleUTFGrid() {
 
     countrygrid.on('click', function(e) {
         if(e.data){
-            console.log("clicked on a country");
             var title = e.data.labels;
-            console.log(title);
             switch(title){
                 case "Music":
                     map.setView(new L.LatLng(13.529, -2.131), 6);
@@ -233,7 +229,6 @@ function clearUTFLayers(){
 	map.eachLayer(function(layer){
 		if(layer instanceof L.UtfGrid){
 			map.removeLayer(layer);
-			console.log("removed");
 		}
 	})
 }
