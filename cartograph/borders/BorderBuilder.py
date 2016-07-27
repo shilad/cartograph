@@ -1,8 +1,9 @@
-from VoronoiWrapper import VoronoiWrapper
-from BorderProcessor import BorderProcessor
-from cartograph import Util
-from collections import defaultdict
 import logging
+from collections import defaultdict
+
+from BorderProcessor import BorderProcessor
+from VoronoiWrapper import VoronoiWrapper
+from cartograph import Utils
 
 logger = logging.getLogger('luigi-interface')
 
@@ -16,9 +17,9 @@ class BorderBuilder:
         self._initialize(config)
 
     def _initialize(self, config):
-        featureDict = Util.read_features(config.get("PreprocessingFiles", "coordinates_with_water"),
-                                         config.get("PreprocessingFiles", "clusters_with_water"),
-                                         config.get("PreprocessingFiles", "denoised_with_id"))
+        featureDict = Utils.read_features(config.getSample("GeneratedFiles", "coordinates_with_water"),
+                                          config.getSample("GeneratedFiles", "clusters_with_water"),
+                                          config.getSample("GeneratedFiles", "denoised_with_id"))
         idList = list(featureDict.keys())
         for article in idList:
             if featureDict[article]["keep"] == "True":
