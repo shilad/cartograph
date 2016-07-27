@@ -531,14 +531,13 @@ class CreateContours(MTimeMixin, luigi.Task):
             if key[0] == "w":
                 del featuresDict[key]
 
-        countryBorders = Util.read_features(config.get("PreprocessingFiles","country_borders"))
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         numContours = config.getint('PreprocessingConstants', 'num_contours')
-        writeFile = config.get("MapData", "countries_geojson")
+        countryBorders = config.get("MapData", "countries_geojson")
 
         contour = Contour.ContourCreator(numClusters)
-        contour.buildContours(featuresDict, writeFile, countryBorders)
+        contour.buildContours(featuresDict, countryBorders)
         contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
         contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
 
