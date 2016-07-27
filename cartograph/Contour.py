@@ -40,7 +40,8 @@ class ContourCreator:
         '''
         Sorts through the featureDict to find the points and vectors
         that correspond to each individual country and returns lists
-        with those variables in the correct country spot.
+        with those variables in the correct country spot. This only catches
+        the points that are within the country borders.
         '''
         with open(bordersGeoJson) as f:
             bordersData = json.load(f)
