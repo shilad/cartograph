@@ -98,13 +98,10 @@ class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
+
 class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.LuigiUtils.__file__))
-
-class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return(TimestampedLocalTarget(cartograph.PopularityLabelSizer.__file__))
 
 
 # ====================================================================
@@ -115,36 +112,6 @@ class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
 # Data Training and Analysis Stage
 # ====================================================================
 
-
-
-
-class PercentilePopularityIdentifier(MTimeMixin, luigi.Task):
-    '''
-    Bins the popularity values by given percentiles then maps the values to
-    the unique article ID.
-    '''
-    def requires(self):
-        return (cartograph.Popularity.PopularityIdentifier(),
-                PopularityLabelSizerCode())
-
-    def output(self):
-        config = Config.get()
-        return (TimestampedLocalTarget(config.get("GeneratedFiles",
-                                             "percentile_popularity_with_id")))
-
-    def run(self):
-        config = Config.get()
-        readPopularData = Utils.read_tsv(config.get("GeneratedFiles",
-                                                   "popularity_with_id"))
-        popularity = list(map(float, readPopularData['popularity']))
-        index = list(map(int, readPopularData['id']))
-
-        popLabel = PopularityLabelSizer(config.getint("MapConstants", "num_pop_bins"),
-                                                    popularity)
-        popLabelScores = popLabel.calculatePopScore()
-
-        Utils.write_tsv(config.get("GeneratedFiles", "percentile_popularity_with_id"),
-                        ("id", "popBinScore"), index, popLabelScores)
 
 
 class MakeSampleRegions(MTimeMixin, luigi.Task):
@@ -476,12 +443,9 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
 
     def requires(self):
-        return (
-                ZoomLabeler(),
-                PercentilePopularityIdentifier(),
-                ZoomGeoJSONWriterCode(),
-         )
-
+        return (ZoomLabeler(),
+                cartograph.PopularityLabelSizer.PercentilePopularityIdentifier(),
+                ZoomGeoJSONWriterCode())
 
     def run(self):
         config = Config.get()
