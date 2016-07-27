@@ -27,19 +27,6 @@ def initConf(confFile=None):
 
     num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
     colorWheel = _coloringFeatures(num_clusters)
-    wheel = [["#6caed1", "#7fb9d7", "#93c3dd", "#a6cee3", "#b9d9e9", "#cde3ef", "#e0eef5", "#f3f9fb"],
-                ["#144c73", "#185b88", "#1b699e", "#1f78b4", "#2387ca", "#2b94db", "#419fde", "#57aae2"],
-                ["#8acf4e", "#98d462", "#a5da76", "#b2df8a", "#bfe49e", "#cceab2", "#daefc6", "#e7f5da"],
-                ["#20641c", "#267821", "#2d8c27", "#33a02c", "#39b432", "#40c837", "#53ce4b", "#66d35f"],
-                ["#f8514f", "#f96968", "#fa8280", "#fb9a99", "#fcb2b2", "#fdcbca", "#fee3e3", "#fffcfc"],
-                ["#9e1214", "#b51516", "#cc1719", "#e31a1c", "#e72f31", "#ea4648", "#ec5d5e", "#ef7475"],
-                ["#fc9d24", "#fca93d", "#fdb456", "#fdbf6f", "#fdca88", "#fed5a1", "#fee1ba", "#feecd3"],
-                ["#b35900", "#cc6600", "#e67200", "#ff7f00", "#ff8c1a", "#ff9933", "#ffa54d", "#ffb267"],
-                ["#a880bb", "#b391c4", "#bfa1cd", "#cab2d6", "#d5c3df", "#e1d3e8", "#ece4f1", "#f8f5fa"],
-                ["#442763", "#512f75", "#5d3688", "#6a3d9a", "#7744ac", "#8350ba", "#9062c1", "#9d74c8"],
-                ["#685d00", "#817300", "#9b8a00", "#b4a100", "#ceb800", "#e7cf00", "#ffe401", "#ffec4e"],
-                ["#733a1a", "#87441f", "#9c4f23", "#b15928", "#c6632d", "#d2703a", "#d77f4e", "#dc8e63"],
-                ["#82125b", "#98156b", "#af187a", "#c51b8a", "#db1e9a", "#e330a5", "#e647af", "#e95db9"]]
 
     return conf, colorWheel
 
@@ -85,7 +72,7 @@ def _coloringFeatures(num_clusters):
                 28: {6: "#a11837", 5: "#aa2f4b", 4: "#b3465e", 3: "#bd5d73", 2: "#c67487", 1: "#d08b9b", 0: "#d9a2af", 7: "#e2b9c3"},
                 29: {6: "#cf7ced", 5: "#d389ee", 4: "#d896f0", 3: "#dda3f2", 2: "#e2b0f4", 1: "#e7bdf6", 0: "#ebcaf7", 7: "#f0d7f9"}}
 
-        keys = colors.keys()[:num_clusters]
+        keys = list(range(num_clusters))
         for key in colors.keys():
             if key not in keys:
                 del colors[key]
