@@ -1,0 +1,6 @@
+[DEFAULT]
+dataset: prod_en
+
+[PreprocessingConstants]
+sample_size: 250000
+num_clusters: 13

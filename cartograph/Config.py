@@ -1,4 +1,9 @@
+import os
+import logging
 import types
+
+
+logger = logging.getLogger('cartograph.config')
 
 from ConfigParser import SafeConfigParser
 
@@ -15,10 +20,24 @@ _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
 CONFIG = None
+COLORWHEEL = None
 
 def get():
+    global CONFIG
+
+    if not CONFIG:
+        initConf()
     return CONFIG
 
+def getColorWheel():
+    global COLORWHEEL
+
+    if not COLORWHEEL:
+        conf = get()
+        num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
+        COLORWHEEL = _coloringFeatures(num_clusters)
+
+    return COLORWHEEL
 
 def samplePath(origPath, n):
     i = origPath.rfind('.')
@@ -35,14 +54,15 @@ def initConf(confFile=None):
     with open("./data/conf/defaultconfig.txt", "r") as configFile:
         conf.readfp(configFile)
 
-    if confFile is not None:
+    if confFile is None:
+        confFile = os.environ.get('CARTOGRAPH_CONF', 'conf.txt')
+    logger.info('using configuration file %s' % (`confFile`))
+
+    if os.path.isfile(confFile):
         with open(confFile, "r") as updateFile:
             conf.readfp(updateFile)
-
-    _verifyRequiredSections(conf, _requiredSections)
-
-    num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
-    colorWheel = _coloringFeatures(num_clusters)
+    else:
+        logger.warn('configuration file %s does not exist' % (`confFile`))
 
     def confSample(target, section, key, n=None):
         if n is None:
@@ -52,10 +72,6 @@ def initConf(confFile=None):
     conf.getSample = types.MethodType(confSample, conf)
 
     CONFIG = conf
-
-    print("CONFIG IS", CONFIG)
-
-    return conf, colorWheel
 
 
 def _verifyRequiredSections(conf, requiredSections):

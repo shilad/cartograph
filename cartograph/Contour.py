@@ -7,6 +7,8 @@ from geojson import dumps, MultiPolygon
 import scipy.stats as sps
 import json
 import shapely.geometry as shply
+from collections import defaultdict
+from shapely.geometry import mapping, Point
 
 
 class ContourCreator:
@@ -27,24 +29,33 @@ class ContourCreator:
         Runs class methods to define class variables for
         other methods in the class.
         '''
-        self.xs, self.ys, self.vectors = self._sortClusters(featureDict, self.numClusters)
+        self.xs, self.ys, self.vectors = self._sortClustersInBorders(featureDict, self.numClusters, countryFile)
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
         self.binSize = 200
         self.density_CSs = self._densityCalcContour()
         self.centroid_CSs = self._centroidCalcContour()
 
-    def _sortClusters(self, featureDict, numClusters):
+    def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):
         '''
         Sorts through the featureDict to find the points and vectors
         that correspond to each individual country and returns lists
         with those variables in the correct country spot.
         '''
+        with open(bordersGeoJson) as f:
+            bordersData = json.load(f)
+
+        allBordersDict = defaultdict(dict)
+        for feature in bordersData['features']:
+            poly = shply.shape(feature['geometry'])
+            cluster = feature['properties']['clusterNum']
+            allBordersDict[str(cluster)] = poly
+
         xs = [[] for i in range(numClusters)]
         ys = [[] for i in range(numClusters)]
         vectors = [[] for i in range(numClusters)]
-
         keys = featureDict.keys()
+
         count = 0
         badKeys = []
         for index in keys:
@@ -61,13 +72,20 @@ class ContourCreator:
         for key in badKeys:
             keys.remove(key)
             del featureDict[key]
-        for index in keys:
+
+        for i, index in enumerate(keys):
+            if i % 1000 == 0:
+                print('doing', i, 'of', len(keys))
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
-            xs[c].append(float(pointInfo['x']))
-            ys[c].append(float(pointInfo['y']))
-            vectors[c].append(pointInfo['vector'])
+            xy = Point(float(pointInfo['x']),float(pointInfo['y']))
+            poly = allBordersDict[str(c)]
+            if poly.contains(xy):
+                xs[c].append(float(pointInfo['x']))
+                ys[c].append(float(pointInfo['y']))
+                vectors[c].append(pointInfo['vector'])
+
         return xs, ys, vectors
 
     def _centroidValues(self):
