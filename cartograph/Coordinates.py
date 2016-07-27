@@ -8,7 +8,7 @@ from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
 from PreReqs import WikiBrainNumbering
 from cartograph.Popularity import SampleCreator
 
-logger = logging.getLogger('workload')
+logger = logging.getLogger('cartograph.coordinates')
 
 
 class CreateEmbedding(MTimeMixin, luigi.Task):

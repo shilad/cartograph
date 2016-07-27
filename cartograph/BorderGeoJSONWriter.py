@@ -30,7 +30,10 @@ class BorderGeoJSONWriter:
             shapeList.append(polygon)
 
         newMultiPolygon = MultiPolygon(shapeList)
-        properties = {"clusterNum": index, "labels": label["label"][index]}
+        try:
+            properties = {"clusterNum": index, "labels": label["label"][index]}
+        except IndexError:
+            properties = {"clusterNum": index, "labels": "Cluster %s" % (index)}
         return Feature(geometry=newMultiPolygon, properties=properties)
 
     def writeToFile(self, filename):
