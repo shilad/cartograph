@@ -1,7 +1,8 @@
+import matplotlib.path as mplPath
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-import matplotlib.path as mplPath
-import Util
+
+from cartograph import Utils
 
 
 class BorderGeoJSONWriter:
@@ -22,14 +23,17 @@ class BorderGeoJSONWriter:
         return continents
 
     def _generateJSONFeature(self, index, continents):
-        label = Util.read_tsv(self.regionFile)
+        label = Utils.read_tsv(self.regionFile)
         shapeList = []
         for child in continents:
             polygon = child.points
             shapeList.append(polygon)
 
         newMultiPolygon = MultiPolygon(shapeList)
-        properties = {"clusterNum": index, "labels": label["label"][index]}
+        try:
+            properties = {"clusterNum": index, "labels": label["label"][index]}
+        except IndexError:
+            properties = {"clusterNum": index, "labels": "Cluster %s" % (index)}
         return Feature(geometry=newMultiPolygon, properties=properties)
 
     def writeToFile(self, filename):
