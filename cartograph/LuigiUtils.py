@@ -202,9 +202,11 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
 def getSampleIds(n=None):
     config = Config.get()
     # First check if we have an explicitly specified sample
-    if config.has_option('ExternalFiles', 'sample_ids'):
-        with open(config.get('ExternalFiles', 'sample_ids'), 'r') as f:
-            return set(id.strip() for id in f)
+    if config.has_option('ExternalFiles', 'sample_ids') :
+        fn = config.get('ExternalFiles', 'sample_ids')
+        if fn:
+            with open(fn, 'r') as f:
+                return set(id.strip() for id in f)
 
     # If there is no explicit sample, choose one by popularity.
 
