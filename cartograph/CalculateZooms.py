@@ -1,5 +1,6 @@
-import Util
-# For information on the constants below see 
+from cartograph import Utils
+
+# For information on the constants below see
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 
 # Scale denom for each zoom level
@@ -45,7 +46,7 @@ class QuadTree:
                 c.insert(x, y, pid)
                 break
         else:
-            assert(False)
+            assert(False, '%s doesnt contain %s, %s' % (self, x, y))
 
     def contains(self, x, y):
         return (x >= self.leftX and x <= self.leftX + self.size
@@ -60,7 +61,8 @@ class CalculateZooms:
     def __init__(self, points, maxCoordinate, numClusters):
         self.pointsPerTile = 35
         self.maxCoordinate = maxCoordinate
-        self.points = points
+        self.points = { k : v for (k, v) in points.items() if 'x' in v and 'y' in v }
+        assert(len(points) > 0)
         self.numberedZoom= {}   # mapping from point ids to the zoom level at which they appear
         self.minX = min(float(p['x']) for p in self.points.values())
         self.maxX = max(float(p['x']) for p in self.points.values())
@@ -74,7 +76,7 @@ class CalculateZooms:
     def simulateZoom(self, maxZoom, firstZoomLevel):
 
         # Order ids by overall popualarity
-        idsByPopularity = [pair[0] for pair in Util.sort_by_feature(self.points, 'popularity')]
+        idsByPopularity = [pair[0] for pair in Utils.sort_by_feature(self.points, 'popularity')]
 
         # Get top points per cluster 
         nClusters = self.numClusters
@@ -133,9 +135,9 @@ class CalculateZooms:
         return self.numberedZoom
 
 if __name__ == '__main__':
-    feats = Util.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
-                        config.FILE_NAME_ARTICLE_COORDINATES,
-                        config.FILE_NAME_NUMBERED_CLUSTERS)
+    feats = Utils.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
+                                config.FILE_NAME_ARTICLE_COORDINATES,
+                                config.FILE_NAME_NUMBERED_CLUSTERS)
     calc = CalculateZooms(feats)
     zoomDict = calc.simulateZoom()
     keys = list(zoomDict.keys())

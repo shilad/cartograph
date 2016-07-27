@@ -1,7 +1,8 @@
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
-import Config
-import Util
+
+from cartograph import Utils
+
 
 class ZoomGeoJSONWriter:
     def __init__(self, featDict):
@@ -28,8 +29,8 @@ class ZoomGeoJSONWriter:
             writeFile.write(textDump)
 
     def writeZoomTSV(self):
-        zoomDict = Util.read_features(config.FILE_NAME_NUMBERED_ZOOM,
-                config.FILE_NAME_NUMBERED_NAMES)
+        zoomDict = Utils.read_features(config.FILE_NAME_NUMBERED_ZOOM,
+                                       config.FILE_NAME_NUMBERED_NAMES)
         #THIS NEEDS TO CHANGE TO BE PART OF THE CONFIG FILE, BUT I'M HARDCODING IT FOR NOW
         filepath = "./web/data/named_zoom.tsv"
         with open(filepath, "a") as writeFile:

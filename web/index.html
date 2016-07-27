@@ -1,13 +1,15 @@
 <html>
 
 <head>
-  <title> Leaflet Map </title>
+  <title> The World of Wikipedia </title>
+
 
   <link href="./css/chardinjs.css" rel="stylesheet">
    <link rel="stylesheet" href="./css/social-share-kit.css" type="text/css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <link href="./css/index.css" rel="stylesheet">
   <link href="./css/global.css" rel=stylesheet>
+  <link rel="shortcut icon" href="./images/favicon.ico">
   <script src="./js/chardinjs.min.js"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js'></script>
@@ -124,7 +126,7 @@
         </div>
         <div class="col-sm-6 column-border">
             <h3 class="subheading-style">What We Do</h3><br>
-            <p>We are creating maps that visualize English Wikipedia in the form of real-world style geographical maps - with countries, borders, and so on. We want to create intuitive, interactive maps of information that facilitates exploratory search. </p>
+            <p>We are creating maps that visualize English Wikipedia in the form of real-world style geographical maps - with countries, borders, and so on. We want to create intuitive, interactive maps of information that facilitate exploratory search. </p>
             <p>Search engines like Google are good for targeted search (e.g. "How does photosynthesis work?") but not as helpful for initial exploration ("Tell me more about the discipline of biology"). We want to translate a data problem into a visual problem: things that are close in meaning will be close together in the visual space, and geographical features will convey meaning as well - for example, an island might represent a group of data that are very distinct from all the rest.</p> 
             <p>The maps we make will allow people to explore information in a way that is familiar to them - geographically and spatially.</p>
         </div>
@@ -134,36 +136,37 @@
 
 
   <div class="algorithms-padding col-sm-12 col-xs-12" id="grayBlock">
-    <div class="row">
+    <div class="row" id = "algos">
       <div class="col-sm-6 col-sm-offset-3">
         <a name="algorithms"></a>
         <h2 class="subheading-style extraverticalbuffer">Algorithms - Learn How to Make Your Own Maps</h2>
       </div>
     
       <div class="col-sm-12 col-xs-12">
-        <p> We start with raw, vectorized data representing Wikipedia articles, which come from Wikibrain. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm. These clusters will later become the colored countries that are seen on the map. </p>
+        <p> We start with raw, vectorized data representing Wikipedia articles, which come from Wikibrain. Each article is represented by a 100-dimensional vector that captures its relationship to other articles (via word occurrence and linking context). These vectors are then clustered using the k-means algorithm. These clusters later become the colored countries that are seen on the map. </p>
         <p> The next step is to move from 100-dimensional vector space to a 2-dimensional embedding that we can represent visually. We do this using tsne, which stands for t-Distributed Stochastic Neighbor Embedding. This looks something like this: </p> 
         <p>
         <div class="tsn-image-padding">
           <img src="images/tsne_med.jpg" id="tsne-image"/> </p>
         </div>
-        <p> From there, we draw the country borders. This involves setting a "water level", which floods water points into the less-dense regions of the map, creating lakes and coastlines. We wrote our own code to generate the borders, and it can be checked out on our Github page. </p>
+        <p> From there, we draw the country borders. This involves setting a "water level", which floods water points into the less-dense regions of the map, creating lakes and coastlines. Outlier points are thrown out before border generation in order to creater neater, more coherent countries. </p>
         <p> Next, we generate the contours. There are two options: density-based, which is a straightforward contouring where the brighter areas represent higher density, and centroid-based, which draws the contours based on the center of a cluster in 100-dimensional space - the closer to the center the brighter the color. </p>
         <p> The final generation step involves labeling the map. Labels are generally handled by mapnik, our mapping library, but we wrote the code to determine which labels show up as you zoom in, and also to determine their sizing based off popularity.</p>
-        <p> User interaction is handled by Leaflet.js, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
+        <p> User interaction is done in Leaflet.js, a JavaScript mapping library with a wide selection of plugins to enable functions like search and interactivity.</p>
         <p> If you'd like to know more or want to check out our code, fork us on Github! </p><br>
 
         <div id = "powered-by">
           <p> Powered by: </p>
-        
-          <a href="https://shilad.github.io/wikibrain/" class="btn btn-default sharp">Wikibrain</a>
-          <a href="http://mapnik.org/" class="btn btn-default sharp">Mapnik</a>
-          <a href="http://leafletjs.com/" class="btn btn-default sharp">Leaflet.js</a>
+         
+          <a href="https://shilad.github.io/wikibrain/"> <img src = "./images/wikibrain_logo.jpg" class="btn btn-default sharp img-button"/> </a>
+          <a href="http://mapnik.org/"><img src = "./images/mapnik_logo.jpg" class="btn btn-default sharp img-button"/></a>
+          <a href="http://leafletjs.com/"><img src = "./images/leaflet-logo2.jpg" class="btn btn-default sharp img-button"/></a>
+         
         </div>
 
         <div id = "fork-us" class = "ssk-group ssk-grayscale">
           <p> Fork us! </p>
-          <a href="https://github.com/Bboatman/proceduralMapGeneration" class="btn btn-default ssk ssk-github sharp"></a>
+          <a href="https://github.com/Bboatman/proceduralMapGeneration" class="btn btn-default ssk ssk-github sharp img-button" id = "fork-button"></a>
         </div>
 
       </div>
@@ -199,6 +202,11 @@
     }
   });
 });</script>
-
+ <script> 
+    if (navigator.appVersion.includes('Windows NT 5.1')) {
+      var f = "Trebuchet MS"
+      document.getElementsByTagName('body')[0].style.fontFamily = f;
+    }
+  </script>
 </body>
 </html>

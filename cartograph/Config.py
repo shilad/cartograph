@@ -1,8 +1,10 @@
 
+import types
+
 from ConfigParser import SafeConfigParser
 
 EXTERNAL_FILES = 'ExternalFiles'
-PREPROCESSING_FILES = 'PreprocessingFiles'
+PREPROCESSING_FILES = 'GeneratedFiles'
 PREPROCESSING_CONSTANTS = 'PreprocessingConstants'
 MAP_CONSTANTS = 'MapConstants'
 MAP_DATA = 'MapData'
@@ -13,8 +15,23 @@ _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
                      PREPROCESSING_CONSTANTS, MAP_CONSTANTS,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
+CONFIG = None
+
+def get():
+    return CONFIG
+
+
+def samplePath(origPath, n):
+    i = origPath.rfind('.')
+    if i < 0:
+        return '%s.sample_%s' % (origPath, n)
+    else:
+        return '%s.sample_%s.%s' % (origPath[:i], n, origPath[i + 1:])
+
 
 def initConf(confFile=None):
+    global CONFIG
+
     conf = SafeConfigParser()
     with open("./data/conf/defaultconfig.txt", "r") as configFile:
         conf.readfp(configFile)
@@ -23,23 +40,19 @@ def initConf(confFile=None):
         with open(confFile, "r") as updateFile:
             conf.readfp(updateFile)
 
-        _verifyRequiredSections(conf, _requiredSections)
+    _verifyRequiredSections(conf, _requiredSections)
 
     num_clusters = conf.getint(PREPROCESSING_CONSTANTS, 'num_clusters')
     colorWheel = _coloringFeatures(num_clusters)
-    wheel = [["#6caed1", "#7fb9d7", "#93c3dd", "#a6cee3", "#b9d9e9", "#cde3ef", "#e0eef5", "#f3f9fb"],
-                ["#144c73", "#185b88", "#1b699e", "#1f78b4", "#2387ca", "#2b94db", "#419fde", "#57aae2"],
-                ["#8acf4e", "#98d462", "#a5da76", "#b2df8a", "#bfe49e", "#cceab2", "#daefc6", "#e7f5da"],
-                ["#20641c", "#267821", "#2d8c27", "#33a02c", "#39b432", "#40c837", "#53ce4b", "#66d35f"],
-                ["#f8514f", "#f96968", "#fa8280", "#fb9a99", "#fcb2b2", "#fdcbca", "#fee3e3", "#fffcfc"],
-                ["#9e1214", "#b51516", "#cc1719", "#e31a1c", "#e72f31", "#ea4648", "#ec5d5e", "#ef7475"],
-                ["#fc9d24", "#fca93d", "#fdb456", "#fdbf6f", "#fdca88", "#fed5a1", "#fee1ba", "#feecd3"],
-                ["#b35900", "#cc6600", "#e67200", "#ff7f00", "#ff8c1a", "#ff9933", "#ffa54d", "#ffb267"],
-                ["#a880bb", "#b391c4", "#bfa1cd", "#cab2d6", "#d5c3df", "#e1d3e8", "#ece4f1", "#f8f5fa"],
-                ["#442763", "#512f75", "#5d3688", "#6a3d9a", "#7744ac", "#8350ba", "#9062c1", "#9d74c8"],
-                ["#685d00", "#817300", "#9b8a00", "#b4a100", "#ceb800", "#e7cf00", "#ffe401", "#ffec4e"],
-                ["#733a1a", "#87441f", "#9c4f23", "#b15928", "#c6632d", "#d2703a", "#d77f4e", "#dc8e63"],
-                ["#82125b", "#98156b", "#af187a", "#c51b8a", "#db1e9a", "#e330a5", "#e647af", "#e95db9"]]
+
+    def confSample(target, section, key, n=None):
+        if n is None:
+            n = target.getint('PreprocessingConstants', 'sample_size')
+        return samplePath(target.get(section, key), n)
+
+    conf.getSample = types.MethodType(confSample, conf)
+
+    CONFIG = conf
 
     return conf, colorWheel
 
@@ -48,9 +61,23 @@ def _verifyRequiredSections(conf, requiredSections):
     confSections = conf.sections()
     for section in requiredSections:
         if section not in confSections:
-            conf.add_section(section)
-            print "Adding section %s" % (section)
+            raise Exception, 'Missing config section %s' % (section,)
 
+
+def selective_merge(base_obj, delta_obj):
+    """
+    Merges a delta configuration object into a base configuration.
+    See http://stackoverflow.com/a/29124916/141245
+    """
+    if not isinstance(base_obj, dict):
+        return delta_obj
+    common_keys = set(base_obj).intersection(delta_obj)
+    new_keys = set(delta_obj).difference(common_keys)
+    for k in common_keys:
+        base_obj[k] = selective_merge(base_obj[k], delta_obj[k])
+    for k in new_keys:
+        base_obj[k] = delta_obj[k]
+    return base_obj
 
 def _coloringFeatures(num_clusters):
         assert(num_clusters <= 30)

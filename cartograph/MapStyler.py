@@ -41,7 +41,7 @@ class MapStyler:
         self.m.layers.append(self.generateLayer(contoursDB, "contour", sNames))
 
         self.m.append_style("outline",
-                            self.generateLineStyle("#000000", 1.0))
+                            self.generateLineStyle("#bbbbbb", 1.0))
         self.m.layers.append(self.generateLayer('countries', "outline", ["outline"]))
 
         # extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
@@ -64,17 +64,6 @@ class MapStyler:
         #self.m.zoom_to_box(self.extents)
         self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
-
-    def generateSinglePolygonStyle(self, filename, opacity, color, gamma=1):
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        symbolizer = mapnik.PolygonSymbolizer()
-        symbolizer.fill = mapnik.Color('steelblue')
-        symbolizer.fill_opacity = opacity
-        symbolizer.gamma = gamma
-        r.symbols.append(symbolizer)
-        s.rules.append(r)
-        return s
 
     def generateCountryPolygonStyle(self, filename, opacity, clusterIds):
         s = mapnik.Style()
@@ -110,7 +99,7 @@ class MapStyler:
         symbolizer = mapnik.LineSymbolizer()
         symbolizer.stroke = mapnik.Color(color)
         symbolizer.stroke_opacity = opacity
-        symbolizer.stroke_width = 1.5
+        symbolizer.stroke_width = 1
         if dash:
             symbolizer.stroke_dasharray = dash
         r.symbols.append(symbolizer)
