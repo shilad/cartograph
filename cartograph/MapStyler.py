@@ -1,5 +1,5 @@
 import mapnik
-from mapnik import register_fonts, FontEngine
+from mapnik import register_fonts
 
 
 class MapStyler:
