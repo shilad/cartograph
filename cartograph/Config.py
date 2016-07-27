@@ -80,6 +80,8 @@ def selective_merge(base_obj, delta_obj):
         base_obj[k] = delta_obj[k]
     return base_obj
 
+
+# Chooses number of colors to be included in the color wheel.
 def _coloringFeatures(num_clusters):
         assert(num_clusters <= 30)
         colors = {0: {6: "#b79c29", 5: "#bea53e", 4: "#c5af53", 3: "#ccb969", 2: "#d3c37e", 1: "#dbcd94", 0: "#e2d7a9", 7: "#e9e1be"},
