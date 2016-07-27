@@ -47,6 +47,10 @@ class PopularityLabelSizer:
         self.assignedPopValues = list(range(self.numBins))
 
     def _calculateValueBreakpoints(self):
+        '''
+        Given a list of popularity values associated to an article,
+        determines the percentile breakpoints for specified number of bins. 
+        '''
         popularityList = np.array(self.popularityList)
         unitStep = 100 / self.numBins
         percentileBreakpoints = list(range(0, 100, unitStep))[1:]
@@ -69,6 +73,10 @@ class PopularityLabelSizer:
         return valueBreakpoints
 
     def calculatePopScore(self):
+        '''
+        Assigns each article point to a bin index, where points in
+        higher bins are more popular. 
+        '''
         valueBreakpoints = self._calculateValueBreakpoints()
         binIndex = []
         for item in self.popularityList:
@@ -77,15 +85,3 @@ class PopularityLabelSizer:
                     binIndex.append(i - 1)
                     break
         return binIndex
-
-
-if __name__ == '__main__':
-
-    config = Config.BAD_GET_CONFIG()
-    readPopularData = Utils.read_tsv(config.FILE_NAME_NUMBERED_POPULARITY)
-    popularity = map(float, readPopularData['popularity'])
-    popSizing = PopularityLabelSizer(5, popularity)
-
-    print list(popSizing.calculatePopScore())
-    # print(popSizing.calculateValueBreakpoints())
-    # print(popSizing.labelPopularityScore())
