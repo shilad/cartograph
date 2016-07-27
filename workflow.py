@@ -362,7 +362,10 @@ class CreateContours(MTimeMixin, luigi.Task):
 
     def output(self):
         config = Config.get()
-        return TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson"))
+        return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
+                TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
+
+
 
     def run(self):
         config = Config.get()
@@ -378,12 +381,14 @@ class CreateContours(MTimeMixin, luigi.Task):
             if key[0] == "w":
                 del featuresDict[key]
 
+
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         numContours = config.getint('PreprocessingConstants', 'num_contours')
-        writeFile = config.get("MapData", "countries_geojson")
+
+        countryBorders = config.get("MapData", "countries_geojson")
 
         contour = Contour.ContourCreator(numClusters)
-        contour.buildContours(featuresDict, writeFile)
+        contour.buildContours(featuresDict, countryBorders)
         contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
         contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
 
@@ -593,11 +598,11 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
 
     def generateLabels(self, contourFile, mapFile):
         config = Config.get()
+        zoomScaleData = Utils.read_zoom(config.get("MapData", "scale_dimensions"))
+
         labelClust = Labels(config, mapFile,
-                            'countries', config.get("MapData", "scale_dimensions"))
+                            'countries', zoomScaleData)
         labelClust.addCustomFonts(config.get('MapResources', 'fontDir'))
-        maxScaleClust = labelClust.getMaxDenominator(0)
-        minScaleClust = labelClust.getMinDenominator(5)
 
         #For testing remove later.
         labelClust.addWaterXml()
@@ -608,7 +613,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                                   maxScale=0)
 
         labelCities = Labels(config, mapFile,
-                             'coordinates', config.get("MapData", "scale_dimensions"))
+                             'coordinates',zoomScaleData)
         labelCities.writeLabelsByZoomToXml('[citylabel]', 'point',
                                            config.getint("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
