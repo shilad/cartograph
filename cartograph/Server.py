@@ -9,11 +9,11 @@ from werkzeug.serving import run_simple
 from werkzeug.wrappers import Request, Response
 
 from cartograph import Utils
-from cartograph.Config import initConf
+from cartograph import Config
 
 
 def run_server(path_cartograph_cfg, path_tilestache_cfg):
-    config = initConf(path_cartograph_cfg)[0]
+    Config.initConf(path_cartograph_cfg)
  
     
     path_tilestache_cfg = os.path.abspath(path_tilestache_cfg)
@@ -24,7 +24,7 @@ def run_server(path_cartograph_cfg, path_tilestache_cfg):
         assert(len(path_cache) > 5)
         shutil.rmtree(path_cache)
 
-    app = CartographServer(path_tilestache_cfg, config)
+    app = CartographServer(path_tilestache_cfg, Config.get())
     run_simple('0.0.0.0', 8080, app, static_files=static_files)
    
 
