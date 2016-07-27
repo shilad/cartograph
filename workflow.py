@@ -4,9 +4,7 @@ import matplotlib
 
 matplotlib.use('Agg')
 import logging
-
 import cartograph
-
 from cartograph import Config
 
 logger = logging.getLogger('workload')
@@ -16,8 +14,7 @@ import cartograph.Coordinates
 import cartograph.LuigiUtils
 import cartograph.PreReqs
 import cartograph.Popularity
-
-from cartograph import FastKnn
+from cartograph.CalculateZooms import ZoomLabeler
 from cartograph import Colors
 from cartograph import Utils
 from cartograph import Contour
@@ -31,10 +28,10 @@ from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
 from cartograph.CalculateZooms import CalculateZooms
 from cartograph.PopularityLabelSizer import PopularityLabelSizer
+from cartograph.Regions import MakeRegions, MakeSampleRegions
 from collections import defaultdict
 from time import time
 import numpy as np
-from sklearn.cluster import KMeans
 from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedLocalTarget, MTimeMixin, getSampleIds
 
 RUN_TIME = time()
@@ -49,6 +46,7 @@ RUN_TIME = time()
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.Contour.__file__))
+
 
 class ColorsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
@@ -89,11 +87,6 @@ class LabelsCode(MTimeMixin, luigi.ExternalTask):
         return (TimestampedLocalTarget(cartograph.Labels.__file__))
 
 
-class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.CalculateZooms.__file__))
-
-
 class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
@@ -111,125 +104,6 @@ class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
 # ====================================================================
 # Data Training and Analysis Stage
 # ====================================================================
-
-
-
-class MakeSampleRegions(MTimeMixin, luigi.Task):
-    '''
-    Run KMeans to cluster article points into specific continents.
-    Seed is set at 42 to make sure that when run against labeling
-    algorithm clusters numbers consistently refer to the same entity
-    '''
-    def output(self):
-        config = Config.get()
-        return TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                            "clusters_with_id"))
-
-    def requires(self):
-        config = Config.get()
-        return (
-            cartograph.Coordinates.CreateSampleCoordinates(),
-            cartograph.Coordinates.SampleCreator(config.get("ExternalFiles", "vecs_with_id"))
-        )
-
-    def run(self):
-        config = Config.get()
-        featureDict = Utils.read_features(config.getSample("ExternalFiles",
-                                                    "vecs_with_id"))
-        keys = list(k for k in featureDict.keys() if len(featureDict[k]['vector']) > 0)
-        vectors = np.array([featureDict[vID]["vector"] for vID in keys])
-        labels = list(KMeans((config.getint("PreprocessingConstants",
-                                           "num_clusters")),
-                             random_state=42).fit(vectors).labels_)
-        
-        Utils.write_tsv(config.getSample("GeneratedFiles", "clusters_with_id"),
-                        ("index", "cluster"), keys, labels)
-
-
-class MakeRegions(MTimeMixin, luigi.Task):
-    def output(self):
-        config = Config.get()
-        return TimestampedLocalTarget(config.get("GeneratedFiles", "clusters_with_id"))
-
-    def requires(self):
-        return (
-            MakeSampleRegions(),
-            cartograph.PreReqs.WikiBrainNumbering(),
-            cartograph.Coordinates.CreateSampleAnnoyIndex()
-        )
-
-    def run(self):
-        config = Config.get()
-        sampleRegions = Utils.read_features(config.getSample("GeneratedFiles", "clusters_with_id"), )
-        vecs = Utils.read_features(config.get("ExternalFiles", "vecs_with_id"))
-        knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
-        assert(knn.exists())
-        knn.read()
-        ids = []
-        clusters = []
-        for i, (id, row) in enumerate(vecs.items()):
-            if i % 10000 == 0:
-                logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-            sums = defaultdict(float)
-            if len(row['vector']) == 0: continue
-            hood = knn.neighbors(row['vector'], 5)
-            if not hood: continue
-            for (id2, score) in hood:
-                c = sampleRegions[id2].get('cluster')
-                if c is not None:
-                    sums[c] += score
-            cluster = max(sums, key=sums.get)
-            ids.append(id)
-            clusters.append(cluster)
-
-        Utils.write_tsv(config.get("GeneratedFiles", "clusters_with_id"),
-                        ("index", "cluster"), ids, clusters)
-
-
-class ZoomLabeler(MTimeMixin, luigi.Task):
-    '''
-    Calculates a starting zoom level for every article point in the data,
-    i.e. determines when each article label should appear.
-    '''
-    def output(self):
-        config = Config.get()
-        return TimestampedLocalTarget(config.get("GeneratedFiles",
-                                                 "zoom_with_id"))
-
-    def requires(self):
-        return (MakeRegions(),
-                CalculateZoomsCode(),
-                cartograph.Coordinates.CreateFullCoordinates(),
-                cartograph.Popularity.PopularityIdentifier()
-                )
-
-    def run(self):
-        config = Config.get()
-        feats = Utils.read_features(config.get("GeneratedFiles",
-                                              "popularity_with_id"),
-                                    config.get("GeneratedFiles",
-                                              "article_coordinates"),
-                                    config.get("GeneratedFiles",
-                                              "clusters_with_id"))
-        print('FEATURES IS', len(feats))
-        counts = defaultdict(int)
-        for row in feats.values():
-            for k in row:
-                counts[k] += 1
-        print(counts)
-
-        zoom = CalculateZooms(feats,
-                              config.getint("MapConstants", "max_coordinate"),
-                              config.getint("PreprocessingConstants", "num_clusters"))
-        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"),
-                                             config.getint("MapConstants", "first_zoom_label"))
-
-        keys = list(numberedZoomDict.keys())
-        zoomValue = list(numberedZoomDict.values())
-
-
-        Utils.write_tsv(config.get("GeneratedFiles", "zoom_with_id"),
-                        ("index", "maxZoom"), keys, zoomValue)
 
 
 class Denoise(MTimeMixin, luigi.Task):
@@ -592,7 +466,6 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                 CreateLabelsFromZoom(),
                 CreateContinents(),
                 LabelsCode(),
-                CalculateZoomsCode(),
                 ZoomGeoJSONWriterCode()
                 )
 

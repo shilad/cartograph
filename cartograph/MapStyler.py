@@ -3,9 +3,6 @@ from mapnik import register_fonts, FontEngine
 
 
 class MapStyler:
-
-
-
     def __init__(self, config, colorwheel):
         self.config = config
         self.numContours =  config.getint("PreprocessingConstants", "num_contours")
