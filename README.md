@@ -1,19 +1,20 @@
 # Procedural Map Generation
 This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/cartograph/static/index.html), which maps Wikipedia articles into an imaginary geographical space based on their relatedness to each other. If you want to be able to generate your own maps, read on!
 
-##Requirements
+#Requirements
 - These instructions are written for a Mac system. They should be pretty easily portable to Linux/Windows with appropriate adjustment of the command line stuff, but we haven't tested it on those systems yet, so some things might be different.
 - You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( 
 - Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice
 
-##Getting started
+#Getting started
 
+###Github
 Fork and clone the repo:
 ```
 git clone https://github.com/Bboatman/proceduralMapGeneration.git
 cd proceduralMapGeneration/
 ```
-
+###Postgres
 Then get postgres, which is where your data is going to live, from [here](http://postgresapp.com/). You'll need to change your bash profile in order to get it to work:
 ```
 nano .bash_profile
@@ -26,13 +27,14 @@ Ctrl-O to save and Ctrl-X to exit
 
 Make sure postgres is in your applications folder and then open it to start the server. 
 
-##Getting your data set up
+#Getting your data set up
 As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful. 
 
-###Data format
+##Data format
 
 The basics: Your data need to be vectorized (think word2vec) and have some kind of popularity/weighting score attached to each individual data point. They'll be stored in tsvs (tab-separated files), which are pretty easy to create if you don't have them already. 
 
+###Files you need
 I'll number the files you need so that you can reference them later. 
 
 1. A file of all your vectors, one per line, with individual numbers separated by tabs. The first line of this should just be a list of numbers from 1 to the length of your vectors (ours goes from 1 to 100). The line numbers in this file will eventually become the unique id numbers for each vector/item (id numbers are arbitrary and meaningless, but help with data tracking and lookup). Here are the first two lines of our vecs file so you can see (note: this is actually only two lines in-file, it breaks at "100"):
@@ -79,8 +81,8 @@ index	x	y
 89371	-2.57335603135	25.4092678524
 ```
 
-###Config
-This is the top of defaultconfig.txt, which you'll need to edit to correspond to your data files. You'll also have to create a couple of directories for your files to live in. 
+##Config
+This is the top of data/conf/defaultconfig.txt, which you'll need to edit to correspond to your data files. You'll also have to create a couple of directories for your files to live in. 
 ```
 [DEFAULT]
 dataset: dev_en
@@ -97,20 +99,33 @@ popularity: %(externalDir)s/popularity.tsv
 region_names: %(externalDir)s/region_names.tsv
 article_embedding = %(externalDir)s/tsne_cache.tsv
 ```
-
+###Directory setup and config
 This is the only part of this file you should need to change - the rest will either be generated based on your data or is constant.
 
 First up, the directories.
-[ STILL TO-DO - ASK SHILAD HOW THIS WORKS]
+1. In data/labdata, create a new file and call it something relevant to your dataset. Ours is called dev_en (development english)
+2. Put all your data files from Data Format into this folder
+3. Change the "dataset" line in the config file to point to your folder rather than dev_en
+4. One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
+```
+[Heading]
+```
 
-The external files are pretty easy - they go in the order described above in Data Format. Just pop in the title of your file after the last / in the filepath - so, for example, if you called your vectors file myvectors.tsv, you would change the file to read
+Next, external files: they're pretty easy - they go in the order described above in Data Format. Just pop in the title of your file after the last / in the filepath - so, for example, if you called your vectors file myvectors.tsv, you would change the file to read
 ```
 vecs_with_id: %(externalDir)s/myvectors.tsv
 ```
 Do the same for the other four files. If you don't have the last two, it's okay to leave them - the pipeline is set up to catch that and work around it. 
 
 
-##Dependencies galore!
+###Postgres database
+One more step for configuration - you have to create a postgres database to hold your data. Open up a terminal window and create a database with the title mapnik_yourdataset. Ours is called mapnik_dev_en.
+```
+$ createdb mapnik_yourdataset
+```
+
+
+#Dependencies galore!
 You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsgp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. 
 
 These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
@@ -136,19 +151,11 @@ You have to revert your Pillow version (Pillow is automatically installed by Til
 pip2.7 install -I Pillow == 2.9.0
 ```
 
-##Conf files
 
-One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
-```
-[Heading]
-```
-(you call call it whatever you want)
-
-
-##Test the server
+#Test the server
 Open a browser window and go to localhost:8080. If it says "TileStache bellows hello", congrats! Your server is working properly.
 
-##Run the pipeline!
+#Run the pipeline!
 This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. 
 
 ```
