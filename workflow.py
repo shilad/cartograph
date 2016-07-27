@@ -580,7 +580,7 @@ class CreateMapXml(MTimeMixin, luigi.Task):
         regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
         regionIds = map(str, regionIds)
         countryBorders = Utils.read_features(config.get("GeneratedFiles", "country_borders"))
-        colorFactory = Colors.ColorSelector(countryBorders, COLORWHEEL)
+        colorFactory = Colors.ColorSelector(countryBorders, Config.getColorWheel())
         colors = colorFactory.optimalColoring()
 
         ms = MapStyler.MapStyler(config, colors)
