@@ -7,7 +7,7 @@ import annoy
 
 from cartograph import Utils
 
-logger = logging.getLogger("fast-knn")
+logger = logging.getLogger("cartograph.fast-knn")
 
 class FastKnn:
     def __init__(self, pathVectors):

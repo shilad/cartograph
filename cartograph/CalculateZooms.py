@@ -87,10 +87,7 @@ class CalculateZooms:
 
         coordRange = min(TOP_LEVEL_COORDINATES)
         lastZoom = firstZoomLevel
-        # for i in range(18):
-        #     if coordRange >= self.maxCoordinate:
-        #         lastZoom = i
-        #     coordRange /= 2.0
+
         added = set()
 
         nAdded = [0]
