@@ -1,203 +1,177 @@
 # Procedural Map Generation
-Note: This architecture is based off of the stack designed on https://switch2osm.org/serving-tiles/. For reference, the original install instructions (which are quite out of date in a number of ways) are located [here](https://switch2osm.org/serving-tiles/manually-building-a-tile-server-14-04/). 
+This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/cartograph/static/index.html), which maps Wikipedia articles into an imaginary geographical space based on their relatedness to each other. If you want to be able to generate your own maps, read on!
 
-# Machine Setup
-## Install Virtualbox and Ubuntu. 
-The instructions [here](http://www.engadget.com/2009/09/07/how-to-set-up-ubuntu-linux-on-a-mac-its-easy-and-free/) should be helpful. But you want to have at least 4GB of ram and 15-25GB of storage. For the actual server machine, we may want to actually be running Ubuntu, rather than having a virtual instance. I'm going to assume the username is "research" in this documentation, but that's an easy fix if we want to change it.
+#Requirements
+- These instructions are written for a Mac system. They should be pretty easily portable to Linux/Windows with appropriate adjustment of the command line stuff, but we haven't tested it on those systems yet, so some things might be different.
+- You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( If you'd like to play around with the full Wikipedia dataset, open an issue and we'll do our best to get you set up.
+- Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice
 
-## Dependency laundry list
-Here's a dependency laundry list that consists of things we want and things that are good to have:
-```
-sudo apt-get install libboost-all-dev subversion git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg node-carto libtiff5-dev:i386 libtiff5-dev
-```
-## Set up your source directory
-This is where the majority of this code will live.
-```
-mkdir ~/src
-cd ~/src
-```
+#Getting started
 
-# Repo Setup
-## Download our repo!
+###Github
+Fork and clone the repo:
 ```
 git clone https://github.com/Bboatman/proceduralMapGeneration.git
 cd proceduralMapGeneration/
 ```
-## Mapnik
-We need our good friend Mapnik in order draw our tiles and maps, and in order to get mapnik we need pip.
+###Postgres
+Then get postgres, which is where your data is going to live, from [here](http://postgresapp.com/). You'll need to change your bash profile in order to get it to work:
 ```
-wget https://bootstrap.pypa.io/get-pip.py
-sudo python2.7 get-pip.py
-sudo pip2.7 install mapnik
+nano .bash_profile
 ```
-## Dependencies! 
-We need a few things to work with this library, so install them now.
+Add this line to it (assuming you're using bash):
 ```
-sudo pip install geojson
-sudo pip install scipy
-sudo pip install numpy
-sudo pip install matplotlib # we should probably remove this dependancy but Jaco.....
+export PATH=$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin
 ```
-## Set up tiles directory
-We need a directory to save the tiles in, so in order to do that you should
-```
-sudo mkdir /var/www/html/tiles
-```
-Take ownership of the tiles directory to access them...
-```
-sudo chown -R research.research /var/www/html/tiles/
-```
-# Web Server Setup
-## Apache webserver
+Ctrl-O to save and Ctrl-X to exit
 
-### 000-default.conf
-Replace the entire content of /etc/apache2/sites-available/000-default.conf with the text of the "000-default.conf" file I have included in the installDocuments/ folder of this project.
-### configure apache
-Restart the server so it knows you've made changes.  **NOTE:**  Will result in an error but we should still be ok.
+Make sure postgres is in your applications folder and then open it to start the server. 
+
+#Getting your data set up
+As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful. 
+
+##Data format
+
+The basics: Your data need to be vectorized (think word2vec) and have some kind of popularity/weighting score attached to each individual data point. They'll be stored in tsvs (tab-separated files), which are pretty easy to create if you don't have them already. 
+
+###Files you need
+I'll number the files you need so that you can reference them later. 
+
+1. A file of all your vectors, one per line, with individual numbers separated by tabs. The first line of this should just be a list of numbers from 1 to the length of your vectors (ours goes from 1 to 100). The line numbers in this file will eventually become the unique id numbers for each vector/item (id numbers are arbitrary and meaningless, but help with data tracking and lookup). Here are the first two lines of our vecs file so you can see:
 ```
-sudo service apache2 reload
+1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21	22	23	24	25	26	27	28	29	30	31	32	33	34	35	36	37	38	39	40	41	42	43	44	45	46	47	48	49	50	51	52	53	54	55	56	57	58	59	60	61	62	63	64	65	66	67	68	69	70	71	72	73	74	75	76	77	78	79	80	81	82	83	84	85	86	87	88	89	90	91	92	93	94	95	96	97	98	99	100
+-0.07138634	-0.08672774	-0.013411164	0.07870448	0.04251623	0.11026025	0.008073568	0.044899702	0.05322492	-0.13140923	0.077965975	-0.12912643	0.073434114	-0.053325653	-0.09941709	0.08749974	0.060241103	-0.124527335	-0.014015436	0.033687353	0.1030426	-0.012437582	0.004548788	-0.061617494	0.1483283	0.0057908297	-0.13584042	0.15024185	-0.037984252	-0.12157321	0.09136045	0.020964265	0.016398907	-0.081725836	-0.036406517	-0.15739226	-0.05564201	0.056917787	0.06571305	0.2697841	0.19257343	0.11049521	0.06296027	0.01737237	0.083135724	-0.06151676	-0.22469974	-0.14886552	0.05225146	-0.060946107	0.049633026	-0.15782869	-0.12573588	-0.015895367	0.012135506	0.043959737	0.03600359	0.034795165	-0.04003203	-0.007905722	0.08175945	0.06722367	-0.017473102	0.009483457	0.04708171	0.16971242	0.08944678	-0.0101213455	0.055675507	0.05460131	0.17296863	0.19190204	-0.13852596	-0.114959955	-0.03523159	-0.014250398	0.114590645	0.0142169	-0.04355693	-0.19052565	0.07115126	-0.28525978	-0.027846217	-0.07007706	-0.14977187	-0.022709966	0.056917787	-0.025865555	0.06698871	0.09790647	-0.0046830177	0.11667204	0.03761494	-0.0047165155	0.17921269	0.07742882	-0.14728767	-0.14275575	-0.073064804	0.14440072
 ```
 
-## Installing TileStache
-Adapted from [this axis maps blog post.](http://www.axismaps.com/blog/2012/01/dont-panic-an-absolute-beginners-guide-to-building-a-map-server/)
-
-### Install mod_python 
-This interface is how TileStache communicates with the web server. 
+2. A file of all your names/titles, one per line. There should be two columns, one callled "index" and one called "name". "Index" should correspond to the line number of the vectors file (i.e. they should be in the same order), and "name" is the title of your item/point. Again, everything should be tab-separated. Here are the first few lines of our names file:
 ```
-sudo apt-get install libapache2-mod-python
-```
-Then restart the web server. 
-```
-sudo /etc/init.d/apache2 restart
-```
-### Install some dependencies. 
-Packages that help with the install/required python tools and libraries.
-```
-cd /etc
-sudo apt-get install curl
-sudo apt-get install git-core
-sudo apt-get install python-setuptools
-sudo apt-get install aptitude
-sudo aptitude install python-dev
-sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
-```
-You probably have pip at this point, but if you don't:
-```
-curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
-sudo python get-pip.py
-```
-Install required python modules. 
-```
-sudo pip install -U werkzeug
-sudo pip install -U simplejson
-sudo pip install -U modestmaps
-```
-Python Image Library doesn't play nice with Ubuntu, add some symlinks to fix that: 
-```
-sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib
-sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib
-sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib
-```
-Install pillow.  
-```
-sudo pip install -U pillow
-```
-Clone the TileStache repository from GitHub. 
-```
-sudo git clone https://github.com/migurski/TileStache.git
-```
-Install TileStache globally. 
-```
-cd TileStache/
-sudo python setup.py install
-```
-### Link mod_python and TileStache to the web server. 
-Open the apache configuration file to edit it. 
-```
-sudo nano /etc/apache2/httpd.conf
-```
-Add the following to the conf file. 
-```
-<Directory /var/www/html/tiles>
-  AddHandler mod_python .py
-  PythonHandler TileStache::modpythonHandler
-  PythonOption config /etc/TileStache/tilestache.cfg
-</Directory>
-```
-Reboot your server. 
-```
-reboot
-```
-### Edit config files
-Update tilestache.cfg
-```
-cd /etc/TileStache/
-sudo gedit tilestache.cfg
-```
-Edit the file to work with our project. (NOTE: update this with a file in setup files so that the code doesn't have to go in the readme - it will be getting updated regularly) 
-```
-{
-  "cache":
-  {
-    "name": "Disk",
-    "path": "/tmp/stache"
-  },
-  "layers": 
-  {
-    "map":
-    {
-        "provider": {"name": "mapnik", "mapfile": "/home/research/src/proceduralMapGeneration/map.xml"},
-        "projection": "spherical mercator"
-        "metatile": {"rows": 6, "columns": 6, "buffer":64}
-    }
-  }
-}
-```
-Edit an outdated function call. Note that there are many Mapnik.py versions. Open the one listed below.
-```
-cd /usr/local/lib/python2.7/dist-packages/TileStache-1.50.1-py2.7.egg/TileStache/
-sudo gedit Mapnik.py
-```
-On line 154 in the renderArea() function, change fromstring() to frombytes().
-
-
-# Making the Map
-
-## Python
-TOOD: To be updated with the details of how to use the new workflow/pipeline
-
-##TileStache
-To actually generate the map tiles from the xml, you need to run TileStache.
-```
-cd /etc/TileStache/
-./scripts/tilestache-server.py
+index	name
+1	Kat Graham
+2	Cedi Osman
+3	List of Chicago Bulls seasons
+4	Alabama
+5	An American in Paris
 ```
 
-To check if your server is running, open a browser to localhost:8080. If it says "TileStache bellows hello.", you're all good - you should be able to go view the map. If not, something has gone wrong.  
+3. A file of all your popularities/weights, one per line. This should have two tab-separated columns, one of which contains the name/title of the point, and the second of which contains the score. This file does not need a heading. It also does not need to be in the same order as the other two. Here's our popularity file, which measures the popularity of Wikipedia articles using a weighted combination of page views and page rank.
+```
+2014–15 West Ham United F.C. season	6.038550978007928E-6
+The Return of Superman (TV series)	8.09840661109975E-5
+Bethany Mota	9.359317492029514E-5
+Elfrid Payton (basketball)	1.3807395228814057E-5
+Dothraki language	5.198423874878717E-5
+List of edible molluscs	4.500109212570877E-6
+```
 
-Note that if you change things that affect the way the tiles look (basically, anything that affects the xml), to overwrite the tiles in the cache you have to remove it and rerun the TileStache server:
+4. (OPTIONAL) Region names. This is probably something you'll add after you see your data for the first time. It's the file that creates the region labels ("Physics & Maths", "Politics & Geography", etc. on our map). It has a header - one column is "cluster_id" and the other is "label", and is tab-separated, like all of our data files. If you leave this one off, the code will just number your regions on the map.
 ```
-rm -rf /tmp/stache
-cd /etc/TileStache/
-./scripts/tilestache-server.py
+cluster_id	label
+0	India
+1	History & Geography
+2	Politics & Economics
+3	Physics & Maths
 ```
 
-### Take a look!
-Then open up your friendly neighborhood web browser and point it at [http://localhost/Leaflet/leafletmap2.html](http://localhost/Leaflet/leafletmap2.html) ...and you should have a map!
+5. (OPTIONAL) t-sne cache. This is a cache of your embedding, a three-column tsv file with an header "index x y", which represents the index/id number of the point and then its x/y coordinates after embedding. Caching this file maintains a consistent embedding and also speeds up the run-time of the process. 
+```
+index	x	y
+91139	1.29488570272	6.27138495391
+40135	20.3768748707	-9.27980846186
+89370	-6.43982634997	-4.71632724942
+89371	-2.57335603135	25.4092678524
+```
 
-# Known Fixes
+##Config
+This is the top of data/conf/defaultconfig.txt, which you'll need to edit to correspond to your data files. You'll also have to create a couple of directories for your files to live in. 
+```
+[DEFAULT]
+dataset: dev_en
+baseDir: ./data/%(dataset)s
+generatedDir: %(baseDir)s/tsv
+mapDir: %(baseDir)s/maps
+geojsonDir: %(baseDir)s/geojson
+externalDir: ./data/labdata/%(dataset)s
 
-Take ownership of the tiles directory to access them...
+[ExternalFiles]
+vecs_with_id: %(externalDir)s/vecs.tsv
+names_with_id: %(externalDir)s/names.tsv
+popularity: %(externalDir)s/popularity.tsv
+region_names: %(externalDir)s/region_names.tsv
+article_embedding = %(externalDir)s/tsne_cache.tsv
 ```
-sudo chown -R research.research /var/www/html/tiles/
+###Directory setup and config
+This is the only part of this file you should need to change - the rest will either be generated based on your data or is constant.
+
+First up, the directories.
+1. In data/labdata, create a new file and call it something relevant to your dataset. Ours is called dev_en (development english)
+2. Put all your data files from Data Format into this folder
+3. Change the "dataset" line in the config file to point to your folder rather than dev_en
+4. One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
 ```
-Restart the apache server
+[Heading]
 ```
-sudo service apache2 reload
+
+Next, external files: they're pretty easy - they go in the order described above in Data Format. Just pop in the title of your file after the last / in the filepath - so, for example, if you called your vectors file myvectors.tsv, you would change the file to read
 ```
-If you get an error saying the server is offline, try
+vecs_with_id: %(externalDir)s/myvectors.tsv
 ```
-sudo service apache2 start
+Do the same for the other four files. If you don't have the last two, it's okay to leave them - the pipeline is set up to catch that and work around it. 
+
+
+###Postgres database
+One more step for configuration - you have to create a postgres database to hold your data. Open up a terminal window and create a database with the title mapnik_yourdataset. Ours is called mapnik_dev_en.
 ```
+$ createdb mapnik_yourdataset
+```
+
+
+#Dependencies galore!
+You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsgp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. 
+
+These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
+
+```
+pip2.7 install luigi
+pip2.7 install geojson
+pip2.7 install shapely
+pip2.7 install mapnik
+pip2.7 install lxml
+pip2.7 install sklearn
+pip2.7 install Cython
+pip2.7 install tsne
+pip2.7 install psycopg2
+pip2.7 install annoy
+pip2.7 install werkzeug
+pip2.7 install marisa-trie
+pip2.7 install TileStache 
+```
+
+You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
+```
+pip2.7 install -I Pillow == 2.9.0
+```
+
+
+#Test the server
+Open a browser window and go to localhost:8080. If it says "TileStache bellows hello", congrats! Your server is working properly.
+
+#Run the pipeline!
+This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. 
+
+```
+./build.sh
+```
+
+##Run the server!
+The last step is to run the TileStache server, which takes your map xml and turns it into tiles that can then be served. This part also handles setting up things like the search function.
+
+```
+python run-server.py
+```
+
+If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map! 
+
+
+
 
 
