@@ -612,11 +612,10 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                 )
 
     def generateLabels(self, contourFile, mapFile):
+        zoomScaleData = Utils.read_zoom(config.get("MapData", "scale_dimensions"))
         labelClust = Labels(config, mapFile,
-                            'countries', config.get("MapData", "scale_dimensions"))
+                            'countries', zoomScaleData)
         labelClust.addCustomFonts(config.get('MapResources', 'fontDir'))
-        maxScaleClust = labelClust.getMaxDenominator(0)
-        minScaleClust = labelClust.getMinDenominator(5)
 
         #For testing remove later.
         labelClust.addWaterXml()
@@ -627,7 +626,7 @@ class LabelMapUsingZoom(MTimeMixin, luigi.Task):
                                   maxScale=0)
 
         labelCities = Labels(config, mapFile,
-                             'coordinates', config.get("MapData", "scale_dimensions"))
+                             'coordinates',zoomScaleData)
         labelCities.writeLabelsByZoomToXml('[citylabel]', 'point',
                                            config.getint("MapConstants", "max_zoom"),
                                            imgFile=config.get("MapResources",
