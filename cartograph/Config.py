@@ -99,10 +99,11 @@ def selective_merge(base_obj, delta_obj):
 
 def _coloringFeatures(num_clusters):
     '''
-    Chooses number of colors to be included in the color wheel based on the number of clusters.
+    Chooses number of colors to be included in the color wheel
+    based on the number of clusters.
     '''
-        assert(num_clusters <= 30)
-        colors = {0: {6: "#b79c29", 5: "#bea53e", 4: "#c5af53", 3: "#ccb969", 2: "#d3c37e", 1: "#dbcd94", 0: "#e2d7a9", 7: "#e9e1be"},
+    assert(num_clusters <= 30)
+    colors = {0: {6: "#b79c29", 5: "#bea53e", 4: "#c5af53", 3: "#ccb969", 2: "#d3c37e", 1: "#dbcd94", 0: "#e2d7a9", 7: "#e9e1be"},
                 1: {6: "#905a6e", 5: "#9b6a7c", 4: "#a67a8b", 3: "#b18b99", 2: "#bc9ca8", 1: "#c7acb6", 0: "#d2bdc5", 7: "#ddcdd3"},
                 2: {6: "#7eab2b", 5: "#8ab340", 4: "#97bb55", 3: "#a4c46a", 2: "#b1cc7f", 1: "#bed595", 0: "#cbddaa", 7: "#d8e5bf"},
                 3: {6: "#f10e0a", 5: "#f6221e", 4: "#f73a36", 3: "#f8524f", 2: "#f96a68", 1: "#fa8280", 0: "#fb9a99", 7: "#fcb2b2"},
@@ -133,8 +134,8 @@ def _coloringFeatures(num_clusters):
                 28: {6: "#a11837", 5: "#aa2f4b", 4: "#b3465e", 3: "#bd5d73", 2: "#c67487", 1: "#d08b9b", 0: "#d9a2af", 7: "#e2b9c3"},
                 29: {6: "#cf7ced", 5: "#d389ee", 4: "#d896f0", 3: "#dda3f2", 2: "#e2b0f4", 1: "#e7bdf6", 0: "#ebcaf7", 7: "#f0d7f9"}}
 
-        keys = colors.keys()[:num_clusters]
-        for key in colors.keys():
-            if key not in keys:
-                del colors[key]
-        return colors
+    keys = colors.keys()[:num_clusters]
+    for key in colors.keys():
+        if key not in keys:
+            del colors[key]
+    return colors
