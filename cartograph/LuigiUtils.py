@@ -10,7 +10,7 @@ from luigi.postgres import CopyToTable, PostgresTarget
 
 import Config, Utils
 
-logger = logging.getLogger('luigi-interface')
+logger = logging.getLogger('cartograph.luigi')
 
 
 def to_list(obj):
