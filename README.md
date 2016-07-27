@@ -3,7 +3,7 @@ This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/car
 
 #Requirements
 - These instructions are written for a Mac system. They should be pretty easily portable to Linux/Windows with appropriate adjustment of the command line stuff, but we haven't tested it on those systems yet, so some things might be different.
-- You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( 
+- You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( If you'd like to play around with the full Wikipedia dataset, open an issue and we'll do our best to get you set up.
 - Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice
 
 #Getting started
