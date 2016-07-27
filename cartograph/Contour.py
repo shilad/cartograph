@@ -59,7 +59,7 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         countryBorders = config.get("MapData", "countries_geojson")
 
-        contour = Contour.ContourCreator(numClusters)
+        contour = ContourCreator(numClusters)
         contour.buildContours(featuresDict, countryBorders)
         contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
         contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
