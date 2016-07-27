@@ -94,22 +94,41 @@ class Labels():
 
             sizeLabel += 3
 
-        for c in range(1):
-            rule = SubElement(style, 'Rule')
-            filterBy = SubElement(rule, 'Filter')
-            filterBy.text = "[maxzoom] <= " + str(filterZoomNum)
+       
+        rule = SubElement(style, 'Rule')
+        filterBy = SubElement(rule, 'Filter')
+        filterBy.text = "[maxzoom] <= " + str(filterZoomNum)
 
-            #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
-            maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
-            maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
-            assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
+        #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+        maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
+        maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
+        assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
 
-            pointSym = SubElement(rule, 'PointSymbolizer')
-            pointSym.set('file', imgFile)
-            pointSym.set('opacity', '0.0')
+        pointSym = SubElement(rule, 'PointSymbolizer')
+        pointSym.set('file', imgFile)
+        pointSym.set('opacity', '0.0')
 
-            pointSym.set('ignore-placement', 'true')
-            pointSym.set('allow-overlap', 'true')
+        pointSym.set('ignore-placement', 'true')
+        pointSym.set('allow-overlap', 'true')
+
+
+        rule = SubElement(style, 'Rule')
+        filterBy = SubElement(rule, 'Filter')
+        filterBy.text = "[maxzoom] = " + str(filterZoomNum+1)
+
+        #minScaleSym = SubElement(rule, 'MinScaleDenominator').text = '2133'
+        maxScaleSym = SubElement(rule, 'MaxScaleDenominator')
+        maxScaleSym.text = self.getMaxDenominator(filterZoomNum)
+        assert maxScaleSym.text != None, 'no max denominator for %s' % filterZoomNum
+
+        pointSym = SubElement(rule, 'PointSymbolizer')
+        pointSym.set('file', imgFile)
+        pointSym.set('opacity', '0.5')
+
+        pointSym.set('ignore-placement', 'true')
+        pointSym.set('allow-overlap', 'false')
+
+
 
 
     def _add_Shield_Style_By_Zoom(self, field, labelType, maxZoom, imgFile, numBins):
@@ -137,7 +156,10 @@ class Labels():
             assert layer.get('maxzoom') != None, 'no max denominator for %s' % z
             addStyle = SubElement(layer, 'StyleName')
             addStyle.text = field[1:-1] + str(z) + 'LabelStyle'
-            self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z) + ' order by maxzoom) as foo')
+            if z != maxZoom:
+                self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z+1) + ' order by maxzoom) as foo')
+            else:
+                self.addDataSource(layer, '(select * from ' + self.table + ' where maxzoom <= ' + str(z) + ' order by maxzoom) as foo')
 
     def writeLabelsByZoomToXml(self, field, labelType, maxZoom, imgFile, numBins):
         self._add_Shield_Style_By_Zoom(field, labelType, maxZoom, imgFile, numBins)
