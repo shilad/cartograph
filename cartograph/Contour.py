@@ -10,12 +10,23 @@ import shapely.geometry as shply
 
 
 class ContourCreator:
+    '''
+    Creates the centroid and density contours for the map
+    based on the wikipedia page placement and by writing them
+    out to geojson files.
+    '''
 
     def __init__(self, numClusters):
+        '''
+        init the number of clusters.
+        '''
         self.numClusters = numClusters
-        pass
 
     def buildContours(self, featureDict, countryFile):
+        '''
+        Runs class methods to define class variables for
+        other methods in the class.
+        '''
         self.xs, self.ys, self.vectors = self._sortClusters(featureDict, self.numClusters)
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
@@ -24,6 +35,11 @@ class ContourCreator:
         self.centroid_CSs = self._centroidCalcContour()
 
     def _sortClusters(self, featureDict, numClusters):
+        '''
+        Sorts through the featureDict to find the points and vectors
+        that correspond to each individual country and returns lists
+        with those variables in the correct country spot.
+        '''
         xs = [[] for i in range(numClusters)]
         ys = [[] for i in range(numClusters)]
         vectors = [[] for i in range(numClusters)]
@@ -55,6 +71,12 @@ class ContourCreator:
         return xs, ys, vectors
 
     def _centroidValues(self):
+        '''
+        Gets the centroid values of each vector by first finding the centroid
+        through the mean of all vectors in a group. Then using dot product to
+        compare each vector to the centroid and find each individual
+        centroid value.
+        '''
         centralities = []
         for vector in self.vectors:
             centroid = np.mean(vector, axis=0)
@@ -66,6 +88,9 @@ class ContourCreator:
         return centralities
 
     def _centroidCalcContour(self):
+        '''
+        Creates the contours based off of centroids using binned_statistic_2d
+        '''
         CSs = []
         for (x, y, values) in zip(self.xs, self.ys, self.centralities):
             if not x: continue
@@ -90,6 +115,9 @@ class ContourCreator:
         return CSs
 
     def _densityCalcContour(self):
+        '''
+        Creates the contours based off of density using histogram2d
+        '''
         CSs = []
         for (x, y) in zip(self.xs, self.ys):
             if not x: continue
@@ -110,6 +138,10 @@ class ContourCreator:
         return CSs
 
     def _getContours(self, CSs):
+        '''
+        Extracts the contours from CS.collections.get_paths to
+        separate each contour by layer.
+        '''
         plyList = []
         for CS in CSs:
             plys = []
@@ -124,6 +156,11 @@ class ContourCreator:
         return plyList
 
     def _cleanContours(self, CSs):
+        '''
+        This cuts off the edges of the contours that go over the edges
+        of a country so it looks tidier. This method uses shapely
+        geometric and intersection features.
+        '''
         js = json.load(open(self.countryFile, 'r'))
         plyList = self._getContours(CSs)
 
@@ -154,6 +191,11 @@ class ContourCreator:
         return newPlys
 
     def _genContourPolygons(self, CSs):
+        '''
+        Implements the Contour and Polygon classes to sort out the
+        holes before using Mapnik to create MultiPolygon
+        Features for each Contour.
+        '''
         newPlys = self._cleanContours(CSs)
         countryGroup = []
         for plys in newPlys:
@@ -177,6 +219,11 @@ class ContourCreator:
         return featureAr
 
     def makeDensityContourFeatureCollection(self, outputfilename):
+        '''
+        Call this method to create Density contours, it sends
+        the CS that corresponds with the contour type off. Writes
+        it out to a geojson file.
+        '''
         featureAr = self._genContourPolygons(self.density_CSs)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
@@ -184,6 +231,11 @@ class ContourCreator:
             writeFile.write(textDump)
 
     def makeCentroidContourFeatureCollection(self, outputfilename):
+        '''
+        Call this method to create Centroid contours, it sends
+        the CS that corresponds with the contour type off. Writes
+        it out to a geojson file.
+        '''
         featureAr = self._genContourPolygons(self.centroid_CSs)
         collection = FeatureCollection(featureAr)
         textDump = dumps(collection)
@@ -192,12 +244,24 @@ class ContourCreator:
 
 
 class Contour:
-    def __init__(self, shapes):
-        self.shapes = shapes
-        self.polygons = self._generatePolygons(self.shapes)
+    '''
+    This class represents one contour layer.
+    It uses the Polygon class to sort through all the polygons
+    in the layer and figure out where the holes are.
+    '''
 
-    @staticmethod
+    def __init__(self, shapes):
+        '''
+        Converts shapes to be used as self.polygons for the
+        rest of the class.
+        '''
+        self.polygons = self._generatePolygons(shapes)
+
     def _generatePolygons(shapes):
+        '''
+        Takes the polygons out of their numpy array form
+        so that we can give them to Mapnik properly.
+        '''
         polys = set()
         for group in shapes:
             points = []
@@ -207,6 +271,11 @@ class Contour:
         return polys
 
     def createHoles(self):
+        '''
+        Finds the polygons that are inside other polygons in this contour
+        layer then sets them as children of the polygon that they are
+        inside of to create holes.
+        '''
         toRemove = set()
         for poly in self.polygons:
             path = mplPath.Path(poly.points[0])
@@ -220,16 +289,31 @@ class Contour:
         self.collapseHoles()
 
     def collapseHoles(self):
+        '''
+        Creates holes in all of the polygons in the layer.
+        '''
         for poly in self.polygons:
             poly.collapseChildren()
 
 
 class Polygon:
+    '''
+    This class represents one polygon in one contour layer.
+    '''
 
     def __init__(self, points):
+        '''
+        Initializes the points in a list in case the polygon has children
+        which means that the location of the child polygon is inside of
+        the parent polygon.
+        '''
         self.points = [points]
         self.children = set()
 
     def collapseChildren(self):
+        '''
+        Add's the children's points to this polygon's points so that
+        when Mapnik reads it in, it is seen as a hole in this polygon.
+        '''
         for child in self.children:
             self.points.append(child.points[0])

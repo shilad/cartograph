@@ -3,8 +3,9 @@ from mapnik import register_fonts, FontEngine
 
 
 class MapStyler:
-
-
+    '''
+    Creates the Wikipeida Mapnik map.
+    '''
 
     def __init__(self, config, colorwheel):
         self.config = config
@@ -18,10 +19,16 @@ class MapStyler:
         self.extents = mapnik.Box2d(-d, -d, d, d)
 
     def addCustomFonts(self, customFontsDir):
+        '''
+        Picks the font that the labels are written in.
+        '''
         register_fonts(customFontsDir)
         # for face in FontEngine.face_names():print face
 
     def makeMap(self, contourFilename, countryFilename, clusterIds, contoursDB):
+        '''
+        Makes the map based off of the layers that have been given to it.
+        '''
         self.m = mapnik.Map(self.width, self.height)
         self.m.background = mapnik.Color('#ddf1fd')
         self.m.srs = '+init=epsg:3857'
@@ -65,18 +72,10 @@ class MapStyler:
         self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 
-    def generateSinglePolygonStyle(self, filename, opacity, color, gamma=1):
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        symbolizer = mapnik.PolygonSymbolizer()
-        symbolizer.fill = mapnik.Color('steelblue')
-        symbolizer.fill_opacity = opacity
-        symbolizer.gamma = gamma
-        r.symbols.append(symbolizer)
-        s.rules.append(r)
-        return s
-
     def generateCountryPolygonStyle(self, filename, opacity, clusterIds):
+        '''
+        Creates a country polygon style.
+        '''
         s = mapnik.Style()
         for i, c in enumerate(clusterIds):
             r = mapnik.Rule()
@@ -89,6 +88,10 @@ class MapStyler:
         return s
 
     def generateContourPolygonStyle(self, opacity, numContours, clusterIds, gamma=1):
+        '''
+        Creates a contour polygon style by adding specific colors for
+        each contour. Returns a list of styles.
+        '''
         styles = []
         for i in range(self.numClusters):
             for j in range(numContours):
@@ -105,6 +108,9 @@ class MapStyler:
         return styles
 
     def generateLineStyle(self, color, opacity, dash=None):
+        '''
+        Creates a Line style. adn gives it back
+        '''
         s = mapnik.Style()
         r = mapnik.Rule()
         symbolizer = mapnik.LineSymbolizer()
@@ -119,6 +125,9 @@ class MapStyler:
         return s
 
     def generateLayer(self, tableName, name, styleNames):
+        '''
+        Generates the layer with its multiple styles.
+        '''
         ds = self.getDatasource(tableName)
         layer = mapnik.Layer(name)
         layer.datasource = ds

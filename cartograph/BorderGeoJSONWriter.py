@@ -44,6 +44,9 @@ class BorderGeoJSONWriter:
 
 
 class ContinentTree:
+    '''
+    '''
+
     def __init__(self):
         self.root = set()
 
@@ -61,6 +64,8 @@ class ContinentTree:
 
 
 class Continent:
+    '''
+    '''
 
     def __init__(self, points):
         self.points = [points]
