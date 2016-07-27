@@ -162,7 +162,7 @@ The last step is to run the TileStache server, which takes your map xml and turn
 python run-server.py
 ```
 
-Now you should have a functional map! 
+If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map! 
 
 
 
