@@ -10,16 +10,6 @@ body {
   color: #222;
 }
 
-@font-face{
-  font-family: "GeosansLight";
-  src: url(../fonts/GeosansLight.ttf) format("truetype");
-}
-
-h1, h2, h3, h4, h5, h6, p {
-  font-family: "GeosansLight";
-  font-weight: bolder;
-}
-
 .nav {
   color: red;
 }
@@ -78,9 +68,21 @@ p {
 .algorithms-padding {
   padding-right: 25vh;
   padding-left: 25vh;
-  padding-bottom: 3vh;
+  padding-bottom: 10vh;
 }
 
+#algos {
+  padding-bottom: 5vh;
+}
+
+.img-button {
+  padding: 0;
+  border-width: 0;
+}
+
+#fork-button {
+  padding: .4vh;
+}
 .header-nav {
   border-radius:0;
   -webkit-border-radius:0;
@@ -106,7 +108,6 @@ ul.nav {
 
 .nav li a{
   text-align: center;
-  font-family: "GeosansLight";
   font-size: 30;
   margin: 0;
   display: block;
@@ -144,7 +145,6 @@ ul.nav {
 }
 
 .btn-xlarge {
-  font-family: "GeosansLight";
   padding: 18px 28px;
   font-size: 25;
   line-height: normal;
@@ -295,7 +295,6 @@ ul.nav {
 #powered-by{
   display: inline;
   float: left;
-  font-family: "GeosansLight";
 }
 
 #fork-us{

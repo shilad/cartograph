@@ -47,8 +47,10 @@ def read_zoom(filename):
     return values
 
 
-def read_features(*files):
+def read_features(*files, **kwargs):
+    id_set = kwargs.get('id_set', None)
     values = defaultdict(dict)
+    required = kwargs.get('required', [])
     for fn in files:
         with open(fn, "r") as f:
             fields = [s.strip() for s in f.readline().split('\t')]
@@ -56,7 +58,8 @@ def read_features(*files):
                 for line in f:
                     tokens = line.split('\t')
                     id = tokens[0]
-                    values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
+                    if id_set == None or id in id_set:
+                        values[id]['vector'] = np.array([float(t.strip()) for t in tokens[1:]])
             if fields[-1] == 'coords':
                 for line in f:
                     tokens = line.split('\t')
@@ -68,10 +71,18 @@ def read_features(*files):
                     tokens = line.split('\t')
                     if len(tokens) == len(fields):
                         id = tokens[0]
-                        values[id].update(zip(fields[1:], tokens[1:]))
+                        if id_set == None or id in id_set:
+                            values[id].update(zip(fields[1:], tokens[1:]))
                     else:
                         sys.stderr.write('invalid line %s in %s\n' % (`line`, `fn`))
-    return values
+    if required:
+        return {
+            id : record
+            for (id, record) in values.items()
+            if all((k in record) for k in required)
+        }
+    else:
+        return values
 
 
 def write_tsv(filename, header, indexList, *data):
@@ -149,6 +160,15 @@ def sort_by_feature(articleDict, featureName, reverse=True):
     allArticles.sort(key=lambda x: float(x[1][featureName]), reverse=reverse)
     return allArticles
 
+def sort_by_percentile(numBins):
+    unitStep = 100/numBins
+    percentileDataValue = defaultdict(dict)
+    for i, percentile in enumerate(list(range(0,100,unitStep))):
+        print(i)
+        print("=========")
+        print(i+1)
+        # np.percentile(percentileList, (i, i+1))
+
 
 
 class InputError(Exception):
@@ -169,4 +189,8 @@ def calc_area(points):
     y = unzipped[1]
     # Shoelace Algorithm (a la Stackoverflow)
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
+if __name__=='__main__':
+
+    sort_by_percentile(4)
 

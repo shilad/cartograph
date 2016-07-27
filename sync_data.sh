@@ -15,11 +15,17 @@
 
 KEYFILE=data/labdata.key
 DATA_LOCAL=data/labdata
-DATA_REMOTE=labdata@como.macalester.edu:data
+HOST_REMOTE=labdata@como.macalester.edu
+REMOTE_DIR=data
+DATA_REMOTE=$HOST_REMOTE:$REMOTE_DIR
 
 function do_rsync() {
     echo executing: rsync -avuz -e "ssh -i $KEYFILE" $@
     rsync -avz -e "ssh -i $KEYFILE" $@ || die "FAILURE!"
+}
+
+function do_ssh() {
+    ssh -i $KEYFILE $HOST_REMOTE $@
 }
 
 function die() {
@@ -53,7 +59,7 @@ if [ $command == "pull" ]; then
 	else
 		srcs="$DATA_REMOTE/$targets"
 	fi
-	do_rsync ${srcs} ${DATA_LOCAL}
+	do_rsync -r ${srcs} ${DATA_LOCAL}
 elif [ $command == "push" ]; then
     src=""
     for s in "$target" "$DATA_LOCAL/$target"; do
@@ -65,7 +71,12 @@ elif [ $command == "push" ]; then
     if [ -z "$src" ]; then
         die "couldn't find src file as either $target or $DATA_LOCAL/$target"
     fi
-	do_rsync ${src} ${DATA_REMOTE}/
+    prefix=
+    if [[ $src =~ labdata ]]; then
+        prefix=`dirname ${src/.*labdata\//}`/
+        do_ssh mkdir $REMOTE_DIR/$prefix
+    fi 
+	do_rsync ${src} ${DATA_REMOTE}/$prefix
 else
     die "unknown command $command; usage $0 {push|pull} filename"
 fi

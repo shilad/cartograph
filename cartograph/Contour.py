@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
@@ -54,25 +53,6 @@ class ContourCreator:
                 xs[c].append(float(pointInfo['x']))
                 ys[c].append(float(pointInfo['y']))
                 vectors[c].append(pointInfo['vector'])
-
-        return xs, ys, vectors
-
-
-
-    def _sortClusters(self, featureDict, numClusters):
-        xs = [[] for i in range(numClusters)]
-        ys = [[] for i in range(numClusters)]
-        vectors = [[] for i in range(numClusters)]
-
-        keys = featureDict.keys()
-        for index in keys:
-            pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
-            c = int(pointInfo['cluster'])
-            xs[c].append(float(pointInfo['x']))
-            ys[c].append(float(pointInfo['y']))
-            vectors[c].append(pointInfo['vector'])
-
 
         return xs, ys, vectors
 
