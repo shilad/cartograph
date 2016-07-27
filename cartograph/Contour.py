@@ -1,3 +1,8 @@
+from cartograph import Popularity, Coordinates
+from LuigiUtils import TimestampedLocalTarget, MTimeMixin
+import luigi
+import Utils
+import Config
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
@@ -8,7 +13,56 @@ import scipy.stats as sps
 import json
 import shapely.geometry as shply
 from collections import defaultdict
-from shapely.geometry import mapping, Point
+from shapely.geometry import Point
+
+
+class ContourCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(__file__))
+
+
+class CreateContours(MTimeMixin, luigi.Task):
+    '''
+    Make contours based on density of points inside the map
+    Generated as geojson data for later use inside map.xml
+    '''
+    def requires(self):
+        config = Config.get()
+        return (Coordinates.CreateSampleCoordinates(),
+                Popularity.SampleCreator(config.get("ExternalFiles", "vecs_with_id")),
+                ContourCode())
+                # CreateContinents(),
+                # MakeRegions())
+
+    def output(self):
+        config = Config.get()
+        return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
+                TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
+
+
+
+    def run(self):
+        config = Config.get()
+        featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
+                                                     "article_coordinates"),
+                                           config.getSample("GeneratedFiles",
+                                                     "clusters_with_id"),
+                                           config.getSample("GeneratedFiles",
+                                                     "denoised_with_id"),
+                                           config.getSample("ExternalFiles",
+                                                     "vecs_with_id"))
+        for key in featuresDict.keys():
+            if key[0] == "w":
+                del featuresDict[key]
+
+        numClusters = config.getint("PreprocessingConstants", "num_clusters")
+
+        countryBorders = config.get("MapData", "countries_geojson")
+
+        contour = Contour.ContourCreator(numClusters)
+        contour.buildContours(featuresDict, countryBorders)
+        contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
+        contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
 
 
 class ContourCreator:
@@ -19,9 +73,6 @@ class ContourCreator:
     '''
 
     def __init__(self, numClusters):
-        '''
-        init the number of clusters.
-        '''
         self.numClusters = numClusters
 
     def buildContours(self, featureDict, countryFile):
@@ -212,7 +263,7 @@ class ContourCreator:
     def _genContourPolygons(self, CSs):
         '''
         Implements the Contour and Polygon classes to sort out the
-        holes before using Mapnik to create MultiPolygon
+        holes before creating geojson MultiPolygon
         Features for each Contour.
         '''
         newPlys = self._cleanContours(CSs)
@@ -276,10 +327,10 @@ class Contour:
         '''
         self.polygons = self._generatePolygons(shapes)
 
-    def _generatePolygons(shapes):
+    def _generatePolygons(self, shapes):
         '''
         Takes the polygons out of their numpy array form
-        so that we can give them to Mapnik properly.
+        so that we can give them to geojson properly.
         '''
         polys = set()
         for group in shapes:

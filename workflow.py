@@ -136,7 +136,7 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         config = Config.get()
         featureDict = Utils.read_features(config.getSample("ExternalFiles",
                                                     "vecs_with_id"))
-        keys = list(k for k in featureDict.keys() if len(featureDict[k]['vector']) > 0)
+        keys = list(k for k in sorted(featureDict.keys()) if len(featureDict[k]['vector']) > 0)
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
         labels = list(KMeans((config.getint("PreprocessingConstants",
                                            "num_clusters")),
