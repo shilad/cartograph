@@ -1,47 +1,31 @@
 import luigi
-import matplotlib
-
-
-matplotlib.use('Agg')
 import logging
 import cartograph
 from cartograph import Config
-
-logger = logging.getLogger('workload')
-logger.setLevel(logging.INFO)
-
 import cartograph.Coordinates
 import cartograph.LuigiUtils
 import cartograph.PreReqs
 import cartograph.Popularity
+from cartograph import PopularityLabelSizer
 from cartograph.CalculateZooms import ZoomLabeler
 from cartograph import Colors
 from cartograph import Utils
 from cartograph import Contour
-from cartograph import Denoiser
+from cartograph.Denoiser import Denoise
 from cartograph import MapStyler
-from cartograph.borders.BorderBuilder import BorderBuilder
-from cartograph.borders import BorderProcessor, Noiser, Vertex, VoronoiWrapper
-from cartograph.BorderGeoJSONWriter import BorderGeoJSONWriter
-from cartograph.TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
+from cartograph.BorderGeoJSONWriter import CreateContinents
 from cartograph.ZoomGeoJSONWriter import ZoomGeoJSONWriter
 from cartograph.Labels import Labels
-from cartograph.CalculateZooms import CalculateZooms
-from cartograph.PopularityLabelSizer import PopularityLabelSizer
-from cartograph.Regions import MakeRegions, MakeSampleRegions
-from collections import defaultdict
+from cartograph.Regions import MakeRegions
 from time import time
 import numpy as np
-from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedLocalTarget, MTimeMixin, getSampleIds
+from cartograph.LuigiUtils import LoadGeoJsonTask, TimestampedLocalTarget, MTimeMixin
 
 RUN_TIME = time()
 
+logger = logging.getLogger('workload')
+logger.setLevel(logging.INFO)
 
-# ====================================================================
-# Read in codebase as external dependencies to automate a rerun of any
-# code changed without having to do a manual invalidation
-# NOTE: Any new .py files that will run *must* go here for automation
-# ====================================================================
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
@@ -53,28 +37,9 @@ class ColorsCode(MTimeMixin, luigi.ExternalTask):
         return (TimestampedLocalTarget(cartograph.Colors.__file__))
 
 
-class DenoiserCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.Denoiser.__file__))
-
-
 class MapStylerCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.MapStyler.__file__))
-
-
-class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.borders.BorderBuilder.__file__),
-                TimestampedLocalTarget(cartograph.borders.BorderProcessor.__file__),
-                TimestampedLocalTarget(cartograph.borders.Noiser.__file__),
-                TimestampedLocalTarget(cartograph.borders.Vertex.__file__),
-                TimestampedLocalTarget(cartograph.borders.VoronoiWrapper.__file__))
-
-
-class BorderGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.BorderGeoJSONWriter.__file__))
 
 
 class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
@@ -95,130 +60,6 @@ class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
 class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.LuigiUtils.__file__))
-
-
-# ====================================================================
-# Clean up raw wikibrain data for uniform data structure manipulation
-# ====================================================================
-
-# ====================================================================
-# Data Training and Analysis Stage
-# ====================================================================
-
-
-class Denoise(MTimeMixin, luigi.Task):
-    '''
-    Remove outlier points and set water level for legibility in reading
-    and more coherent contintent boundary lines
-    '''
-    def output(self):
-        config = Config.get()
-        return (
-            TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                         "denoised_with_id")),
-            TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                         "clusters_with_water")),
-            TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                         "coordinates_with_water"))
-        )
-
-    def requires(self):
-        return (MakeRegions(),
-                cartograph.Coordinates.CreateSampleCoordinates(),
-                DenoiserCode())
-
-    def run(self):
-        config = Config.get()
-        featureDict = Utils.read_features(config.getSample("GeneratedFiles",
-                                                    "article_coordinates"),
-                                          config.getSample("GeneratedFiles",
-                                                    "clusters_with_id"))
-        featureIDs = list(featureDict.keys())
-        x = [float(featureDict[fID]["x"]) for fID in featureIDs]
-        y = [float(featureDict[fID]["y"]) for fID in featureIDs]
-        c = [int(featureDict[fID]["cluster"]) for fID in featureIDs]
-
-        denoiser = Denoiser.Denoiser(x, y, c,
-                                     config.getfloat("PreprocessingConstants",
-                                                     "water_level"))
-        keepBooleans, waterX, waterY, waterCluster = denoiser.denoise()
-
-        for x in range(len(waterX) - len(featureIDs)):
-            featureIDs.append("w" + str(x))
-
-        Utils.write_tsv(config.getSample("GeneratedFiles",
-                                  "denoised_with_id"),
-                        ("index", "keep"),
-                        featureIDs, keepBooleans)
-
-        Utils.write_tsv(config.getSample("GeneratedFiles",
-                                  "coordinates_with_water"),
-                        ("index", "x", "y"), featureIDs, waterX, waterY)
-        Utils.write_tsv(config.getSample("GeneratedFiles", "clusters_with_water"),
-                        ("index", "cluster"), featureIDs, waterCluster)
-
-
-# ====================================================================
-# Map File and Image (for visual check) Stage
-# ====================================================================
-
-
-class CreateContinents(MTimeMixin, luigi.Task):
-    '''
-    Use BorderFactory to define edges of continent polygons based on
-    voronoi tesselations of both article and waterpoints storing
-    article clusters as the points of their exterior edge
-    '''
-    def output(self):
-        config = Config.get()
-        return (
-            TimestampedLocalTarget(config.get("MapData", "countries_geojson")),
-            TimestampedLocalTarget(config.get("GeneratedFiles", "country_borders")),
-            TimestampedLocalTarget(config.get("MapData", "clusters_with_region_id")),
-            TimestampedLocalTarget(config.get("MapData", "borders_with_region_id")))
-
-    def requires(self):
-        return (cartograph.PreReqs.LabelNames(),
-                cartograph.Coordinates.CreateSampleCoordinates(),
-                BorderGeoJSONWriterCode(),
-                BorderFactoryCode(),
-                MakeSampleRegions(),
-                Denoise())
-
-    def decomposeBorders(self, clusterDict):
-        '''
-        Break down clusters into every region that comprises the whole
-        and save for later possible data manipulation
-        TODO: Extract interior ports as well as borders
-        '''
-        regionList = []
-        membershipList = []
-        for key in clusterDict:
-            regions = clusterDict[key]
-            for region in regions:
-                regionList.append(region)
-                membershipList.append(key)
-        return regionList, membershipList
-
-    def run(self):
-        config = Config.get()
-        clusterDict = BorderBuilder(config).build()
-        clustList = [list(clusterDict[x]) for x in list(clusterDict.keys())]
-        regionList, membershipList = self.decomposeBorders(clusterDict)
-        regionFile = config.get("ExternalFiles", "region_names")
-        BorderGeoJSONWriter(clustList, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
-        Utils.write_tsv(config.get("MapData", "clusters_with_region_id"),
-                        ("region_id", "cluster_id"),
-                        range(1, len(membershipList) + 1),
-                        membershipList)
-        Utils.write_tsv(config.get("MapData", "borders_with_region_id"),
-                        ("region_id", "border_list"),
-                        range(1, len(regionList) + 1),
-                        regionList)
-        Utils.write_tsv(config.get("GeneratedFiles", "country_borders"),
-                        ("cluster_id", "border_list"),
-                        range(len(clustList)),
-                        clustList)
 
 
 class CreateContours(MTimeMixin, luigi.Task):
@@ -323,7 +164,7 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (ZoomLabeler(),
-                cartograph.PopularityLabelSizer.PercentilePopularityIdentifier(),
+                PopularityLabelSizer.PercentilePopularityIdentifier(),
                 ZoomGeoJSONWriterCode())
 
     def run(self):

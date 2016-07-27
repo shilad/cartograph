@@ -59,8 +59,8 @@ class ContourCreator:
             del featureDict[key]
 
         for i, index in enumerate(keys):
-            if i % 1000 == 0:
-                print('doing', i, 'of', len(keys))
+            if i % 10000 == 0:
+                print 'doing', i, 'of', len(keys)
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
