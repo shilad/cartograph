@@ -41,7 +41,7 @@ class MapStyler:
         self.m.layers.append(self.generateLayer(contoursDB, "contour", sNames))
 
         self.m.append_style("outline",
-                            self.generateLineStyle("#bbbbbb", 1.0))
+                            self.generateLineStyle("#000000", 1.0))
         self.m.layers.append(self.generateLayer('countries', "outline", ["outline"]))
 
         # extent = mapnik.Box2d(-180.0, -180.0, 90.0, 90.0)
@@ -99,7 +99,7 @@ class MapStyler:
         symbolizer = mapnik.LineSymbolizer()
         symbolizer.stroke = mapnik.Color(color)
         symbolizer.stroke_opacity = opacity
-        symbolizer.stroke_width = 1
+        symbolizer.stroke_width = 2
         if dash:
             symbolizer.stroke_dasharray = dash
         r.symbols.append(symbolizer)

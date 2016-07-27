@@ -59,7 +59,7 @@ if [ $command == "pull" ]; then
 	else
 		srcs="$DATA_REMOTE/$targets"
 	fi
-	do_rsync -r ${srcs} ${DATA_LOCAL}
+	do_rsync ${srcs} ${DATA_LOCAL}
 elif [ $command == "push" ]; then
     src=""
     for s in "$target" "$DATA_LOCAL/$target"; do
