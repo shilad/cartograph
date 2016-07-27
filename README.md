@@ -29,7 +29,7 @@ Make sure postgres is in your applications folder and then open it to start the 
 ##Getting your data set up
 As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful. 
 
-#Data format
+###Data format
 
 The basics: Your data need to be vectorized (think word2vec) and have some kind of popularity/weighting score attached to each individual data point. They'll be stored in tsvs (tab-separated files), which are pretty easy to create if you don't have them already. 
 
@@ -74,7 +74,7 @@ index	x	y
 89371	-2.57335603135	25.4092678524
 ```
 
-#Config
+###Config
 This is the top of defaultconfig.txt, which you'll need to edit to correspond to your data files. You'll also have to create a couple of directories for your files to live in. 
 ```
 [DEFAULT]
