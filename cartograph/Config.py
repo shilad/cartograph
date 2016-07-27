@@ -54,8 +54,6 @@ def initConf(confFile=None):
 
     CONFIG = conf
 
-    print("CONFIG IS", CONFIG)
-
     return conf, colorWheel
 
 
