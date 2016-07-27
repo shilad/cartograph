@@ -41,6 +41,23 @@ class ContourCreator:
         vectors = [[] for i in range(numClusters)]
         keys = featureDict.keys()
 
+        count = 0
+        badKeys = []
+        for index in keys:
+            if 'keep' not in featureDict[index].keys():
+                count += 1
+                badKeys.append(index)
+            elif 'cluster' not in featureDict[index].keys():
+                count += 1
+                badKeys.append(index)
+            elif 'x' not in featureDict[index].keys():
+                count += 1
+                badKeys.append(index)
+
+        for key in badKeys:
+            keys.remove(key)
+            del featureDict[key]
+
         for i, index in enumerate(keys):
             if i % 1000 == 0:
                 print('doing', i, 'of', len(keys))
