@@ -30,7 +30,9 @@ Make sure postgres is in your applications folder and then open it to start the 
 [TODO - EXPLAIN FORMAT DATA NEEDS TO BE IN, HOW TO EDIT CONFIG FILE, HOW TO CREATE POSTGRES DATABASE - SHILAD AND BROOKE QUESTIONS]
 
 ##Dependencies galore!
-You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick with the exception of pygsgp, which takes about half an hour - it's a good thing to start installing before you go get lunch or go chasing Pokemon or something. These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
+You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsgp, which takes about half an hour - it's a good thing to start installing before you go get lunch or go chasing Pokemon or something.
+
+These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
 
 ```
 pip2.7 install luigi
@@ -48,21 +50,25 @@ pip2.7 install marisa-trie
 pip2.7 install TileStache 
 ```
 
-You have to revert your Pillow version because it doesn't play nice with the tile generation
+You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
 ```
 pip2.7 install -I Pillow == 2.9.0
 ```
 
 ##Conf files
 
-One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: [Heading] (you call call it whatever you want)
+One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
+```
+[Heading]
+```
+(you call call it whatever you want)
 
 
 ##Test the server
 Open a browser window and go to localhost:8080. If it says "TileStache bellows hello", congrats! Your server is working properly.
 
 ##Run the pipeline!
-This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. 
+This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. 
 
 ```
 ./build.sh
