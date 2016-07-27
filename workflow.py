@@ -27,11 +27,6 @@ logger = logging.getLogger('workload')
 logger.setLevel(logging.INFO)
 
 
-class ContourCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.Contour.__file__))
-
-
 class ColorsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(cartograph.Colors.__file__))
@@ -62,52 +57,6 @@ class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
         return (TimestampedLocalTarget(cartograph.LuigiUtils.__file__))
 
 
-class CreateContours(MTimeMixin, luigi.Task):
-    '''
-    Make contours based on density of points inside the map
-    Generated as geojson data for later use inside map.xml
-    '''
-    def requires(self):
-        config = Config.get()
-        return (cartograph.Coordinates.CreateSampleCoordinates(),
-                cartograph.Popularity.SampleCreator(config.get("ExternalFiles", "vecs_with_id")),
-                ContourCode(),
-                CreateContinents(),
-                MakeRegions())
-
-    def output(self):
-        config = Config.get()
-        return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
-                TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
-
-
-
-    def run(self):
-        config = Config.get()
-        featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
-                                                     "article_coordinates"),
-                                           config.getSample("GeneratedFiles",
-                                                     "clusters_with_id"),
-                                           config.getSample("GeneratedFiles",
-                                                     "denoised_with_id"),
-                                           config.getSample("ExternalFiles",
-                                                     "vecs_with_id"))
-        for key in featuresDict.keys():
-            if key[0] == "w":
-                del featuresDict[key]
-
-
-        numClusters = config.getint("PreprocessingConstants", "num_clusters")
-        numContours = config.getint('PreprocessingConstants', 'num_contours')
-
-        countryBorders = config.get("MapData", "countries_geojson")
-
-        contour = Contour.ContourCreator(numClusters)
-        contour.buildContours(featuresDict, countryBorders)
-        contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
-        contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
-
-
 class CreateStates(MTimeMixin, luigi.Task):
     '''
     Create states within regions
@@ -115,7 +64,7 @@ class CreateStates(MTimeMixin, luigi.Task):
     def requires(self):
         return(Denoise(),
                CreateContinents(),
-               CreateContours())
+               Contour.CreateContours())
     def output(self):
         ''' TODO - figure out what this is going to return'''
         config = Config.get()
@@ -192,7 +141,7 @@ class LoadContoursDensity(LoadGeoJsonTask):
         )
 
     def requires(self):
-        return CreateContours(), PGLoaderCode()
+        return Contour.CreateContours(), PGLoaderCode()
 
 
 class LoadContoursCentroid(LoadGeoJsonTask):
@@ -204,7 +153,7 @@ class LoadContoursCentroid(LoadGeoJsonTask):
                                  config.get('MapData', 'centroid_contours_geojson'))
 
     def requires(self):
-        return CreateContours(), PGLoaderCode()
+        return Contour.CreateContours(), PGLoaderCode()
 
 
 class LoadCoordinates(LoadGeoJsonTask):
