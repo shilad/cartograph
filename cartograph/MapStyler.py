@@ -116,7 +116,7 @@ class MapStyler:
         symbolizer = mapnik.LineSymbolizer()
         symbolizer.stroke = mapnik.Color(color)
         symbolizer.stroke_opacity = opacity
-        symbolizer.stroke_width = 1.5
+        symbolizer.stroke_width = 2
         if dash:
             symbolizer.stroke_dasharray = dash
         r.symbols.append(symbolizer)
