@@ -1,20 +1,19 @@
-import json, os, shutil
-
-from operator import itemgetter
-from werkzeug.serving import run_simple
-from werkzeug.wrappers import Request, Response
-from werkzeug.utils import redirect
-from cartograph.Config import initConf
-
+import json
 import marisa_trie
-
-import Util
+import os
+import shutil
+from operator import itemgetter
 
 import TileStache
+from werkzeug.serving import run_simple
+from werkzeug.wrappers import Request, Response
+
+from cartograph import Utils
+from cartograph import Config
 
 
 def run_server(path_cartograph_cfg, path_tilestache_cfg):
-    config = initConf(path_cartograph_cfg)[0]
+    Config.initConf(path_cartograph_cfg)
  
     
     path_tilestache_cfg = os.path.abspath(path_tilestache_cfg)
@@ -25,7 +24,7 @@ def run_server(path_cartograph_cfg, path_tilestache_cfg):
         assert(len(path_cache) > 5)
         shutil.rmtree(path_cache)
 
-    app = CartographServer(path_tilestache_cfg, config)
+    app = CartographServer(path_tilestache_cfg, Config.get())
     run_simple('0.0.0.0', 8080, app, static_files=static_files)
    
 
@@ -35,9 +34,13 @@ class CartographServer(TileStache.WSGITileServer):
         TileStache.WSGITileServer.__init__(self, path_cfg)
         self.cartoconfig = cartograph_cfg
       
-        xyDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "article_coordinates"),
-                                         self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles", "zoom_with_id"))
-        self.popularityDict = Util.read_features(self.cartoconfig.get("PreprocessingFiles", "names_with_id"), self.cartoconfig.get("PreprocessingFiles","popularity_with_id"))
+        self.popularityDict = Utils.read_features(
+                                    self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                    self.cartoconfig.get("GeneratedFiles","popularity_with_id"))
+        xyDict = Utils.read_features(self.cartoconfig.get("GeneratedFiles", "article_coordinates"),
+                                     self.cartoconfig.get("ExternalFiles", "names_with_id"),
+                                     self.cartoconfig.get("GeneratedFiles", "zoom_with_id"),
+                                     required=('x', 'y', 'name', 'maxZoom'))
 
         self.keyList = []
         self.tupleLocZoom = []

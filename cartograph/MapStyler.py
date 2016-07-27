@@ -67,17 +67,6 @@ class MapStyler:
         self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 
-    def generateSinglePolygonStyle(self, filename, opacity, color, gamma=1):
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        symbolizer = mapnik.PolygonSymbolizer()
-        symbolizer.fill = mapnik.Color('steelblue')
-        symbolizer.fill_opacity = opacity
-        symbolizer.gamma = gamma
-        r.symbols.append(symbolizer)
-        s.rules.append(r)
-        return s
-
     def generateCountryPolygonStyle(self, filename, opacity, clusterIds):
         s = mapnik.Style()
         for i, c in enumerate(clusterIds):
@@ -112,7 +101,7 @@ class MapStyler:
         symbolizer = mapnik.LineSymbolizer()
         symbolizer.stroke = mapnik.Color(color)
         symbolizer.stroke_opacity = opacity
-        symbolizer.stroke_width = 1.5
+        symbolizer.stroke_width = 2
         if dash:
             symbolizer.stroke_dasharray = dash
         r.symbols.append(symbolizer)
