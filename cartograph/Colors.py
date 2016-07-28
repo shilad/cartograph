@@ -1,12 +1,25 @@
-import numpy as np
+import luigi
 import math
+import numpy as np
 import matplotlib.colors as mc
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 
 
+class ColorsCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(__file__))
 
 class ColorSelector:
+    '''
+    This class sorts the colors for the countries so
+    that the placement of the most similar colors are the furthest away
+    from eachother.
+    '''
 
     def __init__(self, borders, colors):
+        '''
+        Initializes class variables.
+        '''
         self.colors = colors
         self.countryBorders = list(borders[str(x)]['border_list'] for x in range(len(borders.keys())))
         self.colorDiff = self._sortColorsByDistances()
@@ -15,6 +28,11 @@ class ColorSelector:
         self.colorMatch = self._colorToDistance()
 
     def _sortColorsByDistances(self):
+        '''
+        Returns a dictionary that has the distances between 2 color's
+        as the keys, and the 2 color's index's as the values. The distances
+        are calculated with the color's rgb values.
+        '''
         colorDiff = {}
         used = []
         for key in self.colors:
@@ -34,6 +52,11 @@ class ColorSelector:
         return colorDiff
 
     def _countryCentralities(self):
+        '''
+        Finds the centroid of each country by getting the mean of all
+        the points that makeup the border of the country.
+        Returns a list of the centralities.
+        '''
         centralities = []
         for country in self.countryBorders:
             group = []
@@ -50,6 +73,12 @@ class ColorSelector:
         return centralities
 
     def _countryDistances(self):
+        '''
+        Returns a dictionary of dicionary's, where each country ID is matched
+        to a dictionary that contains the distance between the country's
+        centroid and another country's centroid as the keys and the other
+        country's ID as the value.
+        '''
         dist = {}
         centers = self.centralities
         for i in range(len(centers)):
@@ -65,12 +94,21 @@ class ColorSelector:
         return dist
 
     def _getKeys(self, dictionary):
+        '''
+        Returns the keys to a given dictionary sorted.
+        '''
         keys = dictionary.keys()
         keys = sorted(keys)
         keys.reverse()
         return keys
 
     def _colorToDistance(self):
+        '''
+        Sorts the color differences so that the ones that are the most similar
+        are paired with the countries that have the furthest distance from
+        eachother. Returns a dictionary with the color ID as the key
+        and the country ID as the value.
+        '''
         colorMatch = {}
         cKeys = self.colorDiff.keys()
         cKeys = sorted(cKeys)
@@ -123,11 +161,13 @@ class ColorSelector:
             for i in range(len(colorNotFilled)):
                 colorMatch[colorNotFilled[i]] = countryNotFilled[i]
 
-
         return colorMatch
 
-
     def optimalColoring(self):
+        '''
+        Replaces the color ID with its hex code and contour shades and returns
+        the final color wheel.
+        '''
         color = {}
         keys = self.colorMatch.keys()
         for key in keys:
