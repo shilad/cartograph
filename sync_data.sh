@@ -73,8 +73,8 @@ elif [ $command == "push" ]; then
     fi
     prefix=
     if [[ $src =~ labdata ]]; then
-        prefix=`dirname ${src/.*labdata\//}`/
-        do_ssh mkdir $REMOTE_DIR/$prefix
+        prefix=`dirname ${src/*labdata\//}`/
+        do_ssh mkdir "$REMOTE_DIR/$prefix"
     fi 
 	do_rsync ${src} ${DATA_REMOTE}/$prefix
 else
