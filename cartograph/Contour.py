@@ -1,14 +1,66 @@
+import luigi
+import json
+import Coordinates
+import Popularity
+import Config
+import Utils
+import scipy.stats as sps
+import shapely.geometry as shply
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 import scipy.ndimage as spn
+from BorderGeoJSONWriter import CreateContinents
+from Regions import MakeRegions
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-import scipy.stats as sps
-import json
-import shapely.geometry as shply
 from collections import defaultdict
-from shapely.geometry import mapping, Point
+from shapely.geometry import Point
+
+
+class ContourCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(__file__))
+
+
+class CreateContours(MTimeMixin, luigi.Task):
+    '''
+    Make contours based on density of points inside the map
+    Generated as geojson data for later use inside map.xml
+    '''
+    def requires(self):
+        config = Config.get()
+        return (Coordinates.CreateSampleCoordinates(),
+                Popularity.SampleCreator(config.get("ExternalFiles",
+                                                    "vecs_with_id")),
+                ContourCode(),
+                CreateContinents(),
+                MakeRegions())
+
+    def output(self):
+        config = Config.get()
+        return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
+                TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
+
+    def run(self):
+        config = Config.get()
+        featuresDict = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
+                                           config.getSample("GeneratedFiles", "clusters_with_id"),
+                                           config.getSample("GeneratedFiles", "denoised_with_id"),
+                                           config.getSample("ExternalFiles", "vecs_with_id"))
+        for key in featuresDict.keys():
+            if key[0] == "w":
+                del featuresDict[key]
+
+        numClusters = config.getint("PreprocessingConstants", "num_clusters")
+
+        countryBorders = config.get("MapData", "countries_geojson")
+
+        contour = ContourCreator(numClusters)
+        contour.buildContours(featuresDict, countryBorders)
+        contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
+        contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
 
 
 class ContourCreator:
@@ -25,7 +77,6 @@ class ContourCreator:
         self.density_CSs = self._densityCalcContour()
         self.centroid_CSs = self._centroidCalcContour()
 
-
     def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):
         with open(bordersGeoJson) as f:
             bordersData = json.load(f)
@@ -33,7 +84,7 @@ class ContourCreator:
         allBordersDict = defaultdict(dict)
         for feature in bordersData['features']:
             poly = shply.shape(feature['geometry'])
-            cluster =feature['properties']['clusterNum']
+            cluster = feature['properties']['clusterNum']
             allBordersDict[str(cluster)] = poly
 
         xs = [[] for i in range(numClusters)]
@@ -64,7 +115,7 @@ class ContourCreator:
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
-            xy = Point(float(pointInfo['x']),float(pointInfo['y']))
+            xy = Point(float(pointInfo['x']), float(pointInfo['y']))
             poly = allBordersDict[str(c)]
             if poly.contains(xy):
                 xs[c].append(float(pointInfo['x']))
@@ -89,13 +140,13 @@ class ContourCreator:
         for (x, y, values) in zip(self.xs, self.ys, self.centralities):
             if not x: continue
             centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
-                                            values,
-                                            statistic='mean',
-                                            bins=self.binSize,
-                                            range=[[np.min(y),
-                                            np.max(y)],
-                                            [np.min(x),
-                                            np.max(x)]])
+                                                        values,
+                                                        statistic='mean',
+                                                        bins=self.binSize,
+                                                        range=[[np.min(y),
+                                                        np.max(y)],
+                                                        [np.min(x),
+                                                        np.max(x)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
