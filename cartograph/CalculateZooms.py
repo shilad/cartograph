@@ -14,7 +14,7 @@ from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 
 class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (TimestampedLocalTarget(cartograph.CalculateZooms.__file__))
+        return (TimestampedLocalTarget(__file__))
 
 
 
@@ -29,7 +29,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
                                                  "zoom_with_id"))
 
     def requires(self):
-        return (Regions.MakeRegions(), 
+        return (MakeRegions(), 
                 CalculateZoomsCode(),
                 Coordinates.CreateFullCoordinates(),
                 Popularity.PopularityIdentifier()
