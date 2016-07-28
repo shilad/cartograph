@@ -6,3 +6,5 @@ sample_size: 7377
 num_clusters: 9 
 min_num_in_cluster: 50
 water_level: .5
+
+; [ Specifying sampled_ids fails
