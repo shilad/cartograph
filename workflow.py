@@ -1,3 +1,7 @@
+# This needs to happen IMMEDIATELY to turn on headless rendering.
+import matplotlib
+matplotlib.use('Agg')
+
 import luigi
 import logging
 import cartograph
