@@ -1,3 +1,5 @@
 labdata.key
 labdata.key.pub
 conf/generatedConf.txt
+dev_en/*
+prod_en/*
