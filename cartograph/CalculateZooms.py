@@ -1,9 +1,68 @@
-from cartograph import Utils
+import luigi
+from LuigiUtils import TimestampedLocalTarget, MTimeMixin
+import Utils
+import Config
+import Popularity 
+import Coordinates
+from cartograph import ZoomGeoJSONWriter
+from Regions import MakeRegions
 
 # For information on the constants below see
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 
 # Scale denom for each zoom level
+
+class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(cartograph.CalculateZooms.__file__))
+
+
+
+class ZoomLabeler(MTimeMixin, luigi.Task):
+    '''
+    Calculates a starting zoom level for every article point in the data,
+    i.e. determines when each article label should appear.
+    '''
+    def output(self):
+        config = Config.get()
+        return TimestampedLocalTarget(config.get("GeneratedFiles",
+                                                 "zoom_with_id"))
+
+    def requires(self):
+        return (Regions.MakeRegions(), 
+                CalculateZoomsCode(),
+                Coordinates.CreateFullCoordinates(),
+                Popularity.PopularityIdentifier()
+                )
+
+    def run(self):
+        config = Config.get()
+        feats = Utils.read_features(config.get("GeneratedFiles",
+                                              "popularity_with_id"),
+                                    config.get("GeneratedFiles",
+                                              "article_coordinates"),
+                                    config.get("GeneratedFiles",
+                                              "clusters_with_id"))
+        
+        counts = defaultdict(int)
+        for row in feats.values():
+            for k in row:
+                counts[k] += 1
+        print(counts)
+
+        zoom = CalculateZooms(feats,
+                              config.getint("MapConstants", "max_coordinate"),
+                              config.getint("PreprocessingConstants", "num_clusters"))
+        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"),
+                                             config.getint("MapConstants", "first_zoom_label"))
+
+        keys = list(numberedZoomDict.keys())
+        zoomValue = list(numberedZoomDict.values())
+
+
+        Utils.write_tsv(config.get("GeneratedFiles", "zoom_with_id"),
+                        ("index", "maxZoom"), keys, zoomValue)
+
 
 TOP_LEVEL_COORDINATES = (360, 170.1022)
 
