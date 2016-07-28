@@ -1,7 +1,48 @@
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
 
-from cartograph import Utils
+import luigi
+from LuigiUtils import TimestampedLocalTarget, MTimeMixin
+import Utils
+import Config
+import CalculateZooms
+import Popularity
+
+
+
+class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
+
+class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
+    '''
+    Generates geojson data for relative zoom labelling in map.xml
+    '''
+    def output(self):
+        config = Config.get()
+        return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
+
+    def requires(self):
+        return (
+                CalculateZooms.ZoomLabeler(),
+                Popularity.PopularityIdentifier(),
+                ZoomGeoJSONWriterCode(),
+         )
+
+
+    def run(self):
+        config = Config.get()
+        featureDict = Utils.read_features(
+            config.get("GeneratedFiles", "zoom_with_id"),
+            config.get("GeneratedFiles", "article_coordinates"),
+            config.get("GeneratedFiles", "popularity_with_id"),
+            config.get("ExternalFiles", "names_with_id"),
+            config.get("GeneratedFiles", "percentile_popularity_with_id"),
+            required=('x', 'y', 'popularity', 'name', 'maxZoom')
+        )
+
+        titlesByZoom = ZoomGeoJSONWriter(featureDict)
+        titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
 
 
 class ZoomGeoJSONWriter:

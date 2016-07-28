@@ -1,40 +1,18 @@
 import luigi
-from cartograph import Config
-import cartograph.LuigiUtils
+from LuigiUtils import TimestampedLocalTarget, MTimeMixin
+import Utils
+import Config
+from cartograph import Popularity 
+
 
 from xml.etree.ElementTree import parse, SubElement
-
 import lxml.etree as letree
 
-class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
-    '''
-    Generates geojson data for relative zoom labelling in map.xml
-    '''
+
+class LabelsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        config = Config.get()
-        return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
+        return (TimestampedLocalTarget(cartograph.Labels.__file__))
 
-    def requires(self):
-        return (
-                ZoomLabeler(),
-                PercentilePopularityIdentifier(),
-                ZoomGeoJSONWriterCode(),
-         )
-
-
-    def run(self):
-        config = Config.get()
-        featureDict = Utils.read_features(
-            config.get("GeneratedFiles", "zoom_with_id"),
-            config.get("GeneratedFiles", "article_coordinates"),
-            config.get("GeneratedFiles", "popularity_with_id"),
-            config.get("ExternalFiles", "names_with_id"),
-            config.get("GeneratedFiles", "percentile_popularity_with_id"),
-            required=('x', 'y', 'popularity', 'name', 'maxZoom')
-        )
-
-        titlesByZoom = ZoomGeoJSONWriter(featureDict)
-        titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
 
 class Labels():
     def __init__(self, config, mapfile, table, scaleDimensions):

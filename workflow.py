@@ -89,14 +89,14 @@ class LabelsCode(MTimeMixin, luigi.ExternalTask):
         return (TimestampedLocalTarget(cartograph.Labels.__file__))
 
 
-class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(cartograph.CalculateZooms.__file__))
+# class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
+#     def output(self):
+#         return (TimestampedLocalTarget(cartograph.CalculateZooms.__file__))
 
 
-class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
+# class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
+#     def output(self):
+#         return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
 
 
 class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
@@ -186,50 +186,50 @@ class MakeRegions(MTimeMixin, luigi.Task):
                         ("index", "cluster"), ids, clusters)
 
 
-class ZoomLabeler(MTimeMixin, luigi.Task):
-    '''
-    Calculates a starting zoom level for every article point in the data,
-    i.e. determines when each article label should appear.
-    '''
-    def output(self):
-        config = Config.get()
-        return TimestampedLocalTarget(config.get("GeneratedFiles",
-                                                 "zoom_with_id"))
+# class ZoomLabeler(MTimeMixin, luigi.Task):
+#     '''
+#     Calculates a starting zoom level for every article point in the data,
+#     i.e. determines when each article label should appear.
+#     '''
+#     def output(self):
+#         config = Config.get()
+#         return TimestampedLocalTarget(config.get("GeneratedFiles",
+#                                                  "zoom_with_id"))
 
-    def requires(self):
-        return (MakeRegions(),
-                CalculateZoomsCode(),
-                cartograph.Coordinates.CreateFullCoordinates(),
-                cartograph.Popularity.PopularityIdentifier()
-                )
+#     def requires(self):
+#         return (MakeRegions(),
+#                 CalculateZoomsCode(),
+#                 cartograph.Coordinates.CreateFullCoordinates(),
+#                 cartograph.Popularity.PopularityIdentifier()
+#                 )
 
-    def run(self):
-        config = Config.get()
-        feats = Utils.read_features(config.get("GeneratedFiles",
-                                              "popularity_with_id"),
-                                    config.get("GeneratedFiles",
-                                              "article_coordinates"),
-                                    config.get("GeneratedFiles",
-                                              "clusters_with_id"))
-        print('FEATURES IS', len(feats))
-        counts = defaultdict(int)
-        for row in feats.values():
-            for k in row:
-                counts[k] += 1
-        print(counts)
+#     def run(self):
+#         config = Config.get()
+#         feats = Utils.read_features(config.get("GeneratedFiles",
+#                                               "popularity_with_id"),
+#                                     config.get("GeneratedFiles",
+#                                               "article_coordinates"),
+#                                     config.get("GeneratedFiles",
+#                                               "clusters_with_id"))
+#         print('FEATURES IS', len(feats))
+#         counts = defaultdict(int)
+#         for row in feats.values():
+#             for k in row:
+#                 counts[k] += 1
+#         print(counts)
 
-        zoom = CalculateZooms(feats,
-                              config.getint("MapConstants", "max_coordinate"),
-                              config.getint("PreprocessingConstants", "num_clusters"))
-        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"),
-                                             config.getint("MapConstants", "first_zoom_label"))
+#         zoom = CalculateZooms(feats,
+#                               config.getint("MapConstants", "max_coordinate"),
+#                               config.getint("PreprocessingConstants", "num_clusters"))
+#         numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"),
+#                                              config.getint("MapConstants", "first_zoom_label"))
 
-        keys = list(numberedZoomDict.keys())
-        zoomValue = list(numberedZoomDict.values())
+#         keys = list(numberedZoomDict.keys())
+#         zoomValue = list(numberedZoomDict.values())
 
 
-        Utils.write_tsv(config.get("GeneratedFiles", "zoom_with_id"),
-                        ("index", "maxZoom"), keys, zoomValue)
+#         Utils.write_tsv(config.get("GeneratedFiles", "zoom_with_id"),
+#                         ("index", "maxZoom"), keys, zoomValue)
 
 
 class Denoise(MTimeMixin, luigi.Task):
@@ -439,32 +439,32 @@ class CreateStates(MTimeMixin, luigi.Task):
         #then make sure those get borders created for them??
         #then create and color those polygons in xml
 
-class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
-    '''
-    Generates geojson data for relative zoom labelling in map.xml
-    '''
-    def output(self):
-        config = Config.get()
-        return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
+# class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
+#     '''
+#     Generates geojson data for relative zoom labelling in map.xml
+#     '''
+#     def output(self):
+#         config = Config.get()
+#         return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
 
-    def requires(self):
-        return (ZoomLabeler(),
-                cartograph.PopularityLabelSizer.PercentilePopularityIdentifier(),
-                ZoomGeoJSONWriterCode())
+#     def requires(self):
+#         return (ZoomLabeler(),
+#                 cartograph.PopularityLabelSizer.PercentilePopularityIdentifier(),
+#                 ZoomGeoJSONWriterCode())
 
-    def run(self):
-        config = Config.get()
-        featureDict = Utils.read_features(
-            config.get("GeneratedFiles", "zoom_with_id"),
-            config.get("GeneratedFiles", "article_coordinates"),
-            config.get("GeneratedFiles", "popularity_with_id"),
-            config.get("ExternalFiles", "names_with_id"),
-            config.get("GeneratedFiles", "percentile_popularity_with_id"),
-            required=('x', 'y', 'popularity', 'name', 'maxZoom')
-        )
+#     def run(self):
+#         config = Config.get()
+#         featureDict = Utils.read_features(
+#             config.get("GeneratedFiles", "zoom_with_id"),
+#             config.get("GeneratedFiles", "article_coordinates"),
+#             config.get("GeneratedFiles", "popularity_with_id"),
+#             config.get("ExternalFiles", "names_with_id"),
+#             config.get("GeneratedFiles", "percentile_popularity_with_id"),
+#             required=('x', 'y', 'popularity', 'name', 'maxZoom')
+#         )
 
-        titlesByZoom = ZoomGeoJSONWriter(featureDict)
-        titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
+#         titlesByZoom = ZoomGeoJSONWriter(featureDict)
+#         titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
 
 
 class LoadContoursDensity(LoadGeoJsonTask):
@@ -505,7 +505,7 @@ class LoadCoordinates(LoadGeoJsonTask):
         return (
             cartograph.Coordinates.CreateFullCoordinates(),
             PGLoaderCode(),
-            CreateLabelsFromZoom()
+            cartograph.CalculateZooms.CreateLabelsFromZoom()
         )
 
 
