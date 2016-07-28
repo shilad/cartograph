@@ -1,17 +1,20 @@
-from cartograph import Popularity, Coordinates
-from LuigiUtils import TimestampedLocalTarget, MTimeMixin
 import luigi
-import Utils
+import json
+import Coordinates
+import Popularity
 import Config
+import Utils
+import scipy.stats as sps
+import shapely.geometry as shply
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 import scipy.ndimage as spn
+from BorderGeoJSONWriter import CreateContinents
+from Regions import MakeRegions
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-import scipy.stats as sps
-import json
-import shapely.geometry as shply
 from collections import defaultdict
 from shapely.geometry import Point
 
@@ -29,17 +32,16 @@ class CreateContours(MTimeMixin, luigi.Task):
     def requires(self):
         config = Config.get()
         return (Coordinates.CreateSampleCoordinates(),
-                Popularity.SampleCreator(config.get("ExternalFiles", "vecs_with_id")),
-                ContourCode())
-                # CreateContinents(),
-                # MakeRegions())
+                Popularity.SampleCreator(config.get("ExternalFiles",
+                                                    "vecs_with_id")),
+                ContourCode(),
+                CreateContinents(),
+                MakeRegions())
 
     def output(self):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
                 TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
-
-
 
     def run(self):
         config = Config.get()
@@ -131,7 +133,7 @@ class ContourCreator:
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
-            xy = Point(float(pointInfo['x']),float(pointInfo['y']))
+            xy = Point(float(pointInfo['x']), float(pointInfo['y']))
             poly = allBordersDict[str(c)]
             if poly.contains(xy):
                 xs[c].append(float(pointInfo['x']))
@@ -165,13 +167,13 @@ class ContourCreator:
         for (x, y, values) in zip(self.xs, self.ys, self.centralities):
             if not x: continue
             centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
-                                            values,
-                                            statistic='mean',
-                                            bins=self.binSize,
-                                            range=[[np.min(y),
-                                            np.max(y)],
-                                            [np.min(x),
-                                            np.max(x)]])
+                                                        values,
+                                                        statistic='mean',
+                                                        bins=self.binSize,
+                                                        range=[[np.min(y),
+                                                        np.max(y)],
+                                                        [np.min(x),
+                                                        np.max(x)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
