@@ -2,8 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import distance
 from sklearn.cluster import KMeans
-
-from cartograph import Utils
+import Utils
 
 n = 5
 

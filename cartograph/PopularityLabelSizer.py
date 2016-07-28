@@ -1,9 +1,9 @@
-from cartograph import Popularity
-from LuigiUtils import TimestampedLocalTarget, MTimeMixin
+import Popularity
 import luigi
 import Utils
 import Config
 import numpy as np
+from LuigiUtils import TimestampedLocalTarget, MTimeMixin
 
 
 class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
