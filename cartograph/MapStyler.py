@@ -1,5 +1,71 @@
 import mapnik
+import luigi
+import Config
+import Utils
+import Colors
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
+from PGLoader import LoadCoordinates, LoadCountries
+from PGLoader import LoadContoursDensity, LoadContoursCentroid
 from mapnik import register_fonts
+
+
+class MapStylerCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(__file__))
+
+
+class CreateMapXml(MTimeMixin, luigi.Task):
+    '''
+    Creates the mapnik map.xml configuration file and renders png and svg
+    images of the map for visual reference to make sure code excuted properly.
+    Map png and svg can be found in ./data/images
+    '''
+    def output(self):
+        config = Config.get()
+        return (
+            TimestampedLocalTarget(config.get("MapOutput",
+                                              "map_file_density")),
+            TimestampedLocalTarget(config.get("MapOutput",
+                                              "map_file_centroid")))
+
+    def requires(self):
+        return (
+            LoadContoursDensity(),
+            LoadContoursCentroid(),
+            LoadCoordinates(),
+            LoadCountries(),
+            MapStylerCode(),
+            Colors.ColorsCode()
+        )
+
+    def generateXml(self, contourDB, contourFile, mapfile):
+        config = Config.get()
+        regionClusters = Utils.read_features(config.get("MapData", "clusters_with_region_id"))
+        regionIds = sorted(set(int(region['cluster_id']) for region in regionClusters.values()))
+        regionIds = map(str, regionIds)
+        countryBorders = Utils.read_features(config.get("GeneratedFiles", "country_borders"))
+        colorFactory = Colors.ColorSelector(countryBorders, Config.getColorWheel())
+        colors = colorFactory.optimalColoring()
+
+        ms = MapStyler(config, colors)
+        imgfile = config.get("MapOutput", "img_src_name")
+
+        ms.addCustomFonts(config.get("MapResources", "fontDir"))
+
+        ms.makeMap(contourFile,
+                   config.get("MapData", "countries_geojson"),
+                   regionIds, contourDB)
+        ms.saveMapXml(config.get("MapData", "countries_geojson"),
+                      mapfile)
+        ms.saveImage(mapfile, imgfile + ".png")
+        ms.saveImage(mapfile, imgfile + ".svg")
+
+    def run(self):
+        config = Config.get()
+        self.generateXml('contoursdensity', config.get("MapData", "density_contours_geojson"), config.get("MapOutput", "map_file_density"))
+
+        self.generateXml('contourscentroid', config.get("MapData", "centroid_contours_geojson"), config.get("MapOutput", "map_file_centroid"))
+
 
 
 class MapStyler:
@@ -9,7 +75,7 @@ class MapStyler:
 
     def __init__(self, config, colorwheel):
         self.config = config
-        self.numContours =  config.getint("PreprocessingConstants", "num_contours")
+        self.numContours = config.getint("PreprocessingConstants", "num_contours")
         self.numClusters = config.getint("PreprocessingConstants", "num_clusters")
         self.colorWheel = colorwheel
         self.width = config.getint("MapConstants", "map_width")
@@ -33,11 +99,12 @@ class MapStyler:
         self.m.background = mapnik.Color('#ddf1fd')
         self.m.srs = '+init=epsg:3857'
 
-
         self.m.append_style("countries",
                             self.generateCountryPolygonStyle(countryFilename,
                                                              1.0, clusterIds))
-        self.m.layers.append(self.generateLayer('countries', "countries", ["countries"]))
+        self.m.layers.append(self.generateLayer('countries',
+                                                "countries",
+                                                ["countries"]))
 
         styles = self.generateContourPolygonStyle(1.0, self.numContours, clusterIds)
         sNames = []
@@ -64,11 +131,13 @@ class MapStyler:
         mapnik.save_map(self.m, mapFilename)
 
     def saveImage(self, mapFilename, imgFilename):
+        print mapFilename, "What's our map name"
+        print imgFilename, "What's our img name"
         if self.m is None:
             self.m = mapnik.Map(self.width, self.height)
         mapnik.load_map(self.m, mapFilename)
-        #extent = mapnik.Box2d(-300, -180.0, 90.0, 90.0)
-        #self.m.zoom_to_box(self.extents)
+        # extent = mapnik.Box2d(-300, -180.0, 90.0, 90.0)
+        # self.m.zoom_to_box(self.extents)
         self.m.zoom_all()
         mapnik.render_to_file(self.m, imgFilename)
 

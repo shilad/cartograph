@@ -1,18 +1,18 @@
+import Config
+import Utils
+import luigi
+import PopularityLabelSizer
+from CalculateZooms import ZoomLabeler
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
-
-import luigi
-from LuigiUtils import TimestampedLocalTarget, MTimeMixin
-import Utils
-import Config
-import CalculateZooms
-import Popularity
 
 
 
 class ZoomGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return(TimestampedLocalTarget(cartograph.ZoomGeoJSONWriter.__file__))
+        return(TimestampedLocalTarget(__file__))
+
 
 class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
     '''
@@ -23,12 +23,10 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("MapData", "title_by_zoom"))
 
     def requires(self):
-        return (
-                CalculateZooms.ZoomLabeler(),
-                Popularity.PopularityIdentifier(),
-                ZoomGeoJSONWriterCode(),
-         )
 
+        return (ZoomLabeler(),
+                PopularityLabelSizer.PercentilePopularityIdentifier(),
+                ZoomGeoJSONWriterCode())
 
     def run(self):
         config = Config.get()
@@ -42,7 +40,9 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         )
 
         titlesByZoom = ZoomGeoJSONWriter(featureDict)
-        titlesByZoom.generateZoomJSONFeature(config.get("MapData", "title_by_zoom"))
+
+        titlesByZoom.generateZoomJSONFeature(config.get("MapData",
+                                                        "title_by_zoom"))
 
 
 class ZoomGeoJSONWriter:
@@ -55,12 +55,12 @@ class ZoomGeoJSONWriter:
         zoomFeatures = list(zoomDict.values())
 
         for pointInfo in zoomFeatures:
-            pointTuple = (float(pointInfo['x']),float(pointInfo['y']))
+            pointTuple = (float(pointInfo['x']), float(pointInfo['y']))
             newPoint = Point(pointTuple)
-            properties = {'maxzoom':int(pointInfo['maxZoom']), 
-                          'popularity':float(pointInfo['popularity']),
-                          'citylabel':str(pointInfo['name']),
-                          'popbinscore':int(pointInfo['popBinScore'])
+            properties = {'maxzoom': int(pointInfo['maxZoom']),
+                          'popularity': float(pointInfo['popularity']),
+                          'citylabel': str(pointInfo['name']),
+                          'popbinscore': int(pointInfo['popBinScore'])
                           }
             newFeature = Feature(geometry=newPoint, properties=properties)
             featureAr.append(newFeature)
@@ -70,12 +70,15 @@ class ZoomGeoJSONWriter:
             writeFile.write(textDump)
 
     def writeZoomTSV(self):
+        config = Config.get()
         zoomDict = Utils.read_features(config.FILE_NAME_NUMBERED_ZOOM,
                                        config.FILE_NAME_NUMBERED_NAMES)
-        #THIS NEEDS TO CHANGE TO BE PART OF THE CONFIG FILE, BUT I'M HARDCODING IT FOR NOW
+        # THIS NEEDS TO CHANGE TO BE PART OF THE CONFIG FILE
+        # BUT I'M HARDCODING IT FOR NOW
         filepath = "./web/data/named_zoom.tsv"
         with open(filepath, "a") as writeFile:
-            #hardcoded and inelegant, but it works and it's just a data file that only needs to be generated once so...
+            # hardcoded and inelegant, but it works and it's 
+            # just a data file that only needs to be generated once so...
             writeFile.write('name\tmaxZoom\n')
             for entry in zoomDict:
                 name = zoomDict[entry]['name']

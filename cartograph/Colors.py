@@ -1,7 +1,13 @@
-import numpy as np
+import luigi
 import math
+import numpy as np
 import matplotlib.colors as mc
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 
+
+class ColorsCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(__file__))
 
 class ColorSelector:
     '''

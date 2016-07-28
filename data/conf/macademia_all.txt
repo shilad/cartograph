@@ -1,0 +1,9 @@
+
+[DEFAULT]
+dataset: macademia_all
+
+[PreprocessingConstants]
+sample_size: 9375
+num_clusters: 9 
+min_num_in_cluster: 50
+water_level: .5
