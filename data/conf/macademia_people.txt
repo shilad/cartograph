@@ -1,0 +1,11 @@
+[DEFAULT]
+dataset: macademia_people
+
+[PreprocessingConstants]
+sample_size: 1998
+num_clusters: 7 
+min_num_in_cluster: 50
+water_level: .5
+
+[ExternalFiles]
+sample_ids: %(externalDir)s/sampled_ids_EI.tsv
