@@ -44,6 +44,7 @@ class PopularityIdentifier(MTimeMixin, luigi.Task):
                         ("id", "popularity"),
                         idList, popularityList)
 
+
 class SampleCreator(MTimeMixin, luigi.Task):
     path = luigi.Parameter()
 
