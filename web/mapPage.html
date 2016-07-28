@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./css/leafletmap.css"/>
   <link rel="stylesheet" href=./css/chardinjs.css>
   <link rel="stylesheet" href=./css/mapPage.css>
+  <link rel="stylesheet" href="./css/tooltipster.bundle.min.css" />
   <link href="./css/global.css" rel=stylesheet>
   <link rel="shortcut icon" href="./images/favicon.ico">
   <script src="./js/leaflet.js"></script>
@@ -22,6 +23,7 @@
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="http://danzel.github.io/Leaflet.utfgrid/src/leaflet.utfgrid.js"></script>
   <script src="./js/chardin.min.js" ></script>
+  <script src="./js/tooltipster.bundle.min.js"></script>
 
   <meta property="og:title" content="The World of Wikipedia" />
   <meta property="og:description" content="[TODO: Description goes here"] />
@@ -30,6 +32,12 @@
   <meta name="twitter:title" content="The World of Wikipedia">
   <meta name="twitter:description" content="[TODO: Description goes here]">
   <meta name="twitter:image" content="../images/wikipediamap.png">
+
+  <script>
+        $(document).ready(function() {
+            $('.tooltip').tooltipster();
+        });
+  </script>
 
 </head>
 <body>

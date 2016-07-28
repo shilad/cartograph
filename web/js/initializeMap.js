@@ -153,6 +153,16 @@ function handleUTFGrid() {
     //click functionality/shows wikipedia link in sidebar
     currentLayer.on('click', function(e) {
 		if(e.data){
+            
+            
+            var marker = new L.Marker([e.latlng.lat, e.latlng.lng]);
+            marker.addTo(map);
+             $(marker._icon).addClass('tooltip');
+            $('.tooltip').tooltipster({
+                content: "a tooltip",
+                trigger: "hover"
+            });
+            
 			var title = e.data.citylabel;
 			var labelstrings = title.split(" ");
 			var url = "https://wikipedia.org/wiki/";
