@@ -1,0 +1,7 @@
+[DEFAULT]
+dataset: full_en
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 16
+water_level: .01

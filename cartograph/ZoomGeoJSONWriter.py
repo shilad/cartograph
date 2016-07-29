@@ -50,6 +50,11 @@ class ZoomGeoJSONWriter:
         self.articleData = featDict
 
     def generateZoomJSONFeature(self, filename):
+        '''
+        Creates a geojson file of article coordinates with their
+        respective article label, popularity bin score, 
+        popularity ranking and first zoom level. 
+        '''
         featureAr = []
         zoomDict = self.articleData
         zoomFeatures = list(zoomDict.values())
