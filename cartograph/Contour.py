@@ -63,8 +63,7 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         contour = ContourCreator(numClusters)
         contour.buildContours(featuresDict, countryBorders)
-        contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
-        contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
+        contour.makeContourFeatureCollection([config.get("MapData", "density_contours_geojson"),config.get("MapData", "centroid_contours_geojson")])
 
 
 class ContourCreator:
@@ -86,8 +85,9 @@ class ContourCreator:
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
         self.binSize = 200
-        self.density_CSs = self._densityCalcContour()
-        self.centroid_CSs = self._centroidCalcContour()
+        self.CSs = []
+        self.CSs.append(self._densityCalcContour())
+        self.CSs.append(self._centroidCalcContour())
 
     def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):
         '''
@@ -290,29 +290,18 @@ class ContourCreator:
 
         return featureAr
 
-    def makeDensityContourFeatureCollection(self, outputfilename):
+    def makeContourFeatureCollection(self, outputfilename):
         '''
-        Call this method to create Density contours, it sends
+        Creates contours, it sends
         the CS that corresponds with the contour type off. Writes
         it out to a geojson file.
         '''
-        featureAr = self._genContourPolygons(self.density_CSs)
-        collection = FeatureCollection(featureAr)
-        textDump = dumps(collection)
-        with open(outputfilename, "w") as writeFile:
-            writeFile.write(textDump)
-
-    def makeCentroidContourFeatureCollection(self, outputfilename):
-        '''
-        Call this method to create Centroid contours, it sends
-        the CS that corresponds with the contour type off. Writes
-        it out to a geojson file.
-        '''
-        featureAr = self._genContourPolygons(self.centroid_CSs)
-        collection = FeatureCollection(featureAr)
-        textDump = dumps(collection)
-        with open(outputfilename, "w") as writeFile:
-            writeFile.write(textDump)
+        for i, filename in enumerate(outputfilename):
+            featureAr = self._genContourPolygons(self.CSs[i])
+            collection = FeatureCollection(featureAr)
+            textDump = dumps(collection)
+            with open(filename, "w") as writeFile:
+                writeFile.write(textDump)
 
 
 class Contour:
