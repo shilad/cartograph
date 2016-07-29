@@ -82,6 +82,12 @@ class QuadTree:
         self.maxDepth = maxDepth
 
     def insert(self, x, y, pid):
+        '''
+        Inserts a point into the quadrant if the capacity of
+        points per tile has not been reached. Adds the children 
+        of the tile into the quadtree structure and adds the 
+        point to the child tile if it contains the point. 
+        '''
         c = self.capacity
 
         if self.isTopLevel is True:
@@ -105,7 +111,6 @@ class QuadTree:
                                           self.topY + s, s, c, md))
 
         for c in self.children:
-            # print('checking %s for %f, %f' % (c, x, y))
             if c.contains(x, y):
                 c.insert(x, y, pid)
                 break
@@ -113,6 +118,9 @@ class QuadTree:
             assert(False, '%s doesnt contain %s, %s' % (self, x, y))
 
     def contains(self, x, y):
+        '''
+        Determines if a point exists in a tile. 
+        '''
         return (x >= self.leftX and x <= self.leftX + self.size
                 and y >= self.topY and y <= self.topY + self.size)
 
@@ -141,6 +149,11 @@ class CalculateZooms:
             p['popularity'] = float(p['popularity'])
 
     def simulateZoom(self, maxZoom, firstZoomLevel):
+        '''
+        Simulates zooming of the map using a quadtree. Additional points
+        are added if capacity of tile is not full. Runs a DFS on the 
+        quadtree to return the max zoom level for every article. 
+        '''
 
         # Order ids by overall popualarity
         idsByPopularity = [pair[0] for pair in Utils.sort_by_feature(self.points, 'popularity')]
@@ -152,13 +165,11 @@ class CalculateZooms:
             c = int(self.points[id]['cluster'])
             topPerCluster[c].append(id)
 
-        lastZoom = firstZoomLevel
-
         added = set()
 
         nAdded = [0]
         mc = 1.0 * self.maxCoordinate
-        qt = QuadTree(lastZoom, -mc, -mc, mc * 2,
+        qt = QuadTree(firstZoomLevel, -mc, -mc, mc * 2,
                       self.pointsPerTile, maxZoom)
 
         def maybeAddPoint(pid):
@@ -197,14 +208,3 @@ class CalculateZooms:
         dfs(qt)
 
         return self.numberedZoom
-
-if __name__ == '__main__':
-    config = Config.get()
-    feats = Utils.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
-                                config.FILE_NAME_ARTICLE_COORDINATES,
-                                config.FILE_NAME_NUMBERED_CLUSTERS)
-    calc = CalculateZooms(feats)
-    zoomDict = calc.simulateZoom()
-    keys = list(zoomDict.keys())
-    values = list(zoomDict.values())
-    # print keys
