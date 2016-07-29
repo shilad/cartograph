@@ -6,17 +6,16 @@ import Popularity
 from Regions import MakeRegions
 from collections import defaultdict
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
+
 # For information on the constants below see
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 
 # Scale denom for each zoom level
 
-TOP_LEVEL_COORDINATES = (360, 170.1022)
-
-
 class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(__file__))
+
 
 
 class ZoomLabeler(MTimeMixin, luigi.Task):
@@ -30,7 +29,7 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
                                                  "zoom_with_id"))
 
     def requires(self):
-        return (MakeRegions(),
+        return (MakeRegions(), 
                 CalculateZoomsCode(),
                 Coordinates.CreateFullCoordinates(),
                 Popularity.PopularityIdentifier()
@@ -39,12 +38,12 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
     def run(self):
         config = Config.get()
         feats = Utils.read_features(config.get("GeneratedFiles",
-                                               "popularity_with_id"),
+                                              "popularity_with_id"),
                                     config.get("GeneratedFiles",
-                                               "article_coordinates"),
+                                              "article_coordinates"),
                                     config.get("GeneratedFiles",
-                                               "clusters_with_id"))
-        print('FEATURES IS', len(feats))
+                                              "clusters_with_id"))
+        
         counts = defaultdict(int)
         for row in feats.values():
             for k in row:
@@ -53,18 +52,19 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
 
         zoom = CalculateZooms(feats,
                               config.getint("MapConstants", "max_coordinate"),
-                              config.getint("PreprocessingConstants",
-                                            "num_clusters"))
-        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants",
-                                                           "max_zoom"),
-                                             config.getint("MapConstants",
-                                                           "first_zoom_label"))
+                              config.getint("PreprocessingConstants", "num_clusters"))
+        numberedZoomDict = zoom.simulateZoom(config.getint("MapConstants", "max_zoom"),
+                                             config.getint("MapConstants", "first_zoom_label"))
 
         keys = list(numberedZoomDict.keys())
         zoomValue = list(numberedZoomDict.values())
 
+
         Utils.write_tsv(config.get("GeneratedFiles", "zoom_with_id"),
                         ("index", "maxZoom"), keys, zoomValue)
+
+
+TOP_LEVEL_COORDINATES = (360, 170.1022)
 
 
 class QuadTree:
@@ -82,6 +82,12 @@ class QuadTree:
         self.maxDepth = maxDepth
 
     def insert(self, x, y, pid):
+        '''
+        Inserts a point into the quadrant if the capacity of
+        points per tile has not been reached. Adds the children 
+        of the tile into the quadtree structure and adds the 
+        point to the child tile if it contains the point. 
+        '''
         c = self.capacity
 
         if self.isTopLevel is True:
@@ -105,7 +111,6 @@ class QuadTree:
                                           self.topY + s, s, c, md))
 
         for c in self.children:
-            # print('checking %s for %f, %f' % (c, x, y))
             if c.contains(x, y):
                 c.insert(x, y, pid)
                 break
@@ -113,6 +118,9 @@ class QuadTree:
             assert(False, '%s doesnt contain %s, %s' % (self, x, y))
 
     def contains(self, x, y):
+        '''
+        Determines if a point exists in a tile. 
+        '''
         return (x >= self.leftX and x <= self.leftX + self.size
                 and y >= self.topY and y <= self.topY + self.size)
 
@@ -141,6 +149,11 @@ class CalculateZooms:
             p['popularity'] = float(p['popularity'])
 
     def simulateZoom(self, maxZoom, firstZoomLevel):
+        '''
+        Simulates zooming of the map using a quadtree. Additional points
+        are added if capacity of tile is not full. Runs a DFS on the 
+        quadtree to return the max zoom level for every article. 
+        '''
 
         # Order ids by overall popualarity
         idsByPopularity = [pair[0] for pair in Utils.sort_by_feature(self.points, 'popularity')]
@@ -152,13 +165,11 @@ class CalculateZooms:
             c = int(self.points[id]['cluster'])
             topPerCluster[c].append(id)
 
-        lastZoom = firstZoomLevel
-
         added = set()
 
         nAdded = [0]
         mc = 1.0 * self.maxCoordinate
-        qt = QuadTree(lastZoom, -mc, -mc, mc * 2,
+        qt = QuadTree(firstZoomLevel, -mc, -mc, mc * 2,
                       self.pointsPerTile, maxZoom)
 
         def maybeAddPoint(pid):
@@ -197,14 +208,3 @@ class CalculateZooms:
         dfs(qt)
 
         return self.numberedZoom
-
-if __name__ == '__main__':
-    config = Config.get()
-    feats = Utils.read_features(config.FILE_NAME_NUMBERED_POPULARITY,
-                                config.FILE_NAME_ARTICLE_COORDINATES,
-                                config.FILE_NAME_NUMBERED_CLUSTERS)
-    calc = CalculateZooms(feats)
-    zoomDict = calc.simulateZoom()
-    keys = list(zoomDict.keys())
-    values = list(zoomDict.values())
-    # print keys
