@@ -131,8 +131,6 @@ class MapStyler:
         mapnik.save_map(self.m, mapFilename)
 
     def saveImage(self, mapFilename, imgFilename):
-        print mapFilename, "What's our map name"
-        print imgFilename, "What's our img name"
         if self.m is None:
             self.m = mapnik.Map(self.width, self.height)
         mapnik.load_map(self.m, mapFilename)

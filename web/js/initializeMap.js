@@ -151,17 +151,30 @@ function handleUTFGrid() {
     }
 
     //click functionality/shows wikipedia link in sidebar
-    currentLayer.on('click', function(e) {
+    currentLayer.on('mouseover', function(e) {
 		if(e.data){
-			var title = e.data.citylabel;
-			var labelstrings = title.split(" ");
-			var url = "https://wikipedia.org/wiki/";
-			for(var i = 0; i < labelstrings.length; i++){
-				url += labelstrings[i];
-				if(i < labelstrings.length -1) {
-					url += "_";
-				}
-			}
+            console.log(e.data)
+            var title = e.data.citylabel;
+            var labelstrings = title.split(" ");
+            var url = "https://wikipedia.org/wiki/";
+            for(var i = 0; i < labelstrings.length; i++){
+                url += labelstrings[i];
+                if(i < labelstrings.length -1) {
+                    url += "_";
+                }
+            }
+
+            var marker = new L.Marker([e.data.y, e.data.x], {opacity: 1.0});
+            marker.setIcon(new L.Icon({iconUrl: './images/blackDot.png'}))
+            marker.addTo(map);
+             $(marker._icon).addClass('tooltip');
+            $('.tooltip').tooltipster({
+                content: "<a href =" + url + ">" + title + "</a>",
+                trigger: "hover",
+                interactive: "true",
+                contentAsHTML: "true"
+            });
+            
 
 			//NOTE: could make this much simpler in the future by using JQuery and 'append' - to look into 
 		  	page_info_box.innerHTML = '<div class = "centered"><style>#explanation {padding-top: 20px}</style> <h4 id="explanation"> Article Name: </h4><p style = "font-size: 23"><strong> ' + e.data.citylabel + '</strong> </p> <p style = "font-size: 21"> Visit the <a href = "'+ url + '" target = "_blank"> Wikipedia Page </a></p> </div>';
