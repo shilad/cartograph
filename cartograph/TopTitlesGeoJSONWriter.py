@@ -1,7 +1,13 @@
+import Utils
+import luigi
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, Point
 
-from cartograph import Utils
+
+class TopTitlesGeoJSONWriterCode(MTimeMixin, luigi.ExternalTask):
+    def output(self):
+        return (TimestampedLocalTarget(__file__))
 
 
 class TopTitlesGeoJSONWriter:

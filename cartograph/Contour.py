@@ -1,17 +1,20 @@
-from cartograph import Popularity, Coordinates
-from LuigiUtils import TimestampedLocalTarget, MTimeMixin
 import luigi
-import Utils
+import json
+import Coordinates
+import Popularity
 import Config
+import Utils
+import scipy.stats as sps
+import shapely.geometry as shply
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.path as mplPath
 import scipy.ndimage as spn
+from BorderGeoJSONWriter import CreateContinents
+from Regions import MakeRegions
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
-import scipy.stats as sps
-import json
-import shapely.geometry as shply
 from collections import defaultdict
 from shapely.geometry import Point
 
@@ -29,17 +32,16 @@ class CreateContours(MTimeMixin, luigi.Task):
     def requires(self):
         config = Config.get()
         return (Coordinates.CreateSampleCoordinates(),
-                Popularity.SampleCreator(config.get("ExternalFiles", "vecs_with_id")),
-                ContourCode())
-                # CreateContinents(),
-                # MakeRegions())
+                Popularity.SampleCreator(config.get("ExternalFiles",
+                                                    "vecs_with_id")),
+                ContourCode(),
+                CreateContinents(),
+                MakeRegions())
 
     def output(self):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
                 TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
-
-
 
     def run(self):
         config = Config.get()
@@ -61,8 +63,7 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         contour = ContourCreator(numClusters)
         contour.buildContours(featuresDict, countryBorders)
-        contour.makeDensityContourFeatureCollection(config.get("MapData", "density_contours_geojson"))
-        contour.makeCentroidContourFeatureCollection(config.get("MapData", "centroid_contours_geojson"))
+        contour.makeContourFeatureCollection([config.get("MapData", "density_contours_geojson"),config.get("MapData", "centroid_contours_geojson")])
 
 
 class ContourCreator:
@@ -84,8 +85,9 @@ class ContourCreator:
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
         self.binSize = 200
-        self.density_CSs = self._densityCalcContour()
-        self.centroid_CSs = self._centroidCalcContour()
+        self.CSs = []
+        self.CSs.append(self._densityCalcContour())
+        self.CSs.append(self._centroidCalcContour())
 
     def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):
         '''
@@ -131,7 +133,7 @@ class ContourCreator:
             pointInfo = featureDict[index]
             if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
             c = int(pointInfo['cluster'])
-            xy = Point(float(pointInfo['x']),float(pointInfo['y']))
+            xy = Point(float(pointInfo['x']), float(pointInfo['y']))
             poly = allBordersDict[str(c)]
             if poly.contains(xy):
                 xs[c].append(float(pointInfo['x']))
@@ -165,13 +167,13 @@ class ContourCreator:
         for (x, y, values) in zip(self.xs, self.ys, self.centralities):
             if not x: continue
             centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
-                                            values,
-                                            statistic='mean',
-                                            bins=self.binSize,
-                                            range=[[np.min(y),
-                                            np.max(y)],
-                                            [np.min(x),
-                                            np.max(x)]])
+                                                        values,
+                                                        statistic='mean',
+                                                        bins=self.binSize,
+                                                        range=[[np.min(y),
+                                                        np.max(y)],
+                                                        [np.min(x),
+                                                        np.max(x)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
@@ -288,29 +290,18 @@ class ContourCreator:
 
         return featureAr
 
-    def makeDensityContourFeatureCollection(self, outputfilename):
+    def makeContourFeatureCollection(self, outputfilename):
         '''
-        Call this method to create Density contours, it sends
+        Creates contours, it sends
         the CS that corresponds with the contour type off. Writes
         it out to a geojson file.
         '''
-        featureAr = self._genContourPolygons(self.density_CSs)
-        collection = FeatureCollection(featureAr)
-        textDump = dumps(collection)
-        with open(outputfilename, "w") as writeFile:
-            writeFile.write(textDump)
-
-    def makeCentroidContourFeatureCollection(self, outputfilename):
-        '''
-        Call this method to create Centroid contours, it sends
-        the CS that corresponds with the contour type off. Writes
-        it out to a geojson file.
-        '''
-        featureAr = self._genContourPolygons(self.centroid_CSs)
-        collection = FeatureCollection(featureAr)
-        textDump = dumps(collection)
-        with open(outputfilename, "w") as writeFile:
-            writeFile.write(textDump)
+        for i, filename in enumerate(outputfilename):
+            featureAr = self._genContourPolygons(self.CSs[i])
+            collection = FeatureCollection(featureAr)
+            textDump = dumps(collection)
+            with open(filename, "w") as writeFile:
+                writeFile.write(textDump)
 
 
 class Contour:

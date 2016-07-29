@@ -84,7 +84,7 @@ class findNumClusters():
         ax.boxplot([self.gain[key]["avg"] for key in keys],
                    labels=x)
         plt.draw()
-        plt.savefig("././data/macademia/numClusters.png")
+        plt.savefig("././data/FullEnglish/numClusters.png")
         plt.close(fig)
         print "\tSaved image to file"
         if len(avgList) > 1:
@@ -107,7 +107,7 @@ class findNumClusters():
         return True, clustID
 
 if __name__ == "__main__":
-    featureDict = Utils.read_features("././data/labdata/macademia/vecs.tsv")
+    featureDict = Util.read_features("././data/FullEnglish/labdata/numberedVecsFull.tsv")
     keys = list(featureDict.keys())
     data = [featureDict[key]["vector"] for key in keys]
     clusterSolver = findNumClusters(data, len(data) / 100)
