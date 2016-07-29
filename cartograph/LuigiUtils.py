@@ -216,5 +216,6 @@ def getSampleIds(n=None):
     pops = Utils.read_features(config.get("GeneratedFiles", "popularity_with_id"))
     tuples = list((pops[id]['popularity'], id) for id in pops)
     tuples.sort()
+    tuples.reverse()
     return set(id for (pop, id) in tuples[-n:])
 
