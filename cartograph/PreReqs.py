@@ -24,6 +24,8 @@ class ArticlePopularity(luigi.ExternalTask):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "popularity")))
 
+    def requires(self):
+        return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks
 
 class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
@@ -38,6 +40,9 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
                                              "vecs_with_id")),
                 TimestampedLocalTarget(config.get("ExternalFiles",
                                              "names_with_id")))
+
+    def requires(self):
+        return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks
 
 
 class EnsureDirectoriesExist(luigi.Task):
