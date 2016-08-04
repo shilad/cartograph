@@ -89,7 +89,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
                     if c is not None:
                         sums[c] += score
                 cluster = max(sums, key=sums.get)
-                ids.append(id)
+            ids.append(id)
             clusters.append(cluster)
 
         Utils.write_tsv(config.get("GeneratedFiles", "clusters_with_id"),
