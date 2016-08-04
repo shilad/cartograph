@@ -121,7 +121,8 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        sampleCoords = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"))
+        sampleCoords = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
+                                           required=('x', 'y'))
         vecs = Utils.read_features(config.get("ExternalFiles", "vecs_with_id"))
         knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
         assert(knn.exists())
@@ -132,17 +133,23 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
         for i, (id, row) in enumerate(vecs.items()):
             if i % 10000 == 0:
                 logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-            xSums = 0.0
-            ySums = 0.0
-            scoreSums = 0.0
-            if len(row['vector']) == 0: continue
-            hood = knn.neighbors(row['vector'], 5)
-            for (id2, score) in hood:
-                xSums += score * float(sampleCoords[id2]['x'])
-                ySums += score * float(sampleCoords[id2]['y'])
-                scoreSums += score
-            X.append(xSums / scoreSums)
-            Y.append(ySums / scoreSums)
+            if id in sampleCoords:
+                x = float(sampleCoords[id]['x'])
+                y = float(sampleCoords[id]['y'])
+            else:
+                xSums = 0.0
+                ySums = 0.0
+                scoreSums = 0.0
+                if len(row['vector']) == 0: continue
+                hood = knn.neighbors(row['vector'], 5)
+                for (id2, score) in hood:
+                    xSums += score * float(sampleCoords[id2]['x'])
+                    ySums += score * float(sampleCoords[id2]['y'])
+                    scoreSums += score
+                x = xSums / scoreSums
+                y = ySums / scoreSums
+            X.append(x)
+            Y.append(y)
             ids.append(id)
 
         Utils.write_tsv(config.get("GeneratedFiles",
