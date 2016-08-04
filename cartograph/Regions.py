@@ -77,16 +77,19 @@ class MakeRegions(MTimeMixin, luigi.Task):
         for i, (id, row) in enumerate(vecs.items()):
             if i % 10000 == 0:
                 logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-            sums = defaultdict(float)
-            if len(row['vector']) == 0: continue
-            hood = knn.neighbors(row['vector'], 5)
-            if not hood: continue
-            for (id2, score) in hood:
-                c = sampleRegions[id2].get('cluster')
-                if c is not None:
-                    sums[c] += score
-            cluster = max(sums, key=sums.get)
-            ids.append(id)
+            if id in sampleRegions:
+                cluster = sampleRegions[id]['cluster']
+            else:
+                sums = defaultdict(float)
+                if len(row['vector']) == 0: continue
+                hood = knn.neighbors(row['vector'], 5)
+                if not hood: continue
+                for (id2, score) in hood:
+                    c = sampleRegions[id2].get('cluster')
+                    if c is not None:
+                        sums[c] += score
+                cluster = max(sums, key=sums.get)
+                ids.append(id)
             clusters.append(cluster)
 
         Utils.write_tsv(config.get("GeneratedFiles", "clusters_with_id"),
