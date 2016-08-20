@@ -38,7 +38,7 @@ num_contours: 7
 min_border_noise_length: .01
 
 [MapConstants]
-max_coordinate: 40
+max_coordinate: 80
 max_zoom: 18
 num_pop_bins: 3
 first_zoom_label: 5
@@ -60,8 +60,8 @@ img_dot: ./data/labdata/blackDot.png
 fontDir: ./data/fonts
 
 [MapOutput]
-map_file_density: ./map_density.xml
-map_file_centroid: ./map_centroid.xml
+map_file_density: ./map_density_%(dataset)s.xml
+map_file_centroid: ./map_centroid_%(dataset)s.xml
 img_src_name: %(mapDir)s/world
 
 [PG]
@@ -70,3 +70,6 @@ database = mapnik_%(dataset)s
 user =
 password =
 
+[Tilestache]
+config: %(baseDir)s/tilestache_cfg.json
+cache: %(baseDir)s/tilestache_cache

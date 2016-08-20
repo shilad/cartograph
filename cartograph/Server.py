@@ -1,3 +1,4 @@
+import collections
 import json
 import marisa_trie
 import os
@@ -12,19 +13,21 @@ from cartograph import Utils
 from cartograph import Config
 
 
-def run_server(path_cartograph_cfg, path_tilestache_cfg):
+def run_server(path_cartograph_cfg):
     Config.initConf(path_cartograph_cfg)
- 
-    
-    path_tilestache_cfg = os.path.abspath(path_tilestache_cfg)
-    path_cache = json.load(open(path_tilestache_cfg, 'r'))['cache']['path']
+    config = Config.get()
+
+    tsCache = os.path.abspath(config.get('Tilestache', 'cache'))
+    tsConfig = os.path.abspath(config.get('Tilestache', 'config'))
+    TilestacheConfigurator(config).write(tsConfig)
+
     static_files =  { '/static': os.path.join(os.path.abspath('./web')) }
 
-    if os.path.isdir(path_cache):
-        assert(len(path_cache) > 5)
-        shutil.rmtree(path_cache)
+    if os.path.isdir(tsCache):
+        assert(len(tsCache) > 5)
+        shutil.rmtree(tsCache)
 
-    app = CartographServer(path_tilestache_cfg, Config.get())
+    app = CartographServer(tsConfig, config)
     run_simple('0.0.0.0', 8080, app, static_files=static_files)
    
 
@@ -118,5 +121,85 @@ class CartographServer(TileStache.WSGITileServer):
             return TileStache.WSGITileServer.__call__(self, environ, start_response)
 
     
+class TilestacheConfigurator:
+    def __init__(self, config):
+        self.config = config
+
+    def makeConfig(self):
+        tsConfig = collections.OrderedDict()
+        tsConfig['cache'] = self.makeCache()
+        tsConfig['layers'] = self.makeLayers()
+        return tsConfig
+
+    def write(self, path):
+        s = json.dumps(self.makeConfig(), indent=4)
+        with open(path, 'w') as f:
+            f.write(s)
+
+    def makeCache(self):
+        return   {
+            "name": "Disk",
+            "path": os.path.abspath(self.config.get('Tilestache', 'cache')),
+            "verbose": True
+          }
+
+
+    def makeLayers(self):
+        layers = collections.OrderedDict()
+        scale = 1.0
+        tileHeight = 256
+        fn = os.path.abspath(self.config.get('MapOutput', 'map_file_centroid'))
+        layers['map_density'] = {
+            "provider": {"name": "mapnik", "mapfile": "file:" + fn, "scale factor" : scale},
+            "projection": "spherical mercator",
+            "tile height": tileHeight,
+            "metatile": {"rows": 7, "columns": 7, "buffer":120}
+        }
+        fn = os.path.abspath(self.config.get('MapOutput', 'map_file_density'))
+        layers['map_centroid'] = {
+            "provider": {"name": "mapnik", "mapfile": "file:" + fn, "scale factor" : scale},
+            "projection": "spherical mercator",
+            "tile height": tileHeight,
+            "metatile": {"rows": 7, "columns": 7, "buffer":120}
+        }
+        layers['map_countrygrid'] = {
+            #"tile height": 512,
+            "provider": {
+                "class": "TileStache.Goodies.Providers.MapnikGrid:Provider",
+                "kwargs": {
+                    "mapfile": "file:" + fn,
+                    "fields":["labels"],
+                    "layer_index": 0,
+                    "scale": 4
+                }
+            }
+        }
+
+        # TODO: Make layer indices less fragile by grabbing them from the map xml
+        start_layer_index = 4
+        start_zoom = 5
+        end_zoom = 17
+        for zoom in range(start_zoom, end_zoom+1):
+            # WHY is this true? Ask Anja Beth
+            if zoom < 10:
+                fields = ["citylabel", "x", "y"]
+            else:
+                fields = ["citylabel"]
+            layers['map_' + str(zoom) + '_utfgrid'] = {
+                #"tile height": 512,
+                "provider":
+                    {
+                        "class": "TileStache.Goodies.Providers.MapnikGrid:Provider",
+                        "kwargs":
+                            {
+                                "mapfile": "file:" + fn,
+                                "fields": fields,
+                                "layer_index": (end_zoom - zoom) + start_layer_index,
+                                "scale": 4
+                            }
+                    }
+            }
+        return layers
+
 
 

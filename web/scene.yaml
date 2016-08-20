@@ -1,0 +1,51 @@
+cameras:
+    camera1:
+        type: flat
+
+lights:
+    light1:
+        type: directional
+        direction: [0, 1, -.5]
+        diffuse: .3
+        ambient: 1
+
+sources:
+    world:
+        type: TopoJSON
+        url:  http://localhost:4000/tile/all/{z}/{x}/{y}.topojson
+        max_zoom: 16
+
+
+layers:
+    country_shapes:
+        data: { source: world, layer: countries }
+        draw:
+            polygons:
+                color: '#ddeeee'
+
+#          lines:
+#              color: black
+#              width: 2px
+#              outline:
+#                visible: true
+#
+#    country_borders:
+#        data: { source: world }
+#        draw:
+#            lines:
+#                color: '#000000'
+#                width: 5px
+
+    cities:
+        data: { source: world, layer: cities }
+        draw:
+          points:
+            color: '#dd9999'
+            size: 6px
+            text:
+              text_source: city
+              font:
+                  family: Arial
+                  size: 9px
+                  fill: '#cccccc'
+                  stroke: { color: white, width: 2 }
