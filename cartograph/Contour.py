@@ -105,7 +105,7 @@ class ContourCreator:
 
         allBordersDict = defaultdict(dict)
         for feature in bordersData['features']:
-            poly = shply.shape(feature['geometry'])
+            poly = shply.shape(feature['geometry']).simplify(0.01)
             cluster = feature['properties']['clusterNum']
             allBordersDict[str(cluster)] = poly
 

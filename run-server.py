@@ -16,4 +16,4 @@ else:
 if not conf.startswith("/"):
     conf = os.path.abspath(conf)
 
-run_server(conf, os.path.abspath('./data/tilestache.cfg'))
+run_server(conf)
