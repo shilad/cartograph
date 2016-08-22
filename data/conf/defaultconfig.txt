@@ -38,7 +38,7 @@ num_contours: 7
 min_border_noise_length: .01
 
 [MapConstants]
-max_coordinate: 80
+max_coordinate: 40
 max_zoom: 18
 num_pop_bins: 3
 first_zoom_label: 5
