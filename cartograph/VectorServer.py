@@ -199,16 +199,16 @@ class Server:
             return self.handleTile(path)
         elif path.startswith('/fixed'):
             return self.handleFixed(path)
-        elif path.startswith('/contours'):
-            return self.handleContours()
+        elif path.endswith('countries.yaml'):
+            return self.handleCountries()
         else:
             return
 
-    def handleContours(self):
+    def handleCountries(self):
         config = {
             'layers' : {
                 'contours' : {
-                    'data' : { 'source': 'fixed', 'layer': 'centroid_contours' }
+                    'data' : { 'source': 'fixed', 'layer': 'density_contours' }
                 },
                 'countries': {
                     'data': {'source': 'fixed', 'layer': 'countries'}
@@ -300,15 +300,16 @@ class Server:
             #         builder.addMultiPolygon('countries', shp, props)
 
             t1 = time.time()
-            query = """SELECT id, geom, citylabel from coordinates WHERE maxzoom <= %s and geom && ST_MakeEnvelope%s limit 20""" % (z+2, tuple(extent),)
+            query = """SELECT id, geom, citylabel, popularity, maxzoom from coordinates WHERE maxzoom <= %s and geom && ST_MakeEnvelope%s order by popularity desc limit 50""" % (z+3, tuple(extent),)
             # print 'query is', query
             cur.execute(query)
             cur.itersize = 1000
             t2 = time.time()
             i = 0
             for row in cur:
+                props = {'city': row[2], 'pop' : float(row[3]), 'z' : float(z+3-row[4])}
                 shp = shapely.wkb.loads(row[1], hex=True)
-                builder.addPoint('cities', 'point_' + str(row[0]), shp, {'city': row[2]})
+                builder.addPoint('cities', 'point_' + str(row[0]), shp, props)
                 i += 1
             print query, i
             t3 = time.time()

@@ -1,3 +1,6 @@
+scene:
+    background:
+        color: '#F0F7FF'
 sources:
     fixed:
         type: TopoJSON
@@ -8,7 +11,7 @@ sources:
         url: http://localhost:4000/tile/{z}/{x}/{y}.topojson
         max_zoom: 16
 
-import: http://localhost:4000/contours.yaml
+import: http://localhost:4000/countries.yaml
 
 layers:
     countries:
@@ -26,27 +29,66 @@ layers:
           points:
             color: '#dd9999'
             size: 0px
+            collide: false
             text:
               text_source: name
+              anchor: center
+              collide: false
               font:
-                  anchor: center
                   family: Arial
-                  size: 14px
-                  weight: bold
-                  collide: false
+                  size: 16px
+                  weight: 700
                   transform: uppercase
-                  fill: 'rgba(200, 200, 200, 0.4)'
+                  fill: 'rgba(255, 255, 255, 0.5)'
                   stroke: { color: '#666', width: 1px }
     cities:
         data: { source: tiled, layer: cities }
-        draw:
-          points:
-            color: '#dd9999'
-            size: 6px
-            text:
-              text_source: city
-              font:
-                  family: Arial
-                  size: 11px
-                  fill: '#666'
-                  stroke: { color: '#ccc', width: 2 }
+        small_cities:
+            filter: { z : 0 }
+            draw:
+                points:
+                  color: '#dd9999'
+                  size: 3px
+                  priority: function() { return 1000000 - feature.pop; }
+        medium_cities:
+            filter: { z : 1 }
+            draw:
+                points:
+                  color: '#dd9999'
+                  size: 4px
+                  priority: function() { return 100000 - feature.pop ; }
+                  text:
+                    text_source: city
+                    font:
+                        family: Arial
+                        size: 11px
+                        fill: '#666'
+                        stroke: { color: '#fff', width: 2 }
+        large_cities:
+            filter: { z : { min: 3, max: 4 } }
+            draw:
+                points:
+                  color: '#dd9999'
+                  size: 8px
+                  priority: function() { return 10000 - feature.pop; }
+                  text:
+                    text_source: city
+                    font:
+                        family: Arial
+                        size: 13px
+                        fill: '#666'
+                        stroke: { color: '#fff', width: 2 }
+        huge_cities:
+            filter: { z : { min: 5 } }
+            draw:
+                points:
+                  color: '#dd9999'
+                  size: 10px
+                  priority: function() { return 5000 - feature.pop; }
+                  text:
+                    text_source: city
+                    font:
+                        family: Arial
+                        size: 15px
+                        fill: '#666'
+                        stroke: { color: '#fff', width: 2 }
