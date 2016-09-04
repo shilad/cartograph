@@ -33,7 +33,7 @@ class CreateLabelsFromZoom(MTimeMixin, luigi.Task):
         featureDict = Utils.read_features(
             config.get("GeneratedFiles", "zoom_with_id"),
             config.get("GeneratedFiles", "article_coordinates"),
-            config.get("GeneratedFiles", "popularity_with_id"),
+            config.get("ExternalFiles", "popularity"),
             config.get("ExternalFiles", "names_with_id"),
             config.get("GeneratedFiles", "percentile_popularity_with_id"),
             required=('x', 'y', 'popularity', 'name', 'maxZoom')

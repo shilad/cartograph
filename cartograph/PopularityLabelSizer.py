@@ -1,9 +1,9 @@
-import Popularity
 import luigi
 import Utils
 import Config
 import numpy as np
 from LuigiUtils import TimestampedLocalTarget, MTimeMixin
+from PreReqs import ArticlePopularity
 
 
 class PopularityLabelSizerCode(MTimeMixin, luigi.ExternalTask):
@@ -17,7 +17,7 @@ class PercentilePopularityIdentifier(MTimeMixin, luigi.Task):
     the unique article ID.
     '''
     def requires(self):
-        return (Popularity.PopularityIdentifier(),
+        return (ArticlePopularity(),
                 PopularityLabelSizerCode())
 
     def output(self):
@@ -26,7 +26,7 @@ class PercentilePopularityIdentifier(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        readPopularData = Utils.read_tsv(config.get("GeneratedFiles", "popularity_with_id"))
+        readPopularData = Utils.read_tsv(config.get("ExternalFiles", "popularity"))
         popularity = list(map(float, readPopularData['popularity']))
         index = list(map(int, readPopularData['id']))
 

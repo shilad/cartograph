@@ -213,7 +213,7 @@ def getSampleIds(n=None):
     # Lookup the sample size.
     if n is None:
         n = config.getint('PreprocessingConstants', 'sample_size')
-    pops = Utils.read_features(config.get("GeneratedFiles", "popularity_with_id"))
+    pops = Utils.read_features(config.get("ExternalFiles", "popularity"))
     tuples = list((float(pops[id]['popularity']), id) for id in pops)
     tuples.sort()
     tuples.reverse()

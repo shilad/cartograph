@@ -11,6 +11,8 @@ import shapely.wkt
 import yaml
 
 import cartograph.Config
+
+from EdgeLayer import EdgeLayer
 from TopoJson import TopoJsonBuilder
 from PolyLayer import PolyLayer
 from Search import Search
@@ -55,6 +57,7 @@ class Server:
                       simplification={ 1: 1, 5: 0.5, 10: 0.1 }
                       ),
         ]
+        self.edges = EdgeLayer(config, self.cnx)
 
     def getBounds(self):
         with self.cnx.cursor() as cur:
@@ -81,6 +84,14 @@ class Server:
 
     def handleCountries(self):
         config = {
+            'styles' : {
+                'poly-alpha' : {
+                    'base': 'polygons',
+                    'blend_order': 0,
+                    'blend': 'overlay'
+                }
+
+            },
             'layers' : {
                 'contours' : {
                     'data' : { 'source': 'tiled', 'layer': 'density_contours' }
@@ -100,6 +111,7 @@ class Server:
                 'draw': {
                     'polygons': {
                         'color': "rgb(%d,%d,%d)" % (r, g, b),
+                        # 'style': 'poly-alpha',
                         'width': '1px',
                         'order': order,
                         'blend': 'overlay'
@@ -120,6 +132,7 @@ class Server:
                     'draw' : {
                         'polygons' : {
                             'color' : "rgb(%d,%d,%d)" % (r, g, b),
+                            # 'style': 'poly-alpha',
                             'width' : '1px',
                             'order' : order,
                             'blend' : 'overlay'
@@ -188,6 +201,8 @@ class Server:
             # print box
             for poly in self.polys:
                 for shp, props, center in poly.getPolysInBox(cur, z, box):
+                    if center and poly.labelField:
+                        builder.addPoint('countries_labels', props[poly.labelField], center)
                     builder.addMultiPolygon(poly.name, shp, props)
 
             t1 = time.time()
@@ -204,6 +219,9 @@ class Server:
                 i += 1
             # print query, i
             t3 = time.time()
+            # for ei in self.edges.getEdges(tuple(extent), z):
+            #     builder.addMultiLine('edges', ei['bundle'])
+            t4 = time.time()
 
             # print('times', (t1 - t0), (t2-t1), (t3-t2))
 
@@ -241,7 +259,7 @@ if __name__ == '__main__':
     server = Server(cartograph.Config.get())
     # print server.search.search('App')
     # print server.serve('/contours')
-    server.serve('/tiles/6/32/25.topojson')
+    print server.serve('/tiles/6/32/25.topojson')
     # server.serve('/fixed/0.topojson')
 
     # for z in range(11):
@@ -264,7 +282,6 @@ if __name__ == '__main__':
         return resp(environ, start_response)
 
     static_files =  { '/static': os.path.join(os.path.abspath('./web')) }
-    print static_files
 
     from werkzeug.serving import run_simple
     run_simple('localhost', 4000, application, static_files=static_files)

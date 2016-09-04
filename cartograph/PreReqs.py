@@ -3,10 +3,10 @@ import os
 import luigi
 
 from cartograph import Config
-from cartograph.LuigiUtils import TimestampedLocalTarget, MTimeMixin
+from cartograph.LuigiUtils import TimestampedLocalTarget, MTimeMixin, getSampleIds
 
 
-class LabelNames(luigi.ExternalTask):
+class LabelNames(luigi.Task):
     '''
     Verify that cluster has been successfully labeled from Java
     and WikiBrain
@@ -14,6 +14,16 @@ class LabelNames(luigi.ExternalTask):
     def output(self):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "region_names")))
+
+    def run(self):
+        config = Config.get()
+
+        with open(config.get("ExternalFiles", "region_names"), 'w') as f:
+            f.write('cluster_id\tlabel\n')
+            numClusters = config.getint('PreprocessingConstants', 'num_clusters')
+            for i in range(numClusters + 1): # +1 is for water cluster
+                f.write('%d\tCluster %d\n' % (i, i))
+            f.close()
 
     def requires(self):
         return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks
@@ -63,3 +73,33 @@ class EnsureDirectoriesExist(luigi.Task):
         for k in self.configKeys:
             fn = config.get('DEFAULT', k)
             if not os.path.isdir(fn): os.makedirs(fn)
+
+
+class SampleCreator(MTimeMixin, luigi.Task):
+    path = luigi.Parameter()
+
+    def requires(self):
+        return (
+            WikiBrainNumbering(),
+            ArticlePopularity(),
+            EnsureDirectoriesExist()
+        )
+
+    def samplePath(self):
+
+        config = Config.get()
+        n = config.getint('PreprocessingConstants', 'sample_size')
+        return Config.samplePath(self.path, n)
+
+    def output(self):
+        return TimestampedLocalTarget(self.samplePath())
+
+    def run(self):
+        sampleIds = getSampleIds()
+        with open(self.path, 'r') as input, open(self.samplePath(), 'w') as output:
+            header = input.readline()
+            output.write(header + '\n')
+            for line in input:
+                id = line.split('\t')[0]
+                if id in sampleIds:
+                    output.write(line + '\n')

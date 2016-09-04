@@ -6,7 +6,7 @@ from tsne import bh_sne
 import FastKnn, Utils, Config
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
 from PreReqs import WikiBrainNumbering
-from cartograph.Popularity import SampleCreator
+from cartograph.PreReqs import SampleCreator
 
 logger = logging.getLogger('cartograph.coordinates')
 

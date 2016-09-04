@@ -11,7 +11,7 @@ function usage() {
     exit 1
 }
 
-MODULE=RenderMap
+MODULE=cartograph
 TASK=RenderMap
 
 while [ "$1" != "" ]; do
