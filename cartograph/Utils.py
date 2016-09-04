@@ -27,15 +27,6 @@ def read_wikibrain_vecs(path):
     return matrix
 
 
-# def write_tsv(filename, headers, data):
-#     with open(filename, "w") as f:
-#         s = ("\t".join(headers) + "\n").encode("utf-8")
-#         f.write(s)
-#         for row_num in range(len(data[0])):
-#             row = [col[row_num] for col in data]
-#             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
-#             f.write("%s\t%s" % (row_num, s))
-
 def read_zoom(filename):
     values = defaultdict(dict)
     with open(filename) as f:
@@ -127,28 +118,6 @@ def append_to_tsv(parentName, writeName, *data):
             if data[i][-1] != "\n":
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (index, data[i]))
-
-
-''' TODO: REFACTOR ME
-def append_tsv(filename, header, indexList, *data):
-    for index, dataList in enumerate(data):
-        if len(dataList) != len(data[0]):
-            raise InputError(index, "Lists must match to map together")
-    with open(filename, "a") as writeFile:
-        writeFile.write("\t".join(header) + "\n")
-        if len(data) > 1:
-            data = zip(*data)
-            data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
-        else:
-            data = data[0]
-
-        for i in range(len(data)):
-            index = lastIndex + i + 1
-            data[i] = str(data[i])
-            if data[i][-1] != "\n":
-                data[i] += "\n"
-            writeFile.write("%s\t%s" % (index, data[i]))
-'''
 
 
 def sort_by_feature(articleDict, featureName, reverse=True):

@@ -2,7 +2,7 @@ import Config
 import Utils
 import luigi
 import Coordinates
-import Popularity
+from PreReqs import ArticlePopularity
 from Regions import MakeRegions
 from collections import defaultdict
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
@@ -11,6 +11,7 @@ from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 # http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 
 # Scale denom for each zoom level
+
 
 class CalculateZoomsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
@@ -32,13 +33,13 @@ class ZoomLabeler(MTimeMixin, luigi.Task):
         return (MakeRegions(), 
                 CalculateZoomsCode(),
                 Coordinates.CreateFullCoordinates(),
-                Popularity.PopularityIdentifier()
+                ArticlePopularity()
                 )
 
     def run(self):
         config = Config.get()
-        feats = Utils.read_features(config.get("GeneratedFiles",
-                                              "popularity_with_id"),
+        feats = Utils.read_features(config.get("ExternalFiles",
+                                              "popularity"),
                                     config.get("GeneratedFiles",
                                               "article_coordinates"),
                                     config.get("GeneratedFiles",

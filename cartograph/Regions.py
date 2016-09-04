@@ -6,6 +6,8 @@ import numpy as np
 import FastKnn
 import logging
 from collections import defaultdict
+
+import cartograph.PreReqs
 from PreReqs import WikiBrainNumbering
 from sklearn.cluster import KMeans
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
@@ -32,7 +34,7 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         return (
             RegionCode(),
             Coordinates.CreateSampleCoordinates(),
-            Coordinates.SampleCreator(config.get("ExternalFiles",
+            cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
                                                  "vecs_with_id"))
         )
 
