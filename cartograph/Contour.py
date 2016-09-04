@@ -1,11 +1,12 @@
 import matplotlib
 
+import cartograph.PreReqs
+
 matplotlib.use("Agg")
 
 import luigi
 import json
 import Coordinates
-import Popularity
 import Config
 import Utils
 import scipy.stats as sps
@@ -36,7 +37,7 @@ class CreateContours(MTimeMixin, luigi.Task):
     def requires(self):
         config = Config.get()
         return (Coordinates.CreateSampleCoordinates(),
-                Popularity.SampleCreator(config.get("ExternalFiles",
+                cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
                                                     "vecs_with_id")),
                 ContourCode(),
                 CreateContinents(),
