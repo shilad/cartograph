@@ -23,6 +23,19 @@ class TopoJsonBuilder:
           "coordinates": [shape.x, shape.y]
         })
 
+    def addMultiLine(self, collectionName, multiLine, props=None):
+        if props == None: props = {}
+        coll = self.getCollection(collectionName)
+        arcs = []
+        for line in multiLine.geoms:
+            coords = list(line.coords)
+            arcs.append([ self.addArc(coords) ])
+        coll['geometries'].append({
+            'type': 'MultiLineString',
+            'properties' : props,
+            'arcs' : arcs
+        })
+
     def addMultiPolygon(self, collectionName, shape, props=None):
         if shape.geom_type == 'Polygon': shape = [shape]
         shape = [s for s in shape if s]

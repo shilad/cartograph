@@ -46,11 +46,12 @@ class PolyLayer:
         result = []
         for shp, prop, center in polys:
             if box.intersects(shp):
+                c = center if box.contains(center) else None
                 p = dict(prop)
                 result.append((
                     box.intersection(shp),
                     p,
-                    center if box.contains(center) else None
+                    c
                 ))
         return result
 
