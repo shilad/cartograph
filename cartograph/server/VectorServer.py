@@ -71,11 +71,11 @@ class Server:
             warn('setting max bound to %.3f' % self.bound)
 
     def serve(self, path, req=None):
-        if path.startswith('/tile'):
+        if '/tile/' in path:
             return self.handleTile(path)
-        elif path.startswith('/fixed'):
+        elif '/fixed' in path:
             return self.handleFixed(path)
-        elif path.startswith('/search'):
+        elif path.endswith('/search'):
             return self.handleSearch(req)
         elif path.endswith('countries.yaml'):
             return self.handleCountries()
@@ -164,8 +164,8 @@ class Server:
 
     def handleFixed(self, path):
         assert(path.endswith('.topojson'))
-        parts = path[1:-len('.topojson')].split('/')
-        z = int(parts[1])
+        parts = path[:-len('.topojson')].split('/')
+        z = int(parts[-1])
         v = self.getFromCache(z)
         if v:
             return v
@@ -180,8 +180,9 @@ class Server:
 
     def handleTile(self, path):
         assert(path.endswith('.topojson'))
-        parts = path[1:-len('.topojson')].split('/')
-        z, x, y = int(parts[1]), float(parts[2]), float(parts[3])
+        parts = path[:-len('.topojson')].split('/')
+        print parts
+        z, x, y = int(parts[-3]), float(parts[-2]), float(parts[-1])
         extent = self.tileExtent(z, x, y)
         val = self.getFromCache((z, x, y))
         if val:
@@ -259,7 +260,7 @@ if __name__ == '__main__':
     server = Server(cartograph.Config.get())
     # print server.search.search('App')
     # print server.serve('/contours')
-    print server.serve('/tiles/6/32/25.topojson')
+    print server.serve('/tile/6/32/25.topojson')
     # server.serve('/fixed/0.topojson')
 
     # for z in range(11):
