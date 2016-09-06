@@ -217,5 +217,5 @@ def getSampleIds(n=None):
     tuples = list((float(pops[id]['popularity']), id) for id in pops)
     tuples.sort()
     tuples.reverse()
-    return set(id for (pop, id) in tuples[-n:])
+    return set(id for (pop, id) in tuples[:n])
 
