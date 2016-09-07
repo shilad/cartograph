@@ -92,6 +92,7 @@ def write_tsv(filename, header, indexList, *data):
             if data[i][-1] != "\n":
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
+        writeFile.close()
 
 def append_to_tsv(parentName, writeName, *data):
     with open(parentName, "r") as parentFile:

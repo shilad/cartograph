@@ -42,18 +42,18 @@ class Server:
         self.polys = [
             PolyLayer('countries',
                       table='countries',
-                      fields=['id', 'labels', 'clusternum'],
+                      fields=['id', 'labels', 'clusterid'],
                       simplification=self.simplifications,
                       labelField='labels'
                       ),
             PolyLayer('centroid_contours',
                       table='contourscentroid',
-                      fields=['id', 'clusternum', 'contournum'],
+                      fields=['id', 'clusterid', 'contournum', 'contourid'],
                       simplification={ 1: 1, 5: 0.5, 10: 0.1 }
                       ),
             PolyLayer('density_contours',
                       table='contoursdensity',
-                      fields=['id', 'clusternum', 'contournum'],
+                      fields=['id', 'clusterid', 'contournum', 'contourid'],
                       simplification={ 1: 1, 5: 0.5, 10: 0.1 }
                       ),
         ]
@@ -107,7 +107,7 @@ class Server:
             hex = colors[cluster][7]
             (r, g, b) = struct.unpack('BBB', hex[1:].decode('hex'))
             c = {
-                'filter': {'clusternum': cluster},
+                'filter': {'clusterid': cluster},
                 'draw': {
                     'polygons': {
                         'color': "rgb(%d,%d,%d)" % (r, g, b),
@@ -119,16 +119,14 @@ class Server:
                 }
             }
 
-            sublayer = 'country_%d' % (cluster)
+            sublayer = 'country_' + cluster
             config['layers']['countries'][sublayer] = c
 
             for contour in colors[cluster]:
                 hex = colors[cluster][contour]
                 (r, g, b) = struct.unpack('BBB', hex[1:].decode('hex'))
                 c = {
-                    'filter' : {
-                        'all' : [ {'clusternum' : cluster}, {'contournum' : contour}]
-                    },
+                    'filter' : { 'contourid' : '%s_%s' % (cluster, contour) },
                     'draw' : {
                         'polygons' : {
                             'color' : "rgb(%d,%d,%d)" % (r, g, b),
@@ -139,7 +137,7 @@ class Server:
                         }
                     }
                 }
-                sublayer = 'contour_%d_%d' % (cluster, contour)
+                sublayer = 'contour_%s_%s' % (cluster, contour)
                 config['layers']['contours'][sublayer] = c
                 order += 1
         return yaml.dump(config)
@@ -198,6 +196,7 @@ class Server:
             delta = abs(x0 - x1) * 0.1
             # print extent
             box = shapely.geometry.box(x0 - delta, y0 - delta, x1 + delta, y1 + delta)
+            # box = shapely.geometry.box(y0 - delta, x0 - delta, y1 + delta, x1 + delta)
             # box = shapely.geometry.box(x0, y0, x1, y1)
             # print box
             for poly in self.polys:
