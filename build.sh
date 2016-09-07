@@ -12,7 +12,7 @@ function usage() {
 }
 
 MODULE=cartograph
-TASK=RenderMap
+TASK=ParentTask
 
 while [ "$1" != "" ]; do
     case $1 in
