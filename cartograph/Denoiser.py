@@ -53,10 +53,12 @@ class Denoise(MTimeMixin, luigi.Task):
         config = Config.get()
         if config.sampleBorders():
             featureDict = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
-                                              config.getSample("GeneratedFiles", "clusters_with_id"))
+                                              config.getSample("GeneratedFiles", "clusters_with_id"),
+                                              required=("x", "y", "cluster"))
         else:
             featureDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
-                                              config.get("GeneratedFiles", "clusters_with_id"))
+                                              config.get("GeneratedFiles", "clusters_with_id"),
+                                              required=("x", "y", "cluster"))
         featureIDs = list(featureDict.keys())
         x = [float(featureDict[fID]["x"]) for fID in featureIDs]
         y = [float(featureDict[fID]["y"]) for fID in featureIDs]
@@ -124,13 +126,14 @@ class Denoiser:
         return signal
 
     def _add_water(self, x, y, clusters):
+        maxV = max(np.max(np.abs(x)), np.max(np.abs(y)))
+
+        def f(n):
+            return (np.random.beta(0.8, 0.8, n) - 0.5) * 2 * (maxV + 5)
         length = len(x)
-        water_x = np.random.uniform(np.min(x) - 3,
-                                    np.max(x) + 3,
-                                    int(length * self.waterLevel))
-        water_y = np.random.uniform(np.min(x) - 3,
-                                    np.max(x) + 3,
-                                    int(length * self.waterLevel))
+        water_x = f(int(length * self.waterLevel))
+        water_y = f(int(length * self.waterLevel))
+
         x = np.append(x, water_x)
         y = np.append(y, water_y)
         clusters = np.append(clusters,
