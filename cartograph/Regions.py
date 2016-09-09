@@ -17,7 +17,6 @@ class RegionCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return(TimestampedLocalTarget(__file__))
 
-
 class MakeSampleRegions(MTimeMixin, luigi.Task):
     '''
     Run KMeans to cluster article points into specific continents.
@@ -35,7 +34,8 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
             RegionCode(),
             Coordinates.CreateSampleCoordinates(),
             cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                 "vecs_with_id"))
+                                                 "vecs_with_id")),
+            cartograph.EnsureDirectoriesExist(),
         )
 
     def run(self):
@@ -59,41 +59,58 @@ class MakeRegions(MTimeMixin, luigi.Task):
                                                  "clusters_with_id"))
 
     def requires(self):
-        return (
-            MakeSampleRegions(),
-            WikiBrainNumbering(),
-            Coordinates.CreateSampleAnnoyIndex()
-        )
+        config = Config.get()
+        if config.sampleBorders():
+            return (
+                MakeSampleRegions(),
+                WikiBrainNumbering(),
+                cartograph.EnsureDirectoriesExist(),
+                Coordinates.CreateSampleAnnoyIndex()
+            )
+        else:
+            return (
+                WikiBrainNumbering(),
+                cartograph.EnsureDirectoriesExist(),
+            )
 
     def run(self):
         config = Config.get()
-        logger = logging.getLogger('workload')
-        sampleRegions = Utils.read_features(config.getSample("GeneratedFiles", "clusters_with_id"))
-        vecs = Utils.read_features(config.get("ExternalFiles", "vecs_with_id"))
-        knn = FastKnn.FastKnn(config.getSample("ExternalFiles",
-                                               "vecs_with_id"))
-        assert(knn.exists())
-        knn.read()
-        ids = []
-        clusters = []
-        for i, (id, row) in enumerate(vecs.items()):
-            if i % 10000 == 0:
-                logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-            if id in sampleRegions:
-                cluster = sampleRegions[id]['cluster']
-            else:
-                sums = defaultdict(float)
-                if len(row['vector']) == 0: continue
-                hood = knn.neighbors(row['vector'], 5)
-                if not hood: continue
-                for (id2, score) in hood:
-                    c = sampleRegions[id2].get('cluster')
-                    if c is not None:
-                        sums[c] += score
-		if sum(sums.values()) == 0.0: continue
-                cluster = max(sums, key=sums.get)
-            ids.append(id)
-            clusters.append(cluster)
+        if config.sampleBorders():
+            logger = logging.getLogger('workload')
+            sampleRegions = Utils.read_features(config.getSample("GeneratedFiles", "clusters_with_id"))
+            vecs = Utils.read_features(config.get("ExternalFiles", "vecs_with_id"))
+            knn = FastKnn.FastKnn(config.getSample("ExternalFiles",
+                                                   "vecs_with_id"))
+            assert(knn.exists())
+            knn.read()
+            ids = []
+            clusters = []
+            for i, (id, row) in enumerate(vecs.items()):
+                if i % 10000 == 0:
+                    logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
+                if id in sampleRegions:
+                    cluster = sampleRegions[id]['cluster']
+                else:
+                    sums = defaultdict(float)
+                    if len(row['vector']) == 0: continue
+                    hood = knn.neighbors(row['vector'], 5)
+                    if not hood: continue
+                    for (id2, score) in hood:
+                        c = sampleRegions[id2].get('cluster')
+                        if c is not None and score > 0:
+                            sums[c] += score
+                    if not sums: continue
+                    cluster = max(sums, key=sums.get)
+                ids.append(id)
+                clusters.append(cluster)
+        else:
+            featureDict = Utils.read_features(config.get("ExternalFiles",
+                                                         "vecs_with_id"))
+            ids = list(k for k in featureDict.keys() if len(featureDict[k]['vector']) > 0)
+            vectors = np.array([featureDict[vID]["vector"] for vID in ids])
+            clusters = list(KMeans((config.getint("PreprocessingConstants",
+                                                "num_clusters")),
+                                 random_state=42).fit(vectors).labels_)
 
         Utils.write_tsv(config.get("GeneratedFiles", "clusters_with_id"),
                         ("index", "cluster"), ids, clusters)

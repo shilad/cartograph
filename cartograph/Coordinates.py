@@ -143,9 +143,11 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
                 if len(row['vector']) == 0: continue
                 hood = knn.neighbors(row['vector'], 5)
                 for (id2, score) in hood:
-                    xSums += score * float(sampleCoords[id2]['x'])
-                    ySums += score * float(sampleCoords[id2]['y'])
-                    scoreSums += score
+                    if score >= 0.0:
+                        xSums += score * float(sampleCoords[id2]['x'])
+                        ySums += score * float(sampleCoords[id2]['y'])
+                        scoreSums += score
+                if scoreSums == 0.0: continue
                 x = xSums / scoreSums
                 y = ySums / scoreSums
             X.append(x)
