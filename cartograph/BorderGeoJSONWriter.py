@@ -13,7 +13,7 @@ import borders
 import matplotlib.path as mplPath
 from borders.BorderBuilder import BorderBuilder
 from Denoiser import Denoise
-from Regions import MakeSampleRegions
+from Regions import MakeSampleRegions, MakeRegions
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
@@ -49,10 +49,11 @@ class CreateContinents(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (PreReqs.LabelNames(),
+                Coordinates.CreateFullCoordinates(),
                 Coordinates.CreateSampleCoordinates(),
                 BorderGeoJSONWriterCode(),
                 BorderFactoryCode(),
-                MakeSampleRegions(),
+                MakeRegions(),
                 Denoise())
 
     def run(self):
