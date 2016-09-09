@@ -34,7 +34,8 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
             RegionCode(),
             Coordinates.CreateSampleCoordinates(),
             cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                 "vecs_with_id"))
+                                                 "vecs_with_id")),
+            cartograph.EnsureDirectoriesExist(),
         )
 
     def run(self):
@@ -63,11 +64,13 @@ class MakeRegions(MTimeMixin, luigi.Task):
             return (
                 MakeSampleRegions(),
                 WikiBrainNumbering(),
+                cartograph.EnsureDirectoriesExist(),
                 Coordinates.CreateSampleAnnoyIndex()
             )
         else:
             return (
-                WikiBrainNumbering()
+                WikiBrainNumbering(),
+                cartograph.EnsureDirectoriesExist(),
             )
 
     def run(self):

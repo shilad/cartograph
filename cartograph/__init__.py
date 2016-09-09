@@ -19,7 +19,7 @@ from Labels import LabelMapUsingZoom
 from Edges import CreateCoordinateEdges
 from MapStyler import CreateMapXml
 from PopularityLabelSizer import PopularityLabelSizerCode
-from PreReqs import ArticlePopularity, LabelNames, SampleCreator, WikiBrainNumbering
+from PreReqs import ArticlePopularity, LabelNames, SampleCreator, WikiBrainNumbering, EnsureDirectoriesExist
 from Regions import MakeRegions, MakeSampleRegions
 from RenderMap import RenderMap
 from TopTitlesGeoJSONWriter import TopTitlesGeoJSONWriter
