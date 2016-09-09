@@ -36,12 +36,19 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         config = Config.get()
-        return (Coordinates.CreateSampleCoordinates(),
-                cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                    "vecs_with_id")),
-                ContourCode(),
-                CreateContinents(),
-                MakeRegions())
+        if config.sampleBorders():
+            return (Coordinates.CreateSampleCoordinates(),
+                    cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
+                                                        "vecs_with_id")),
+                    ContourCode(),
+                    CreateContinents(),
+                    MakeRegions())
+        else:
+            return (Coordinates.CreateFullCoordinates(),
+                    cartograph.PreReqs.LabelNames(),
+                    ContourCode(),
+                    CreateContinents(),
+                    MakeRegions())
 
     def output(self):
         config = Config.get()
@@ -50,14 +57,20 @@ class CreateContours(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
-                                                     "article_coordinates"),
-                                           config.getSample("GeneratedFiles",
-                                                     "clusters_with_id"),
-                                           config.getSample("GeneratedFiles",
-                                                     "denoised_with_id"),
-                                           config.getSample("ExternalFiles",
-                                                     "vecs_with_id"))
+        if config.sampleBorders():
+            featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
+                                                         "article_coordinates"),
+                                               config.getSample("GeneratedFiles",
+                                                         "clusters_with_id"),
+                                               config.getSample("GeneratedFiles",
+                                                         "denoised_with_id"),
+                                               config.getSample("ExternalFiles",
+                                                         "vecs_with_id"))
+        else:
+            featuresDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
+                                               config.get("GeneratedFiles", "clusters_with_id"),
+                                               config.get("GeneratedFiles", "denoised_with_id"),
+                                               config.get("ExternalFiles", "vecs_with_id"))
         for key in featuresDict.keys():
             if key[0] == "w":
                 del featuresDict[key]

@@ -32,6 +32,7 @@ edges_with_coords: %(generatedDir)s/edges_with_coords.tsv
 edge_bundles: %(generatedDir)s/edges_bundles.tsv
 
 [PreprocessingConstants]
+sample_borders: True
 sample_size: 50000
 num_clusters: 13
 tsne_theta: 0.5

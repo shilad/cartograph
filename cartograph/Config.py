@@ -69,7 +69,11 @@ def initConf(confFile=None):
             n = target.getint('PreprocessingConstants', 'sample_size')
         return samplePath(target.get(section, key), n)
 
+    def confSampleBorders(target):
+        return target.getboolean('PreprocessingConstants', 'sample_borders')
+
     conf.getSample = types.MethodType(confSample, conf)
+    conf.sampleBorders  = types.MethodType(confSampleBorders, conf)
 
     CONFIG = conf
 
