@@ -97,8 +97,9 @@ class MakeRegions(MTimeMixin, luigi.Task):
                     if not hood: continue
                     for (id2, score) in hood:
                         c = sampleRegions[id2].get('cluster')
-                        if c is not None:
+                        if c is not None and score > 0:
                             sums[c] += score
+                    if not sums: continue
                     cluster = max(sums, key=sums.get)
                 ids.append(id)
                 clusters.append(cluster)
