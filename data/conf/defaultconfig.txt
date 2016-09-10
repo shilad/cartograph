@@ -41,6 +41,7 @@ blur_radius: 5
 water_level: .05
 num_contours: 7
 min_border_noise_length: .01
+contour_bins: 200
 
 [MapConstants]
 max_coordinate: 40

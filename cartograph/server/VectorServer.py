@@ -37,7 +37,7 @@ class Server:
         self.cache = {}
         self.cacheLock = threading.Lock()
         # self.getBounds()
-        self.simplifications = { 1: .5, 5: 0.1, 7: .01, 10: 0.001}
+        self.simplifications = { 1: .1, 5: 0.03, 7: .01, 10: 0.001}
         self.bound = 180.0
         self.polys = [
             PolyLayer('countries',
