@@ -76,10 +76,11 @@ class CreateContours(MTimeMixin, luigi.Task):
                 del featuresDict[key]
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
+        binSize = config.getint("PreprocessingConstants", "contour_bins")
 
         countryBorders = config.get("MapData", "countries_geojson")
 
-        contour = ContourCreator(numClusters)
+        contour = ContourCreator(numClusters, binSize)
         contour.buildContours(featuresDict, countryBorders)
         contour.makeContourFeatureCollection([config.get("MapData", "density_contours_geojson"),config.get("MapData", "centroid_contours_geojson")])
 
@@ -91,8 +92,9 @@ class ContourCreator:
     out to geojson files.
     '''
 
-    def __init__(self, numClusters):
+    def __init__(self, numClusters, binSize):
         self.numClusters = numClusters
+        self.binSize = binSize
 
     def buildContours(self, featureDict, countryFile):
         '''
@@ -102,7 +104,6 @@ class ContourCreator:
         self.xs, self.ys, self.vectors = self._sortClustersInBorders(featureDict, self.numClusters, countryFile)
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
-        self.binSize = 200
         self.CSs = []
         self.CSs.append(self._densityCalcContour())
         self.CSs.append(self._centroidCalcContour())
@@ -151,11 +152,11 @@ class ContourCreator:
             if pointInfo['keep'] != 'True' or pointInfo.get('cluster') in (None, ''): continue
             c = pointInfo['cluster']
             xy = Point(float(pointInfo['x']), float(pointInfo['y']))
-            poly = allBordersDict.get(c)
-            if poly and poly.contains(xy):
-                xs[c].append(float(pointInfo['x']))
-                ys[c].append(float(pointInfo['y']))
-                vectors[c].append(pointInfo['vector'])
+            # poly = allBordersDict.get(c)
+            # if poly and poly.contains(xy):
+            xs[c].append(xy.x)
+            ys[c].append(xy.y)
+            vectors[c].append(pointInfo['vector'])
 
         return xs, ys, vectors
 
@@ -292,6 +293,7 @@ class ContourCreator:
         Features for each Contour.
         '''
         newPlys = self._cleanContours(CSs)
+        # newPlys = CSs
         countryGroup = {}
         for clusterId, plys in newPlys.items():
             contourList = []
