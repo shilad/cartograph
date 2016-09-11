@@ -8,9 +8,12 @@
 
     <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
     <link rel="stylesheet" href="css/auto-complete.css"/>
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.bundle.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.shadow.min.css" />
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="js/jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="js/tooltipster.bundle.min.js"></script>
 
     <style>
         body {
@@ -42,6 +45,17 @@
           height: 100%;
         }
 
+        #tooltip {
+          position: absolute;
+          top: 100px;
+          left: 100px;
+          z-index: 100000;
+          width: 5px;
+          height: 5px;
+          /*background-color: #fff;*/
+          /*display: none;*/
+        }
+
 
         .autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
         .autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
@@ -56,6 +70,7 @@
   </head>
 
   <body>
+    <div id="tooltip">&nbsp;</div>
     <div id="map"></div>
     <div id="search">
         <input id="search-field" type="text" placeholder="Search the map">
@@ -71,6 +86,8 @@
     <script>
 
         var map = L.map('map');
+        var mapEl = $("#map");  // optimization
+        var ttEl = $("#tooltip");
 
         var layer = Tangram.leafletLayer({
             scene: 'scene.yaml',
@@ -80,16 +97,19 @@
         layer.addTo(map);
         layer.scene.subscribe({
           load : function(e) {
-            console.log('scene loaded:', e);
             layer.setSelectionEvents({
                hover: function(selection) {
-                 if (selection.feature) {
-                   console.log(selection.feature.properties);
+                 if (selection.feature && selection.feature.properties.city) {
+                   var offset = mapEl.offset();
+                   ttEl.offset({
+                     top : offset.top + selection.pixel.y - ttEl.height() / 2,
+                     left : offset.left + selection.pixel.x - ttEl.width() / 2,
+                   });
+                   handleCityHover(selection.feature.properties.city);
                  }
                },
                click: function(selection) {
-                 if (selection.feature) {
-                   console.log(selection.feature.properties);
+                 if (selection.feature && selection.feature.properties.city) {
                  }
                }
             });
@@ -109,12 +129,69 @@
             paramName: 'q',
             autoSelectFirst: true,
             onSelect: function (suggestion) {
-              console.log('You selected: ' + suggestion.value + ', ' + suggestion.data);
               var info = suggestion.data;
               map.flyTo(info.loc, info.zoom, { duration : 0.4 });
               L.marker(info.loc).addTo(map);
             }
         });
+
+        ttEl.tooltipster({
+            content: 'Loading...',
+            theme: 'tooltipster-shadow',
+            contentAsHTML: true,
+            trigger: 'custom',
+            triggerOpen: {},
+            interactive: true,
+            maxWidth: 400,
+            triggerClose: {
+                mouseleave: true,
+                originClick: true,
+                touchleave: true
+            }
+        });
+
+        var tt = ttEl.tooltipster("instance");
+
+        function handleCityHover(title) {
+          var isOpen = tt.status().open;
+          if (ttEl.data("toLoad") == title) {
+            if (!isOpen) tt.open();
+            return;
+          }
+          ttEl.data("toLoad", title);
+
+          var html = '<b>' + title + '</b><br/>loading...';
+          tt.content(html);
+          tt.open();
+          if (isOpen) {
+            tt.reposition();
+          }
+          var encoded = encodeURIComponent(title);
+          var uri = 'https://en.wikipedia.org/w/api.php?action=query&format=json&titles=' + encoded + '&prop=pageimages|extracts&exintro&explaintext&exchars=400&callback=?';
+          $.getJSON(uri, function(json){
+            var info = null;
+            for (var pageId in json.query.pages) {
+              info = json.query.pages[pageId];
+              break;
+            }
+            var text = info.extract;
+            var img = info.thumbnail;
+            var html = "";
+            if (img) {
+              html += '<img align=left src="' + img.source + '" width=' + img.width + ' height=' + img.height + '>';
+            }
+            html += '<b>' + title + ':</b> &nbsp; &nbsp;' + text;
+
+            var wpUrl = 'http://en.wikipedia.org/wiki/' + encoded;
+            html += '... <a target="_new" href="' + wpUrl + '">open Wikipedia article</a>';
+
+            // call the 'content' method to update the content of our tooltip with the returned data
+            tt.content(html);
+
+            // to remember that the data has been loaded
+            ttEl.data('loaded', title);
+          });
+        }
 
     </script>
 

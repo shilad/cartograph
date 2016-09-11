@@ -57,7 +57,7 @@ layers:
                   interactive: true
                   collide: false
                   color: 'rgba(221,153,153,0.5)'
-                  size: 3px
+                  size: 4px
                   priority: function() { return 1000000 - feature.pop; }
         medium_cities:
             filter: { zoomOffset : 1 }
@@ -66,12 +66,13 @@ layers:
                   order: 1000
                   interactive: true
                   color: '#dd9999'
-                  size: 4px
+                  size: 5px
                   priority: function() { return 100000 - feature.pop ; }
                   text:
                     order: 1000
                     text_source: city
                     interactive: true
+                    priority: function() { return 100000 - feature.pop ; }
                     font:
                         family: Arial
                         size: 11px
@@ -84,12 +85,13 @@ layers:
                   order: 1000
                   interactive: true
                   color: '#dd9999'
-                  size: 5px
+                  size: 7px
                   priority: function() { return 10000 - feature.pop; }
                   text:
                     order: 1000
                     text_source: city
                     interactive: true
+                    priority: function() { return 10000 - feature.pop; }
 #                    priority: function() { return 10000 - feature.pop; }
                     font:
                         family: Arial
@@ -103,12 +105,13 @@ layers:
                   order: 1000
                   interactive: true
                   color: '#dd9999'
-                  size: 10px
+                  size: 14px
                   priority: function() { return 5000 - feature.pop; }
                   text:
                     order: 1000
                     text_source: city
                     interactive: true
+                    priority: function() { return 5000 - feature.pop; }
                     font:
                         family: Arial
                         size: 15px
