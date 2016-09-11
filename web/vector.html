@@ -100,12 +100,15 @@
             layer.setSelectionEvents({
                hover: function(selection) {
                  if (selection.feature && selection.feature.properties.city) {
+                   $('selector').css( 'cursor', 'pointer' );
                    var offset = mapEl.offset();
                    ttEl.offset({
                      top : offset.top + selection.pixel.y - ttEl.height() / 2,
                      left : offset.left + selection.pixel.x - ttEl.width() / 2,
                    });
                    handleCityHover(selection.feature.properties.city);
+                 } else {
+                   $('selector').css( 'cursor', 'auto' );
                  }
                },
                click: function(selection) {
@@ -142,6 +145,7 @@
             trigger: 'custom',
             triggerOpen: {},
             interactive: true,
+            delay: 400,
             maxWidth: 400,
             triggerClose: {
                 mouseleave: true,
