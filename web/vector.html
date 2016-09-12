@@ -52,10 +52,8 @@
           z-index: 100000;
           width: 5px;
           height: 5px;
-          /*background-color: #fff;*/
-          /*display: none;*/
+          cursor: pointer;
         }
-
 
         .autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
         .autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
@@ -101,18 +99,23 @@
                hover: function(selection) {
                  if (selection.feature && selection.feature.properties.city) {
                    $('selector').css( 'cursor', 'pointer' );
-                   var offset = mapEl.offset();
-                   ttEl.offset({
-                     top : offset.top + selection.pixel.y - ttEl.height() / 2,
-                     left : offset.left + selection.pixel.x - ttEl.width() / 2,
-                   });
-                   handleCityHover(selection.feature.properties.city);
+                   handleCityHover(
+                           selection.pixel.x,
+                           selection.pixel.y,
+                           selection.feature.properties.city);
                  } else {
                    $('selector').css( 'cursor', 'auto' );
                  }
                },
                click: function(selection) {
                  if (selection.feature && selection.feature.properties.city) {
+                   $('selector').css( 'cursor', 'pointer' );
+                   handleCityHover(
+                           selection.pixel.x,
+                           selection.pixel.y,
+                           selection.feature.properties.city);
+                 } else {
+                   $('selector').css( 'cursor', 'auto' );
                  }
                }
             });
@@ -154,15 +157,38 @@
             }
         });
 
+        var ttShowTimer;
+        var ttHideTimer;
         var tt = ttEl.tooltipster("instance");
 
-        function handleCityHover(title) {
+        function handleCityHover(mapX, mapY, title) {
+          if (!ttShowTimer) {
+            ttShowTimer = setTimeout(function () {
+              ttShowTimer = null;
+              showCityTooltip(mapX, mapY, title);
+            }, 200);
+          }
+        }
+
+        function cancelCityHover() {
+          clearTimeout(ttShowTimer);
+          ttShowTimer = 0;
+          tt.close();
+        }
+
+        function showCityTooltip(mapX, mapY, title) {
           var isOpen = tt.status().open;
           if (ttEl.data("toLoad") == title) {
             if (!isOpen) tt.open();
             return;
           }
           ttEl.data("toLoad", title);
+
+           var offset = mapEl.offset();
+           ttEl.offset({
+             top : offset.top + mapY - ttEl.height() / 2,
+             left : offset.left + mapX - ttEl.width() / 2,
+           });
 
           var html = '<b>' + title + '</b><br/>loading...';
           tt.content(html);
@@ -187,7 +213,7 @@
             html += '<b>' + title + ':</b> &nbsp; &nbsp;' + text;
 
             var wpUrl = 'http://en.wikipedia.org/wiki/' + encoded;
-            html += '... <a target="_new" href="' + wpUrl + '">open Wikipedia article</a>';
+            html += '[<a target="_new" href="' + wpUrl + '">see Wikipedia article</a>]';
 
             // call the 'content' method to update the content of our tooltip with the returned data
             tt.content(html);
