@@ -46,13 +46,14 @@
         }
 
         #tooltip {
-          position: absolute;
+          position: fixed;
           top: 100px;
           left: 100px;
           z-index: 100000;
           width: 5px;
           height: 5px;
           cursor: pointer;
+          background-color: #f00;
         }
 
         .autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
@@ -98,26 +99,28 @@
             layer.setSelectionEvents({
                hover: function(selection) {
                  if (selection.feature && selection.feature.properties.city) {
+                   var ev = selection.leaflet_event.originalEvent;
                    $('selector').css( 'cursor', 'pointer' );
                    handleCityHover(
-                           selection.pixel.x,
-                           selection.pixel.y,
+                           ev.clientX,
+                           ev.clientY,
                            selection.feature.properties.city);
                  } else {
                    cancelCityHover();
-                   $('selector').css( 'cursor', 'auto' );
+//                   $('selector').css( 'cursor', 'auto' );
                  }
                },
                click: function(selection) {
                  if (selection.feature && selection.feature.properties.city) {
+                   var ev = selection.leaflet_event.originalEvent;
                    $('selector').css( 'cursor', 'pointer' );
                    handleCityHover(
-                           selection.pixel.x,
-                           selection.pixel.y,
+                           ev.clientX,
+                           ev.clientY,
                            selection.feature.properties.city);
                  } else {
                    cancelCityHover();
-                   $('selector').css( 'cursor', 'auto' );
+//                   $('selector').css( 'cursor', 'auto' );
                  }
                }
             });
@@ -150,7 +153,7 @@
             trigger: 'custom',
             triggerOpen: {},
             interactive: true,
-            delay: 400,
+            delay: [0, 1000],
             maxWidth: 400,
             triggerClose: {
                 mouseleave: true,
@@ -159,32 +162,46 @@
             }
         });
 
+
         var ttShowTimer;
         var ttHideTimer;
         var tt = ttEl.tooltipster("instance");
 
         function handleCityHover(mapX, mapY, title) {
-          if (!ttShowTimer) {
-            ttShowTimer = setTimeout(function () {
-              ttShowTimer = null;
-              showCityTooltip(mapX, mapY, title);
-            }, 300);
+          clearTimeout(ttHideTimer);
+          ttHideTimer = 0;
+
+          if (ttShowTimer && ttEl.data("toLoad") == title) {
+            return; // in progress!
           }
+          ttEl.data("toLoad", title);
+          if (ttShowTimer) {
+            clearTimeout(ttShowTimer);
+          }
+          ttShowTimer = setTimeout(function () {
+            ttShowTimer = null;
+            showCityTooltip(mapX, mapY, title);
+          }, 300);
         }
 
         function cancelCityHover() {
           clearTimeout(ttShowTimer);
           ttShowTimer = 0;
-          tt.close();
+          if (tt.status().open && !ttHideTimer) {
+            ttHideTimer = setTimeout(function () {
+              ttHideTimer = null;
+              tt.close();
+              }, 1000);
+          }
         }
 
         function showCityTooltip(mapX, mapY, title) {
           var isOpen = tt.status().open;
-          if (ttEl.data("toLoad") == title) {
+          if (ttEl.data("loading") == title) {
             if (!isOpen) tt.open();
             return;
           }
-          ttEl.data("toLoad", title);
+          ttEl.data("loading", title);
 
            var offset = mapEl.offset();
            ttEl.offset({
@@ -222,6 +239,14 @@
 
             // to remember that the data has been loaded
             ttEl.data('loaded', title);
+
+            if (!ttEl.data("mouseInBound")) {
+              ttEl.data("mouseInBound", true);
+              $(".tooltipster-base").on("mouseenter", function() {
+                clearTimeout(ttHideTimer);
+                ttHideTimer = null;
+              });
+            }
           });
         }
 
