@@ -49,12 +49,12 @@ class Server:
             PolyLayer('centroid_contours',
                       table='contourscentroid',
                       fields=['id', 'clusterid', 'contournum', 'contourid'],
-                      simplification={ 1: 1, 5: 0.5, 10: 0.1 }
+                      simplification=self.simplifications,
                       ),
             PolyLayer('density_contours',
                       table='contoursdensity',
                       fields=['id', 'clusterid', 'contournum', 'contourid'],
-                      simplification={ 1: 1, 5: 0.5, 10: 0.1 }
+                      simplification=self.simplifications,
                       ),
         ]
         self.edges = EdgeLayer(config, self.cnx)
