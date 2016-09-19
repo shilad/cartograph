@@ -173,6 +173,8 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
 
                 sumScores, n, sumXs, sumYs = sorted(centroids, reverse=True)[0]
 
+                if sumScores == 0.0: continue
+
                 x = sumXs / sumScores
                 y = sumYs / sumScores
 
