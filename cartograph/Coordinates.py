@@ -1,4 +1,6 @@
 import logging
+import random
+
 import luigi
 import numpy as np
 from tsne import bh_sne
@@ -130,6 +132,15 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
         ids = []
         X = []
         Y = []
+
+        def dist2(x0, y0, x1, y1):
+            dx = x0 - x1
+            dy = y0 - y1
+            return (dx * dx + dy * dy) ** 0.5
+
+        threshold = config.getfloat('MapConstants', 'max_coordinate') / 100.0
+        noise = threshold / 10.0    # for points with only one surrogate, add this much random noise
+
         for i, (id, row) in enumerate(vecs.items()):
             if i % 10000 == 0:
                 logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
@@ -137,19 +148,39 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
                 x = float(sampleCoords[id]['x'])
                 y = float(sampleCoords[id]['y'])
             else:
-                xSums = 0.0
-                ySums = 0.0
-                scoreSums = 0.0
                 if len(row['vector']) == 0: continue
-                hood = knn.neighbors(row['vector'], 5)
-                for (id2, score) in hood:
+                centroids = []
+                for id2, score in knn.neighbors(row['vector'], 10):
+                    x = float(sampleCoords[id2]['x'])
+                    y = float(sampleCoords[id2]['y'])
                     if score >= 0.0:
-                        xSums += score * float(sampleCoords[id2]['x'])
-                        ySums += score * float(sampleCoords[id2]['y'])
-                        scoreSums += score
-                if scoreSums == 0.0: continue
-                x = xSums / scoreSums
-                y = ySums / scoreSums
+                        closestIndex = -1
+                        closestDist = 1000000000000
+                        for i, (s, n, xs, ys) in enumerate(centroids):
+                            d = dist2(x, y, xs / s, ys / s)
+                            if d < closestDist:
+                                closestDist = d
+                                closestIndex = i
+                        if closestDist < threshold:
+                            centroids[closestIndex][0] += score
+                            centroids[closestIndex][1] += 1
+                            centroids[closestIndex][2] += x * score
+                            centroids[closestIndex][3] += y * score
+                        else:
+                            centroids.append([score, 1, x * score, y * score])
+
+                if not centroids: continue
+
+                sumScores, n, sumXs, sumYs = sorted(centroids, reverse=True)[0]
+
+                x = sumXs / sumScores
+                y = sumYs / sumScores
+
+                # make sure points aren't right on top of each other!
+                if n == 1:
+                    x += random.uniform(-noise, +noise)
+                    y += random.uniform(-noise, +noise)
+
             X.append(x)
             Y.append(y)
             ids.append(id)
