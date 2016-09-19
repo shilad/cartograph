@@ -163,8 +163,9 @@ class CalculateZooms:
         nClusters = self.numClusters
         topPerCluster = [[] for i in range(nClusters)]
         for id in idsByPopularity:
-            c = int(self.points[id]['cluster'])
-            topPerCluster[c].append(id)
+            if 'cluster' in self.points[id]:
+                c = int(self.points[id]['cluster'])
+                topPerCluster[c].append(id)
 
         added = set()
 
