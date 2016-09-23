@@ -1,10 +1,11 @@
 import luigi
 
 from cartograph import Colors
+from cartograph.Choropleth import AllChoropleth
 from cartograph.PGLoader import LoadContoursDensity, LoadContoursCentroid, LoadCoordinates, LoadCountries
 
 
-class ParentTask(luigi.Task):
+class ParentTask(luigi.WrapperTask):
 
     def requires(self):
         return (
@@ -12,5 +13,6 @@ class ParentTask(luigi.Task):
             LoadContoursCentroid(),
             LoadCoordinates(),
             LoadCountries(),
-            Colors.ColorsCode()
+            Colors.ColorsCode(),
+            AllChoropleth()
         )

@@ -10,13 +10,26 @@ sources:
         type: TopoJSON
         url: http://localhost:4000/tile/{z}/{x}/{y}.topojson
         max_zoom: 16
+    gender:
+        type: TopoJSON
+        url: http://localhost:4000/metric/gender/{z}/{x}/{y}.topojson
+        max_zoom: 16
+    genderPoints:
+        type: TopoJSON
+        url: http://localhost:4000/metricPoints/gender.topojson
 
 import: http://localhost:4000/countries.yaml
 
 styles:
+    point-alpha:
+        base: points
+        blend: overlay
+    poly-alpha:
+        base: polygons
+        blend: overlay
     line-alpha:
         base: lines
-        blend: overlay
+        blend: inlay
 
 layers:
     countries:
@@ -117,6 +130,40 @@ layers:
                         size: 15px
                         fill: '#666'
                         stroke: { color: '#fff', width: 2 }
+
+    gender:
+        data: { source: genderPoints, layer: gender }
+        all_points:
+            draw:
+                points:
+                  collide: false
+                  style: point-alpha
+                  color: |
+                    function () {
+                        var p = (feature.women + 2.0) / (feature.women + feature.men + 4.0);
+                        var alpha = Math.abs(p - 0.5) / 2;
+                        if (p > 0.5) {
+                          return [1, 0, 0, alpha];
+                        } else {
+                          return [0, 0, 1, alpha];
+                        }
+                    }
+                  size: 6px
+
+#        data: { source: gender, layer: gender }
+#        draw:
+#            polygons:
+#                style: poly-alpha
+#                color: |
+#                  function () {
+#                      var p = feature.normwomen;
+#                      var alpha = Math.abs(p - 0.5) / 4;
+#                      if (p > 0.5) {
+#                        return [1, 0, 0, alpha];
+#                      } else {
+#                        return [0, 0, 1, alpha];
+#                      }
+#                  }
 
     edges:
         data: { source: tiled, layer: edges }

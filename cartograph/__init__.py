@@ -9,6 +9,7 @@ from server.VectorServer import Server
 
 # Expose public Luigi tasks:
 
+from Choropleth import AllChoropleth
 from Coordinates import CreateEmbedding, CreateFullAnnoyIndex, CreateSampleAnnoyIndex, CreateSampleCoordinates
 from Denoiser import Denoise
 from FastKnn import FastKnn
