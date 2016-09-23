@@ -4,6 +4,7 @@ import sys
 import threading
 import time
 
+import math
 import psycopg2
 import shapely.geometry
 import shapely.wkb
@@ -23,6 +24,21 @@ def warn(message):
     sys.stderr.write(message + '\n')
 
 
+def inscribePoly(box, n=8):
+    bounds = box.bounds
+    center = box.centroid
+    radius = max(bounds[2] - bounds[0], bounds[3] - bounds[1]) / 2.0
+    points = []
+    for i in range(n):
+        a = 2 * math.pi / n * i
+        points.append((
+            center.x + math.cos(a) * radius,
+            center.y + math.sin(a) * radius
+        ))
+    points.append(points[0])
+    return shapely.geometry.Polygon(points)
+
+
 class Server:
     def __init__(self, config):
         self.config = config
@@ -37,23 +53,23 @@ class Server:
         self.cache = {}
         self.cacheLock = threading.Lock()
         # self.getBounds()
-        self.simplifications = { 1: .1, 5: 0.03, 7: .01, 10: 0.001}
+        self.simplifications = { 1: .2, 5: 0.1, 7: .05, 10: 0.01}
         self.bound = 180.0
         self.polys = [
             PolyLayer('countries',
                       table='countries',
-                      fields=['id', 'labels', 'clusterid'],
+                      fields=['labels', 'clusterid'],
                       simplification=self.simplifications,
                       labelField='labels'
                       ),
             PolyLayer('centroid_contours',
                       table='contourscentroid',
-                      fields=['id', 'clusterid', 'contournum', 'contourid'],
+                      fields=['clusterid', 'contournum', 'contourid'],
                       simplification=self.simplifications,
                       ),
             PolyLayer('density_contours',
                       table='contoursdensity',
-                      fields=['id', 'clusterid', 'contournum', 'contourid'],
+                      fields=['clusterid', 'contournum', 'contourid'],
                       simplification=self.simplifications,
                       ),
         ]
@@ -75,6 +91,10 @@ class Server:
             return self.handleTile(path)
         elif '/fixed' in path:
             return self.handleFixed(path)
+        elif '/metricPoints' in path:
+            return self.handleMetricPoints(path)
+        elif '/metric' in path:
+            return self.handleMetric(path)
         elif path.endswith('/search'):
             return self.handleSearch(req)
         elif path.endswith('countries.yaml'):
@@ -114,7 +134,7 @@ class Server:
                         # 'style': 'poly-alpha',
                         'width': '1px',
                         'order': order,
-                        'blend': 'overlay'
+                        'blend': 'inlay'
                     }
                 }
             }
@@ -133,7 +153,7 @@ class Server:
                             # 'style': 'poly-alpha',
                             'width' : '1px',
                             'order' : order,
-                            'blend' : 'overlay'
+                            'blend' : 'inlay'
                         }
                     }
                 }
@@ -235,6 +255,108 @@ class Server:
 
         return self.addToCache((z, x, y), builder.toJson())
 
+    def handleMetric(self, path):
+        assert(path.endswith('.topojson'))
+        parts = path[:-len('.topojson')].split('/')
+        m, z, x, y = parts[-4], int(parts[-3]), float(parts[-2]), float(parts[-1])
+        extent = self.tileExtent(z, x, y)
+        val = self.getFromCache((m, z, x, y))
+        if val:
+            return val
+
+        builder = TopoJsonBuilder()
+
+        with self.cnx.cursor() as cur:
+            t0 = time.time()
+
+            (x0, y0, x1, y1) = extent
+            assert(x0 <= x1)
+            assert(y0 <= y1)
+            delta = abs(x0 - x1) * 0.00
+            # print extent
+            box = shapely.geometry.box(x0 - delta, y0 - delta, x1 + delta, y1 + delta)
+            print(extent)
+
+            t1 = time.time()
+            query = """SELECT * from choro%s WHERE zoom = %s and geom && ST_MakeEnvelope%s""" % (m, z, tuple(extent),)
+            # print 'query is', query
+            cur.execute(query)
+            cur.itersize = 1000
+            colnames = [desc[0] for desc in cur.description]
+            geomCol = colnames.index('geom')
+            t2 = time.time()
+            i = 0
+            for row in cur:
+                props = {}
+                for k, v in zip(colnames, row):
+                    if v is not None and k not in ('id', 'geom'):
+                        props[k] = float(v)
+                if props:
+                    shp = shapely.wkb.loads(row[geomCol], hex=True)
+                    if shp.overlaps(box):
+                        print('adding', shp)
+                        builder.addPolygon(m, inscribePoly(shp).intersection(box), props)
+                    i += 1
+            # print query, i
+            t3 = time.time()
+            # for ei in self.edges.getEdges(tuple(extent), z):
+            #     builder.addMultiLine('edges', ei['bundle'])
+            t4 = time.time()
+
+            # print('times', (t1 - t0), (t2-t1), (t3-t2))
+
+        return self.addToCache((m, z, x, y), builder.toJson())
+
+    def handleMetricPoints(self, path):
+        assert(path.endswith('.topojson'))
+        parts = path[:-len('.topojson')].split('/')
+        m = parts[-1]
+        val = self.getFromCache(m)
+        if val:
+            return val
+
+        builder = TopoJsonBuilder()
+
+        with self.cnx.cursor() as cur:
+            t0 = time.time()
+            query = """SELECT id, x, y from coordinates"""
+            cur.itersize = 1000
+            # print 'query is', query
+            cur.execute(query)
+            coords = {}
+            for row in cur:
+                coords[row[0]] = (float(row[1]), float(row[2]))
+            t1 = time.time()
+            query = """SELECT * from %s""" % (m,)
+            cur.itersize = 1000
+            # print 'query is', query
+            cur.execute(query)
+            colnames = [desc[0] for desc in cur.description]
+            idCol = colnames.index('id')
+            t2 = time.time()
+            i = 0
+            for row in cur:
+                id = row[idCol]
+                if id not in coords: continue
+                props = {}
+                for k, v in zip(colnames, row):
+                    if v is not None and k not in ('id', 'geom'):
+                        props[k] = float(v)
+                if props:
+                    (x, y) = coords[id]
+                    shp = shapely.geometry.Point(x, y)
+                    builder.addPoint(m, id, shp, props)
+                    i += 1
+            # print query, i
+            t3 = time.time()
+            # for ei in self.edges.getEdges(tuple(extent), z):
+            #     builder.addMultiLine('edges', ei['bundle'])
+            t4 = time.time()
+
+            # print('times', (t1 - t0), (t2-t1), (t3-t2))
+
+        return self.addToCache(m, builder.toJson())
+
     def tileExtent(self, z, x, y):
         tx = x
         ty = 2**z - 1 - y   # tms coordinates
@@ -257,6 +379,8 @@ if __name__ == '__main__':
     from werkzeug.wrappers import Request, Response
 
     server = Server(cartograph.Config.get())
+    print server.handleMetricPoints('/metricPoints/gender.topojson')
+    print server.handleMetric('/metric/gender/6/32/25.topojson')
     # print server.search.search('App')
     # print server.serve('/contours')
     print server.serve('/tile/6/32/25.topojson')
@@ -285,3 +409,4 @@ if __name__ == '__main__':
 
     from werkzeug.serving import run_simple
     run_simple('localhost', 4000, application, static_files=static_files)
+

@@ -1,0 +1,12 @@
+[DEFAULT]
+dataset: simple
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 9
+water_level: .05
+sample_borders: True
+
+[Metrics]
+active: gender
+gender: {"type": "count", "path": "%(externalDir)s/gender.tsv"}

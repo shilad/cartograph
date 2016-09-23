@@ -36,6 +36,28 @@ class TopoJsonBuilder:
             'arcs' : arcs
         })
 
+    def addPolygon(self, collectionName, shape, props=None):
+        if not shape:
+            return
+        if props == None: props = {}
+        coll = self.getCollection(collectionName)
+
+        def mkArc(coords):
+            coords = list(coords)
+            if coords[0] != coords[-1]: # make sure its a ring
+                coords = coords + [coords[0]]
+            return [ self.addArc(coords) ]
+
+        arcs = [ mkArc(shape.exterior.coords) ]
+        for hole in shape.interiors:
+            arcs.append(mkArc(hole.coords))
+
+        coll['geometries'].append({
+          "type": "Polygon",
+          "properties": props,
+          "arcs": [ arcs ]
+        })
+
     def addMultiPolygon(self, collectionName, shape, props=None):
         if shape.geom_type == 'Polygon': shape = [shape]
         shape = [s for s in shape if s]

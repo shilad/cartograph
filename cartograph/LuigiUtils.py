@@ -1,3 +1,4 @@
+import abc
 import json
 import logging
 import os.path
@@ -68,16 +69,161 @@ class TimestampedPostgresTarget(PostgresTarget):
             else:
                 return int(row[0])
 
-class LoadGeoJsonTask(MTimeMixin, CopyToTable):
-    def __init__(self, config, table, geoJsonFilename):
+
+class LoadJsonTask(MTimeMixin, CopyToTable):
+    """
+    Child classes must override table and jsonPath properties.
+    """
+
+
+    def __init__(self, *args, **kwargs):
+        config = Config.get()
         self._host = config.get('PG', 'host')
         self._database = config.get('PG', 'database')
         self._user = config.get('PG', 'user') or None
         self._password = config.get('PG', 'password') or None
-        self._table = table
-        self.geoJsonFilename = geoJsonFilename
-        logger.info('loading %s.%s from %s' % (self._database, self._table, self.geoJsonFilename))
-        super(LoadGeoJsonTask, self).__init__()
+        logger.info('loading %s.%s from %s' % (self._database, self._table, self._geoJsonPath))
+        super(LoadJsonTask, self).__init__(*args, **kwargs)
+
+    @abc.abstractproperty
+    def jsonPath(self): return None
+
+    @property
+    def host(self):
+        return self._host
+
+    @property
+    def database(self):
+        return self._database
+
+    @property
+    def user(self):
+        return self._user
+
+    @property
+    def password(self):
+        return self._password
+
+    @property
+    def update_id(self):
+        max_mtime = -1
+        for el in to_list(self.requires()):
+            if not el.complete():
+                return self.table + '_100000000000000000000000000'
+            for output in to_list(el.output()):
+                max_mtime = max(output.mtime(), max_mtime)
+        return self.table + '_' + str(max_mtime)
+
+    def run(self):
+        # Part 1: Read in GeoJson and calculate property names and types
+        with open(self._jsonPath, 'r') as f:
+            self.js = []
+            for line in f:
+                self.js.append(json.loads(line))
+
+        # Calculate the feature types
+        self.featureTypes = self.calculateFeatureTypes()
+        self.columns = sorted(self.featureTypes.keys())
+
+        # Calculate the feature types
+        self.featureTypes = self.calculateFeatureTypes()
+
+        CopyToTable.run(self)
+
+    def map_column(self, value):
+        mapped = CopyToTable.map_column(self, value)
+        return mapped
+
+    def calculateFeatureTypes(self):
+        featureTypes = {}
+        for row in self.js:
+            for (k, v) in row.items():
+                tv = type(v)
+                if k not in featureTypes:
+                    featureTypes[k] = tv
+                elif featureTypes[k] != tv:
+                    raise Exception('Inconsistent type for %s: %s vs %s' % (k, featureTypes[k], tv))
+        return featureTypes
+
+    def init_copy(self, conn):
+        # Initialize postgis if necessary
+        cur = conn.cursor()
+        cur.execute('CREATE EXTENSION IF NOT EXISTS postgis;')
+        cur.execute('CREATE EXTENSION IF NOT EXISTS postgis_topology;')
+        conn.commit()
+
+        # Construct the schema and create the table
+        assert (len(self.columns) > 0)
+        schema = ['iid serial PRIMARY KEY']
+        for k in self.columns:
+            sqlType = None
+            if self.featureTypes[k] == int:
+                sqlType = 'INTEGER'
+            elif self.featureTypes[k] == float:
+                sqlType = 'NUMERIC'
+            elif self.featureTypes[k] == bool:
+                sqlType = 'BOOL'
+            elif self.featureTypes[k] == str:
+                sqlType = 'VARCHAR'
+            elif self.featureTypes[k] == unicode:
+                sqlType = 'TEXT'
+            else:
+                raise Exception('Unknown sql type: %s' % self.featureTypes[k])
+            schema.append('%s %s' % (k.lower(), sqlType))
+        createSql = 'CREATE TABLE %s (%s);' % (self.table, ', '.join(schema),)
+        cur.execute("DROP TABLE IF EXISTS %s;" % (self.table,))
+        cur.execute(createSql)
+        conn.commit()
+
+    def rows(self):
+        for rawRow in self.js:
+            yield tuple(rawRow.get(c) for c in self.columns)
+
+    def post_copy(self, conn):
+        cur = conn.cursor()
+        # Create indexes on all fields
+        for c in self.columns:
+            if self.featureTypes[c] in (float, int):
+                indexType = 'BTREE'
+            else:
+                indexType = 'HASH'
+            sql = ('CREATE INDEX %s_%s_idx on %s USING %s(%s)'
+                   % (self.table, c, self.table, indexType, c.lower()))
+            logger.info(sql)
+            cur.execute(sql)
+        conn.commit()
+
+    def output(self):
+        """
+        Returns a PostgresTarget representing the inserted dataset.
+        Normally you don't override this.
+        """
+        return TimestampedPostgresTarget(
+            host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password,
+            table=self.table,
+            update_id=self.update_id
+        )
+
+
+class LoadGeoJsonTask(MTimeMixin, CopyToTable):
+    """
+    Child classes must override table and geoJsonPath properties.
+    """
+
+    def __init__(self, *args, **kwargs):
+        config = Config.get()
+        self._host = config.get('PG', 'host')
+        self._database = config.get('PG', 'database')
+        self._user = config.get('PG', 'user') or None
+        self._password = config.get('PG', 'password') or None
+        logger.info('loading %s.%s from %s' % (self._database, self.table, self.geoJsonPath))
+        super(LoadGeoJsonTask, self).__init__(*args, **kwargs)
+
+    @abc.abstractproperty
+    def geoJsonPath(self): return None
 
     @property
     def host(self): return self._host
@@ -87,8 +233,6 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
     def user(self): return self._user
     @property
     def password(self): return self._password
-    @property
-    def table(self): return self._table
     @property
     def update_id(self): 
         max_mtime = -1
@@ -101,7 +245,7 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
 
     def run(self):
         # Part 1: Read in GeoJson and calculate property names and types
-        with open(self.geoJsonFilename, 'r') as f:
+        with open(self.geoJsonPath, 'r') as f:
             self.js = json.load(f)
 
         # Calculate the feature types
@@ -134,7 +278,7 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
 
          # Construct the schema and create the table
         assert(len(self.columns) > 0)
-        schema = [ 'id serial PRIMARY KEY' ]
+        schema = [ 'fakeid serial PRIMARY KEY' ]
         for k in self.columns:
             sqlType = None
             if k == 'geom':
@@ -197,6 +341,14 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
             table=self.table,
             update_id=self.update_id
         )
+
+
+
+class ExternalFile(luigi.ExternalTask):
+    path = luigi.Parameter()
+
+    def output(self):
+        return TimestampedLocalTarget(self.path)
 
 
 def getSampleIds(n=None):

@@ -56,13 +56,11 @@ class ZoomGeoJSONWriter:
         popularity ranking and first zoom level. 
         '''
         featureAr = []
-        zoomDict = self.articleData
-        zoomFeatures = list(zoomDict.values())
-
-        for pointInfo in zoomFeatures:
+        for id, pointInfo in self.articleData.items():
             pointTuple = (float(pointInfo['x']), float(pointInfo['y']))
             newPoint = Point(pointTuple)
-            properties = {'maxzoom': int(pointInfo['maxZoom']),
+            properties = {'id' : id,
+                          'maxzoom': int(pointInfo['maxZoom']),
                           'popularity': float(pointInfo['popularity']),
                           'citylabel': str(pointInfo['name']),
                           'popbinscore': int(pointInfo['popBinScore']),
