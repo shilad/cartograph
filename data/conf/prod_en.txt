@@ -4,4 +4,6 @@ dataset: prod_en
 [PreprocessingConstants]
 sample_size: 500000
 num_clusters: 16
-water_level: .005
+water_level: .0005
+sample_borders: True
+contour_bins: 1000

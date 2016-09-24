@@ -1,11 +1,13 @@
 import luigi
+import sys
+
+sys.setrecursionlimit(10000) # 10000 is an example, try with different values
 
 from cartograph import Colors
-from cartograph.Choropleth import AllChoropleth
 from cartograph.PGLoader import LoadContoursDensity, LoadContoursCentroid, LoadCoordinates, LoadCountries
 
 
-class ParentTask(luigi.WrapperTask):
+class ParentTask(luigi.Task):
 
     def requires(self):
         return (
@@ -13,6 +15,5 @@ class ParentTask(luigi.WrapperTask):
             LoadContoursCentroid(),
             LoadCoordinates(),
             LoadCountries(),
-            Colors.ColorsCode(),
-            AllChoropleth()
+            Colors.ColorsCode()
         )

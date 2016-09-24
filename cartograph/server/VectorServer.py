@@ -124,7 +124,7 @@ class Server:
             },
             'layers' : {
                 'contours' : {
-                    'data' : { 'source': 'tiled', 'layer': 'density_contours' },
+                    'data' : { 'source': 'tiled', 'layer': 'centroid_contours' }
                     'filter': { '$zoom': { 'min': 7 } }
                 },
                 'countries': {
