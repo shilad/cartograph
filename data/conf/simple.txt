@@ -9,4 +9,4 @@ sample_borders: True
 
 [Metrics]
 active: gender
-gender: {"type": "count", "path": "%(externalDir)s/gender.tsv"}
+gender: {"type": "count", "path": "%(externalDir)s/gender.tsv", "fields": "women men", "colors": "red blue"}

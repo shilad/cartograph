@@ -3,6 +3,7 @@ dataset: dev_en
 baseDir: ./data/%(dataset)s
 generatedDir: %(baseDir)s/tsv
 mapDir: %(baseDir)s/maps
+tileDir: %(baseDir)s/tiles
 geojsonDir: %(baseDir)s/geojson
 metricDir: %(baseDir)s/metrics
 externalDir: ./data/labdata/%(dataset)s

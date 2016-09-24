@@ -9,6 +9,7 @@ import psycopg2
 import shapely.geometry
 import shapely.wkb
 import shapely.wkt
+import shutil
 import yaml
 
 import cartograph.Config
@@ -17,6 +18,7 @@ from EdgeLayer import EdgeLayer
 from TopoJson import TopoJsonBuilder
 from PolyLayer import PolyLayer
 from Search import Search
+from cartograph.server.MapnikServer import MapnikServer
 from globalmaptiles import GlobalMercator
 
 
@@ -48,6 +50,11 @@ class Server:
             user=config.get('PG', 'user'),
             password=config.get('PG', 'password'),
         )
+        self.rasters = {}
+        for name in ['base'] + config.get('Metrics', 'active').split():
+            xmlFile = config.get('DEFAULT', 'mapDir') + '/' + name + '.xml'
+            self.rasters[name] = MapnikServer(xmlFile)
+
         self.search = Search(self.config, self.cnx)
         self.mercator = GlobalMercator()
         self.cache = {}
@@ -87,10 +94,13 @@ class Server:
             warn('setting max bound to %.3f' % self.bound)
 
     def serve(self, path, req=None):
+        print path
         if '/tile/' in path:
             return self.handleTile(path)
         elif '/fixed' in path:
             return self.handleFixed(path)
+        elif '/raster' in path:
+            return self.handleRaster(path)
         elif '/metricPoints' in path:
             return self.handleMetricPoints(path)
         elif '/metric' in path:
@@ -114,10 +124,12 @@ class Server:
             },
             'layers' : {
                 'contours' : {
-                    'data' : { 'source': 'tiled', 'layer': 'density_contours' }
+                    'data' : { 'source': 'tiled', 'layer': 'density_contours' },
+                    'filter': { '$zoom': { 'min': 7 } }
                 },
                 'countries': {
-                    'data': {'source': 'tiled', 'layer': 'countries'}
+                    'data': {'source': 'tiled', 'layer': 'countries'},
+                    'filter': { '$zoom': { 'min': 7 } }
                 }
             }
         }
@@ -199,7 +211,6 @@ class Server:
     def handleTile(self, path):
         assert(path.endswith('.topojson'))
         parts = path[:-len('.topojson')].split('/')
-        print parts
         z, x, y = int(parts[-3]), float(parts[-2]), float(parts[-1])
         extent = self.tileExtent(z, x, y)
         val = self.getFromCache((z, x, y))
@@ -255,58 +266,6 @@ class Server:
 
         return self.addToCache((z, x, y), builder.toJson())
 
-    def handleMetric(self, path):
-        assert(path.endswith('.topojson'))
-        parts = path[:-len('.topojson')].split('/')
-        m, z, x, y = parts[-4], int(parts[-3]), float(parts[-2]), float(parts[-1])
-        extent = self.tileExtent(z, x, y)
-        val = self.getFromCache((m, z, x, y))
-        if val:
-            return val
-
-        builder = TopoJsonBuilder()
-
-        with self.cnx.cursor() as cur:
-            t0 = time.time()
-
-            (x0, y0, x1, y1) = extent
-            assert(x0 <= x1)
-            assert(y0 <= y1)
-            delta = abs(x0 - x1) * 0.00
-            # print extent
-            box = shapely.geometry.box(x0 - delta, y0 - delta, x1 + delta, y1 + delta)
-            print(extent)
-
-            t1 = time.time()
-            query = """SELECT * from choro%s WHERE zoom = %s and geom && ST_MakeEnvelope%s""" % (m, z, tuple(extent),)
-            # print 'query is', query
-            cur.execute(query)
-            cur.itersize = 1000
-            colnames = [desc[0] for desc in cur.description]
-            geomCol = colnames.index('geom')
-            t2 = time.time()
-            i = 0
-            for row in cur:
-                props = {}
-                for k, v in zip(colnames, row):
-                    if v is not None and k not in ('id', 'geom'):
-                        props[k] = float(v)
-                if props:
-                    shp = shapely.wkb.loads(row[geomCol], hex=True)
-                    if shp.overlaps(box):
-                        print('adding', shp)
-                        builder.addPolygon(m, inscribePoly(shp).intersection(box), props)
-                    i += 1
-            # print query, i
-            t3 = time.time()
-            # for ei in self.edges.getEdges(tuple(extent), z):
-            #     builder.addMultiLine('edges', ei['bundle'])
-            t4 = time.time()
-
-            # print('times', (t1 - t0), (t2-t1), (t3-t2))
-
-        return self.addToCache((m, z, x, y), builder.toJson())
-
     def handleMetricPoints(self, path):
         assert(path.endswith('.topojson'))
         parts = path[:-len('.topojson')].split('/')
@@ -357,6 +316,21 @@ class Server:
 
         return self.addToCache(m, builder.toJson())
 
+
+    def handleRaster(self, path):
+        assert(path.endswith('.png'))
+        parts = path[:-len('.png')].split('/')
+        m, z, x, y = parts[-4], int(parts[-3]), float(parts[-2]), float(parts[-1])
+        path = os.path.join(self.config.get('DEFAULT', 'tileDir'), m, str(z), str(x))
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        path += str(y) + '.png'
+        path = path.encode('ascii', 'ignore')
+        if not os.path.isfile(path):
+            self.rasters[m].render_tile(path, x, y, z)
+        with open(path) as f:
+            return f.read()
+
     def tileExtent(self, z, x, y):
         tx = x
         ty = 2**z - 1 - y   # tms coordinates
@@ -376,11 +350,14 @@ if __name__ == '__main__':
 
     import os
 
+    conf = cartograph.Config.get()
+    shutil.rmtree(conf.get('DEFAULT', 'tileDir'), ignore_errors=True)
+
     from werkzeug.wrappers import Request, Response
 
     server = Server(cartograph.Config.get())
     print server.handleMetricPoints('/metricPoints/gender.topojson')
-    print server.handleMetric('/metric/gender/6/32/25.topojson')
+    # print server.handleRaster('/raster/gender/6/32/32.png')
     # print server.search.search('App')
     # print server.serve('/contours')
     print server.serve('/tile/6/32/25.topojson')
@@ -402,7 +379,10 @@ if __name__ == '__main__':
     def application(environ, start_response):
         req = Request(environ)
         text = server.serve(req.path, req)
-        resp = Response(text, mimetype='application/json')
+        if req.path.endswith('.png'):
+            resp = Response(text, mimetype='image/png')
+        else:
+            resp = Response(text, mimetype='application/json')
         return resp(environ, start_response)
 
     static_files =  { '/static': os.path.join(os.path.abspath('./web')) }

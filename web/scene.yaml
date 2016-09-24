@@ -11,8 +11,8 @@ sources:
         url: http://localhost:4000/tile/{z}/{x}/{y}.topojson
         max_zoom: 16
     gender:
-        type: TopoJSON
-        url: http://localhost:4000/metric/gender/{z}/{x}/{y}.topojson
+        type: Raster
+        url: http://localhost:4000/raster/gender/{z}/{x}/{y}.png
         max_zoom: 16
     genderPoints:
         type: TopoJSON
@@ -32,8 +32,15 @@ styles:
         blend: inlay
 
 layers:
+    base:
+        filter: { $zoom: { max: 7 } }
+        data: { source: gender }
+        draw:
+            raster:
+                order: 0 # draw on bottom
     countries:
         data: { source: tiled, layer: countries }
+        filter: { $zoom: { min: 7 } }
         draw:
             lines:
                 color: gray
@@ -131,8 +138,9 @@ layers:
                         fill: '#666'
                         stroke: { color: '#fff', width: 2 }
 
-    gender:
+    genderPoints:
         data: { source: genderPoints, layer: gender }
+        filter: { $zoom: { min: 7 } }
         all_points:
             draw:
                 points:
@@ -150,23 +158,9 @@ layers:
                     }
                   size: 6px
 
-#        data: { source: gender, layer: gender }
-#        draw:
-#            polygons:
-#                style: poly-alpha
-#                color: |
-#                  function () {
-#                      var p = feature.normwomen;
-#                      var alpha = Math.abs(p - 0.5) / 4;
-#                      if (p > 0.5) {
-#                        return [1, 0, 0, alpha];
-#                      } else {
-#                        return [0, 0, 1, alpha];
-#                      }
-#                  }
-
     edges:
         data: { source: tiled, layer: edges }
+        filter: { $zoom: { min: 7 } }
         draw:
             lines:
                 collide: false
