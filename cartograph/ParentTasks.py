@@ -1,6 +1,6 @@
 import luigi
 
-from cartograph import Colors
+from cartograph import Colors, MapStyler
 from cartograph.Choropleth import AllChoropleth
 from cartograph.PGLoader import LoadContoursDensity, LoadContoursCentroid, LoadCoordinates, LoadCountries
 
@@ -14,5 +14,6 @@ class ParentTask(luigi.WrapperTask):
             LoadCoordinates(),
             LoadCountries(),
             Colors.ColorsCode(),
-            AllChoropleth()
+            AllChoropleth(),
+            MapStyler.CreateMapXml()
         )

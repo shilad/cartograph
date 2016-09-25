@@ -40,7 +40,7 @@ layers:
                 order: 0 # draw on bottom
     countries:
         data: { source: tiled, layer: countries }
-        filter: { $zoom: { min: 7 } }
+        filter: { $zoom: { min: 6 } }
         draw:
             lines:
                 color: gray
@@ -140,7 +140,7 @@ layers:
 
     genderPoints:
         data: { source: genderPoints, layer: gender }
-        filter: { $zoom: { min: 7 } }
+        filter: { $zoom: { min: 6 } }
         all_points:
             draw:
                 points:
@@ -160,7 +160,7 @@ layers:
 
     edges:
         data: { source: tiled, layer: edges }
-        filter: { $zoom: { min: 7 } }
+        filter: { $zoom: { min: 6 } }
         draw:
             lines:
                 collide: false

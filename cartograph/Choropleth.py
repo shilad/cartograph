@@ -74,9 +74,10 @@ class StyleWriter(luigi.Task):
             for i in range(nLevels):
                 name = "%s_%s_%d" % (self._name, field, i)
                 styleNames.append(name)
-                style = m.mkStyle(name)
                 start = 1.0 / len(self._colors.split())
                 step = (1.0 - start) / nLevels
+                style = m.mkStyle(name)
+                style.set('comp-op', 'multiply')
                 r = ET.SubElement(style, 'Rule')
                 f = ET.SubElement(r, 'Filter').text = (
                     '[smoothed%s] >= %.3f and [smoothed%s] < %.3f' %
@@ -86,11 +87,10 @@ class StyleWriter(luigi.Task):
                 ms.set('allow-overlap', 'true')
                 ms.set('fill', color)
                 ms.set('stroke', color)
-                ms.set('opacity', str(0.2 * i))
-                ms.set('width', '4')
-                ms.set('height', '4')
-                ms.set('stroke-width', '2')
-                ms.set('stroke-opacity', str(0.1 * i))
+                ms.set('opacity', str(0.4 * i / nLevels))
+                ms.set('width', '6')
+                ms.set('height', '6')
+                ms.set('stroke-width', '0')
                 ms.set('placement', 'point')
                 ms.set('marker-type', 'ellipse')
                 ms.set('comp-op', 'multiply')
