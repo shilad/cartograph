@@ -16,7 +16,7 @@ sources:
         max_zoom: 16
     genderPoints:
         type: TopoJSON
-        url: http://localhost:4000/metricPoints/gender.topojson
+        url: http://localhost:4000/metricPoints/gender/{z}/{x}/{y}.topojson
 
 import: http://localhost:4000/countries.yaml
 
