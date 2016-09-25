@@ -8,7 +8,7 @@ sources:
 #        max_zoom: 16
     tiled:
         type: TopoJSON
-        url: http://localhost:4000/tile/{z}/{x}/{y}.topojson
+        url: http://nokomis.macalester.edu/cartograph/tile/{z}/{x}/{y}.topojson
         max_zoom: 16
     gender:
         type: Raster
@@ -18,7 +18,7 @@ sources:
         type: TopoJSON
         url: http://localhost:4000/metricPoints/gender/{z}/{x}/{y}.topojson
 
-import: http://localhost:4000/countries.yaml
+import: http://nokomis.macalester.edu/cartograph/countries.yaml
 
 styles:
     point-alpha:
