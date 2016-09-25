@@ -58,6 +58,7 @@ class Server:
         self.search = Search(self.config, self.cnx)
         self.mercator = GlobalMercator()
         self.cache = {}
+        self.coords = {}
         self.cacheLock = threading.Lock()
         # self.getBounds()
         self.simplifications = { 1: .2, 7: .05, 10: 0.01}
@@ -269,41 +270,34 @@ class Server:
     def handleMetricPoints(self, path):
         assert(path.endswith('.topojson'))
         parts = path[:-len('.topojson')].split('/')
-        m = parts[-1]
-        val = self.getFromCache(m)
+        m, z, x, y = parts[-4], int(parts[-3]), float(parts[-2]), float(parts[-1])
+        val = self.getFromCache((m, z, x, y))
         if val:
             return val
 
+        extent = self.tileExtent(z, x, y)
         builder = TopoJsonBuilder()
 
         with self.cnx.cursor() as cur:
             t0 = time.time()
-            query = """SELECT id, x, y from coordinates"""
-            cur.itersize = 1000
-            # print 'query is', query
-            cur.execute(query)
-            coords = {}
-            for row in cur:
-                coords[row[0]] = (float(row[1]), float(row[2]))
             t1 = time.time()
-            query = """SELECT * from %s""" % (m,)
+            query = """SELECT * from %s where geom && ST_MakeEnvelope%s """ % (m, extent)
             cur.itersize = 1000
             # print 'query is', query
             cur.execute(query)
             colnames = [desc[0] for desc in cur.description]
             idCol = colnames.index('id')
+            geomCol = colnames.index('geom')
             t2 = time.time()
             i = 0
             for row in cur:
                 id = row[idCol]
-                if id not in coords: continue
                 props = {}
                 for k, v in zip(colnames, row):
                     if v is not None and k not in ('id', 'geom'):
                         props[k] = float(v)
                 if props:
-                    (x, y) = coords[id]
-                    shp = shapely.geometry.Point(x, y)
+                    shp = shapely.wkb.loads(row[geomCol], hex=True)
                     builder.addPoint(m, id, shp, props)
                     i += 1
             # print query, i
@@ -314,7 +308,7 @@ class Server:
 
             # print('times', (t1 - t0), (t2-t1), (t3-t2))
 
-        return self.addToCache(m, builder.toJson())
+        return self.addToCache((m, z, x, y), builder.toJson())
 
 
     def handleRaster(self, path):
@@ -356,11 +350,11 @@ if __name__ == '__main__':
     from werkzeug.wrappers import Request, Response
 
     server = Server(cartograph.Config.get())
-    print server.handleMetricPoints('/metricPoints/gender.topojson')
+    print server.handleMetricPoints('/metricPoints/gender/6/32/32.topojson')
     # print server.handleRaster('/raster/gender/6/32/32.png')
     # print server.search.search('App')
     # print server.serve('/contours')
-    print server.serve('/tile/6/32/25.topojson')
+    # print server.serve('/tile/6/32/25.topojson')
     # server.serve('/fixed/0.topojson')
 
     # for z in range(11):
