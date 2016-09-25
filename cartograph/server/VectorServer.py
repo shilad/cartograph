@@ -60,7 +60,7 @@ class Server:
         self.cache = {}
         self.cacheLock = threading.Lock()
         # self.getBounds()
-        self.simplifications = { 1: .2, 5: 0.1, 7: .05, 10: 0.01}
+        self.simplifications = { 1: .2, 7: .05, 10: 0.01}
         self.bound = 180.0
         self.polys = [
             PolyLayer('countries',
@@ -124,12 +124,12 @@ class Server:
             },
             'layers' : {
                 'contours' : {
-                    'data' : { 'source': 'tiled', 'layer': 'centroid_contours' }
-                    'filter': { '$zoom': { 'min': 7 } }
+                    'data' : { 'source': 'tiled', 'layer': 'centroid_contours' },
+                    'filter': { '$zoom': { 'min': 6 } }
                 },
                 'countries': {
                     'data': {'source': 'tiled', 'layer': 'countries'},
-                    'filter': { '$zoom': { 'min': 7 } }
+                    'filter': { '$zoom': { 'min': 6 } }
                 }
             }
         }

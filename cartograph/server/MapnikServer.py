@@ -74,11 +74,11 @@ class MapnikServer:
         # Bounding box for the tile
         bbox = mapnik.Box2d(c0.x, c0.y, c1.x, c1.y)
 
-        render_size = 256
+        render_size = 512
         self.m.resize(render_size, render_size)
         self.m.zoom_to_box(bbox)
-        if self.m.buffer_size < 128:
-            self.m.buffer_size = 128
+        if self.m.buffer_size < 256:
+            self.m.buffer_size = 256
 
         # Render image with default Agg renderer
         im = mapnik.Image(render_size, render_size)
