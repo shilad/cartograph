@@ -3,6 +3,8 @@ import codecs
 import numpy as np
 import sys
 
+import psycopg2
+
 
 def read_tsv(filename):
     with codecs.open(filename, "r", encoding="utf-8") as f:
@@ -140,6 +142,13 @@ def sort_by_percentile(numBins):
         # np.percentile(percentileList, (i, i+1))
 
 
+def pg_cnx(config):
+    return psycopg2.connect(
+        dbname=config.get('PG', 'database'),
+        host=config.get('PG', 'host'),
+        user=config.get('PG', 'user'),
+        password=config.get('PG', 'password'),
+    )
 
 class InputError(Exception):
     """Exception raised for errors in the input.

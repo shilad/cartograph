@@ -17,8 +17,7 @@ import cartograph.Config
 from EdgeLayer import EdgeLayer
 from TopoJson import TopoJsonBuilder
 from PolyLayer import PolyLayer
-from Search import Search
-from cartograph.server.MapnikServer import MapnikServer
+from SearchService import SearchService
 from globalmaptiles import GlobalMercator
 
 
@@ -55,7 +54,7 @@ class Server:
             xmlFile = config.get('DEFAULT', 'mapDir') + '/' + name + '.xml'
             self.rasters[name] = MapnikServer(xmlFile)
 
-        self.search = Search(self.config, self.cnx)
+        self.search = SearchService(self.config, self.cnx)
         self.mercator = GlobalMercator()
         self.cache = {}
         self.coords = {}

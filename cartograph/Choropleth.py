@@ -14,6 +14,7 @@ from cartograph import Config
 from cartograph.Coordinates import CreateFullCoordinates
 from cartograph.LuigiUtils import MTimeMixin, LoadGeoJsonTask, TimestampedLocalTarget, ExternalFile, LoadJsonTask
 from cartograph.MapnikHelper import MapnikHelper
+from cartograph.NormalizedMultinomialMetric import NormalizedMultinomialMetric
 from cartograph.Utils import read_features
 
 logger = logging.getLogger('cartograph.choropleth')
@@ -29,13 +30,13 @@ class AllChoropleth(luigi.WrapperTask):
         geoDir = config.get('DEFAULT', 'geojsonDir')
         mapDir = config.get('DEFAULT', 'mapDir')
         for name in config.get('Metrics', 'active').split():
-            jsStr = config.get('Metrics', name)
-            metricConf = json.loads(jsStr)
+            metricConf = json.loads(config.get('Metrics', name))
             path = metricConf['path']
             args= {
                 '_name' : name,
-                '_fields' : metricConf['fields'],
-                '_colors' : metricConf['colors'],
+                '_fields' : ' '.join(metricConf['fields']),
+                '_colors' : ' '.join(metricConf['colors']),
+                '_bins' : metricConf['bins'],
                 '_table' : name,
                 '_inPath' : path,
                 '_outPath' : os.path.join(geoDir, name + '.geojson'),
@@ -55,10 +56,11 @@ class MapRenderer(luigi.Task):
 
     pass
 
-class StyleWriter(luigi.Task):
+class StyleWriter(MTimeMixin, luigi.Task):
     _name = luigi.Parameter()
     _fields = luigi.Parameter()
     _colors = luigi.Parameter()
+    _bins = luigi.Parameter()
     _table = luigi.Parameter()
     _inPath = luigi.Parameter()
     _outPath = luigi.Parameter()
@@ -68,20 +70,23 @@ class StyleWriter(luigi.Task):
         conf = Config.get()
         m = MapnikHelper()
 
-        nLevels = 3
+        nLevels = self._bins
         styleNames = []
-        for color, field in zip(self._colors.split(), self._fields.split()):
-            for i in range(nLevels):
+        fields = self._fields.split()
+        colors = self._colors.split()
+        metric = NormalizedMultinomialMetric(fields, nLevels)
+        for color, field in zip(colors, fields):
+            for i in range(1, nLevels+1):
                 name = "%s_%s_%d" % (self._name, field, i)
                 styleNames.append(name)
-                start = 1.0 / len(self._colors.split())
-                step = (1.0 - start) / nLevels
+                start = metric.getMinThreshold(i)
+                stop = metric.getMinThreshold(i + 1)
                 style = m.mkStyle(name)
                 style.set('comp-op', 'multiply')
                 r = ET.SubElement(style, 'Rule')
                 f = ET.SubElement(r, 'Filter').text = (
-                    '[smoothed%s] >= %.3f and [smoothed%s] < %.3f' %
-                    (field, start + step * i, field, start + step * (i + 1))
+                    '[smoothed%s] > %.3f and [smoothed%s] <= %.3f' %
+                    (field, start, field, stop)
                 )
                 ms = ET.SubElement(r, "MarkersSymbolizer")
                 ms.set('allow-overlap', 'true')
@@ -103,9 +108,7 @@ class StyleWriter(luigi.Task):
         return TimestampedLocalTarget(self._xmlPath)
 
     def requires(self):
-        return (
-            ChoroplethGeoJsonLoader(self._name, self._table, self._inPath, self._outPath)
-        )
+        return ChoroplethGeoJsonLoader(self._name, self._table, self._inPath, self._outPath)
 
 class ChoroplethGeoJsonLoader(LoadGeoJsonTask):
     _name = luigi.Parameter()
@@ -120,9 +123,7 @@ class ChoroplethGeoJsonLoader(LoadGeoJsonTask):
     def geoJsonPath(self): return self._outPath
 
     def requires(self):
-        return (
-            ChoroplethData(self._name, self._inPath, self._outPath)
-        )
+        return ChoroplethData(self._name, self._inPath, self._outPath)
 
 class ChoroplethData(MTimeMixin, luigi.Task):
     name = luigi.Parameter()
@@ -139,8 +140,8 @@ class ChoroplethData(MTimeMixin, luigi.Task):
         conf = Config.get()
         return (ExternalFile(self.inpath),
                 ExternalFile(conf.get('ExternalFiles', 'external_ids')),
-                CreateFullCoordinates())
-                # ChoroplethCode())
+                CreateFullCoordinates(),
+                ChoroplethCode())
 
     def run(self):
         config = Config.get()
