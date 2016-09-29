@@ -1,16 +1,18 @@
+import logging
 import marisa_trie
 
 import json
 import sys
 
+import falcon
 
-def warn(message):
-    sys.stderr.write(message + '\n')
+from cartograph.server.ServerUtils import getMimeType
 
-class Search:
-    def __init__(self, config, cnx):
-        self.config = config
-        self.cnx = cnx
+logger = logging.getLogger('cartograph.search')
+
+class SearchService:
+    def __init__(self, points):
+        self.points = points
         self.keyList = []
         self.tupleLocZoom = []
 
@@ -19,24 +21,14 @@ class Search:
         keys = []
         values = []
 
-        with self.cnx.cursor('autocomplete') as cur:
-            cur.itersize = 50000
-            cur.execute('select x, y, citylabel, maxzoom, popularity, id from coordinates')
-            for i, row in enumerate(cur):
-                x = float(row[1])
-                y = float(row[0])
-                title = row[2]
-                zoom = int(row[3])
-                pop = float(row[4])
-                idnum = int(row[5])
+        for i, p in enumerate(points.getAllPoints()):
+                lowertitle = unicode(p['name'].lower(), 'utf-8')
 
-                lowertitle = unicode(title.lower(), 'utf-8')
-
-                self.titles.append(title)
+                self.titles.append(p['name'])
                 keys.append(lowertitle)
-                values.append((pop, i, x, y, zoom, idnum))
+                values.append((p['pop'], i, p['x'], p['y'], p['zoom'], int(p['id'])))
                 if i % 50000 == 0:
-                    warn('loading autocomplete row %d' % i)
+                    logging.info('loading autocomplete row %d' % i)
 
         # after creating lists of all titles and location/zoom, zip them into a trie (will need to extract to json format later)
         fmt = "<diddii"
@@ -57,4 +49,11 @@ class Search:
             }
             jsonList.append(rJsonDict)
 
-        return json.dumps({ 'suggestions' : jsonList })
+        return jsonList
+
+    def on_get(self, req, resp, title, n=10):
+        jsonList = self.search(title)
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({ 'suggestions' : jsonList })
+        resp.content_type = 'application/json'
+

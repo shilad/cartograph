@@ -23,6 +23,17 @@ class TopoJsonBuilder:
           "coordinates": [shape.x, shape.y]
         })
 
+    def addMultiPoint(self, collectionName, shapeName, coords, props=None):
+        if props == None: props = {}
+        props['name'] = shapeName
+        coll = self.getCollection(collectionName)
+
+        coll['geometries'].append({
+          "type": "MultiPoint",
+          "properties": props,
+          "coordinates": coords
+        })
+
     def addMultiLine(self, collectionName, multiLine, props=None):
         if props == None: props = {}
         coll = self.getCollection(collectionName)
@@ -95,6 +106,9 @@ class TopoJsonBuilder:
                 json.dump(self.data, f)
         else:
             return json.dumps(self.data)
+
+    def getData(self):
+        return self.data
 
     def getCollection(self, name):
         if not name in self.data['objects']:
