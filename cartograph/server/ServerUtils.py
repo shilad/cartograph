@@ -7,6 +7,8 @@ mimetypes.init()
 def getMimeType(path):
     if path.endswith('.topojson'):
         return 'application/json'
+    elif path.endswith('.yaml'):
+        return 'text/plain'
     else:
         (mtype, _) = mimetypes.guess_type(path)
         if mtype:

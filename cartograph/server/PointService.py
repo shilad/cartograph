@@ -18,6 +18,7 @@ class PointService:
         self.points = {}
         self.metrics = {}
         metricNames =  config.get('Metrics', 'active').split()
+        self.maxZoom = config.getint('Server', 'vector_zoom')
         for n in metricNames:
             mi = json.loads(config.get('Metrics', n))
             assert(mi['type'] == 'count')
@@ -91,6 +92,9 @@ class PointService:
             builder.addPoint('cities', p['name'],
                              shapely.geometry.Point(p['x'], p['y']), props)
             added.add(p['id'])
+
+        if z < self.maxZoom:
+            return
 
         # Add in extra points without properties for next 500 points
         categorize = self.metrics[layer].assignCategory

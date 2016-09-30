@@ -4,10 +4,13 @@ import logging
 import sys
 
 from cartograph import Config
+from cartograph.server.ConfigService import ConfigService
 from cartograph.server.CountryService import CountryService
 from cartograph.server.MapnikService import MapnikService
 from cartograph.server.PointService import PointService
 from cartograph.server.SearchService import SearchService
+from cartograph.server.StaticService import StaticService
+from cartograph.server.TemplateService import TemplateService
 from cartograph.server.TileService import TileService
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
@@ -19,6 +22,9 @@ searchService = SearchService(pointService)
 countryService = CountryService(conf)
 tileService = TileService(conf, pointService, countryService)
 mapnikService = MapnikService(conf)
+configService = ConfigService(conf)
+templateService = TemplateService(conf)
+staticService = StaticService(conf)
 
 
 # falcon.API instances are callable WSGI apps
@@ -28,6 +34,9 @@ app = falcon.API()
 app.add_route('/search/{title}.json', searchService)
 app.add_route('/vector/{layer}/{z}/{x}/{y}.topojson', tileService)
 app.add_route('/raster/{layer}/{z}/{x}/{y}.png', mapnikService)
+app.add_route('/config', configService)
+app.add_route('/template/{file}', templateService)
+app.add_sink(lambda req, resp: staticService.on_get(req, resp), '/static')
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
 # can also use Gunicorn to host your app. Gunicorn can be configured to

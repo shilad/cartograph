@@ -54,6 +54,10 @@ first_zoom_label: 5
 map_width: 800
 map_height: 600
 
+[Server]
+vector_zoom: 6
+base_url: http://localhost:4000
+
 
 [MapData]
 countries_geojson: %(geojsonDir)s/countries.geojson
