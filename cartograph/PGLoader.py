@@ -3,9 +3,9 @@ import Config
 import LuigiUtils
 import Coordinates
 from BorderGeoJSONWriter import CreateContinents
-from ZoomGeoJSONWriter import CreateLabelsFromZoom
 from Contour import CreateContours
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, LoadGeoJsonTask
+from cartograph.CalculateZPop import CoordinatesGeoJSONWriter
 
 
 class LoadContoursDensity(LoadGeoJsonTask):
@@ -47,7 +47,7 @@ class LoadContoursCentroid(LoadGeoJsonTask):
 class LoadCoordinates(LoadGeoJsonTask):
 
     def __init__(self, *args, **kwargs):
-        self._geoJsonPath = Config.get().get('MapData', 'title_by_zoom')
+        self._geoJsonPath = Config.get().get('MapData', 'coordinates')
         super(LoadCoordinates, self).__init__(*args, **kwargs)
 
     @property
@@ -58,8 +58,7 @@ class LoadCoordinates(LoadGeoJsonTask):
 
     def requires(self):
         return (
-            Coordinates.CreateFullCoordinates(),
-            CreateLabelsFromZoom(),
+            CoordinatesGeoJSONWriter(),
         )
 
 
