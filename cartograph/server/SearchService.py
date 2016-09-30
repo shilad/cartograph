@@ -26,26 +26,25 @@ class SearchService:
 
                 self.titles.append(p['name'])
                 keys.append(lowertitle)
-                values.append((p['pop'], i, p['x'], p['y'], p['zoom'], int(p['id'])))
+                values.append((p['zpop'], i, p['x'], p['y'], int(p['id'])))
                 if i % 50000 == 0:
                     logging.info('loading autocomplete row %d' % i)
 
         # after creating lists of all titles and location/zoom, zip them into a trie (will need to extract to json format later)
-        fmt = "<diddii"
+        fmt = "<diddi"
         self.trie = marisa_trie.RecordTrie(fmt, zip(keys, values))
 
     def search(self, title, n=10):
         results = sorted(r[1] for r in self.trie.items(unicode(title.lower())))
-        results.reverse()
 
         # empty list to hold json-formatted results
         jsonList = []
 
-        for (pop, i, x, y, zoom, idnum) in results[:n]:
+        for (pop, i, x, y, idnum) in results[:n]:
             locat = [x, y]
             rJsonDict = {
                 'value' : self.titles[i],
-                'data' : { "loc": locat, "zoom": zoom }
+                'data' : { "loc": locat, "zoom": int(pop) }
             }
             jsonList.append(rJsonDict)
 

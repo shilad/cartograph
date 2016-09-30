@@ -1,6 +1,8 @@
 # Let's get this party started!
 import falcon
 import logging
+import os
+import shutil
 import sys
 
 from cartograph import Config
@@ -15,7 +17,23 @@ from cartograph.server.TileService import TileService
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-conf = Config.initConf(sys.argv[1])
+if __name__ == '__main__' and len(sys.argv) > 1:
+    confPath = sys.argv[1]
+else:
+    confPath = os.getenv('CARTOGRAPH_CONFIG')
+    if not confPath:
+        raise Exception, 'CARTOGRAPH_CONFIG environment variable not set!'
+
+if not os.path.isfile(confPath):
+    raise Exception, 'Cartograph Config Path %s does not exist' % `confPath`
+
+conf = Config.initConf(confPath)
+
+if os.getenv('CLEAR_CACHE'):
+    logging.info('clearing cache directory %s' % conf.get('DEFAULT', 'webCacheDir'))
+    shutil.rmtree(conf.get('DEFAULT', 'webCacheDir'), ignore_errors=True)
+
+logging.info('intitializing services')
 
 pointService = PointService(conf)
 searchService = SearchService(pointService)
@@ -26,6 +44,7 @@ configService = ConfigService(conf)
 templateService = TemplateService(conf)
 staticService = StaticService(conf)
 
+logging.info('configuring falcon')
 
 # falcon.API instances are callable WSGI apps
 app = falcon.API()
@@ -43,6 +62,9 @@ app.add_sink(lambda req, resp: staticService.on_get(req, resp), '/static')
 # auto-restart workers when it detects a code change, and it also works
 # with pdb.
 if __name__ == '__main__':
+    logging.info('starting server')
+
     from wsgiref import simple_server
     httpd = simple_server.make_server('127.0.0.1', 4000, app)
+    logging.info('server ready!')
     httpd.serve_forever()

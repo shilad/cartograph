@@ -1,6 +1,9 @@
 import json
 import logging
+import numpy as np
 import sys
+
+
 from collections import defaultdict
 
 import shapely.geometry
@@ -27,24 +30,23 @@ class PointService:
         with pg_cnx(config) as cnx:
             with cnx.cursor('points') as cur:
                 cur.itersize = 50000
-                cur.execute('select x, y, citylabel, maxzoom, popularity, id from coordinates')
+                cur.execute('select x, y, name, zpop, id from coordinates')
                 for i, row in enumerate(cur):
-                    self.points[row[5]] = {
+                    self.points[row[4]] = {
                         'x' : float(row[1]),
                         'y' : float(row[0]),
                         'name' : row[2],
-                        'zoom' : int(row[3]),
-                        'pop' : float(row[4]),
-                        'id' : row[5]
+                        'zpop' : float(row[3]),
+                        'id' : row[4]
                     }
                     if i % 50000 == 0:
                         logger.info('loading basic point data for row %d' % i)
 
             logger.info('building spatial index...')
             ids = sorted(self.points.keys())
+            pops = [-self.points[id]['zpop'] for id in ids]
             X = [self.points[id]['x'] for id in ids]
             Y = [self.points[id]['y'] for id in ids]
-            pops = [self.points[id]['y'] for id in ids]
             self.index = PointIndex(ids, X, Y, pops)
             logger.info('finished indexing %d points...' % len(X))
 
@@ -88,7 +90,9 @@ class PointService:
         # Add full city information for top 50
         added = set()
         for p in self.getTilePoints(z, x, y, 50):
-            props = { 'id' : p['id'], 'zoom' : p['zoom'], 'pop' : p['pop'] }
+            props = { 'id' : p['id'],
+                      'zpop' : p['zpop'],
+                      'zoff' : (z - p['zpop']) }
             builder.addPoint('cities', p['name'],
                              shapely.geometry.Point(p['x'], p['y']), props)
             added.add(p['id'])
@@ -104,7 +108,6 @@ class PointService:
                 c = categorize(p)
                 if c: extra[c].append((p['x'], p['y']))
         for c, coords in extra.items():
-            print c, len(coords)
             builder.addMultiPoint('extraPoints', c, coords, { 'group' : c })
 
 
