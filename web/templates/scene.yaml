@@ -1,24 +1,6 @@
 scene:
     background:
         color: '#F0F7FF'
-sources:
-#    fixed:
-#        type: TopoJSON
-#        url: http://localhost:4000/fixed/10.topojson
-#        max_zoom: 16
-    tiled:
-        type: TopoJSON
-        url: http://nokomis.macalester.edu/cartograph/tile/{z}/{x}/{y}.topojson
-        max_zoom: 16
-    gender:
-        type: Raster
-        url: http://localhost:4000/raster/gender/{z}/{x}/{y}.png
-        max_zoom: 16
-    genderPoints:
-        type: TopoJSON
-        url: http://localhost:4000/metricPoints/gender/{z}/{x}/{y}.topojson
-
-import: http://nokomis.macalester.edu/cartograph/countries.yaml
 
 styles:
     point-alpha:
@@ -31,16 +13,24 @@ styles:
         base: lines
         blend: inlay
 
+sources:
+    vector:
+        type: TopoJSON
+        url: {{ Server.base_url }}/vector/gender/{z}/{x}/{y}.topojson
+        max_zoom: 16
+    raster:
+        type: Raster
+        url: {{ Server.base_url }}/raster/gender/{z}/{x}/{y}.png
+        max_zoom: 16
+
 layers:
     base:
-        filter: { $zoom: { max: 7 } }
-        data: { source: gender }
+        data: { source: raster }
         draw:
             raster:
                 order: 0 # draw on bottom
     countries:
-        data: { source: tiled, layer: countries }
-        filter: { $zoom: { min: 6 } }
+        data: { source: vector, layer: countries }
         draw:
             lines:
                 color: gray
@@ -49,9 +39,33 @@ layers:
                 order: 2
                 blend: overlay
                 collide: false
+    {% for cluster, clusterColors  in ColorWheel.items() %}
+        country_{{ cluster }}:
+            filter: { clusterid : {{ cluster}} }
+            draw:
+                polygons:
+                    color: '{{ clusterColors[7] }}'
+                    width: 1px
+                    order: 2
+    {% endfor %}
+
+    contours :
+        data : { source: vector, layer: centroid_contours }
+
+    {% for cluster, clusterColors  in ColorWheel.items() %}
+      {% for contour, contourColor in clusterColors.items() %}
+        contour_{{cluster}}_{{contour}}:
+            filter: { contourid : {{ cluster }}_{{ contour }} }
+            draw:
+                polygons:
+                    color: '{{ contourColor }}'
+                    width: 1px
+                    order: {{ loop.index + 2 }}
+      {% endfor %}
+    {% endfor %}
 
     capitals:
-        data: { source: tiled, layer: countries_labels }
+        data: { source: vector, layer: countries_labels }
         draw:
           points:
             color: '#dd9999'
@@ -69,7 +83,7 @@ layers:
                   fill: 'rgba(255, 255, 255, 0.5)'
                   stroke: { color: '#666', width: 1px }
     cities:
-        data: { source: tiled, layer: cities }
+        data: { source: vector, layer: cities }
         small_cities:
             filter: { zoomOffset : 0 }
             draw:
@@ -137,27 +151,6 @@ layers:
                         size: 15px
                         fill: '#666'
                         stroke: { color: '#fff', width: 2 }
-
-    genderPoints:
-        data: { source: genderPoints, layer: gender }
-        filter: { $zoom: { min: 6 } }
-        all_points:
-            draw:
-                points:
-                  collide: false
-                  style: point-alpha
-                  color: |
-                    function () {
-                        var p = (feature.women + 2.0) / (feature.women + feature.men + 4.0);
-                        var alpha = Math.abs(p - 0.5) / 2;
-                        if (p > 0.5) {
-                          return [1, 0, 0, alpha];
-                        } else {
-                          return [0, 0, 1, alpha];
-                        }
-                    }
-                  size: 6px
-
     edges:
         data: { source: tiled, layer: edges }
         filter: { $zoom: { min: 6 } }

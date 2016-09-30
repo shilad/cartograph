@@ -13,6 +13,7 @@ class CountryService:
     def __init__(self, config):
         self.config = config
         self.simplifications = { 1: .2, 7: .05, 10: 0.01}
+        self.maxZoom = config.getint('Server', 'vector_zoom')
         self.polys = [
             PolyLayer('countries',
                       table='countries',
@@ -39,6 +40,8 @@ class CountryService:
                     p.init(cursor)
 
     def addLayers(self, builder, z, x, y):
+        if z < self.maxZoom:
+            return
         (x0, y0, x1, y1) = tileExtent(z, x, y)
         assert (x0 <= x1)
         assert (y0 <= y1)
