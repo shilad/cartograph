@@ -12,6 +12,10 @@ class PolyLayer:
         self.labelField = labelField
         self.cache = {}
 
+    def init(self, cur):
+        for z in range(1, 20):
+            self.getFromCache(cur, z)
+
     def getFromCache(self, cur, z):
         z = self.getEffectiveZoom(z)
         if not z in self.cache:

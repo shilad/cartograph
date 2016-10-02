@@ -77,6 +77,8 @@ def initConf(confFile=None):
 
     CONFIG = conf
 
+    return conf
+
 
 def _verifyRequiredSections(conf, requiredSections):
     confSections = conf.sections()

@@ -3,6 +3,8 @@ import codecs
 import numpy as np
 import sys
 
+import psycopg2
+
 
 def read_tsv(filename):
     with codecs.open(filename, "r", encoding="utf-8") as f:
@@ -25,17 +27,6 @@ def read_wikibrain_vecs(path):
         for line in vecs:
             matrix.append(map(float, line.rstrip("\n").split("\t")))
     return matrix
-
-
-def read_zoom(filename):
-    values = defaultdict(dict)
-    with open(filename) as f:
-        for line in f:
-            tokens = line.split('\t')
-            zoom = tokens[0]
-            denom = tokens[1][:-1]
-            values[zoom] = denom
-    return values
 
 
 def read_features(*files, **kwargs):
@@ -140,6 +131,13 @@ def sort_by_percentile(numBins):
         # np.percentile(percentileList, (i, i+1))
 
 
+def pg_cnx(config):
+    return psycopg2.connect(
+        dbname=config.get('PG', 'database'),
+        host=config.get('PG', 'host'),
+        user=config.get('PG', 'user'),
+        password=config.get('PG', 'password'),
+    )
 
 class InputError(Exception):
     """Exception raised for errors in the input.
@@ -159,6 +157,10 @@ def calc_area(points):
     y = unzipped[1]
     # Shoelace Algorithm (a la Stackoverflow)
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
+
+def zoomMeters(zoom):
+    return 156543.03 / (2 ** zoom)
 
 if __name__=='__main__':
 
