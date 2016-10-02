@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 import tempfile
 import threading
@@ -159,12 +160,11 @@ class MapnikService:
 
 
 class RenderThread:
-    def __init__(self, conf, q, logLock):
+    def __init__(self, conf, pointService, q, logLock):
         self.conf = conf
         self.logLog = logLock
         self.q = q
-        self.pointService = PointService(conf)
-        self.mapnik = MapnikService(conf, self.pointService)
+        self.mapnik = MapnikService(conf, pointService)
 
 
     def loop(self):
@@ -194,14 +194,15 @@ class RenderThread:
 
 
 def render(conf):
+    pointService = PointService(conf)
     maxZoom = conf.getint('Server', 'vector_zoom')
-    num_threads = 4
+    num_threads = multiprocessing.cpu_count()
     # Launch rendering threads
     queue = Queue(32)
     logLock = threading.Lock()
     renderers = {}
     for i in range(num_threads):
-        renderer = RenderThread(conf, queue, logLock)
+        renderer = RenderThread(conf, pointService, queue, logLock)
         render_thread = threading.Thread(target=renderer.loop)
         render_thread.start()
         # print "Started render thread %s" % render_thread.getName()
