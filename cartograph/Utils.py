@@ -158,6 +158,10 @@ def calc_area(points):
     # Shoelace Algorithm (a la Stackoverflow)
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
 
+
+def zoomMeters(zoom):
+    return 156543.03 / (2 ** zoom)
+
 if __name__=='__main__':
 
     sort_by_percentile(4)

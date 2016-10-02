@@ -2,17 +2,17 @@ import heapq
 import math
 
 import numpy as np
-from scipy.spatial import cKDTree
+from scipy.spatial import cKDTree, KDTree
 
 
 class PointIndex:
     def __init__(self, ids, X, Y, pops):
-        self.ids = ids
+        self.ids = list(ids)
         self.area = (max(X) - min(X)) * (max(Y) - min(Y))
         self.data = np.array(zip(X, Y))
-        self.pops = pops
+        self.pops = list(pops)
         self.sortedIndexes = sorted(range(len(self.ids)), key=lambda i: pops[i], reverse=True)
-        self.tree = cKDTree(self.data)
+        self.tree = KDTree(self.data)
 
     def queryRect(self, x0, y0, x1, y1, n=None):
 
@@ -26,9 +26,10 @@ class PointIndex:
         expGeoOps = numMatches * math.log(n)
         expBFOps = len(self.ids)
         useBruteForce = expBFOps < 10 * expGeoOps
-        print frac, numMatches, expGeoOps, expBFOps, useBruteForce
+        # print frac, numMatches, expGeoOps, expBFOps, useBruteForce
 
         if useBruteForce:
+            # print "BRUTE"
             top = []
             for i in self.sortedIndexes:
                 x, y = self.data[i]
@@ -40,12 +41,19 @@ class PointIndex:
                     break
             return top
         else:
+            # print "ACCEL"
             assert(x0 <= x1)
             assert(y0 <= y1)
             x = (x0 + x1) / 2.0
             y = (y0 + y1) / 2.0
-            r = max(x - x0, y - y0)
-            results = self.tree.query_ball_point((x, y), p=1.0, r=r)
+            r = max(x - x0, y - y0) * 2
+
+            # for i, id in enumerate(self.ids):
+            #     if id == '12706':
+            #         print i, id, self.data[i], self.pops[i]
+            # #
+            # print r, x, y
+            results = self.tree.query_ball_point((x, y), r=r, p=1.0)
 
             top = []
             for i in results:

@@ -28,87 +28,17 @@ class AllChoropleth(luigi.WrapperTask):
         config = Config.get()
         result = []
         geoDir = config.get('DEFAULT', 'geojsonDir')
-        mapDir = config.get('DEFAULT', 'mapDir')
         for name in config.get('Metrics', 'active').split():
             metricConf = json.loads(config.get('Metrics', name))
             path = metricConf['path']
             args= {
                 '_name' : name,
-                '_fields' : ' '.join(metricConf['fields']),
-                '_colors' : ' '.join(metricConf['colors']),
-                '_bins' : metricConf['bins'],
                 '_table' : name,
                 '_inPath' : path,
                 '_outPath' : os.path.join(geoDir, name + '.geojson'),
-                '_xmlPath' : os.path.join(mapDir, name + '_only.xml'),
             }
-            result.append(StyleWriter(**args))
+            result.append(ChoroplethGeoJsonLoader(**args))
         return result
-
-class MapRenderer(luigi.Task):
-    _name = luigi.Parameter()
-    _fields = luigi.Parameter()
-    _colors = luigi.Parameter()
-    _table = luigi.Parameter()
-    _inPath = luigi.Parameter()
-    _outPath = luigi.Parameter()
-    _xmlPath = luigi.Parameter()
-
-    pass
-
-class StyleWriter(MTimeMixin, luigi.Task):
-    _name = luigi.Parameter()
-    _fields = luigi.Parameter()
-    _colors = luigi.Parameter()
-    _bins = luigi.Parameter()
-    _table = luigi.Parameter()
-    _inPath = luigi.Parameter()
-    _outPath = luigi.Parameter()
-    _xmlPath = luigi.Parameter()
-
-    def run(self):
-        conf = Config.get()
-        m = MapnikHelper()
-
-        nLevels = self._bins
-        styleNames = []
-        fields = self._fields.split()
-        colors = self._colors.split()
-        metric = NormalizedMultinomialMetric(fields, nLevels)
-        for color, field in zip(colors, fields):
-            for i in range(1, nLevels+1):
-                name = "%s_%s_%d" % (self._name, field, i)
-                styleNames.append(name)
-                start = metric.getMinThreshold(i)
-                stop = metric.getMinThreshold(i + 1)
-                style = m.mkStyle(name)
-                style.set('comp-op', 'multiply')
-                r = ET.SubElement(style, 'Rule')
-                f = ET.SubElement(r, 'Filter').text = (
-                    '[smoothed%s] > %.3f and [smoothed%s] <= %.3f' %
-                    (field, start, field, stop)
-                )
-                ms = ET.SubElement(r, "MarkersSymbolizer")
-                ms.set('allow-overlap', 'true')
-                ms.set('fill', color)
-                ms.set('stroke', color)
-                ms.set('opacity', str(0.4 * i / nLevels))
-                ms.set('width', '6')
-                ms.set('height', '6')
-                ms.set('stroke-width', '0')
-                ms.set('placement', 'point')
-                ms.set('marker-type', 'ellipse')
-                ms.set('comp-op', 'multiply')
-
-        layer = m.mkPGLayer(conf, self._name, self._table, styleNames)
-
-        m.write(self._xmlPath)
-
-    def output(self):
-        return TimestampedLocalTarget(self._xmlPath)
-
-    def requires(self):
-        return ChoroplethGeoJsonLoader(self._name, self._table, self._inPath, self._outPath)
 
 class ChoroplethGeoJsonLoader(LoadGeoJsonTask):
     _name = luigi.Parameter()

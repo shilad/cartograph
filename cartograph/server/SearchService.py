@@ -50,8 +50,8 @@ class SearchService:
 
         return jsonList
 
-    def on_get(self, req, resp, title, n=10):
-        jsonList = self.search(title)
+    def on_get(self, req, resp):
+        jsonList = self.search(req.params['q'])
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({ 'suggestions' : jsonList })
         resp.content_type = 'application/json'

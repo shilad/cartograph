@@ -13,8 +13,8 @@ class ConfigService:
     def on_get(self, req, resp):
         js = self.configData()
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(js)
-        resp.content_type = 'application/json'
+        resp.body = 'var CG = CG || {}; CG.config = ' + json.dumps(js) + ';'
+        resp.content_type = 'application/javascript'
 
     def configData(self):
         result = {}
