@@ -3,7 +3,11 @@ import os
 import tempfile
 import threading
 
-import cairo
+try:
+    import cairo
+except:
+    import cairocffi as cairo
+
 import mapnik
 import time
 
