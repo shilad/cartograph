@@ -109,7 +109,7 @@ class LoadJsonTask(MTimeMixin, CopyToTable):
         max_mtime = -1
         for el in to_list(self.requires()):
             if not el.complete():
-                return self.table + '_100000000000000000000000000'
+                return self.table + '_2147483648'
             for output in to_list(el.output()):
                 max_mtime = max(output.mtime(), max_mtime)
         return self.table + '_' + str(max_mtime)
