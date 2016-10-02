@@ -192,6 +192,23 @@ class RenderThread:
             self.q.task_done()
 
 
+def renderSimple(conf):
+    pointService = PointService(conf)
+    maxZoom = conf.getint('Server', 'vector_zoom')
+    mp = MapnikService(conf, pointService)
+    metric = 'gender'
+    cacheDir = conf.get('DEFAULT', 'webCacheDir')
+    for z in range(1, maxZoom + 1):
+        for x in range(2 ** z):
+            for y in range(2 ** z):
+                path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
+                d = os.path.dirname(path)
+                if d and not os.path.isdir(d): os.makedirs(d)
+                print 'rending', path
+                mp.renderTile(metric, z, x, y, path)
+
+
+
 
 def render(conf):
     pointService = PointService(conf)
@@ -233,7 +250,7 @@ def render(conf):
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     conf = Config.initConf(sys.argv[1])
-    render(conf)
+    renderSimple(conf)
 
 
 
