@@ -203,15 +203,16 @@ def render(conf):
         # print "Started render thread %s" % render_thread.getName()
         renderers[i] = render_thread
 
+    metric = 'gender'
     cacheDir = conf.get('DEFAULT', 'webCacheDir')
     for z in range(1, maxZoom + 1):
         for x in range(2 ** z):
             for y in range(2 ** z):
                 try:
-                    path = cacheDir + '/raster/%d/%d/%d.png' % (z, x, y)
+                    path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
                     d = os.path.dirname(path)
                     if d and not os.path.isdir(d): os.makedirs(d)
-                    t = ('gender', path, z, x, y)
+                    t = (metric, path, z, x, y)
                     queue.put(t)
                 except KeyboardInterrupt:
                     raise SystemExit("Ctrl-c detected, exiting...")
