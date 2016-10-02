@@ -2,21 +2,17 @@ scene:
     background:
         color: '#F0F7FF'
 sources:
-#    fixed:
-#        type: TopoJSON
-#        url: http://localhost:4000/fixed/10.topojson
-#        max_zoom: 16
     tiled:
         type: TopoJSON
         url: http://nokomis.macalester.edu/cartograph/tile/{z}/{x}/{y}.topojson
         max_zoom: 16
     gender:
         type: Raster
-        url: http://localhost:4000/raster/gender/{z}/{x}/{y}.png
+        url: http://nokomis.macalester.edu/cartograph/raster/gender/{z}/{x}/{y}.png
         max_zoom: 16
     genderPoints:
         type: TopoJSON
-        url: http://localhost:4000/metricPoints/gender/{z}/{x}/{y}.topojson
+        url: http://nokomis.macalester.edu/cartograph/metricPoints/gender.topojson
 
 import: http://nokomis.macalester.edu/cartograph/countries.yaml
 
