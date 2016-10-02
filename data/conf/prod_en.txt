@@ -7,3 +7,13 @@ num_clusters: 16
 water_level: .0005
 sample_borders: True
 contour_bins: 1000
+
+[Metrics]
+active: gender
+gender: {
+         "type": "count",
+         "path": "%(externalDir)s/gender.tsv",
+         "fields": ["women", "men"],
+         "colors": ["red", "blue"],
+         "bins": 3
+         }
