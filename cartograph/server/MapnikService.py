@@ -233,10 +233,11 @@ def render(conf):
             for y in range(2 ** z):
                 try:
                     path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
-                    d = os.path.dirname(path)
-                    if d and not os.path.isdir(d): os.makedirs(d)
-                    t = (metric, path, z, x, y)
-                    queue.put(t)
+                    if not os.path.isfile(path):
+                        d = os.path.dirname(path)
+                        if d and not os.path.isdir(d): os.makedirs(d)
+                        t = (metric, path, z, x, y)
+                        queue.put(t)
                 except KeyboardInterrupt:
                     raise SystemExit("Ctrl-c detected, exiting...")
 
