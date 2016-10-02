@@ -8,7 +8,7 @@ from cartograph.Choropleth import AllChoropleth
 from cartograph.PGLoader import LoadContoursDensity, LoadContoursCentroid, LoadCoordinates, LoadCountries
 
 
-class ParentTask(luigi.Task):
+class ParentTask(luigi.WrapperTask):
 
     def requires(self):
         return (
