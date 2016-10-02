@@ -5,35 +5,59 @@ CG.map = L.map('map');
 CG.mapEl = $("#map");  // optimization
 CG.ttEl = $("#tooltip");
 
+CG.metricColors = {};
+
 CG.layer = Tangram.leafletLayer({
     scene: '../template/scene.yaml',
     attribution: '<a href="https://nokomis.macalester.edu/cartograph" target="_blank">Cartograph</a> | &copy; Shilad Sen & contributors'
 });
 
+
+// var grid = L.gridLayer({
+//     attribution: 'Grid Layer',
+//     tileSize: L.point(256, 256)
+// });
+// grid.createTile = function (coords, done) {
+//     var tile = document.createElement('div');
+//     tile.innerHTML = [coords.x, coords.y, coords.z].join(', ');
+//     tile.style.border = '2px solid red';
+// // 			tile.style.background = 'white';
+//     // test async
+//     setTimeout(function () {
+//         done(null, tile);
+//     }, 0);
+//     return tile;
+// };
+// grid.addTo(CG.map);
+
+
+
 CG.layer.addTo(CG.map);
+
 CG.layer.scene.subscribe({
   load : function(e) {
-    CG.layer.setSelectionEvents({
+      CG.layer.setSelectionEvents({
        hover: function(selection) {
-         if (selection.feature && selection.feature.properties.city) {
+         if (selection.feature && selection.feature.properties.name) {
            var ev = selection.leaflet_event.originalEvent;
            $('selector').css( 'cursor', 'pointer' );
+
            CG.handleCityHover(
                    ev.clientX,
                    ev.clientY,
-                   selection.feature.properties.city);
+                   selection.feature.properties.name);
          } else {
            CG.cancelCityHover();
          }
        },
        click: function(selection) {
-         if (selection.feature && selection.feature.properties.city) {
+         if (selection.feature && selection.feature.properties.name) {
            var ev = selection.leaflet_event.originalEvent;
            $('selector').css( 'cursor', 'pointer' );
            CG.handleCityHover(
                    ev.clientX,
                    ev.clientY,
-                   selection.feature.properties.city);
+                   selection.feature.properties.name);
          } else {
            CG.cancelCityHover();
          }
@@ -51,13 +75,13 @@ CG.layer.scene.subscribe({
 CG.map.setView([0, 0], 4);
 
 $('#search-field').autocomplete({
-    serviceUrl: '../search',
+    serviceUrl: '../search.json',
     paramName: 'q',
     autoSelectFirst: true,
     onSelect: function (suggestion) {
       var info = suggestion.data;
-      map.flyTo(info.loc, info.zoom, { duration : 0.4 });
-      L.marker(info.loc).addTo(map);
+      CG.map.flyTo(info.loc, info.zoom, { duration : 0.4 });
+      L.marker(info.loc).addTo(CG.map);
     }
 });
 
@@ -69,6 +93,7 @@ CG.ttEl.tooltipster({
     triggerOpen: {},
     interactive: true,
     delay: [0, 1000],
+    updateAnimation: 'fade',
     maxWidth: 400,
     triggerClose: {
         mouseleave: true,

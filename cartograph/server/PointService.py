@@ -22,10 +22,11 @@ class PointService:
         self.metrics = {}
         metricNames =  config.get('Metrics', 'active').split()
         self.maxZoom = config.getint('Server', 'vector_zoom')
+        self.numMetricPoints = { n : 0 for n in metricNames }
         for n in metricNames:
             mi = json.loads(config.get('Metrics', n))
             assert(mi['type'] == 'count')
-            self.metrics[n] = NormalizedMultinomialMetric(mi['fields'], mi['bins'])
+            self.metrics[n] = NormalizedMultinomialMetric(mi['fields'], mi['colors'], mi['bins'])
 
         with pg_cnx(config) as cnx:
             with cnx.cursor('points') as cur:
@@ -33,8 +34,8 @@ class PointService:
                 cur.execute('select x, y, name, zpop, id from coordinates')
                 for i, row in enumerate(cur):
                     self.points[row[4]] = {
-                        'x' : float(row[1]),
-                        'y' : float(row[0]),
+                        'x' : float(row[0]),
+                        'y' : float(row[1]),
                         'name' : row[2],
                         'zpop' : float(row[3]),
                         'id' : row[4]
@@ -60,6 +61,7 @@ class PointService:
                             logger.info('loading %s metric data for row %d' % (name, i))
                         id = row[0]
                         if id in self.points:
+                            self.numMetricPoints[name] += 1
                             for (f, v) in zip(fields, row[1:]):
                                 self.points[id][f] = float(v)
 
@@ -82,6 +84,7 @@ class PointService:
 
         results = []
         for (pop, id, x, y) in matches:
+            # print pop, id, x, y
             if id in self.points:
                 results.append(self.points[id])
         return results
@@ -89,10 +92,28 @@ class PointService:
     def addLayers(self, builder, layer, z, x, y):
         # Add full city information for top 50
         added = set()
+
+        # Add in extra points without properties for next 500 points
+        metric = self.metrics[layer]
+        colors = metric.getColors(z)
+        for group in colors.keys():
+            for zoom in colors[group].keys():
+                (r, g, b, a) = colors[group][zoom]
+                def f(x): return int(255 * x)
+                colors[group][zoom] = 'rgba(%d,%d,%d,%.3f)' % (f(r), f(g), f(b), a)
+
         for p in self.getTilePoints(z, x, y, 50):
             props = { 'id' : p['id'],
                       'zpop' : p['zpop'],
-                      'zoff' : (z - p['zpop']) }
+                      'zoff' : (z - p['zpop'])
+                      }
+            g = metric.assignCategory(p)
+            if g:
+                zp = int(p['zpop'])
+                props['group'] = g
+                props['color'] = colors[g][zp]
+            for f in metric.fields:
+                props[f] = p.get(f, 0.0)
             builder.addPoint('cities', p['name'],
                              shapely.geometry.Point(p['x'], p['y']), props)
             added.add(p['id'])
@@ -100,15 +121,21 @@ class PointService:
         if z < self.maxZoom:
             return
 
-        # Add in extra points without properties for next 500 points
-        categorize = self.metrics[layer].assignCategory
         extra = defaultdict(list)
-        for p in self.getTilePoints(z, x, y, 500):
+        for p in self.getTilePoints(z, x, y, 1000):
             if p['id'] not in added:
-                c = categorize(p)
-                if c: extra[c].append((p['x'], p['y']))
-        for c, coords in extra.items():
-            builder.addMultiPoint('extraPoints', c, coords, { 'group' : c })
+                c = metric.assignCategory(p)
+                if not c: c = ''
+                zp = int(p['zpop'])
+                extra[c, zp].append((p['x'], p['y']))
+        for (c, zp), coords in extra.items():
+            props = {
+                'group' : c,
+                'zpop' : zp,
+                'zoff' : (z - zp)
+             }
+            if c: props['color'] = colors[c][zp]
+            builder.addMultiPoint('extraPoints', c, coords, props)
 
 
 
@@ -119,7 +146,15 @@ if __name__ == '__main__':
 
     Config.initConf('data/conf/simple.txt')
     pd = PointService(Config.get())
-    builder = TopoJsonBuilder()
-    pd.addLayers(builder, 6, 32, 32, 'gender')
-    print builder.toJson()
+    for p in pd.getTilePoints(6, 26, 36, 10):
+        print p['id'], p['zpop']
+        if p['id'] == '12706':
+            print p['id'], p['zpop']
+    # for p in pd.getTilePoints(6, 27, 37, 1000):
+    #     if p['id'] == '13616':
+    #         print p['id']
+    # builder = TopoJsonBuilder()
+    # pd.addLayers(builder, 'gender', 6, 27, 36)
+    # pd.addLayers(builder, 'gender', 6, 27, 37)
+    # print builder.toJson()
 
