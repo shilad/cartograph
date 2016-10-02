@@ -15,7 +15,8 @@ import time
 import sys
 
 
-from Queue import Queue
+from multiprocessing import JoinableQueue, Lock
+
 from cartograph import Config
 
 from math import pi, cos, sin, log, exp, atan
@@ -215,12 +216,12 @@ def render(conf):
     maxZoom = conf.getint('Server', 'vector_zoom')
     num_threads = multiprocessing.cpu_count()
     # Launch rendering threads
-    queue = Queue(32)
-    logLock = threading.Lock()
+    queue = JoinableQueue(32)
+    logLock = Lock()
     renderers = {}
     for i in range(num_threads):
         renderer = RenderThread(conf, pointService, queue, logLock)
-        render_thread = threading.Thread(target=renderer.loop)
+        render_thread = multiprocessing.Process(target=renderer.loop)
         render_thread.start()
         # print "Started render thread %s" % render_thread.getName()
         renderers[i] = render_thread
@@ -250,7 +251,7 @@ def render(conf):
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     conf = Config.initConf(sys.argv[1])
-    renderSimple(conf)
+    render(conf)
 
 
 
