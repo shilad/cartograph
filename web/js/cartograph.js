@@ -80,7 +80,7 @@ $('#search-field').autocomplete({
     autoSelectFirst: true,
     onSelect: function (suggestion) {
       var info = suggestion.data;
-      CG.map.flyTo(info.loc, info.zoom, { duration : 0.4 });
+      CG.map.flyTo(info.loc, info.zoom + 2, { duration : 0.4 });
       L.marker(info.loc).addTo(CG.map);
     }
 });
