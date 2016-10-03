@@ -8,7 +8,7 @@ from collections import defaultdict
 
 import shapely.geometry
 
-from cartograph.NormalizedMultinomialMetric import NormalizedMultinomialMetric
+from cartograph import getMetric
 from cartograph.PointIndex import PointIndex
 from cartograph.Utils import pg_cnx
 from cartograph.server.ServerUtils import tileExtent
@@ -24,9 +24,8 @@ class PointService:
         self.maxZoom = config.getint('Server', 'vector_zoom')
         self.numMetricPoints = { n : 0 for n in metricNames }
         for n in metricNames:
-            mi = json.loads(config.get('Metrics', n))
-            assert(mi['type'] == 'count')
-            self.metrics[n] = NormalizedMultinomialMetric(mi['fields'], mi['colors'], mi['bins'])
+            js = json.loads(config.get('Metrics', n))
+            self.metrics[n] = getMetric(js)
 
         with pg_cnx(config) as cnx:
             with cnx.cursor('points') as cur:
@@ -90,53 +89,20 @@ class PointService:
         return results
 
     def addLayers(self, builder, layer, z, x, y):
-        # Add full city information for top 50
-        added = set()
-
-        # Add in extra points without properties for next 500 points
         metric = self.metrics[layer]
-        colors = metric.getColors(z)
-        for group in colors.keys():
-            for zoom in colors[group].keys():
-                (r, g, b, a) = colors[group][zoom]
-                def f(x): return int(255 * x)
-                colors[group][zoom] = 'rgba(%d,%d,%d,%.3f)' % (f(r), f(g), f(b), a)
-
         for p in self.getTilePoints(z, x, y, 50):
+            (r, g, b, a) = metric.getColor(p, z)
+            def f(x): return int(255 * x)
+            color = 'rgba(%d,%d,%d,%.3f)' % (f(r), f(g), f(b), a)
             props = { 'id' : p['id'],
                       'zpop' : p['zpop'],
+                      'color' : color,
                       'zoff' : (z - p['zpop'])
                       }
-            g = metric.assignCategory(p)
-            if g:
-                zp = int(p['zpop'])
-                props['group'] = g
-                props['color'] = colors[g][zp]
             for f in metric.fields:
                 props[f] = p.get(f, 0.0)
             builder.addPoint('cities', p['name'],
                              shapely.geometry.Point(p['x'], p['y']), props)
-            added.add(p['id'])
-
-        if z < self.maxZoom:
-            return
-
-        extra = defaultdict(list)
-        for p in self.getTilePoints(z, x, y, 1000):
-            if p['id'] not in added:
-                c = metric.assignCategory(p)
-                if not c: c = ''
-                zp = int(p['zpop'])
-                extra[c, zp].append((p['x'], p['y']))
-        for (c, zp), coords in extra.items():
-            props = {
-                'group' : c,
-                'zpop' : zp,
-                'zoff' : (z - zp)
-             }
-            if c: props['color'] = colors[c][zp]
-            builder.addMultiPoint('extraPoints', c, coords, props)
-
 
 
 if __name__ == '__main__':

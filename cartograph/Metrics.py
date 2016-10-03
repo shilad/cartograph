@@ -1,9 +1,6 @@
 import json
 import os
 
-from lxml import etree as ET
-
-
 import shapely.geometry
 import logging
 
@@ -13,17 +10,15 @@ import geojson
 from cartograph import Config
 from cartograph.Coordinates import CreateFullCoordinates
 from cartograph.LuigiUtils import MTimeMixin, LoadGeoJsonTask, TimestampedLocalTarget, ExternalFile, LoadJsonTask
-from cartograph.MapnikHelper import MapnikHelper
-from cartograph.NormalizedMultinomialMetric import NormalizedMultinomialMetric
 from cartograph.Utils import read_features
 
 logger = logging.getLogger('cartograph.choropleth')
 
-class ChoroplethCode(MTimeMixin, luigi.ExternalTask):
+class MetricsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return TimestampedLocalTarget(__file__)
 
-class AllChoropleth(luigi.WrapperTask):
+class AllMetrics(luigi.WrapperTask):
     def requires(self):
         config = Config.get()
         result = []
@@ -37,10 +32,10 @@ class AllChoropleth(luigi.WrapperTask):
                 '_inPath' : path,
                 '_outPath' : os.path.join(geoDir, name + '.geojson'),
             }
-            result.append(ChoroplethGeoJsonLoader(**args))
+            result.append(MetricGeoJsonLoader(**args))
         return result
 
-class ChoroplethGeoJsonLoader(LoadGeoJsonTask):
+class MetricGeoJsonLoader(LoadGeoJsonTask):
     _name = luigi.Parameter()
     _table = luigi.Parameter()
     _inPath = luigi.Parameter()
@@ -53,9 +48,9 @@ class ChoroplethGeoJsonLoader(LoadGeoJsonTask):
     def geoJsonPath(self): return self._outPath
 
     def requires(self):
-        return ChoroplethData(self._name, self._inPath, self._outPath)
+        return MetricData(self._name, self._inPath, self._outPath)
 
-class ChoroplethData(MTimeMixin, luigi.Task):
+class MetricData(MTimeMixin, luigi.Task):
     name = luigi.Parameter()
     inpath = luigi.Parameter()
     outPath = luigi.Parameter()
@@ -71,7 +66,7 @@ class ChoroplethData(MTimeMixin, luigi.Task):
         return (ExternalFile(self.inpath),
                 ExternalFile(conf.get('ExternalFiles', 'external_ids')),
                 CreateFullCoordinates(),
-                ChoroplethCode())
+                MetricsCode())
 
     def run(self):
         config = Config.get()
@@ -89,9 +84,6 @@ class ChoroplethData(MTimeMixin, luigi.Task):
             extId = p['externalId']
             if extId not in externalData: continue
             pinfo = { k : float(v) for (k, v) in externalData[extId].items() }
-            total = sum(pinfo.values()) + len(pinfo)
-            for (k, v) in pinfo.items():
-                pinfo['smoothed' + k] = (v + 1.0) / total
             pinfo['id'] = id
             geom = shapely.geometry.Point(float(p['x']), float(p['y']))
             feats.append(
