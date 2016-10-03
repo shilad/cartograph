@@ -53,7 +53,7 @@ class PointService:
             for name in metricNames:
                 with cnx.cursor(name + 'points') as cur:
                     m = json.loads(config.get('Metrics', name))
-                    fields = m['fields'] + ['smoothed' + f for f in m['fields']]
+                    fields = m['fields']
                     cur.execute('select id, %s from %s' % (', '.join(fields), name))
                     for i, row in enumerate(cur):
                         if i % 50000 == 0:
