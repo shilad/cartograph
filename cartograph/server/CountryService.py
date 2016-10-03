@@ -26,11 +26,11 @@ class CountryService:
                       fields=['clusterid', 'contournum', 'contourid'],
                       simplification=self.simplifications,
                       ),
-            PolyLayer('density_contours',
-                      table='contoursdensity',
-                      fields=['clusterid', 'contournum', 'contourid'],
-                      simplification=self.simplifications,
-                      ),
+            # PolyLayer('density_contours',
+            #           table='contoursdensity',
+            #           fields=['clusterid', 'contournum', 'contourid'],
+            #           simplification=self.simplifications,
+            #           ),
         ]
 
         with pg_cnx(config) as cnx:
@@ -42,6 +42,16 @@ class CountryService:
     def addLayers(self, builder, z, x, y):
         if z < self.maxZoom:
             return
+
+        (polys, points) = self.getPolys(z, x, y)
+        for (layer, shp, props) in points:
+            builder.addPoint(layer, props, shp)
+        for (layer, shp, props) in polys:
+            builder.addMultiPolygon(layer, shp, props)
+
+    def getPolys(self, z, x, y):
+        polys = []
+        points = []
         (x0, y0, x1, y1) = tileExtent(z, x, y)
         assert (x0 <= x1)
         assert (y0 <= y1)
@@ -50,5 +60,7 @@ class CountryService:
         for poly in self.polys:
             for shp, props, center in poly.getPolysInBox(None, z, box):
                 if center and poly.labelField:
-                    builder.addPoint('countries_labels', props[poly.labelField], center)
-                builder.addMultiPolygon(poly.name, shp, props)
+                    points.append(('countries_labels', center, props[poly.labelField]))
+                polys.append((poly.name, shp, props))
+        return (polys, points)
+

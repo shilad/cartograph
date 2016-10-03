@@ -55,7 +55,7 @@ map_width: 800
 map_height: 600
 
 [Server]
-vector_zoom: 6
+vector_zoom: 20
 base_url: http://localhost:4000
 
 

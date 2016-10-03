@@ -4,6 +4,10 @@ import os
 import tempfile
 import threading
 
+import colour
+
+from cartograph.server.CountryService import CountryService
+
 try:
     import cairo
 except:
@@ -49,12 +53,31 @@ class GoogleProjection:
             self.Ac.append(c)
             c *= 2
 
-    def fromLLtoPixel(self, ll, zoom):
+
+    def fromLLtoPixelF(self, ll, zoom):
         d = self.zc[zoom]
-        e = round(d[0] + ll[0] * self.Bc[zoom])
+        e = d[0] + ll[0] * self.Bc[zoom]
         f = minmax(sin(DEG_TO_RAD * ll[1]), -0.9999, 0.9999)
-        g = round(d[1] + 0.5 * log((1 + f) / (1 - f)) * -self.Cc[zoom])
+        g = d[1] + 0.5 * log((1 + f) / (1 - f)) * -self.Cc[zoom]
         return (e, g)
+
+    def fromLLToPixel(self, ll, zoom):
+        (e, g) = self.fromLLtoPixelF(ll, zoom)
+        return round(e), round(g)
+
+    def fromLLtoTilePixel(self, ll, zoom, tileX, tileY, tileSize):
+        # Calculate raw pixel coordinates
+        x, y = self.fromLLtoPixelF((ll[0], ll[1]), zoom)
+
+        # px and py are in tile pixel space
+        px = (x - tileX * 256)
+        py = (y - tileY * 256)
+
+        # Scale up for tile size
+        scale = tileSize / 256.0
+
+        return round(px * scale), round(py * scale)
+
 
     def fromPixelToLL(self, px, zoom):
         e = self.zc[zoom]
@@ -65,11 +88,12 @@ class GoogleProjection:
 
 
 class MapnikService:
-    def __init__(self, conf, pointService):
+    def __init__(self, conf, pointService, countryService):
         self.maps = {}
         self.conf = conf
         self.cache = CacheService(conf)
         self.pointService = pointService
+        self.countryService = countryService
         self.size = 512
 
         self.xml = os.path.join(self.conf.get('DEFAULT', 'mapDir'), 'base.xml')
@@ -93,12 +117,71 @@ class MapnikService:
     def renderTile(self, layer, z, x, y, path):
         d = os.path.dirname(path)
         if d and not os.path.isdir(d): os.makedirs(d)
-        surf = self._renderBackground(z, x, y)
+        surf = self._renderBackground2(z, x, y)
         self._renderPoints(layer, z, x, y, surf)
         surf.write_to_png(path)
 
-    def _renderBackground(self, z, x, y):
+    def _renderBackground2(self, z, x, y):
+        (polys, points) = self.countryService.getPolys(z, x, y)
+        clusterIds = set()
+        polysByName = {}
+        for pinfo in polys:
+            layer, shp, props = pinfo
+            if layer == 'countries':
+                polysByName[props['clusterid']] = shp
+                clusterIds.add(props['clusterid'])
+            else:
+                assert(layer == 'centroid_contours')
+                polysByName[props['clusterid'], int(props['contournum'])] = shp
 
+        numContours = self.conf.getint('PreprocessingConstants', 'num_contours')
+        colors = Config.getColorWheel()
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size, self.size)
+        context = cairo.Context(surface)
+        # First draw clusters
+        for i in clusterIds:
+            shp = polysByName[i]
+            c = colors[i][numContours]
+            self._drawPoly(z, x, y, context, shp, c, (0.5, 0.5, 0.5))
+            for j in range(numContours):
+                if (i, j) in polysByName:
+                    shp = polysByName[i, j]
+                    c = colors[i][j]
+                    self._drawPoly(z, x, y, context, shp, c)
+        return surface
+
+    def _drawPoly(self, z, x, y, ctx, shape, fillColor, strokeColor=None):
+        if shape.geom_type == 'Polygon': shape = [shape]
+        shape = [s for s in shape if s]
+        rgb = colour.Color(fillColor).rgb
+
+        def drawRing(ring, reverse=False):
+            coords = ring.coords
+            if reverse: coords = list(reversed(coords))
+            tx, ty = self.tileproj.fromLLtoTilePixel(coords[-1], z, x, y, self.size)
+            ctx.move_to(tx, ty)   # start with last point
+            for ll in coords:
+                tx, ty = self.tileproj.fromLLtoTilePixel(ll, z, x, y, self.size)
+                ctx.line_to(tx, ty)
+
+        for poly in shape:
+            if poly.exterior.length == 0:
+                continue
+            ctx.new_path()
+            ctx.set_source_rgb(rgb[0], rgb[1], rgb[2])
+            drawRing(poly.exterior)
+            for hole in poly.interiors:
+                drawRing(hole, reverse=True)
+            if strokeColor:
+                ctx.fill_preserve()
+                (r, g, b) = strokeColor
+                ctx.set_source_rgb(r, g, b)
+                ctx.set_line_width(0.5)
+                ctx.stroke()
+            else:
+                ctx.fill()
+
+    def _renderBackground(self, z, x, y):
         # Calculate pixel positions of bottom-left & top-right
         p0 = (x * 256, (y + 1) * 256)
         p1 = ((x + 1) * 256, y * 256)
@@ -132,127 +215,28 @@ class MapnikService:
         return img
 
     def _renderPoints(self, layer, z, x, y, surf):
-        # Calculate pixel positions of bottom-left & top-right
-        p0 = (x * 256, (y + 1) * 256)
-        p1 = ((x + 1) * 256, y * 256)
-
         (x0, y0, x1, y1) = tileExtent(z, x, y)
         assert(x1 > x0 and y1 > y0)
         metric = self.pointService.metrics[layer]
-        colors = metric.getColors(z)
         cr = cairo.Context(surf)
         cr.fill()
 
         for p in self.pointService.getTilePoints(z, x, y, 5000):
-            c = self.tileproj.fromLLtoPixel((p['x'], p['y']), z)
-
-            # cx and cy are in pixel space
-            xc = (c[0] - x * 256) * 2
-            yc = (c[1] - y * 256) * 2
-
-            zp = int(p['zpop'])
-            group = metric.assignCategory(p)
-            (r, g, b, a) = colors[group][int(zp)]
+            xc, yc, = self.tileproj.fromLLtoTilePixel((p['x'], p['y']), z, x, y, self.size)
+            (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
             cr.arc(xc, yc, 1, 0, pi * 2)
             cr.stroke()
-            # cr.set_source_rgba(0.0, 0.0, 0.0, 0.2)
-            # cr.stroke()
-
-
-class RenderThread:
-    def __init__(self, conf, pointService, q, logLock):
-        self.conf = conf
-        self.logLog = logLock
-        self.q = q
-        self.mapnik = MapnikService(conf, pointService)
-
-
-    def loop(self):
-        while True:
-            # Fetch a tile from the queue and render it
-            r = self.q.get()
-            if (r == None):
-                self.q.task_done()
-                break
-            else:
-                (name, tile_uri, z, x, y) = r
-
-            exists = ""
-            if os.path.isfile(tile_uri):
-                exists = "exists"
-            else:
-                self.mapnik.renderTile(name, z, x, y, tile_uri)
-            bytes = os.stat(tile_uri)[6]
-            empty = ''
-            if bytes == 103:
-                empty = " Empty Tile "
-            self.logLog.acquire()
-            logging.info('creating ' + tile_uri)
-            self.logLog.release()
-            self.q.task_done()
-
-
-def renderSimple(conf):
-    pointService = PointService(conf)
-    maxZoom = conf.getint('Server', 'vector_zoom')
-    mp = MapnikService(conf, pointService)
-    metric = 'gender'
-    cacheDir = conf.get('DEFAULT', 'webCacheDir')
-    for z in range(1, maxZoom + 1):
-        for x in range(2 ** z):
-            for y in range(2 ** z):
-                path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
-                d = os.path.dirname(path)
-                if d and not os.path.isdir(d): os.makedirs(d)
-                print 'rending', path
-                mp.renderTile(metric, z, x, y, path)
-
-
-
-
-def render(conf):
-    pointService = PointService(conf)
-    maxZoom = conf.getint('Server', 'vector_zoom')
-    num_threads = multiprocessing.cpu_count()
-    # Launch rendering threads
-    queue = JoinableQueue(32)
-    logLock = Lock()
-    renderers = {}
-    for i in range(num_threads):
-        renderer = RenderThread(conf, pointService, queue, logLock)
-        render_thread = multiprocessing.Process(target=renderer.loop)
-        render_thread.start()
-        # print "Started render thread %s" % render_thread.getName()
-        renderers[i] = render_thread
-
-    metric = 'gender'
-    cacheDir = conf.get('DEFAULT', 'webCacheDir')
-    for z in range(1, maxZoom + 1):
-        for x in range(2 ** z):
-            for y in range(2 ** z):
-                try:
-                    path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
-                    if not os.path.isfile(path):
-                        d = os.path.dirname(path)
-                        if d and not os.path.isdir(d): os.makedirs(d)
-                        t = (metric, path, z, x, y)
-                        queue.put(t)
-                except KeyboardInterrupt:
-                    raise SystemExit("Ctrl-c detected, exiting...")
-
-    # Signal render threads to exit by sending empty request to queue
-    for i in range(num_threads):
-        queue.put(None)
-    # wait for pending rendering jobs to complete
-    queue.join()
-    for i in range(num_threads):
-        renderers[i].join()
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     conf = Config.initConf(sys.argv[1])
-    render(conf)
-
+    ps = PointService(conf)
+    cs = CountryService(conf)
+    ms = MapnikService(conf, ps, cs)
+    t0 = time.time()
+    ms.renderTile('gender', 6, 32, 32, 'tile1.png')
+    print time.time() - t0
+    os.system('open tile1.png')
 
 
