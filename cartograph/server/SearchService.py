@@ -41,7 +41,7 @@ class SearchService:
         jsonList = []
 
         for (pop, i, x, y, idnum) in results[:n]:
-            locat = [x, y]
+            locat = [y, x]
             rJsonDict = {
                 'value' : self.titles[i],
                 'data' : { "loc": locat, "zoom": int(pop) }
