@@ -376,7 +376,7 @@
 
 /* Default icon URLs */
 .leaflet-default-icon-path {
-	background-image: url(../../../../Downloads/leaflet/images/marker-icon.png);
+	background-image: url(../images/marker-icon.png);
 	}
 
 
