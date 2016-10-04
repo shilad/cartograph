@@ -16,11 +16,11 @@ styles:
 sources:
     vector:
         type: TopoJSON
-        url: {{ Server.base_url }}/vector/gender/{z}/{x}/{y}.topojson
+        url: {{ Server.base_url }}/vector/cluster/{z}/{x}/{y}.topojson
         max_zoom: 16
     raster:
         type: Raster
-        url: {{ Server.base_url }}/raster/gender/{z}/{x}/{y}.png
+        url: {{ Server.base_url }}/raster/cluster/{z}/{x}/{y}.png
         max_zoom: 16
 
 layers:
@@ -30,42 +30,6 @@ layers:
         draw:
             raster:
                 order: 0 # draw on bottom
-    countries:
-        data: { source: vector, layer: countries }
-        draw:
-            lines:
-                color: gray
-                width: 1px
-                visible: true
-                order: 2
-                blend: overlay
-                collide: false
-    {% for cluster, clusterColors  in ColorWheel.items() %}
-        country_{{ cluster }}:
-            filter: { clusterid : '{{ cluster }}' }
-            draw:
-                polygons:
-                    color: '{{ clusterColors[7] }}'
-                    width: 1px
-                    collide: false
-                    order: 2
-    {% endfor %}
-
-    contours :
-        data : { source: vector, layer: centroid_contours }
-
-    {% for cluster, clusterColors  in ColorWheel.items() %}
-      {% for contour, contourColor in clusterColors.items() %}
-        contour_{{cluster}}_{{contour}}:
-            filter: { contourid : '{{ cluster }}_{{ contour }}' }
-            draw:
-                polygons:
-                    color: '{{ contourColor }}'
-                    collide: false
-                    width: 1px
-                    order: {{ loop.index + 2 }}
-      {% endfor %}
-    {% endfor %}
 #
 #    capitals:
 #        data: { source: vector, layer: countries_labels }
@@ -85,13 +49,6 @@ layers:
 #                  transform: uppercase
 #                  fill: 'rgba(255, 255, 255, 0.5)'
 #                  stroke: { color: '#666', width: 1px }
-    extraPoints:
-        data: { source: vector, layer: extraPoints }
-        draw:
-            points:
-              collide: false
-              color: function() { return feature.color; }
-              size: 4px
     cities:
         data: { source: vector, layer: cities }
         small_cities:

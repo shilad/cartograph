@@ -17,7 +17,10 @@ class TemplateService:
         template = self.load_template(file)
         resp.status = falcon.HTTP_200
         resp.content_type = getMimeType(file)
-        resp.body = template.render(self.configService.configData())
+        env = self.configService.configData()
+        for (k, v) in req.params.items():
+            env[k] = v
+        resp.body = template.render(env)
 
     def load_template(self, name):
         path = os.path.join(self.templateDir, name)

@@ -1,9 +1,7 @@
 import logging
-import multiprocessing
 import os
-import tempfile
-import threading
 
+import colorsys
 import colour
 
 from cartograph.server.CountryService import CountryService
@@ -13,13 +11,10 @@ try:
 except:
     import cairocffi as cairo
 
-import mapnik
 import time
 
 import sys
 
-
-from multiprocessing import JoinableQueue, Lock
 
 from cartograph import Config
 
@@ -87,7 +82,7 @@ class GoogleProjection:
         return (f, h)
 
 
-class MapnikService:
+class RasterService:
     def __init__(self, conf, pointService, countryService):
         self.maps = {}
         self.conf = conf
@@ -95,14 +90,6 @@ class MapnikService:
         self.pointService = pointService
         self.countryService = countryService
         self.size = 512
-
-        self.xml = os.path.join(self.conf.get('DEFAULT', 'mapDir'), 'base.xml')
-        self.m = mapnik.Map(256, 256)
-        mapnik.load_map(self.m, self.xml, True)
-        self.layers = { l.name : i for (i, l) in enumerate(self.m.layers) }
-        assert 'countries' in self.layers
-        assert 'contours' in self.layers
-        self.prj = mapnik.Projection(self.m.srs)
         self.tileproj = GoogleProjection(19)
 
     def on_get(self, req, resp, layer, z, x, y):
@@ -117,11 +104,11 @@ class MapnikService:
     def renderTile(self, layer, z, x, y, path):
         d = os.path.dirname(path)
         if d and not os.path.isdir(d): os.makedirs(d)
-        surf = self._renderBackground2(z, x, y)
+        surf = self._renderBackground(z, x, y)
         self._renderPoints(layer, z, x, y, surf)
         surf.write_to_png(path)
 
-    def _renderBackground2(self, z, x, y):
+    def _renderBackground(self, z, x, y):
         (polys, points) = self.countryService.getPolys(z, x, y)
         clusterIds = set()
         polysByName = {}
@@ -153,7 +140,9 @@ class MapnikService:
     def _drawPoly(self, z, x, y, ctx, shape, fillColor, strokeColor=None):
         if shape.geom_type == 'Polygon': shape = [shape]
         shape = [s for s in shape if s]
-        rgb = colour.Color(fillColor).rgb
+        (r, g, b) = colour.Color(fillColor).rgb
+        (h, s, v) = colorsys.rgb_to_hsv(r, g, b)
+        rgb = colorsys.hsv_to_rgb(h, s * 0.5, (v + 1.0) / 2)
 
         def drawRing(ring, reverse=False):
             coords = ring.coords
@@ -181,39 +170,6 @@ class MapnikService:
             else:
                 ctx.fill()
 
-    def _renderBackground(self, z, x, y):
-        # Calculate pixel positions of bottom-left & top-right
-        p0 = (x * 256, (y + 1) * 256)
-        p1 = ((x + 1) * 256, y * 256)
-
-        # Convert to LatLong (EPSG:4326)
-        l0 = self.tileproj.fromPixelToLL(p0, z)
-        l1 = self.tileproj.fromPixelToLL(p1, z)
-
-        # Convert to map projection (e.g. mercator co-ords EPSG:900913)
-        c0 = self.prj.forward(mapnik.Coord(l0[0], l0[1]))
-        c1 = self.prj.forward(mapnik.Coord(l1[0], l1[1]))
-
-        # Bounding box for the tile
-        bbox = mapnik.Box2d(c0.x, c0.y, c1.x, c1.y)
-
-        render_size = self.size
-        self.m.resize(render_size, render_size)
-        self.m.zoom_to_box(bbox)
-        if self.m.buffer_size < self.size / 2:
-            self.m.buffer_size = self.size / 2
-
-        # Render image with default Agg renderer
-        n = tempfile.mktemp() + '.png'
-        im = mapnik.Image(render_size, render_size)
-        mapnik.render(self.m, im)
-        im.save(n, 'png256')
-
-        img = cairo.ImageSurface.create_from_png(n)
-        os.unlink(n)
-
-        return img
-
     def _renderPoints(self, layer, z, x, y, surf):
         (x0, y0, x1, y1) = tileExtent(z, x, y)
         assert(x1 > x0 and y1 > y0)
@@ -233,9 +189,9 @@ if __name__ == '__main__':
     conf = Config.initConf(sys.argv[1])
     ps = PointService(conf)
     cs = CountryService(conf)
-    ms = MapnikService(conf, ps, cs)
+    ms = RasterService(conf, ps, cs)
     t0 = time.time()
-    ms.renderTile('gender', 6, 32, 32, 'tile1.png')
+    ms.renderTile('cluster', 2, 1, 1, 'tile1.png')
     print time.time() - t0
     os.system('open tile1.png')
 

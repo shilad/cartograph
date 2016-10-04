@@ -5,12 +5,45 @@ CG.map = L.map('map');
 CG.mapEl = $("#map");  // optimization
 CG.ttEl = $("#tooltip");
 
-CG.metricColors = {};
-
 CG.layer = Tangram.leafletLayer({
     scene: '../template/scene.yaml',
     attribution: '<a href="https://nokomis.macalester.edu/cartograph" target="_blank">Cartograph</a> | &copy; Shilad Sen & contributors'
 });
+CG.activeLayer = null;
+
+CG.getLayer = function() {
+    var src = CG.layer.scene.config.sources.vector;
+    var i = src.url.indexOf('/vector/');
+    if (i < 0) {
+        console.log('couldnt find srcName ' + srcName + ' in ' + src.url);
+        return;
+    }
+    var j = i + '/vector/'.length;
+    var k = src.url.indexOf('/', j + 1);
+    return src.url.substring(j, k);
+};
+
+CG.changeLayer = function(newLayer) {
+    var changed = false;
+    ["vector", "raster"].forEach(function (srcName) {
+        var src = CG.layer.scene.config.sources[srcName];
+        var i = src.url.indexOf('/' + srcName + '/');
+        if (i < 0) {
+            console.log('couldnt find srcName ' + srcName + ' in ' + src.url);
+            return;
+        }
+        var j = i + srcName.length + 2;
+        var k = src.url.indexOf('/', j + 1);
+        var newUrl = src.url.substring(0, j) + newLayer + src.url.substring(k);
+        if (newUrl != src.url) {
+            src.url = newUrl;
+            changed = true;
+        }
+    });
+    if (changed) {
+        CG.layer.scene.updateConfig();
+    }
+};
 
 
 // var grid = L.gridLayer({
@@ -30,12 +63,14 @@ CG.layer = Tangram.leafletLayer({
 // };
 // grid.addTo(CG.map);
 
-
+// window.setTimeout(function() { CG.changeLayer('gender') }, 3000);
 
 CG.layer.addTo(CG.map);
 
 CG.layer.scene.subscribe({
   load : function(e) {
+      CG.hash = new L.Hash(CG.map);
+
       CG.layer.setSelectionEvents({
        hover: function(selection) {
          if (selection.feature && selection.feature.properties.name) {
@@ -92,7 +127,7 @@ CG.ttEl.tooltipster({
     trigger: 'custom',
     triggerOpen: {},
     interactive: true,
-    delay: [0, 1000],
+    delay: [400, 1000],
     updateAnimation: 'fade',
     maxWidth: 400,
     triggerClose: {

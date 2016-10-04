@@ -8,7 +8,7 @@ import time
 
 from cartograph import Config
 from cartograph.server.CountryService import CountryService
-from cartograph.server.MapnikService import MapnikService
+from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
 
 
@@ -17,7 +17,7 @@ class RenderThread:
         self.conf = conf
         self.logLog = logLock
         self.q = q
-        self.mapnik = MapnikService(conf, pointService, countryService)
+        self.mapnik = RasterService(conf, pointService, countryService)
 
 
     def loop(self):
