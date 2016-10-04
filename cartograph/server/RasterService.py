@@ -103,7 +103,9 @@ class RasterService:
 
     def renderTile(self, layer, z, x, y, path):
         d = os.path.dirname(path)
-        if d and not os.path.isdir(d): os.makedirs(d)
+        if d and not os.path.isdir(d):
+            try: os.makedirs(d)
+            except OSError: pass
         surf = self._renderBackground(z, x, y)
         self._renderPoints(layer, z, x, y, surf)
         surf.write_to_png(path)
