@@ -39,10 +39,9 @@ class RenderThread:
                 self.logLog.release()
             self.q.task_done()
 
-def render(conf):
+def render(conf, maxZoom):
     pointService = PointService(conf)
     countryService = CountryService(conf)
-    maxZoom = conf.getint('Server', 'vector_zoom')
     num_threads = multiprocessing.cpu_count()
     # Launch rendering threads
     queue = multiprocessing.JoinableQueue(32)
@@ -80,4 +79,8 @@ def render(conf):
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     conf = Config.initConf(sys.argv[1])
-    render(conf)
+    if len(sys.argv) > 2:
+        maxZoom = int(sys.argv[2])
+    else:
+        maxZoom = conf.getint('Server', 'vector_zoom')
+    render(conf, maxZoom)
