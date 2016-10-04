@@ -53,20 +53,21 @@ def render(conf, maxZoom):
         render_thread.start()
         renderers[i] = render_thread
 
-    metric = 'gender'
+    metrics = conf.get('Metrics', 'active').split() + ['cluster']
     cacheDir = conf.get('DEFAULT', 'webCacheDir')
     for z in range(1, maxZoom + 1):
-        for x in range(2 ** z):
-            for y in range(2 ** z):
-                try:
-                    path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
-                    if not os.path.isfile(path):
-                        d = os.path.dirname(path)
-                        if d and not os.path.isdir(d): os.makedirs(d)
-                        t = (metric, path, z, x, y)
-                        queue.put(t)
-                except KeyboardInterrupt:
-                    raise SystemExit("Ctrl-c detected, exiting...")
+        for metric in metrics:
+            for x in range(2 ** z):
+                for y in range(2 ** z):
+                    try:
+                        path = cacheDir + '/raster/%s/%d/%d/%d.png' % (metric, z, x, y)
+                        if not os.path.isfile(path):
+                            d = os.path.dirname(path)
+                            if d and not os.path.isdir(d): os.makedirs(d)
+                            t = (metric, path, z, x, y)
+                            queue.put(t)
+                    except KeyboardInterrupt:
+                        raise SystemExit("Ctrl-c detected, exiting...")
 
     # Signal render threads to exit by sending empty request to queue
     for i in range(num_threads):
