@@ -67,8 +67,9 @@ class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
         points = Utils.read_features(
             config.get("GeneratedFiles", "zpop_with_id"),
             config.get("GeneratedFiles", "article_coordinates"),
+            config.get("GeneratedFiles", "clusters_with_id"),
             config.get("ExternalFiles", "names_with_id"),
-            required=('x', 'y', 'name', 'zpop')
+            required=('x', 'y', 'name', 'zpop', 'cluster')
         )
 
         features = []
@@ -80,6 +81,7 @@ class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
                           'name': str(pointInfo['name']),
                           'x': float(pointInfo['x']),
                           'y':float(pointInfo['y']),
+                          'clusterid': pointInfo['cluster']
                           }
             features.append(Feature(geometry=newPoint, properties=properties))
         collection = FeatureCollection(features)

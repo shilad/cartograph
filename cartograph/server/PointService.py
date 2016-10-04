@@ -11,15 +11,15 @@ import shapely.geometry
 from cartograph import getMetric
 from cartograph.PointIndex import PointIndex
 from cartograph.Utils import pg_cnx
+from cartograph.metrics.ClusterMetric import ClusterMetric
 from cartograph.server.ServerUtils import tileExtent
-from cartograph.server.TopoJson import TopoJsonBuilder
 
 logger = logging.getLogger('cartograph.pointdata')
 
 class PointService:
     def __init__(self, config):
         self.points = {}
-        self.metrics = {}
+        self.metrics = {'cluster' : ClusterMetric() }
         metricNames =  config.get('Metrics', 'active').split()
         self.maxZoom = config.getint('Server', 'vector_zoom')
         self.numMetricPoints = { n : 0 for n in metricNames }
@@ -30,14 +30,15 @@ class PointService:
         with pg_cnx(config) as cnx:
             with cnx.cursor('points') as cur:
                 cur.itersize = 50000
-                cur.execute('select x, y, name, zpop, id from coordinates')
+                cur.execute('select x, y, name, zpop, clusterid, id from coordinates')
                 for i, row in enumerate(cur):
-                    self.points[row[4]] = {
+                    self.points[row[5]] = {
                         'x' : float(row[0]),
                         'y' : float(row[1]),
                         'name' : row[2],
                         'zpop' : float(row[3]),
-                        'id' : row[4]
+                        'clusterid' : row[4],
+                        'id' : row[5]
                     }
                     if i % 50000 == 0:
                         logger.info('loading basic point data for row %d' % i)
@@ -50,7 +51,8 @@ class PointService:
             self.index = PointIndex(ids, X, Y, pops)
             logger.info('finished indexing %d points...' % len(X))
 
-            for name in metricNames:
+            for name, m in self.metrics.items():
+                if name == 'cluster': continue
                 with cnx.cursor(name + 'points') as cur:
                     m = json.loads(config.get('Metrics', name))
                     fields = m['fields']
@@ -80,7 +82,6 @@ class PointService:
     def getTilePoints(self, z, x, y, maxN):
         extent = tileExtent(z, x, y)
         matches = self.index.queryRect(extent[0], extent[1], extent[2], extent[3], maxN)
-
         results = []
         for (pop, id, x, y) in matches:
             # print pop, id, x, y

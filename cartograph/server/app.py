@@ -8,7 +8,7 @@ import sys
 from cartograph import Config
 from cartograph.server.ConfigService import ConfigService
 from cartograph.server.CountryService import CountryService
-from cartograph.server.MapnikService import MapnikService
+from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
 from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
@@ -39,7 +39,7 @@ pointService = PointService(conf)
 searchService = SearchService(pointService)
 countryService = CountryService(conf)
 tileService = TileService(conf, pointService, countryService)
-mapnikService = MapnikService(conf, pointService, countryService)
+mapnikService = RasterService(conf, pointService, countryService)
 configService = ConfigService(conf)
 templateService = TemplateService(conf)
 staticService = StaticService(conf)
