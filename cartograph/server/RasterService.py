@@ -193,7 +193,7 @@ if __name__ == '__main__':
     cs = CountryService(conf)
     ms = RasterService(conf, ps, cs)
     t0 = time.time()
-    ms.renderTile('cluster', 2, 1, 1, 'tile1.png')
+    ms.renderTile('quality', 2, 1, 1, 'tile1.png')
     print time.time() - t0
     os.system('open tile1.png')
 
