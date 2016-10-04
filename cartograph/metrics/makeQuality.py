@@ -1,9 +1,12 @@
+import os
+import random
 import sys
 
 import bz2
 
 from cartograph import Config
 from cartograph import read_features
+from cartograph.Utils import write_tsv
 
 
 def main(conf, pathIn):
@@ -23,8 +26,19 @@ def main(conf, pathIn):
         externalId = tokens[0]
         grade = tokens[4]
         score = float(tokens[5])
-        print externalId, grade, score
         if externalId in external2Internal:
-            qualities[externalId] = grade, score
+            qualities[external2Internal[externalId]] = grade, score
+
+    ids = sorted(qualities.keys())
+    grades = [ qualities[id][0] for id in ids ]
+    scores = [ qualities[id][1] for id in ids ]
+
+    metricDir = conf.get('DEFAULT', 'metricDir')
+    if not os.path.isdir(metricDir):
+        os.makedirs(metricDir)
+    write_tsv(metricDir + '/quality.tsv',
+              ['id', 'grade', 'score'],
+              ids, grades, scores)
+
 
 main(Config.initConf(sys.argv[1]), sys.argv[2])
