@@ -79,12 +79,18 @@ class MetricData(MTimeMixin, luigi.Task):
 
         feats = []
 
+        stringFields = set()
         for i, (id, p) in enumerate(points.items()):
             if i % 100000 == 0: logger.info('insert point %d of %d' % (i, len(points)))
             extId = p['externalId']
             if extId not in externalData: continue
-            pinfo = { k : float(v) for (k, v) in externalData[extId].items() }
-            pinfo['id'] = id
+            pinfo = { 'id' : id }
+            for (k, v) in externalData[extId].items():
+                try:
+                    v = float(v)
+                except ValueError:
+                    stringFields.add(k)
+                pinfo[k] = v
             geom = shapely.geometry.Point(float(p['x']), float(p['y']))
             feats.append(
                 geojson.Feature(
@@ -92,6 +98,10 @@ class MetricData(MTimeMixin, luigi.Task):
                     properties=pinfo
                 )
             )
+
+        for f in feats:
+            for sf in stringFields:
+                f['properties'][sf] = str(f['properties'][sf])
 
         fc = geojson.FeatureCollection(feats)
         with open(self.outPath, "w") as f:
