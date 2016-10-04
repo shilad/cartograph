@@ -1,15 +1,16 @@
 import colour
 
-class BivariateScaleMetric:
-    def __init__(self, fields, colors, maxValue, neutralColor='#777'):
+class BivariateNominalMetric:
+    def __init__(self, fields, scale, colors, sqrt=False, neutralColor='#777'):
         assert(len(colors) == 2)
         assert(len(fields) == 1)
         self.fields = fields
         self.field = fields[0]
+        self.scale = scale
+        self.sqrt = sqrt
         self.color1 = colour.Color(colors[0]).rgb
         self.color2 = colour.Color(colors[1]).rgb
         self.neutralColor = colour.Color(neutralColor).rgb
-        self.maxValue = maxValue
 
     def getColor(self, point, zoom):
 
@@ -17,12 +18,22 @@ class BivariateScaleMetric:
         depth = max(0.0, point['zpop'] - zoom)
         alpha = 0.7 ** depth
 
-        if self.field not in point:
+        if self.field not in point :
+            return self.neutralColor + (alpha,)
+
+        value = point[self.field]
+        if value not in self.scale:
             return self.neutralColor + (alpha,)
 
         # Interpolate between the two colors.
-        value = point[self.field]
-        ns1 = min(1.0, max(0, 1.0 * (self.maxValue - value) / self.maxValue))
+        i = self.scale.index(value)
+        n = len(self.scale)
+
+        if self.sqrt:
+            i = i ** 0.5
+            n = n ** 0.5
+
+        ns1 = min(1.0, max(0, 1.0 * (n - i) / n))
         ns2 = 1.0 - ns1
 
         c1 = self.color1

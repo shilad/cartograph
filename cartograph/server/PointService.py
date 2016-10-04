@@ -64,7 +64,10 @@ class PointService:
                         if id in self.points:
                             self.numMetricPoints[name] += 1
                             for (f, v) in zip(fields, row[1:]):
-                                self.points[id][f] = float(v)
+                                if type(v) == str:
+                                    self.points[id][f] = v
+                                else:
+                                    self.points[id][f] = float(v)
 
             fieldCounts = defaultdict(int)
             for p in self.points.values():

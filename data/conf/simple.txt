@@ -17,9 +17,10 @@ gender: {
          }
 
 quality: {
-         "type": "bivariate-quality",
+         "type": "bivariate-nominal",
          "path": "%(metricDir)s/quality.tsv",
-         "field": "score",
-         "maxValue": 5.0,
+         "fields": ["grade"],
+         "sqrt": true,
+         "scale": ["Start", "Stub", "C", "B", "GA", "FA" ],
          "colors": ["yellow", "red"]
          }
