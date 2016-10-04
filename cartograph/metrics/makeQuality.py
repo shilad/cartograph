@@ -27,7 +27,7 @@ def main(conf, pathIn):
         grade = tokens[4]
         score = float(tokens[5])
         if externalId in external2Internal:
-            qualities[external2Internal[externalId]] = grade, score
+            qualities[externalId] = grade, score
 
     ids = sorted(qualities.keys())
     grades = [ qualities[id][0] for id in ids ]

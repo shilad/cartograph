@@ -8,10 +8,18 @@ water_level: .05
 sample_borders: True
 
 [Metrics]
-active: gender
+active: gender quality
 gender: {
          "type": "bivariate-count",
          "path": "%(externalDir)s/gender.tsv",
          "fields": ["women", "men"],
          "colors": ["red", "blue"]
+         }
+
+quality: {
+         "type": "bivariate-quality",
+         "path": "%(metricDir)s/quality.tsv",
+         "field": "score",
+         "maxValue": 5.0,
+         "colors": ["yellow", "red"]
          }
