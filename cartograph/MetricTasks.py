@@ -30,12 +30,12 @@ class AllMetrics(luigi.WrapperTask):
                 '_name' : name,
                 '_table' : name,
                 '_inPath' : path,
-                '_outPath' : os.path.join(geoDir, name + '.geojson'),
+                '_outPath' : os.path.join(geoDir, name + '.json'),
             }
-            result.append(MetricGeoJsonLoader(**args))
+            result.append(MetricJsonLoader(**args))
         return result
 
-class MetricGeoJsonLoader(LoadGeoJsonTask):
+class MetricJsonLoader(LoadJsonTask):
     _name = luigi.Parameter()
     _table = luigi.Parameter()
     _inPath = luigi.Parameter()
@@ -45,7 +45,7 @@ class MetricGeoJsonLoader(LoadGeoJsonTask):
     def table(self): return self._table
 
     @property
-    def geoJsonPath(self): return self._outPath
+    def jsonPath(self): return self._outPath
 
     def requires(self):
         return MetricData(self._name, self._inPath, self._outPath)
@@ -77,9 +77,9 @@ class MetricData(MTimeMixin, luigi.Task):
         )
         externalData = read_features(self.inpath)
 
-        feats = []
-
+        records = []
         stringFields = set()
+
         for i, (id, p) in enumerate(points.items()):
             if i % 100000 == 0: logger.info('insert point %d of %d' % (i, len(points)))
             extId = p['externalId']
@@ -91,18 +91,13 @@ class MetricData(MTimeMixin, luigi.Task):
                 except ValueError:
                     stringFields.add(k)
                 pinfo[k] = v
-            geom = shapely.geometry.Point(float(p['x']), float(p['y']))
-            feats.append(
-                geojson.Feature(
-                    geometry=geom,
-                    properties=pinfo
-                )
-            )
+            records.append(pinfo)
 
-        for f in feats:
+        for r in records:
             for sf in stringFields:
-                f['properties'][sf] = str(f['properties'][sf])
+                r[sf] = str(r[sf])
 
-        fc = geojson.FeatureCollection(feats)
         with open(self.outPath, "w") as f:
-            geojson.dump(fc, f)
+            for r in records:
+                json.dump(r, f)
+                f.write('\n')

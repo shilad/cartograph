@@ -119,6 +119,10 @@ class RasterService:
     def _writePng(self, surf, pathPng):
         tmp = tempfile.mktemp()
         surf.write_to_png(tmp)
+        dirName = os.path.dirname(pathPng)
+        if not os.path.isdir(dirName):
+            try: os.makedirs(dirName)
+            except OSError: pass    # race condition
         try:
             subprocess.check_call([
                 "pngquant",
@@ -127,7 +131,7 @@ class RasterService:
                 pathPng,
                 "256",
                 "--",
-                pathPng
+                tmp
              ])
         finally:
             os.unlink(tmp)

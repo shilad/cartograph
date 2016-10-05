@@ -82,7 +82,7 @@ class LoadJsonTask(MTimeMixin, CopyToTable):
         self._database = config.get('PG', 'database')
         self._user = config.get('PG', 'user') or None
         self._password = config.get('PG', 'password') or None
-        logger.info('loading %s.%s from %s' % (self._database, self._table, self._geoJsonPath))
+        logger.info('loading %s.%s from %s' % (self._database, self.table, self.jsonPath))
         super(LoadJsonTask, self).__init__(*args, **kwargs)
 
     @abc.abstractproperty
@@ -116,7 +116,7 @@ class LoadJsonTask(MTimeMixin, CopyToTable):
 
     def run(self):
         # Part 1: Read in GeoJson and calculate property names and types
-        with open(self._jsonPath, 'r') as f:
+        with open(self.jsonPath, 'r') as f:
             self.js = []
             for line in f:
                 self.js.append(json.loads(line))
