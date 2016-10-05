@@ -132,7 +132,7 @@ class RasterService:
         for i in clusterIds:
             shp = polysByName[i]
             c = metric.adjustCountryColor(colors[i][numContours], 0)
-            self._drawPoly(z, x, y, context, shp, c, (0.5, 0.5, 0.5))
+            self._drawPoly(z, x, y, context, shp, c, (0.7, 0.7, 0.7))
             for j in range(numContours):
                 if (i, j) in polysByName:
                     shp = polysByName[i, j]
