@@ -1,3 +1,5 @@
+import colorsys
+
 import colour
 
 from cartograph import Config
@@ -10,6 +12,7 @@ class ClusterMetric:
         conf = Config.get()
         nc = conf.getint('PreprocessingConstants', 'num_contours')
         self.colors = {}
+        self.colorCountries = True
         for cid, ccolors in Config.getColorWheel().items():
             self.colors[cid] = colour.Color(ccolors[nc - 1]).rgb
 
@@ -25,3 +28,8 @@ class ClusterMetric:
             return self.colors[c] + (alpha,)
         else:
             return self.neutralColor + (alpha,)
+
+    def adjustCountryColor(self, c, n):
+        (r, g, b) = colour.Color(c).rgb
+        (h, s, v) = colorsys.rgb_to_hsv(r, g, b)
+        return colorsys.hsv_to_rgb(h, s * 0.5, (v + 1.0) / 2)

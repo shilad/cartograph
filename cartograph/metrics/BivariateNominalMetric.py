@@ -45,7 +45,6 @@ class BivariateNominalMetric:
             alpha
         )
 
-
-if __name__ == '__main__':
-    m = BivariateScaleMetric('foo', ['blue', 'red'], 5)
-    print m.getColor({ 'foo' : 1, 'bar': 3, 'zpop' : 3.0 }, 1.0)
+    def adjustCountryColor(self, c, n):
+        val = 0.95 ** (n + 1)
+        return (val, val, val)

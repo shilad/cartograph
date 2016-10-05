@@ -106,11 +106,12 @@ class RasterService:
         if d and not os.path.isdir(d):
             try: os.makedirs(d)
             except OSError: pass
-        surf = self._renderBackground(z, x, y)
+
+        surf = self._renderBackground(self.pointService.metrics[layer], z, x, y)
         self._renderPoints(layer, z, x, y, surf)
         surf.write_to_png(path)
 
-    def _renderBackground(self, z, x, y):
+    def _renderBackground(self, metric, z, x, y):
         (polys, points) = self.countryService.getPolys(z, x, y)
         clusterIds = set()
         polysByName = {}
@@ -130,21 +131,19 @@ class RasterService:
         # First draw clusters
         for i in clusterIds:
             shp = polysByName[i]
-            c = colors[i][numContours]
+            c = metric.adjustCountryColor(colors[i][numContours], 0)
             self._drawPoly(z, x, y, context, shp, c, (0.5, 0.5, 0.5))
             for j in range(numContours):
                 if (i, j) in polysByName:
                     shp = polysByName[i, j]
-                    c = colors[i][j]
+                    c = metric.adjustCountryColor(colors[i][j], j + 1)
                     self._drawPoly(z, x, y, context, shp, c)
         return surface
 
     def _drawPoly(self, z, x, y, ctx, shape, fillColor, strokeColor=None):
         if shape.geom_type == 'Polygon': shape = [shape]
         shape = [s for s in shape if s]
-        (r, g, b) = colour.Color(fillColor).rgb
-        (h, s, v) = colorsys.rgb_to_hsv(r, g, b)
-        rgb = colorsys.hsv_to_rgb(h, s * 0.5, (v + 1.0) / 2)
+        rgb = fillColor
 
         def drawRing(ring, reverse=False):
             coords = ring.coords
@@ -167,7 +166,7 @@ class RasterService:
                 ctx.fill_preserve()
                 (r, g, b) = strokeColor
                 ctx.set_source_rgb(r, g, b)
-                ctx.set_line_width(0.5)
+                ctx.set_line_width(1.0)
                 ctx.stroke()
             else:
                 ctx.fill()
@@ -179,12 +178,13 @@ class RasterService:
         cr = cairo.Context(surf)
         cr.fill()
 
-        for p in self.pointService.getTilePoints(z, x, y, 5000):
+        for p in self.pointService.getTilePoints(z, x, y, 10000):
             xc, yc, = self.tileproj.fromLLtoTilePixel((p['x'], p['y']), z, x, y, self.size)
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
             cr.arc(xc, yc, 1, 0, pi * 2)
             cr.stroke()
+
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)

@@ -34,6 +34,10 @@ class BivariateScaleMetric:
             alpha
         )
 
+    def adjustCountryColor(self, c, n):
+        val = 0.95 ** (n + 1)
+        return (val, val, val)
+
 
 if __name__ == '__main__':
     m = BivariateScaleMetric('foo', ['blue', 'red'], 5)

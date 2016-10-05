@@ -1,12 +1,13 @@
 import colour
 
 class BivariateCountMetric:
-    def __init__(self, fields, colors, neutralColor='#777'):
+    def __init__(self, fields, colors, grayScale=True, neutralColor='#777'):
         assert(len(fields) == 2)
         assert(len(colors) == 2)
         self.fields = fields
         self.field1 = fields[0]
         self.field2 = fields[1]
+        self.grayScale = grayScale
         self.color1 = colour.Color(colors[0]).rgb
         self.color2 = colour.Color(colors[1]).rgb
         self.neutralColor = colour.Color(neutralColor).rgb
@@ -49,6 +50,9 @@ class BivariateCountMetric:
             alpha
         )
 
+    def adjustCountryColor(self, c, n):
+        val = 0.95 ** (n + 1)
+        return (val, val, val)
 
 if __name__ == '__main__':
     m = BivariateCountMetric(['foo', 'bar'], ['blue', 'red'])
