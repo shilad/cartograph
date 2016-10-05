@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>The Map of World Knowledge</title>
 
-
     <meta property="og:title" content="The World of Wikipedia" />
     <meta property="og:description" content="[TODO: Description goes here"] />
     <meta property="og:image" content="../images/wikipediamap.png" />
@@ -21,6 +20,9 @@
     <link rel="stylesheet" href="css/auto-complete.css"/>
     <link rel="stylesheet" type="text/css" href="css/tooltipster.bundle.min.css" />
     <link rel="stylesheet" type="text/css" href="css/tooltipster.shadow.min.css" />
+
+  <script src="js/pace.min.js"></script>
+  <link href="css/pace.css" rel="stylesheet" />
 
 
     <style>
@@ -263,6 +265,7 @@
       choices.on('click', function() {
                 var layer = $(this).attr('layer');
                 showLayerUI(layer);
+                Pace.restart();
                 CG.changeLayer(layer);
                 return false;
               });

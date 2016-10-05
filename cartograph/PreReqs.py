@@ -34,6 +34,16 @@ class ArticlePopularity(luigi.ExternalTask):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "popularity")))
 
+class Word2VecFile(luigi.ExternalTask):
+    def output(self):
+        config = Config.get()
+        return (TimestampedLocalTarget(config.get("ExternalFiles", "w2v")))
+
+class ExternalIdFile(luigi.ExternalTask):
+    def output(self):
+        config = Config.get()
+        return (TimestampedLocalTarget(config.get("ExternalFiles", "external_ids")))
+
 class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
     Number the name and vector output of WikiBrain files so that each

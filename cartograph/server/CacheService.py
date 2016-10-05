@@ -27,7 +27,10 @@ class CacheService:
     def addToCache(self, req, resp):
         cachePath = self.getCachePath(req)
         d = os.path.dirname(cachePath)
-        if not os.path.isdir(d):
-            os.makedirs(d)
+        try:
+            if not os.path.isdir(d):
+                os.makedirs(d)
+        except OSError:
+            pass    # race condition in directory creation
         with open(cachePath, 'wb') as f:
             f.write(resp.body)
