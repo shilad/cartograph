@@ -110,6 +110,7 @@
         }
 
         div.legend {
+          font-size: 13px;
           width: 300px;
           position: absolute;
           top: 37px;
@@ -125,10 +126,39 @@
 
         div.legend h1 {
           font-size: 16px;
+          color: black;
         }
 
         div.legend p {
           margin-top: 8px;
+          margin-bottom: 8px;
+        }
+        .legend .spectrum {
+          margin: 0;
+          padding: 0;
+          font-size: 0;
+          text-align: center;
+          width: 100%;
+        }
+        .legend .spectrum > * {
+          font-family: "Verdana", "Geneva", "sans-serif";
+          font-size: 13px;
+        }
+        .spectrum .label {
+          display: inline-block;
+          margin-bottom: 5px;
+        }
+        .spectrum .left-label, .spectrum .right-label {
+          font-weight: 700;
+          color: black;
+          width: 25%;
+        }
+        .spectrum .center-label { width: 50%; }
+        .spectrum .grad-5 {
+          width: 20%;
+          height: 10px;
+          display: inline-block;
+          outline: solid 1px #aaa;
         }
 
         .autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
@@ -171,11 +201,16 @@
         This map visualizes the gender focus of Wikipedia articles.
         Cities represent articles, with neighboring cities being related in meaning.
       </p>
-      <p>
-        <span style="color: blue">&#9679;</span> Articles that mention <span style="color: blue">men</span> more often<br>
-        <span style="color: red">&#9679;</span> Articles that mention <span style="color: red">women</span> more often<br>
-        <span style="color: purple">&#9679;</span> Articles that mention <span style="color: purple">both men and women</span>.<br>
-      </p>
+      <div class="spectrum">
+        <div class="label left-label">men</div>
+        <div class="label center-label">&larr;mentions more&rarr;</div>
+        <div class="label right-label">women</div>
+        <div class="grad-5" style="background-color: #00f"></div>
+        <div class="grad-5" style="background-color: #40e"></div>
+        <div class="grad-5" style="background-color: #80c"></div>
+        <div class="grad-5" style="background-color: #a08"></div>
+        <div class="grad-5" style="background-color: #f00"></div>
+      </div>
     </div>
 
 
@@ -186,11 +221,17 @@
         This map visualizes the gender focus of Wikipedia articles.
         Cities represent articles, with neighboring cities being related in meaning.
       </p>
-      <p>
-        <span style="color: yellow">&#9679;</span> Articles that are of <span style="color: yellow">low quality</span><br>
-        <span style="color: orange">&#9679;</span> Articles that are of <span style="color: orange">moderate quality</span><br>
-        <span style="color: red">&#9679;</span> Articles that are of <span style="color: red">high quality</span>.<br>
-      </p>
+
+      <div class="spectrum">
+        <div class="label left-label">low</div>
+        <div class="label center-label">&larr;quality&rarr;</div>
+        <div class="label right-label">high</div>
+        <div class="grad-5" style="background-color: #ff0"></div>
+        <div class="grad-5" style="background-color: #fd0"></div>
+        <div class="grad-5" style="background-color: #f90"></div>
+        <div class="grad-5" style="background-color: #f60"></div>
+        <div class="grad-5" style="background-color: #f00"></div>
+      </div>
     </div>
 
     <script src="js/jquery.min.js"></script>

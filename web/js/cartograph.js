@@ -156,7 +156,7 @@ CG.handleCityHover = function (mapX, mapY, title) {
   CG.ttShowTimer = setTimeout(function () {
     CG.ttShowTimer = null;
     CG.showCityTooltip(mapX, mapY, title);
-  }, 300);
+  }, 800);
 };
 
 CG.cancelCityHover = function () {
