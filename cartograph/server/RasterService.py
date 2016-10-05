@@ -2,7 +2,12 @@ import logging
 import os
 
 import colorsys
+import tempfile
+
 import colour
+import subprocess
+
+from PIL import Image
 
 from cartograph.server.CountryService import CountryService
 
@@ -109,7 +114,24 @@ class RasterService:
 
         surf = self._renderBackground(self.pointService.metrics[layer], z, x, y)
         self._renderPoints(layer, z, x, y, surf)
-        surf.write_to_png(path)
+        self._writePng(surf, path)
+
+    def _writePng(self, surf, pathPng):
+        tmp = tempfile.mktemp()
+        surf.write_to_png(tmp)
+        try:
+            subprocess.check_call([
+                "pngquant",
+                "--force",
+                "--output",
+                pathPng,
+                "256",
+                "--",
+                pathPng
+             ])
+        finally:
+            os.unlink(tmp)
+
 
     def _renderBackground(self, metric, z, x, y):
         (polys, points) = self.countryService.getPolys(z, x, y)
@@ -197,6 +219,7 @@ if __name__ == '__main__':
     t0 = time.time()
     ms.renderTile('quality', 2, 1, 1, 'tile1.png')
     print time.time() - t0
+    print os.path.getsize('tile1.png')
     os.system('open tile1.png')
 
 

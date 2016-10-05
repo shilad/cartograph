@@ -7,7 +7,7 @@ import Config
 
 # Expose public Luigi tasks:
 
-from Metrics import AllMetrics
+from MetricTasks import AllMetrics
 from Coordinates import CreateEmbedding, CreateFullAnnoyIndex, CreateSampleAnnoyIndex, CreateSampleCoordinates
 from Denoiser import Denoise
 from FastKnn import FastKnn
