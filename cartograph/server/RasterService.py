@@ -178,7 +178,9 @@ class RasterService:
         cr = cairo.Context(surf)
         cr.fill()
 
-        for p in self.pointService.getTilePoints(z, x, y, 10000):
+        points = self.pointService.getTilePoints(z, x, y, 10000)
+        points.sort(key=lambda p: p['zpop'])
+        for p in points:
             xc, yc, = self.tileproj.fromLLtoTilePixel((p['x'], p['y']), z, x, y, self.size)
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
