@@ -67,28 +67,30 @@ CG.changeLayer = function(newLayer) {
 
 CG.layer.addTo(CG.map);
 
+CG.cursorTimer = null;
+
 CG.layer.scene.subscribe({
   load : function(e) {
       CG.hash = new L.Hash(CG.map);
+      var container = $('.leaflet-container');
 
       CG.layer.setSelectionEvents({
        hover: function(selection) {
-         if (selection.feature && selection.feature.properties.name) {
-           var ev = selection.leaflet_event.originalEvent;
-           $('selector').css( 'cursor', 'pointer' );
-
-           CG.handleCityHover(
-                   ev.clientX,
-                   ev.clientY,
-                   selection.feature.properties.name);
-         } else {
-           CG.cancelCityHover();
-         }
+           if (selection.feature) {
+               container.css('cursor','pointer');
+               if (CG.cursorTimer) {
+                   clearTimeout(CG.cursorTimer);
+                   CG.cursorTimer = null;
+               }
+           } else if (!CG.cursorTimer) {
+               CG.cursorTimer = setTimeout(function() {
+               container.css('cursor','');
+               }, 50);
+           }
        },
        click: function(selection) {
          if (selection.feature && selection.feature.properties.name) {
            var ev = selection.leaflet_event.originalEvent;
-           $('selector').css( 'cursor', 'pointer' );
            CG.handleCityHover(
                    ev.clientX,
                    ev.clientY,
@@ -156,7 +158,7 @@ CG.handleCityHover = function (mapX, mapY, title) {
   CG.ttShowTimer = setTimeout(function () {
     CG.ttShowTimer = null;
     CG.showCityTooltip(mapX, mapY, title);
-  }, 800);
+  }, 0);
 };
 
 CG.cancelCityHover = function () {

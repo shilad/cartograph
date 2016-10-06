@@ -205,12 +205,17 @@ class RasterService:
         cr.fill()
 
         points = self.pointService.getTilePoints(z, x, y, 10000)
-        points.sort(key=lambda p: p['zpop'])
+        points.sort(key=lambda p: p['zpop'], reverse=True)
         for p in points:
             xc, yc, = self.tileproj.fromLLtoTilePixel((p['x'], p['y']), z, x, y, self.size)
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
-            cr.arc(xc, yc, 1, 0, pi * 2)
+            cr.set_line_width(1)
+            if z - p['zpop'] < 2:
+                cr.arc(xc, yc, 1, 0, pi * 2)    # two pixels
+            else:
+                cr.move_to(xc, yc)              # one pixel
+                cr.close_path()
             cr.stroke()
 
 
@@ -221,7 +226,7 @@ if __name__ == '__main__':
     cs = CountryService(conf)
     ms = RasterService(conf, ps, cs)
     t0 = time.time()
-    ms.renderTile('quality', 2, 1, 1, 'tile1.png')
+    ms.renderTile('gender', 2, 1, 1, 'tile1.png')
     print time.time() - t0
     print os.path.getsize('tile1.png')
     os.system('open tile1.png')

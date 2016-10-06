@@ -1,7 +1,7 @@
 import colour
 
 class BivariateCountMetric:
-    def __init__(self, fields, colors, grayScale=True, neutralColor='#777'):
+    def __init__(self, fields, colors, grayScale=True, neutralColor='#888'):
         assert(len(fields) == 2)
         assert(len(colors) == 2)
         self.fields = fields
@@ -21,32 +21,18 @@ class BivariateCountMetric:
         if n1 + n2 == 0:
             return self.neutralColor + (alpha,)
 
-        a = 0.4
-        r = 1.0 - a
-        def strength(n): return a * (1 - r ** n) / (1 - r)
-        s1 = strength(n1)
-        s2 = strength(n2)
+        p = (n1 + 1.5) / (n1 + n2 + 3.0)
+        if p >= 0.5:
+            c = self.color1
+        else:
+            c = self.color2
 
-        c1 = (
-            s1 * self.color1[0] + (1.0 - s1) * self.neutralColor[0],
-            s1 * self.color1[1] + (1.0 - s1) * self.neutralColor[1],
-            s1 * self.color1[2] + (1.0 - s1) * self.neutralColor[2]
-        )
-
-        c2 = (
-            s2 * self.color2[0] + (1.0 - s2) * self.neutralColor[0],
-            s2 * self.color2[1] + (1.0 - s2) * self.neutralColor[1],
-            s2 * self.color2[2] + (1.0 - s2) * self.neutralColor[2]
-        )
-
-        # Interpolate between the two colors.
-        ns1 = 1.0 * n1 / (n1 + n2)
-        ns2 = 1.0 * n2 / (n1 + n2)
-
+        s = abs(p - 0.5) * 2.0
+        assert(0 <= s <= 1.0)
         return (
-            ns1 * c1[0] + ns2 * c2[0],
-            ns1 * c1[1] + ns2 * c2[1],
-            ns1 * c1[2] + ns2 * c2[2],
+            s * c[0] + (1.0 - s) * self.neutralColor[0],
+            s * c[1] + (1.0 - s) * self.neutralColor[1],
+            s * c[2] + (1.0 - s) * self.neutralColor[2],
             alpha
         )
 
