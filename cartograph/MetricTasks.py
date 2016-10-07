@@ -27,9 +27,9 @@ class AllMetrics(luigi.WrapperTask):
             metricConf = json.loads(config.get('Metrics', name))
             path = metricConf['path']
             args= {
-                '_name' : name,
-                '_inPath' : path,
-                '_outPath' : os.path.join(metricDir, name + '.json'),
+                'name' : name,
+                'inPath' : path,
+                'outPath' : os.path.join(metricDir, name + '.json'),
             }
             result.append(MetricData(**args))
         return result
