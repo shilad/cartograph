@@ -1,18 +1,16 @@
 import json
 import os
 
-import shapely.geometry
 import logging
 
 import luigi
-import geojson
 
 from cartograph import Config
 from cartograph.Coordinates import CreateFullCoordinates
-from cartograph.LuigiUtils import MTimeMixin, LoadGeoJsonTask, TimestampedLocalTarget, ExternalFile, LoadJsonTask
+from cartograph.LuigiUtils import MTimeMixin, TimestampedLocalTarget, ExternalFile
 from cartograph.Utils import read_features
 
-logger = logging.getLogger('cartograph.choropleth')
+logger = logging.getLogger('cartograph.metric-tasks')
 
 class MetricsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):

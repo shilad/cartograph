@@ -9,6 +9,8 @@ if (!CG.uid) {
     Cookies.set("CARTO_UID", CG.uid, { expires : 14 });
 }
 
+CG.logToConsole = false;
+
 CG.log = function(params) {
     var map = CG.map;
     var center = map.getCenter(),
@@ -24,13 +26,18 @@ CG.log = function(params) {
     params.lat = center.lat.toFixed(precision);
     params.lng = center.lng.toFixed(precision);
 
-    $.ajax({
-      type: "POST",
-      url: "../log",
-      data: JSON.stringify(params),
-      success: function() {},
-      dataType: 'application/json'
-    });
+    if (CG.logToConsole) {
+        console.log(params);
+    } else {
+        $.ajax({
+          type: "POST",
+          url: "../log",
+          data: JSON.stringify(params),
+          success: function() {},
+          dataType: 'application/json'
+        });
+    }
+
 };
 
 
