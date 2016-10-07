@@ -36,7 +36,7 @@ class AllMetrics(luigi.WrapperTask):
 
 class MetricData(MTimeMixin, luigi.Task):
     name = luigi.Parameter()
-    inpath = luigi.Parameter()
+    inPath = luigi.Parameter()
     outPath = luigi.Parameter()
 
     '''
@@ -47,7 +47,7 @@ class MetricData(MTimeMixin, luigi.Task):
 
     def requires(self):
         conf = Config.get()
-        return (ExternalFile(self.inpath),
+        return (ExternalFile(self.inPath),
                 ExternalFile(conf.get('ExternalFiles', 'external_ids')),
                 CreateFullCoordinates(),
                 MetricsCode())
@@ -59,7 +59,7 @@ class MetricData(MTimeMixin, luigi.Task):
             config.get('ExternalFiles', 'external_ids'),
             required=('x', 'y', 'externalId')
         )
-        externalData = read_features(self.inpath)
+        externalData = read_features(self.inPath)
 
         records = []
         stringFields = set()
