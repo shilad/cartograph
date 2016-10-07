@@ -8,6 +8,7 @@ import sys
 from cartograph import Config
 from cartograph.server.ConfigService import ConfigService
 from cartograph.server.CountryService import CountryService
+from cartograph.server.LoggingService import LoggingService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
 from cartograph.server.SearchService import SearchService
@@ -35,6 +36,7 @@ if os.getenv('CLEAR_CACHE'):
 
 logging.info('intitializing services')
 
+loggingService = LoggingService(conf)
 pointService = PointService(conf)
 searchService = SearchService(pointService)
 countryService = CountryService(conf)
@@ -55,6 +57,7 @@ app.add_route('/vector/{layer}/{z}/{x}/{y}.topojson', tileService)
 app.add_route('/raster/{layer}/{z}/{x}/{y}.png', mapnikService)
 app.add_route('/config.js', configService)
 app.add_route('/template/{file}', templateService)
+app.add_route('/log', loggingService)
 app.add_sink(lambda req, resp: staticService.on_get(req, resp), '/static')
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You

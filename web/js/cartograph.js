@@ -2,6 +2,7 @@ var CG = CG || {};
 
 
 CG.map = L.map('map');
+CG.addMapLogging(CG.map);
 CG.mapEl = $("#map");  // optimization
 CG.ttEl = $("#tooltip");
 
@@ -9,21 +10,14 @@ CG.layer = Tangram.leafletLayer({
     scene: '../template/scene.yaml',
     attribution: '<a href="https://nokomis.macalester.edu/cartograph" target="_blank">Cartograph</a> | &copy; Shilad Sen & contributors'
 });
-CG.activeLayer = null;
+CG.activeLayer = 'cluster';
 
 CG.getLayer = function() {
-    var src = CG.layer.scene.config.sources.vector;
-    var i = src.url.indexOf('/vector/');
-    if (i < 0) {
-        console.log('couldnt find srcName ' + srcName + ' in ' + src.url);
-        return;
-    }
-    var j = i + '/vector/'.length;
-    var k = src.url.indexOf('/', j + 1);
-    return src.url.substring(j, k);
+    return CG.activeLayer;
 };
 
 CG.changeLayer = function(newLayer) {
+    CG.activeLayer = newLayer;
     var changed = false;
     ["vector", "raster"].forEach(function (srcName) {
         var src = CG.layer.scene.config.sources[srcName];
@@ -116,6 +110,7 @@ $('#search-field').autocomplete({
     paramName: 'q',
     autoSelectFirst: true,
     onSelect: function (suggestion) {
+      CG.log({event : 'search', title : suggestion.value});
       var info = suggestion.data;
       CG.map.flyTo(info.loc, info.zoom + 2, { duration : 0.4 });
       L.marker(info.loc).addTo(CG.map);

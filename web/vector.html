@@ -208,9 +208,9 @@
         <div class="label center-label">&larr;mentions more&rarr;</div>
         <div class="label right-label">women</div>
         <div class="grad-5" style="background-color: #00f"></div>
-        <div class="grad-5" style="background-color: #40e"></div>
-        <div class="grad-5" style="background-color: #80c"></div>
-        <div class="grad-5" style="background-color: #a08"></div>
+        <div class="grad-5" style="background-color: #6334e8"></div>
+        <div class="grad-5" style="background-color: #8910C9"></div>
+        <div class="grad-5" style="background-color: #c81585"></div>
         <div class="grad-5" style="background-color: #f00"></div>
       </div>
     </div>
@@ -239,10 +239,12 @@
     <script src="js/jquery.min.js"></script>
     <script src="js/jquery.autocomplete.js"></script>
     <script type="text/javascript" src="js/tooltipster.bundle.min.js"></script>
+    <script src="js/js.cookie.js"></script>
 
     <!-- leaflet -->
     <script src="js/leaflet.js"></script>
     <script src="js/carto-hash.js"></script>
+    <script src="js/carto-log.js"></script>
 
     <!-- Main tangram library -->
     <script src="js/tangram.min.js"></script>
@@ -264,6 +266,7 @@
       var choices = $("#map-choice .choice");
       choices.on('click', function() {
                 var layer = $(this).attr('layer');
+                CG.log({'event' : 'layerChange', 'layer' : layer})
                 showLayerUI(layer);
                 Pace.restart();
                 CG.changeLayer(layer);
