@@ -146,11 +146,11 @@ class RasterService:
         for pinfo in polys:
             layer, shp, props = pinfo
             if layer == 'countries':
-                polysByName[props['clusterid']] = shp
-                clusterIds.add(props['clusterid'])
+                polysByName[props['clusterId']] = shp
+                clusterIds.add(props['clusterId'])
             else:
                 assert(layer == 'centroid_contours')
-                polysByName[props['clusterid'], int(props['contournum'])] = shp
+                polysByName[props['clusterId'], int(props['contourNum'])] = shp
 
         numContours = self.conf.getint('PreprocessingConstants', 'num_contours')
         colors = Config.getColorWheel()
