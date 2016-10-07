@@ -7,13 +7,16 @@ num_clusters: 9
 water_level: .05
 sample_borders: True
 
+[Server]
+compress_png: false
+
 [Metrics]
 active: gender quality
 gender: {
-         "type": "bivariate-count",
+         "type": "trivariate-count",
          "path": "%(externalDir)s/gender.tsv",
          "fields": ["women", "men"],
-         "colors": ["red", "blue"]
+         "colors": ["red","#8910C9","blue"]
          }
 
 quality: {

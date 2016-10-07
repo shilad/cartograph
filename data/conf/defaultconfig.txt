@@ -58,6 +58,7 @@ map_height: 600
 [Server]
 vector_zoom: 20
 base_url: http://localhost:4000
+compress_png: true
 
 
 [MapData]

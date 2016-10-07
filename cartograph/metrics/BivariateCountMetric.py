@@ -37,7 +37,7 @@ class BivariateCountMetric:
         )
 
     def adjustCountryColor(self, c, n):
-        val = 0.95 ** (n + 1)
+        val = 0.97 ** (n + 1)
         return (val, val, val)
 
 if __name__ == '__main__':

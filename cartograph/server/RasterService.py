@@ -7,8 +7,6 @@ import tempfile
 import colour
 import subprocess
 
-from PIL import Image
-
 from cartograph.server.CountryService import CountryService
 
 try:
@@ -96,6 +94,7 @@ class RasterService:
         self.countryService = countryService
         self.size = 512
         self.tileproj = GoogleProjection(19)
+        self.compressPng = conf.getboolean('Server', 'compress_png')
 
     def on_get(self, req, resp, layer, z, x, y):
         z, x, y = map(int, [z, x, y])
@@ -117,24 +116,27 @@ class RasterService:
         self._writePng(surf, path)
 
     def _writePng(self, surf, pathPng):
-        tmp = tempfile.mktemp()
-        surf.write_to_png(tmp)
-        dirName = os.path.dirname(pathPng)
-        if not os.path.isdir(dirName):
-            try: os.makedirs(dirName)
-            except OSError: pass    # race condition
-        try:
-            subprocess.check_call([
-                "pngquant",
-                "--force",
-                "--output",
-                pathPng,
-                "256",
-                "--",
-                tmp
-             ])
-        finally:
-            os.unlink(tmp)
+        if self.compressPng:
+            tmp = tempfile.mktemp()
+            surf.write_to_png(tmp)
+            dirName = os.path.dirname(pathPng)
+            if not os.path.isdir(dirName):
+                try: os.makedirs(dirName)
+                except OSError: pass    # race condition
+            try:
+                subprocess.check_call([
+                    "pngquant",
+                    "--force",
+                    "--output",
+                    pathPng,
+                    "256",
+                    "--",
+                    tmp
+                 ])
+            finally:
+                os.unlink(tmp)
+        else:
+            surf.write_to_png(pathPng)
 
 
     def _renderBackground(self, metric, z, x, y):
@@ -211,11 +213,11 @@ class RasterService:
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
             cr.set_line_width(1)
-            if z - p['zpop'] < 2:
+            if z > 4 or z - p['zpop'] < 4:
                 cr.arc(xc, yc, 1, 0, pi * 2)    # two pixels
             else:
                 cr.move_to(xc, yc)              # one pixel
-                cr.close_path()
+                cr.line_to(xc, yc)
             cr.stroke()
 
 
