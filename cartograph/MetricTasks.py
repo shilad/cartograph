@@ -28,27 +28,11 @@ class AllMetrics(luigi.WrapperTask):
             path = metricConf['path']
             args= {
                 '_name' : name,
-                '_table' : name,
                 '_inPath' : path,
                 '_outPath' : os.path.join(metricDir, name + '.json'),
             }
-            result.append(MetricJsonLoader(**args))
+            result.append(MetricData(**args))
         return result
-
-class MetricJsonLoader(LoadJsonTask):
-    _name = luigi.Parameter()
-    _table = luigi.Parameter()
-    _inPath = luigi.Parameter()
-    _outPath = luigi.Parameter()
-
-    @property
-    def table(self): return self._table
-
-    @property
-    def jsonPath(self): return self._outPath
-
-    def requires(self):
-        return MetricData(self._name, self._inPath, self._outPath)
 
 class MetricData(MTimeMixin, luigi.Task):
     name = luigi.Parameter()
