@@ -10,7 +10,7 @@ import shapely.geometry
 
 from cartograph import getMetric
 from cartograph.PointIndex import PointIndex
-from cartograph.Utils import pg_cnx
+from cartograph.Utils import pg_cnx, read_features
 from cartograph.metrics.ClusterMetric import ClusterMetric
 from cartograph.server.ServerUtils import tileExtent
 
@@ -27,54 +27,46 @@ class PointService:
             js = json.loads(config.get('Metrics', n))
             self.metrics[n] = getMetric(js)
 
-        with pg_cnx(config) as cnx:
-            with cnx.cursor('points') as cur:
-                cur.itersize = 50000
-                cur.execute('select x, y, name, zpop, clusterid, id from coordinates')
-                for i, row in enumerate(cur):
-                    self.points[row[5]] = {
-                        'x' : float(row[0]),
-                        'y' : float(row[1]),
-                        'name' : row[2],
-                        'zpop' : float(row[3]),
-                        'clusterid' : row[4],
-                        'id' : row[5]
-                    }
-                    if i % 50000 == 0:
-                        logger.info('loading basic point data for row %d' % i)
+        self.points = read_features(
+            config.get('GeneratedFiles', 'article_coordinates'),
+            config.get('GeneratedFiles', 'zpop_with_id'),
+            config.get('GeneratedFiles', 'clusters_with_id'),
+            config.get('ExternalFiles', 'names_with_id'),
+            required=('x', 'y', 'zpop', 'name', 'cluster')
+        )
 
-            logger.info('building spatial index...')
-            ids = sorted(self.points.keys())
-            pops = [-self.points[id]['zpop'] for id in ids]
-            X = [self.points[id]['x'] for id in ids]
-            Y = [self.points[id]['y'] for id in ids]
-            self.index = PointIndex(ids, X, Y, pops)
-            logger.info('finished indexing %d points...' % len(X))
+        for (id, point) in self.points.items():
+            point['x'] = float(point['x'])
+            point['y'] = float(point['y'])
+            point['zpop'] = float(point['zpop'])
+            point['clusterid'] = point['cluster']
+            point['id'] = id
 
-            for name, m in self.metrics.items():
-                if name == 'cluster': continue
-                with cnx.cursor(name + 'points') as cur:
-                    m = json.loads(config.get('Metrics', name))
-                    fields = m['fields']
-                    cur.execute('select id, %s from %s' % (', '.join(fields), name))
-                    for i, row in enumerate(cur):
-                        if i % 50000 == 0:
-                            logger.info('loading %s metric data for row %d' % (name, i))
-                        id = row[0]
-                        if id in self.points:
-                            self.numMetricPoints[name] += 1
-                            for (f, v) in zip(fields, row[1:]):
-                                if type(v) == str:
-                                    self.points[id][f] = v
-                                else:
-                                    self.points[id][f] = float(v)
+        logger.info('building spatial index...')
+        ids = sorted(self.points.keys())
+        pops = [-self.points[id]['zpop'] for id in ids]
+        X = [self.points[id]['x'] for id in ids]
+        Y = [self.points[id]['y'] for id in ids]
+        self.index = PointIndex(ids, X, Y, pops)
+        logger.info('finished indexing %d points...' % len(X))
 
-            fieldCounts = defaultdict(int)
-            for p in self.points.values():
-                for k in p:
-                    fieldCounts[k] += 1
-            pairs = ['%s=%d' % pair for pair in fieldCounts.items() ]
-            logging.info("counts for each field are %s", ', '.join(sorted(pairs)))
+        metricDir = config.get('DEFAULT', 'metricDir')
+        for name, m in self.metrics.items():
+            if name == 'cluster': continue
+            for line in open('%s/%s.json' % (metricDir, name), 'r'):
+                js = json.loads(line)
+                id = js.get('id')
+                if id in self.points:
+                    for (k, v) in js.items():
+                        if k != 'id':
+                            self.points[id][k]= v
+
+        fieldCounts = defaultdict(int)
+        for p in self.points.values():
+            for k in p:
+                fieldCounts[k] += 1
+        pairs = ['%s=%d' % pair for pair in fieldCounts.items() ]
+        logging.info("counts for each field are %s", ', '.join(sorted(pairs)))
 
     def getPoint(self, id):
         return self.points[id]
@@ -118,8 +110,6 @@ if __name__ == '__main__':
     pd = PointService(Config.get())
     for p in pd.getTilePoints(6, 26, 36, 10):
         print p['id'], p['zpop']
-        if p['id'] == '12706':
-            print p['id'], p['zpop']
     # for p in pd.getTilePoints(6, 27, 37, 1000):
     #     if p['id'] == '13616':
     #         print p['id']

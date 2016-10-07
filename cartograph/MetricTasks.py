@@ -22,7 +22,7 @@ class AllMetrics(luigi.WrapperTask):
     def requires(self):
         config = Config.get()
         result = []
-        geoDir = config.get('DEFAULT', 'geojsonDir')
+        metricDir = config.get('DEFAULT', 'metricDir')
         for name in config.get('Metrics', 'active').split():
             metricConf = json.loads(config.get('Metrics', name))
             path = metricConf['path']
@@ -30,7 +30,7 @@ class AllMetrics(luigi.WrapperTask):
                 '_name' : name,
                 '_table' : name,
                 '_inPath' : path,
-                '_outPath' : os.path.join(geoDir, name + '.json'),
+                '_outPath' : os.path.join(metricDir, name + '.json'),
             }
             result.append(MetricJsonLoader(**args))
         return result

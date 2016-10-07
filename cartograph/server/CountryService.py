@@ -16,13 +16,13 @@ class CountryService:
         self.maxZoom = config.getint('Server', 'vector_zoom')
         self.polys = [
             PolyLayer('countries',
-                      table='countries',
+                      path=config.get('MapData', 'countries_geojson'),
                       fields=['labels', 'clusterid'],
                       simplification=self.simplifications,
                       labelField='labels'
                       ),
             PolyLayer('centroid_contours',
-                      table='contourscentroid',
+                      path=config.get('MapData', 'centroid_contours_geojson'),
                       fields=['clusterid', 'contournum', 'contourid'],
                       simplification=self.simplifications,
                       ),
@@ -33,11 +33,9 @@ class CountryService:
             #           ),
         ]
 
-        with pg_cnx(config) as cnx:
-            with cnx.cursor() as cursor:
-                for p in self.polys:
-                    logger.info('initializing polygon layer %s', p.name)
-                    p.init(cursor)
+        for p in self.polys:
+            logger.info('initializing polygon layer %s', p.name)
+            p.init()
 
     def addLayers(self, builder, z, x, y):
         if z < self.maxZoom:
@@ -58,7 +56,7 @@ class CountryService:
         delta = abs(x0 - x1) * 0.1
         box = shapely.geometry.box(x0 - delta, y0 - delta, x1 + delta, y1 + delta)
         for poly in self.polys:
-            for shp, props, center in poly.getPolysInBox(None, z, box):
+            for shp, props, center in poly.getPolysInBox(z, box):
                 if center and poly.labelField:
                     points.append(('countries_labels', center, props[poly.labelField]))
                 polys.append((poly.name, shp, props))
