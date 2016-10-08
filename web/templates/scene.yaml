@@ -2,13 +2,21 @@ scene:
     background:
         color: '#F0F7FF'
 
+textures:
+    star:
+        url: {{ Server.base_url }}/static/images/gold-star.png
+
 styles:
     point-alpha:
+        base: points
+        blend: inlay
+    point-overlay:
+        texture: star
         base: points
         blend: overlay
     poly-alpha:
         base: polygons
-        blend: overlay
+        blend: inlay
     line-alpha:
         base: lines
         blend: inlay
@@ -22,6 +30,11 @@ sources:
         type: Raster
         url: {{ Server.base_url }}/raster/cluster/{z}/{x}/{y}.png
         max_zoom: 16
+    related:
+        type: TopoJSON
+        url: {{ Server.base_url }}/related.json?q=dog&n=0
+        max_zoom: 16
+
 
 layers:
     base:
@@ -55,6 +68,7 @@ layers:
             filter: { zoff : { min: -100, max: 1 } }
             draw:
                 points:
+                  style: point-alpha
                   interactive: true
                   collide: false
                   color: function() { return feature.color; }
@@ -75,6 +89,7 @@ layers:
             filter: { zoff : { min: 1, max: 2 } }
             draw:
                 points:
+                  style: point-alpha
                   order: 1000
                   interactive: true
                   collide: false
@@ -96,6 +111,7 @@ layers:
             filter: { zoff : { min: 2, max: 5 } }
             draw:
                 points:
+                  style: point-alpha
                   order: 1000
                   interactive: true
                   collide: false
@@ -117,6 +133,7 @@ layers:
             filter: { zoff : { min: 5, max: 5000 } }
             draw:
                 points:
+                  style: point-alpha
                   order: 1000
                   interactive: true
                   collide: false
@@ -134,14 +151,38 @@ layers:
                         size: 20px
                         fill: '#666'
                         stroke: { color: '#fff', width: 2 }
-#    edges:
-#        data: { source: tiled, layer: edges }
-#        filter: { $zoom: { min: 6 } }
-#        draw:
-#            lines:
-#                collide: false
-#                style: line-alpha
-#                color: 'rgba(150,120,120,0.2)'
-#                width: 1px
-#                visible: true
-#                order: 0
+
+
+
+    relatedOverlay:
+        visible: false
+        filter: { $zoom : {  max: 8 } }
+        data: { source: related, layer: related-overlay }
+        draw:
+            polygons:
+              style: poly-alpha
+              color: [[3, [1, 1, 1, 0.35]], [5, [1, 1, 1, 0.30]], [7, [1, 1, 1, 0.25]], [8, [1, 1, 1, 0.15]]]
+              order: 1005
+    related:
+        visible: false
+        filter: { $zoom : {  max: 8 } }
+        data: { source: related, layer: related }
+        draw:
+            points:
+              style: point-overlay
+              interactive: true
+              priority: function() { return  1.0 - feature.percentile; }
+              size: function() { return Math.floor(feature.percentile2 * 10 + $zoom); }
+              text:
+                required: false
+                priority: function() { return  1.0 - feature.percentile; }
+                text_source: name
+                interactive: true
+                buffer: 3px;
+                font:
+                    family: Arial
+                    size: function() { return (15 * feature.percentile + 8 + $zoom); }
+                    fill: '#555'
+
+
+

@@ -71,6 +71,9 @@ class FreeText:
                         len(self.phraseKnn.ids),
                         self.phraseKnn.ids[:5])
 
+    def hasPhrase(self, phrase):
+        return self.phraseKnn.hasId(phrase)
+
     def nearestArticlesForPhrase(self, phrase, n=5):
         v = self.phraseKnn.getVector(phrase)
         if not v: return []

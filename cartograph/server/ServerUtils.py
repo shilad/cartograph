@@ -25,6 +25,3 @@ def tileExtent(z, x, y):
     ty = 2 ** z - 1 - y  # tms coordinates
     (lat0, long0, lat1, long1) = _mercator.TileLatLonBounds(tx, ty, z)
     return (long0, lat0, long1, lat1)
-
-print tileExtent(6, 27, 36)
-print tileExtent(6, 27, 37)

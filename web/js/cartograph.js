@@ -103,19 +103,53 @@ CG.layer.scene.subscribe({
   }
 });
 
-CG.map.setView([0, 0], 4);
 
+
+CG.showRelated = function(query) {
+    var url = CG.layer.scene.config.sources.related.url;
+    var i = url.indexOf('q=');
+    var url2 = url.substring(0, i) + 'q=' + encodeURIComponent(query) + '&n=200';
+    console.log(url2);
+    CG.layer.scene.config.sources.related.url = url2;
+    CG.layer.scene.config.layers.related.visible = true;
+    CG.layer.scene.config.layers.relatedOverlay.visible = true;
+    CG.layer.scene.updateConfig();
+    $("#related-label span").html(query);
+    $("#related-label").show();
+    CG.map.setView([0, 0], 4);
+
+    return false;
+};
+
+CG.hideRelated = function() {
+    CG.layer.scene.config.layers.related.visible = false;
+    CG.layer.scene.config.layers.relatedOverlay.visible = false;
+    CG.layer.scene.updateConfig();
+    $("#related-label").hide();
+    $("#search-field").val('');
+    return false;
+};
+
+$('#search-field').on('focus', CG.hideRelated);
+$('#related-label a').on('click', CG.hideRelated);
 $('#search-field').autocomplete({
     serviceUrl: '../search.json',
     paramName: 'q',
     autoSelectFirst: true,
+    showNoSuggestionNotice: true,
+
     onSelect: function (suggestion) {
+      if (suggestion.type == 'related') {
+          CG.showRelated(suggestion.value);
+          return;
+      }
       CG.log({event : 'search', title : suggestion.value});
       var info = suggestion.data;
       CG.map.flyTo(info.loc, info.zoom + 2, { duration : 0.4 });
       L.marker(info.loc).addTo(CG.map);
     }
 });
+
 
 CG.ttEl.tooltipster({
     content: 'Loading...',
