@@ -27,14 +27,14 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
         config = Config.get()
         return (
             WikiBrainNumbering(),
-            SampleCreator(config.get("ExternalFiles", "vecs_with_id"))
+            SampleCreator(config.get("ExternalFiles", "best_vecs_with_id"))
         )
 
     def run(self):
         config = Config.get()
         # Create the embedding.
         featureDict = Utils.read_features(config.getSample("ExternalFiles",
-                                                          "vecs_with_id"),
+                                                          "best_vecs_with_id"),
                                           id_set=getSampleIds())
         keys = list(featureDict.keys())
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
@@ -92,7 +92,7 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
                                             "article_coordinates"))
 
     def requires(self):
-        return CreateEmbedding(), CreateSampleAnnoyIndex()
+        return CreateEmbedding()
 
     def run(self):
         config = Config.get()

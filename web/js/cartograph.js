@@ -88,7 +88,7 @@ CG.layer.scene.subscribe({
            CG.handleCityHover(
                    ev.clientX,
                    ev.clientY,
-                   selection.feature.properties.name);
+                   selection.feature.properties);
          } else {
            CG.cancelCityHover();
          }
@@ -183,7 +183,8 @@ CG.ttShowTimer = 0;
 CG.ttHideTimer = 0;
 CG.tt = CG.ttEl.tooltipster("instance");
 
-CG.handleCityHover = function (mapX, mapY, title) {
+CG.handleCityHover = function (mapX, mapY, properties) {
+  var title = properties.name;
   clearTimeout(CG.ttHideTimer);
   CG.ttHideTimer = 0;
 
@@ -196,7 +197,7 @@ CG.handleCityHover = function (mapX, mapY, title) {
   }
   CG.ttShowTimer = setTimeout(function () {
     CG.ttShowTimer = null;
-    CG.showCityTooltip(mapX, mapY, title);
+    CG.showCityTooltip(mapX, mapY, properties);
   }, 0);
 };
 
@@ -211,7 +212,8 @@ CG.cancelCityHover = function () {
   }
 };
 
-CG.showCityTooltip = function (mapX, mapY, title) {
+CG.showCityTooltip = function (mapX, mapY, properties) {
+  var title = properties.name;
   var isOpen = CG.tt.status().open;
   if (CG.ttEl.data("loading") == title) {
     if (!isOpen) CG.tt.open();
@@ -249,6 +251,16 @@ CG.showCityTooltip = function (mapX, mapY, title) {
 
     var wpUrl = 'http://en.wikipedia.org/wiki/' + encoded;
     html += '[<a target="_new" href="' + wpUrl + '">see Wikipedia article</a>]';
+
+    if (properties.men >= 9999.0) {
+        html += '&nbsp; Article is about a man.';
+    } else if (properties.women >= 9999.0) {
+        html += '&nbsp; Article is about a woman.';
+    } else if (properties.men || properties.women) {
+        html += '&nbsp; Article links to ' +
+            Math.round(properties.men) + ' men and ' +
+            Math.round(properties.women) + ' women.';
+    }
 
     // call the 'content' method to update the content of our tooltip with the returned data
     CG.tt.content(html);

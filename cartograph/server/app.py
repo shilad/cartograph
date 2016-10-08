@@ -46,10 +46,10 @@ mapnikService = RasterService(conf, pointService, countryService)
 configService = ConfigService(conf)
 templateService = TemplateService(conf)
 staticService = StaticService(conf)
-freeText = FreeText(conf.get('ExternalFiles', 'w2v'))
-freeText.read()
-searchService = SearchService(pointService, freeText)
-relatedService = RelatednessService(freeText, pointService)
+# freeText = FreeText(conf.get('ExternalFiles', 'w2v'))
+# freeText.read()
+searchService = SearchService(pointService)
+# relatedService = RelatednessService(freeText, pointService)
 
 logging.info('configuring falcon')
 
@@ -58,7 +58,7 @@ app = falcon.API()
 
 # things will handle all requests to the '/things' URL path
 app.add_route('/search.json', searchService)
-app.add_route('/related.json', relatedService)
+# app.add_route('/related.json', relatedService)
 app.add_route('/vector/{layer}/{z}/{x}/{y}.topojson', tileService)
 app.add_route('/raster/{layer}/{z}/{x}/{y}.png', mapnikService)
 app.add_route('/config.js', configService)

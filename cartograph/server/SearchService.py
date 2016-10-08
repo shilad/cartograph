@@ -11,9 +11,9 @@ from cartograph.server.ServerUtils import getMimeType
 logger = logging.getLogger('cartograph.search')
 
 class SearchService:
-    def __init__(self, points, freeText):
+    def __init__(self, points):
         self.points = points
-        self.freeText = freeText
+        # self.freeText = freeText
         self.keyList = []
         self.tupleLocZoom = []
 
@@ -50,11 +50,11 @@ class SearchService:
             }
             jsonList.append(rJsonDict)
 
-        if self.freeText.hasPhrase(title):
-            jsonList.append( {
-                'value' :  title,
-                'type' : 'related'
-            })
+        # if self.freeText.hasPhrase(title):
+        #     jsonList.append( {
+        #         'value' :  title,
+        #         'type' : 'related'
+        #     })
 
         return jsonList
 

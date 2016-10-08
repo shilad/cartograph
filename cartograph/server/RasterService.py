@@ -92,7 +92,7 @@ class RasterService:
         self.cache = CacheService(conf)
         self.pointService = pointService
         self.countryService = countryService
-        self.size = 512
+        self.size = 256
         self.tileproj = GoogleProjection(19)
         self.compressPng = conf.getboolean('Server', 'compress_png')
 
@@ -213,7 +213,7 @@ class RasterService:
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
             cr.set_line_width(1)
-            if z > 4 or z - p['zpop'] < 4:
+            if self.size == 512 and z > 4 or z - p['zpop'] < 4:
                 cr.arc(xc, yc, 1, 0, pi * 2)    # two pixels
             else:
                 cr.move_to(xc, yc)              # one pixel
