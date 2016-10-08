@@ -22,9 +22,16 @@ class FreeText:
                                   format='mikolov')
 
         self.phraseKnn = FastKnn(pathVectors,
-                                  pathVectors + '.phrases.annoy',
-                                  pathVectors + '.phrases.annoyIds',
-                                  format='mikolov')
+                                 pathVectors + '.phrases.annoy',
+                                 pathVectors + '.phrases.annoyIds',
+                                 format='mikolov')
+
+    def read(self):
+        assert self.articleKnn.exists() and self.phraseKnn.exists()
+        logger.info('loading article knn...')
+        self.articleKnn.read()
+        logger.info('loading phrase knn')
+        self.phraseKnn.read()
 
     def rebuildIfNecessary(self):
 
@@ -82,7 +89,7 @@ class FreeText:
             pathVectors + '.articles.annoyIds',
             pathVectors + '.phrases.annoy',
             pathVectors + '.phrases.annoyIds',
-        ]
+            ]
 
 
 class FreeTextTask(MTimeMixin, luigi.Task):
