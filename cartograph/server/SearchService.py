@@ -35,7 +35,7 @@ class SearchService:
         fmt = "<diddi"
         self.trie = marisa_trie.RecordTrie(fmt, zip(keys, values))
 
-    def search(self, title, n=10):
+    def search(self, title, n=5):
         results = sorted(r[1] for r in self.trie.items(unicode(title.lower())))
 
         # empty list to hold json-formatted results
