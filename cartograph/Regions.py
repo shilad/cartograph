@@ -34,14 +34,14 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
             RegionCode(),
             Coordinates.CreateSampleCoordinates(),
             cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                 "vecs_with_id")),
+                                                 "best_vecs_with_id")),
             cartograph.EnsureDirectoriesExist(),
         )
 
     def run(self):
         config = Config.get()
         featureDict = Utils.read_features(config.getSample("ExternalFiles",
-                                                           "vecs_with_id"))
+                                                           "best_vecs_with_id"))
         keys = list(k for k in featureDict.keys() if len(featureDict[k]['vector']) > 0)
         vectors = np.array([featureDict[vID]["vector"] for vID in keys])
         labels = list(KMeans((config.getint("PreprocessingConstants",
