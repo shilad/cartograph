@@ -108,7 +108,7 @@ CG.layer.scene.subscribe({
 CG.showRelated = function(query) {
     var url = CG.layer.scene.config.sources.related.url;
     var i = url.indexOf('q=');
-    var url2 = url.substring(0, i) + 'q=' + encodeURIComponent(query) + '&n=200';
+    var url2 = url.substring(0, i) + 'q=' + encodeURIComponent(query) + '&n=100';
     console.log(url2);
     CG.layer.scene.config.sources.related.url = url2;
     CG.layer.scene.config.layers.related.visible = true;
