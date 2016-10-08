@@ -6,11 +6,13 @@ import shutil
 import sys
 
 from cartograph import Config
+from cartograph.FreeText import FreeText
 from cartograph.server.ConfigService import ConfigService
 from cartograph.server.CountryService import CountryService
 from cartograph.server.LoggingService import LoggingService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
+from cartograph.server.RelatednessService import RelatednessService
 from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService
@@ -38,13 +40,16 @@ logging.info('intitializing services')
 
 loggingService = LoggingService(conf)
 pointService = PointService(conf)
-searchService = SearchService(pointService)
 countryService = CountryService(conf)
 tileService = TileService(conf, pointService, countryService)
 mapnikService = RasterService(conf, pointService, countryService)
 configService = ConfigService(conf)
 templateService = TemplateService(conf)
 staticService = StaticService(conf)
+freeText = FreeText(conf.get('ExternalFiles', 'w2v'))
+freeText.read()
+searchService = SearchService(pointService, freeText)
+relatedService = RelatednessService(freeText, pointService)
 
 logging.info('configuring falcon')
 
@@ -53,6 +58,7 @@ app = falcon.API()
 
 # things will handle all requests to the '/things' URL path
 app.add_route('/search.json', searchService)
+app.add_route('/related.json', relatedService)
 app.add_route('/vector/{layer}/{z}/{x}/{y}.topojson', tileService)
 app.add_route('/raster/{layer}/{z}/{x}/{y}.png', mapnikService)
 app.add_route('/config.js', configService)

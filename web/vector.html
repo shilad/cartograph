@@ -58,6 +58,19 @@
           box-shadow: 5px 5px 5px #aaaaaa;
         }
 
+        #related-label {
+          position: absolute;
+          top: 80px;
+          left: 53px;
+          z-index: 1000000;
+          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+          display: none;
+        }
+
+        #related-label span {
+          font-weight: 600;
+        }
+
         #search input {
           font-size: 16px;
           padding: 5px;
@@ -181,6 +194,9 @@
     <div id="search">
         <input id="search-field" type="text" placeholder="Search the map">
     </div>
+    <div id="related-label">
+      showing concepts related to <span>foo</span> <a href="#">(hide)</a>
+    </div>
     <div id="map-choice">
       <h1>Select a map:</h1>
       <div layer="cluster" class="choice">Wikipedia topics</div>
@@ -208,9 +224,9 @@
         <div class="label center-label">&larr;mentions more&rarr;</div>
         <div class="label right-label">women</div>
         <div class="grad-5" style="background-color: #00f"></div>
-        <div class="grad-5" style="background-color: #6334e8"></div>
+        <div class="grad-5" style="background-color: #a1b6e8"></div>
         <div class="grad-5" style="background-color: #8910C9"></div>
-        <div class="grad-5" style="background-color: #c81585"></div>
+        <div class="grad-5" style="background-color: #bb4992"></div>
         <div class="grad-5" style="background-color: #f00"></div>
       </div>
     </div>
@@ -278,6 +294,9 @@
         if (l && l.layer) {
           layer = l.layer;
         }
+        CG.map.setView(l.center, l.zoom);
+      } else {
+        CG.map.setView([0, 0], 4);
       }
       showLayerUI(layer);
     </script>

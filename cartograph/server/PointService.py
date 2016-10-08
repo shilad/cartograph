@@ -1,6 +1,5 @@
 import json
 import logging
-import numpy as np
 import sys
 
 
@@ -10,7 +9,7 @@ import shapely.geometry
 
 from cartograph import getMetric
 from cartograph.PointIndex import PointIndex
-from cartograph.Utils import pg_cnx, read_features
+from cartograph.Utils import read_features
 from cartograph.metrics.ClusterMetric import ClusterMetric
 from cartograph.server.ServerUtils import tileExtent
 
@@ -67,6 +66,9 @@ class PointService:
                 fieldCounts[k] += 1
         pairs = ['%s=%d' % pair for pair in fieldCounts.items() ]
         logging.info("counts for each field are %s", ', '.join(sorted(pairs)))
+
+    def hasPoint(self, id):
+        return id in self.points
 
     def getPoint(self, id):
         return self.points[id]

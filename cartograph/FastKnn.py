@@ -97,6 +97,9 @@ class FastKnn:
         self.index = annoy.AnnoyIndex(n)
         self.index.load(self.pathAnnoy)
 
+    def hasId(self, id):
+        return self.idToIndex(id) is not None
+
     def getVector(self, id):
         index = self.idToIndex(id)
         if index is None:
