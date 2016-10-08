@@ -108,7 +108,7 @@ CG.layer.scene.subscribe({
 CG.showRelated = function(query) {
     var url = CG.layer.scene.config.sources.related.url;
     var i = url.indexOf('q=');
-    var url2 = url.substring(0, i) + 'q=' + encodeURIComponent(query) + '&n=100';
+    var url2 = url.substring(0, i) + 'q=' + encodeURIComponent(query) + '&n=200';
     console.log(url2);
     CG.layer.scene.config.sources.related.url = url2;
     CG.layer.scene.config.layers.related.visible = true;
@@ -152,6 +152,7 @@ $('#search-field').autocomplete({
           CG.showRelated(suggestion.value);
           return;
       }
+      $("img.leaflet-marker-icon").remove();
       CG.log({event : 'search', title : suggestion.value});
       var info = suggestion.data;
       CG.map.flyTo(info.loc, info.zoom + 2, { duration : 0.4 });
