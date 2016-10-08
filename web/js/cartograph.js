@@ -138,6 +138,15 @@ $('#search-field').autocomplete({
     autoSelectFirst: true,
     showNoSuggestionNotice: true,
 
+    formatResult: function (suggestion, currentValue) {
+        if (suggestion.type == 'related') {
+            return 'Related to <b>"' + currentValue + '"</b>';
+        } else {
+            return suggestion.value;
+        }
+        return suggestion.value;
+    },
+
     onSelect: function (suggestion) {
       if (suggestion.type == 'related') {
           CG.showRelated(suggestion.value);
