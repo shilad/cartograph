@@ -40,6 +40,34 @@ CG.log = function(params) {
 
 };
 
+CG.logMany = function(messages) {
+    var map = CG.map;
+    var center = map.getCenter(),
+        zoom = map.getZoom(),
+        precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
+
+    var params = {};
+    params.uid = CG.uid;
+    params.layer = CG.getLayer();
+    params.zoom = zoom;
+    params.lat = center.lat.toFixed(precision);
+    params.lng = center.lng.toFixed(precision);
+    params.messages = messages;
+
+    if (CG.logToConsole) {
+        console.log(params);
+    } else {
+        $.ajax({
+          type: "POST",
+          url: "../log",
+          data: JSON.stringify(params),
+          success: function() {},
+          dataType: 'application/json'
+        });
+    }
+
+};
+
 
 CG.mapMoveTimeout = null;
 CG.addMapLogging = function(map) {
@@ -47,22 +75,36 @@ CG.addMapLogging = function(map) {
     ['load', 'moveend', 'dragend', 'zoomend', 'click', 'doubleclick'].forEach(
         function (eventName) {
             map.on(eventName, function() {
+                var center = map.getCenter(),
+                    zoom = map.getZoom(),
+                    precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
+
                 if (CG.mapMoveTimeout) clearTimeout(CG.mapMoveTimeout);
                 var now = $.now();
-                if (logBuffer[eventName]) {
-                    logBuffer[eventName].endTstamp = now;
-                    logBuffer[eventName].count += 1;
-                } else {
+                if (!logBuffer[eventName]) {
                     logBuffer[eventName] = {
-                        begTstamp : now, endTstamp : now,
-                        count : 1, event: eventName
+                        begTstamp : now,
+                        begZoom : zoom,
+                        begLat : center.lat.toFixed(precision),
+                        begLng : center.lng.toFixed(precision),
+                        count : 0,
+                        event: eventName
                     };
                 }
+
+                logBuffer[eventName].endZoom = zoom;
+                logBuffer[eventName].endLat = center.lat.toFixed(precision);
+                logBuffer[eventName].endLng = center.lng.toFixed(precision);
+                logBuffer[eventName].endTstamp = now;
+                logBuffer[eventName].count += 1;
+
                 CG.mapMoveTimeout = setTimeout(function() {
+                    var messages = [];
                     for (var n in logBuffer) {
-                        CG.log(logBuffer[n]);
+                        messages.push(logBuffer[n]);
                         delete logBuffer[n];
                     }
+                    CG.logMany(messages);
                 }, 500);
             });
         }

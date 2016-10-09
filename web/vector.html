@@ -291,14 +291,17 @@
                 CG.changeLayer(layer);
                 return false;
               });
+
       var layer = 'cluster';
       if (window.location.hash) {
         var l = L.Hash.parseHash(window.location.hash);
         if (l && l.layer) {
           layer = l.layer;
         }
+        CG.init(l.layer);
         CG.map.setView(l.center, l.zoom);
       } else {
+        CG.init(l.layer)
         CG.map.setView([0, 0], 4);
       }
       showLayerUI(layer);
