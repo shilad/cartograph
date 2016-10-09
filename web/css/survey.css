@@ -1,0 +1,167 @@
+#introContainer{
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	z-index: 10000000;
+	background-color: rgba(250, 250, 250, 0.7);
+}
+
+#introContent {
+	font-size: 13px;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	width: 600px;
+	height: 500px;
+	position: absolute;
+	overflow: auto;
+    border: 1px solid #696969;
+    border-bottom: 2px solid #696969;
+    background-color: rgba(250, 250, 250, 1.0);
+    box-shadow: 5px 5px 5px #aaaaaa;
+    color: #666;
+    padding: 20px;
+}
+
+#introContent h1 {
+	font-size: 26px;
+    color: black;
+	margin: 20px 0 30px 0;
+}
+
+#introContent h2 {
+	font-size: 20px;
+}
+
+#introContent p {
+	margin-top: 16px;
+    margin-bottom: 16px;
+	
+	font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 16px;
+    line-height: 140%;
+}
+
+#startButtonContainer{
+	margin: 30px auto;
+	text-align: center;
+}
+
+
+
+#surveyContainer {
+    font-size: 13px;
+    width: 300px;
+    position: absolute;
+    top: 165px;
+    right: 10px;
+    z-index: 1000000;
+    border: 1px solid #f0f0f0;
+    border-bottom: 2px solid #ccc;
+    background-color: rgba(250, 250, 250, 0.9);
+    box-shadow: 5px 5px 5px #aaaaaa;
+    color: #666;
+    padding: 10px;
+}
+
+#surveyQuestions1 p, #surveyQuestions2 p, #surveyQuestions3 p  {
+	padding-top: 10px;
+}
+
+#surveyContainer textarea {
+	margin-top: 5px;
+}
+
+#surveyContainer input[type='submit'] {
+	margin: 10px;
+}
+
+form.likertStatement {
+  display:block;
+  font-weight: bold;
+  padding: 30px 0 0 4.25%;
+  margin-bottom:10px;
+}
+form.likert {
+  list-style:none;
+  width:100%;
+  margin:0;
+  padding:0 0 35px;
+  display:block;
+  border-bottom:2px solid #efefef;
+}
+form .likert:last-of-type {border-bottom:0;}
+form .likert:before {
+  content: '';
+  position:relative;
+  top:11px;
+  left:8.5%;
+  display:block;
+  background-color:#efefef;
+  height:4px;
+  width:78%;
+}
+form .likert li {
+  display:inline-block;
+  width:12.5%;
+  text-align:center;
+  vertical-align: top;
+}
+form .likert li input[type=radio] {
+  display:block;
+  position:relative;
+  top:0;
+  left:50%;
+  margin-left:-6px;
+  
+}
+form .likert li label {
+	width:100%;
+	font-size: 9px;
+}
+
+form p.error {
+    color: red;
+    font-weight: bold;
+    display: none;
+}
+
+ul.share-buttons{
+  list-style: none;
+  padding: 0;
+}
+
+ul.share-buttons li{
+  display: inline;
+}
+
+ul.share-buttons .sr-only {
+  position: absolute;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+
+#thankYou p {
+    margin-bottom: 6px;
+}
+
+#thankYou p b {
+    font-weight: 800;
+    color: black;
+}
+form .taskLabel span {
+    font-weight: 800;
+    color: black;
+}

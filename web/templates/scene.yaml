@@ -24,11 +24,11 @@ styles:
 sources:
     vector:
         type: TopoJSON
-        url: {{ Server.base_url }}/vector/cluster/{z}/{x}/{y}.topojson
+        url: {{ Server.base_url }}/vector/{{ layer }}/{z}/{x}/{y}.topojson
         max_zoom: 16
     raster:
         type: Raster
-        url: {{ Server.base_url }}/raster/cluster/{z}/{x}/{y}.png
+        url: {{ Server.base_url }}/raster/{{ layer }}/{z}/{x}/{y}.png
         max_zoom: 16
     related:
         type: TopoJSON

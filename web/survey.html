@@ -1,0 +1,598 @@
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Map of World Knowledge</title>
+
+    <meta property="og:title" content="The World of Wikipedia" />
+    <meta property="og:description" content="[TODO: Description goes here"] />
+    <meta property="og:image" content="../images/wikipediamap.png" />
+
+    <meta name="twitter:title" content="The World of Wikipedia">
+    <meta name="twitter:description" content="[TODO: Description goes here]">
+    <meta name="twitter:image" content="../images/wikipediamap.png">
+
+
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link rel="stylesheet" href="css/auto-complete.css"/>
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.bundle.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.shadow.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.3.0/introjs.min.css"/>
+    <link rel="stylesheet" href="css/survey.css" />
+
+
+  <script src="js/pace.min.js"></script>
+  <link href="css/pace.css" rel="stylesheet" />
+
+
+    <style>
+      html, body {
+        overflow: hidden;
+      }
+
+        #map {
+          position: absolute;
+		  top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+        }
+
+        h1, h2, h3, h4 {
+          font-family: "Verdana", "Geneva", "sans-serif";
+        }
+
+        p {
+          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+          font-size: 14px;
+          line-height: 140%;
+        }
+
+        #search {
+          width: 200px;
+          height: 30px;
+          position: absolute;
+          top: 10px;
+          left: 50px;
+          z-index: 1000000;
+          box-shadow: 5px 5px 5px #aaaaaa;
+          font-size: 14px;
+          font-family: "Verdana", "Geneva", "sans-serif";
+        }
+
+        #search input {
+          font-size: 16px;
+          padding: 5px;
+          width: 100%;
+          height: 100%;
+        }
+
+        #tooltip {
+          position: fixed;
+          top: 100px;
+          left: 100px;
+          z-index: 100000;
+          width: 5px;
+          height: 5px;
+          cursor: pointer;
+        }
+
+        div.legend {
+          font-size: 13px;
+          width: 300px;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          z-index: 1000000;
+          border: 1px solid #f0f0f0;
+          border-bottom: 2px solid #ccc;
+          background-color: rgba(250, 250, 250, 0.9);
+          box-shadow: 5px 5px 5px #aaaaaa;
+          color: #666;
+          padding: 5px;
+        }
+
+        div.legend h1 {
+          font-size: 16px;
+          color: black;
+        }
+
+        div.legend p {
+          margin-top: 8px;
+          margin-bottom: 8px;
+        }
+        .legend .spectrum {
+          margin: 0;
+          padding: 0;
+          font-size: 0;
+          text-align: center;
+          width: 100%;
+        }
+        .legend .spectrum > * {
+          font-family: "Verdana", "Geneva", "sans-serif";
+          font-size: 13px;
+        }
+        .spectrum .label {
+          display: inline-block;
+          margin-bottom: 5px;
+        }
+        .spectrum .left-label, .spectrum .right-label {
+          font-weight: 700;
+          color: black;
+          width: 25%;
+        }
+        .spectrum .center-label { width: 50%; }
+        .spectrum .grad-5 {
+          width: 20%;
+          height: 10px;
+          display: inline-block;
+          outline: solid 1px #aaa;
+        }
+
+        .autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
+        .autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+        .autocomplete-no-suggestion { padding: 2px 5px;}
+        .autocomplete-selected { background: #F0F0F0; }
+        .autocomplete-suggestions strong { font-weight: bold; color: #000; }
+        .autocomplete-group { padding: 2px 5px; }
+        .autocomplete-group strong { font-weight: bold; font-size: 16px; color: #000; display: block; border-bottom: 1px solid #000; }
+
+
+		#mapHolder {
+		  height: 0;
+		  width: 0;
+		  margin: auto;
+		  position: absolute;
+		  top: 0; left: 0; bottom: 0; right: 0;
+
+		}
+
+		#zoomHolder {
+			position: absolute;
+			height: 0;
+			width: 0;
+			top: 30px;
+			left: 25px;
+			background-color: transparent;
+		}
+
+		.introjs-tooltiptext {
+          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+			font-size: 15px;
+			line-height: 140%;
+		}
+
+		#help-icon {
+			position: absolute;
+			top: 60px;
+			left: 15px;
+          	z-index: 1000000;
+			font-size: 40px;
+			color: white;
+			font-weight: bold;
+			text-shadow: 3px 3px 1px rgba(150, 150, 150, 1);
+		}
+
+    </style>
+  </head>
+
+  <body>
+    <div id="tooltip">&nbsp;</div>
+    <div id="map">
+		<div id="mapHolder" data-intro="This is our map of Wikipedia. Countries give you an idea of the types of articles in them. The closer two article 'cities' (marked as white circles) are, the more related they are." data-position="bottom"></div>
+		<div id="zoomHolder" data-intro="You can zoom in and out by clicking here or scrolling" data-position="right"></div>
+		<div id="help-icon">?</div>
+	</div>
+    <div id="search" data-intro="You can search for specific articles here" data-position="right">
+        <input id="search-field" type="text" placeholder="Search the map">
+    </div>
+
+    <div class="legend" id="legend-gender">
+      <h1>Map of Wikipedia Gender Focus</h1>
+      <p>
+        This map visualizes the gender focus of Wikipedia articles.
+        Cities represent articles, with neighboring cities being related in meaning.
+      </p>
+      <div class="spectrum">
+        <div class="label left-label">men</div>
+        <div class="label center-label">&larr;mentions more&rarr;</div>
+        <div class="label right-label">women</div>
+        <div class="grad-5" style="background-color: #00f"></div>
+        <div class="grad-5" style="background-color: #a1b6e8"></div>
+        <div class="grad-5" style="background-color: #8910C9"></div>
+        <div class="grad-5" style="background-color: #bb4992"></div>
+        <div class="grad-5" style="background-color: #f00"></div>
+      </div>
+    </div>
+
+
+<div id="introContainer">
+	<div id="introContent">
+		<h1>Cartograph: Gender Focus of Wikipedia Articles</h1>
+		<p>Cartograph visualizes the English Wikipedia as an interactive geographical map. City dots represent articles, colored by their gender focus. Articles that are closer together in meaning are shown closer together on the map.
+		</p>
+		<p>We would like your help to test the visualization. During the study, you will perform three tasks exploring the data. Afterwards, you will be asked to answer several questions. The study should take about 15 minutes.
+		</p>
+		<p>We will not  collect identifying information such as email or Username, but we will record your navigation and responses.</p>
+		<p>If you have questions about this study, please contact <a href="mailto:ssen@macalester.edu">Shilad Sen</a>. Thank you for participating!</p>
+		<div id="startButtonContainer">
+			<button id="startStudyButton">Start User Study</button>
+		</div>
+	</div>
+</div>
+
+<div id="surveyContainer" data-intro="Your task is defined here. Enter your responses in the text box and click the finish task button when you are ready to go on to the next task." data-position="left">
+	<div class="task">
+		<form action="" method="post" id="task1">
+			<p>
+				<label class="taskLabel" for="task1Text"><strong><span></span>: Identify the articles with a high women's gender focus and list them in the box below.</strong> You may add additional annotations or comments to your list describing your thoughts while completing this task.</label>
+				<textarea name="feedback" id="task1Text" cols="40" rows="28" required></textarea>
+			</p>
+			<input data-action="next" type="submit" name="submit" value="Finish Task and Submit" />
+			<p class="error">&nbsp;</p>
+		</form>
+	</div>
+	<div class="task">
+		<form action="" method="post" id="task2">
+			<p>
+				<label class="taskLabel" for="task2Text"><strong><span></span>: In the box below, describe the common characteristics of articles with a high women's gender focus.</strong> How are they related to other articles nearby in the map that have a higher male focus?</label>
+				<textarea name="feedback" id="task2Text" cols="40" rows="28" required></textarea>
+			</p>
+			<input data-action="next" type="submit" name="submit" value="Finish Task and Submit" />
+			<p class="error">&nbsp;</p>
+		</form>
+	</div>
+	<div class="task">
+		<form action="" method="post" id="task3">
+			<p>
+				<label class="taskLabel" for="task3Text"><strong><span></span>: Spend several minutes exploring the map or browsing for articles that interest you.</strong> As you explore, please type whatever comes to mind in the box below while completing the task.</label>
+				<textarea name="feedback" id="task3Text" cols="40" rows="28" required></textarea>
+			</p>
+			<input data-action="next" type="submit" name="submit" value="Finish Task and Submit" />
+			<p class="error">&nbsp;</p>
+		</form>
+	</div>
+	<div id="surveyQuestions1">
+		<form action="" method="post" id="customtheme1">
+			<p>
+				<label for="age">Please enter your age</label>
+				<input type="text" name="age" id="age" required/>
+			</p>
+			<p>
+				<label for="gender">Please enter your gender</label>
+				<select name="gender" id="gender" required>
+					<option value="male">Male</option>
+					<option value="female">Female</option>
+					<option value="other">Other</option>
+				</select>
+			</p>
+			<p>
+				<label class="likertStatement">How quickly could you achieve your tasks?</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="quick" value="very_quickly">
+					<label>Very Quickly</label>
+					</li>
+					<li>
+					<input type="radio" name="quick" value="quickly">
+					<label>Quickly</label>
+					</li>
+					<li>
+					<input type="radio" name="quick" value="somewhat_quickly">
+					<label>Somewhat Quickly</label>
+					</li>
+					<li>
+					<input type="radio" name="quick" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="quick" value="somewhat_slowly">
+					<label>Somewhat Slowly</label>
+					</li>
+					<li>
+					<input type="radio" name="quick" value="slowly">
+					<label>Slowly</label>
+					</li>
+					<li>
+					<input type="radio" name="quick" value="very_slowly">
+					<label>Very Slowly</label>
+					</li>
+				</ul>
+			</p>
+			<p>
+				<label class="likertStatement">The tool required a lot of explanation to use.</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="explain" value="strongly_agree">
+					<label>Strongly Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="explain" value="agree">
+					<label>Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="explain" value="somewhat_agree">
+					<label>Somewhat Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="explain" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="explain" value="somewhat_disagree">
+					<label>Somewhat Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="explain" value="disagree">
+					<label>Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="explain" value="strongly_disagree">
+					<label>Strongly Disagree</label>
+					</li>
+				</ul>
+			</p>
+			<p>
+				<label class="likertStatement">It was unclear to me why specific articles were grouped together.</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="grouping" value="strongly_agree">
+					<label>Strongly Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="grouping" value="agree">
+					<label>Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="grouping" value="somewhat_agree">
+					<label>Somewhat Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="grouping" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="grouping" value="somewhat_disagree">
+					<label>Somewhat Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="grouping" value="disagree">
+					<label>Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="grouping" value="strongly_disagree">
+					<label>Strongly Disagree</label>
+					</li>
+				</ul>
+			</p>
+			<p>
+				<label class="likertStatement">I learned new information about the data.</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="learned" value="strongly_agree">
+					<label>Strongly Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="learned" value="agree">
+					<label>Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="learned" value="somewhat_agree">
+					<label>Somewhat Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="learned" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="learned" value="somewhat_disagree">
+					<label>Somewhat Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="learned" value="disagree">
+					<label>Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="learned" value="strongly_disagree">
+					<label>Strongly Disagree</label>
+					</li>
+				</ul>
+			</p>
+			<input data-action="next" type="submit" name="submit" value="Submit" />
+			<p class="error">&nbsp;</p>
+
+		</form>
+	</div>
+	<div id="surveyQuestions2">
+		<form action="" method="post" id="customtheme2">
+			<p>
+				<label class="likertStatement">The tool was easy to use.</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="easy" value="strongly_agree">
+					<label>Strongly Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="easy" value="agree">
+					<label>Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="easy" value="somewhat_agree">
+					<label>Somewhat Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="easy" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="easy" value="somewhat_disagree">
+					<label>Somewhat Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="easy" value="disagree">
+					<label>Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="easy" value="strongly_disagree">
+					<label>Strongly Disagree</label>
+					</li>
+				</ul>
+			</p>
+			<p>
+				<label class="likertStatement">The tool was fun to use.</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="fun" value="strongly_agree">
+					<label>Strongly Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="fun" value="agree">
+					<label>Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="fun" value="somewhat_agree">
+					<label>Somewhat Agree</label>
+					</li>
+					<li>
+					<input type="radio" name="fun" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="fun" value="somewhat_disagree">
+					<label>Somewhat Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="fun" value="disagree">
+					<label>Disagree</label>
+					</li>
+					<li>
+					<input type="radio" name="fun" value="strongly_disagree">
+					<label>Strongly Disagree</label>
+					</li>
+				</ul>
+			</p>
+			<p>
+				<label class="likertStatement">How successful were you in accomplishing what you were asked to do?</label>
+				<ul class='likert'>
+					<li>
+					<input type="radio" name="successful" value="very_successful">
+					<label>Very Successful</label>
+					</li>
+					<li>
+					<input type="radio" name="successful" value="successful">
+					<label>Successful</label>
+					</li>
+					<li>
+					<input type="radio" name="successful" value="somewhat_successful">
+					<label>Somewhat Successful</label>
+					</li>
+					<li>
+					<input type="radio" name="successful" value="neutral">
+					<label>Neutral</label>
+					</li>
+					<li>
+					<input type="radio" name="successful" value="somewhat_unsuccessful">
+					<label>Somewhat Unsuccessful</label>
+					</li>
+					<li>
+					<input type="radio" name="successful" value="unsuccessful">
+					<label>Unsuccessful</label>
+					</li>
+					<li>
+					<input type="radio" name="successful" value="very_unsuccessful">
+					<label>Very Unsuccessful</label>
+					</li>
+				</ul>
+			</p>
+			<p>
+				<label for="editFreq">How often do you typically contribute to Wikipedia?</label>
+				<select name="editFreq" id="editFreq">
+					<option value="never">Never</option>
+					<option value="yearly">Less than once a month</option>
+					<option value="monthly">Once a month or more</option>
+					<option value="monthly">Once a week or more</option>
+					<option value="monthly">Once a day or more</option>
+				</select>
+			</p>
+			<p>
+				<label for="genderFreq">How often do you typically contribute to Wikipedia activities related to gender?</label>
+				<select name="genderFreq" id="genderFreq">
+					<option value="never">Never</option>
+					<option value="yearly">Less than once a month</option>
+					<option value="monthly">Once a month or more</option>
+					<option value="monthly">Once a week or more</option>
+					<option value="monthly">Once a day or more</option>
+				</select>
+			</p>
+			<input data-action="next" type="submit" name="submit" value="Submit" />
+			<p class="error">&nbsp;</p>
+
+		</form>
+	</div>
+	<div id="surveyQuestions3">
+		<form action="" method="post" id="customtheme3">
+			<p>
+				<label for="changeFeedback">If you could change anything about the tool, what would you change?</label>
+				<textarea name="changeFeedback" id="changeFeedback" cols="40" rows="10"></textarea>
+			</p>
+			<p>
+				<label for="finalComments">Do you have any additional feedback or comments?</label>
+				<textarea name="finalComments" id="finalComments" cols="40" rows="10"></textarea>
+			</p>
+			<input data-action="next" type="submit" name="submit" value="Submit" />
+			<p class="error">&nbsp;</p>
+		</form>
+	</div>
+	<div id="thankYou">
+		<p><b>Thank you</b> for participating!</p>
+		<p>If you have any questions about this study, please contact <a href="mailto:ssen@macalester.edu">Shilad Sen</a>.</p>
+		<p>Please <b>share this study</b> with anybody who is interested in gender and Wikipedia using these links:</p>
+		<ul class="share-buttons">
+		  <li><a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fnokomis.macalester.edu%2Fcartograph%2Fstatic%2Fsurvey.html&t=Wikipedia%20Gender%20Focus%3A%20Mapped!" title="Share on Facebook" target="_blank"><img alt="Share on Facebook" src="images/flat_web_icon_set/color/Facebook.png"></a></li>
+		  <li><a href="https://twitter.com/intent/tweet?source=http%3A%2F%2Fnokomis.macalester.edu%2Fcartograph%2Fstatic%2Fsurvey.html&text=Wikipedia%20Gender%20Focus%3A%20Mapped!:%20http%3A%2F%2Fnokomis.macalester.edu%2Fcartograph%2Fstatic%2Fsurvey.html" target="_blank" title="Tweet"><img alt="Tweet" src="images/flat_web_icon_set/color/Twitter.png"></a></li>
+		  <li><a href="https://plus.google.com/share?url=http%3A%2F%2Fnokomis.macalester.edu%2Fcartograph%2Fstatic%2Fsurvey.html" target="_blank" title="Share on Google+"><img alt="Share on Google+" src="images/flat_web_icon_set/color/Google+.png"></a></li>
+		  <li><a href="http://www.tumblr.com/share?v=3&u=http%3A%2F%2Fnokomis.macalester.edu%2Fcartograph%2Fstatic%2Fsurvey.html&t=Wikipedia%20Gender%20Focus%3A%20Mapped!&s=" target="_blank" title="Post to Tumblr"><img alt="Post to Tumblr" src="images/flat_web_icon_set/color/Tumblr.png"></a></li>
+		</ul>
+	</div>
+</div>
+
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="js/tooltipster.bundle.min.js"></script>
+    <script src="js/js.cookie.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/validate.js/0.10.0/validate.min.js"></script>
+
+    <!-- leaflet -->
+    <script src="js/leaflet.js"></script>
+    <!--<script src="js/carto-hash.js"></script>-->
+    <script src="js/carto-log.js"></script>
+
+    <!-- Main tangram library -->
+    <script src="js/tangram.min.js"></script>
+    <script src="js/tinycolor.js"></script>
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.3.0/intro.min.js"></script>
+
+    <!-- -->
+    <script src="../config.js"></script>
+    <script src="js/cartograph.js"></script>
+    <script src="js/chardin.min.js"></script>
+    <script src="js/survey.js"></script>
+
+    <script>
+		CG.init('gender');
+      	CG.map.setView([0, 0], 4);
+      	var survey = new Survey($('#surveyContainer'));
+
+		$("#help-icon").on('click', function() {
+			introJs().setOption('overlayOpacity', 0.5).start();
+		})
+
+    </script>
+
+  </body>
+</html>
