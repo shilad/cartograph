@@ -20,6 +20,6 @@ class ParentTask(luigi.WrapperTask):
             Coordinates.CreateFullCoordinates(),
             CreateContinents(),
             Colors.ColorsCode(),
-            FreeTextTask(),
+            #FreeTextTask(),
             AllMetrics()
         )
