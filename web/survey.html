@@ -150,6 +150,14 @@
 
 		}
 
+
+		#cityHolder {
+		  display: none;
+		  margin: auto;
+		  position: absolute;
+		  top: 50%; left: 35%;
+		}
+
 		#zoomHolder {
 			position: absolute;
 			height: 0;
@@ -183,6 +191,9 @@
     <div id="tooltip">&nbsp;</div>
     <div id="map">
 		<div id="mapHolder" data-intro="This is our map of Wikipedia. Countries give you an idea of the types of articles in them. The closer two article 'cities' (marked as white circles) are, the more related they are." data-position="bottom"></div>
+		<div id="cityHolder" data-intro="You can click on a city to view information about it. A city's gender focus is the number of times the article mentions men or women." data-position="bottom">
+			<img src="images/ww1.png" height="171" width="360"/>
+		</div>
 		<div id="zoomHolder" data-intro="You can zoom in and out by clicking here or scrolling" data-position="right"></div>
 		<div id="help-icon">?</div>
 	</div>
@@ -212,7 +223,11 @@
 <div id="introContainer">
 	<div id="introContent">
 		<h1>Cartograph: Gender Focus of Wikipedia Articles</h1>
-		<p>Cartograph visualizes the English Wikipedia as an interactive geographical map. City dots represent articles, colored by their gender focus. Articles that are closer together in meaning are shown closer together on the map.
+		<p>
+			Cartograph visualizes the English Wikipedia as an interactive geographical map.
+			City dots represent articles, colored by their gender focus.
+			Gender focus is defined as how often an article mentions men or women.
+			Articles that are closer together in meaning are shown closer together on the map.
 		</p>
 		<p>We would like your help to test the visualization. During the study, you will perform three tasks exploring the data. Afterwards, you will be asked to answer several questions. The study should take about 15 minutes.
 		</p>
@@ -587,10 +602,7 @@
 		CG.init('gender');
       	CG.map.setView([0, 0], 4);
       	var survey = new Survey($('#surveyContainer'));
-
-		$("#help-icon").on('click', function() {
-			introJs().setOption('overlayOpacity', 0.5).start();
-		})
+		$("#help-icon").on('click', showCartoDemo);
 
     </script>
 
