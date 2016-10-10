@@ -25,6 +25,7 @@ CG.log = function(params) {
     params.zoom = zoom;
     params.lat = center.lat.toFixed(precision);
     params.lng = center.lng.toFixed(precision);
+    params.url = location.href;
 
     if (CG.logToConsole) {
         console.log(params);
@@ -52,6 +53,7 @@ CG.logMany = function(messages) {
     params.zoom = zoom;
     params.lat = center.lat.toFixed(precision);
     params.lng = center.lng.toFixed(precision);
+    params.url = location.href;
     params.messages = messages;
 
     if (CG.logToConsole) {
