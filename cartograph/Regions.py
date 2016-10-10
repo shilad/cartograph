@@ -88,7 +88,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
             for i, (id, row) in enumerate(vecs.items()):
                 if i % 10000 == 0:
                     logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-                if id in sampleRegions:
+                if id in sampleRegions and 'cluster' in sampleRegions[id]:
                     cluster = sampleRegions[id]['cluster']
                 else:
                     sums = defaultdict(float)
