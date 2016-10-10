@@ -215,10 +215,13 @@ class RasterService:
             cr.set_line_width(1)
             if self.size == 512 and (z > 4 or z - p['zpop'] < 4):
                 cr.arc(xc, yc, 1, 0, pi * 2)    # two pixels
+                cr.stroke()
             else:
-                cr.move_to(xc, yc)              # one pixel
-                cr.line_to(xc, yc)
-            cr.stroke()
+                cr.rectangle(xc, yc, 1, 1)
+                cr.fill()
+                # cr.arc(xc, yc, 0.5, 0, pi * 2)    # two pixels
+                # cr.move_to(xc, yc)              # one pixel
+                # cr.line_to(xc, yc)
 
 
 if __name__ == '__main__':
