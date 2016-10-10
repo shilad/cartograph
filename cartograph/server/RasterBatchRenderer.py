@@ -42,9 +42,9 @@ class RenderThread:
 def render(conf, maxZoom):
     pointService = PointService(conf)
     countryService = CountryService(conf)
-    num_threads = multiprocessing.cpu_count()
+    num_threads = multiprocessing.cpu_count() / 2
     # Launch rendering threads
-    queue = multiprocessing.JoinableQueue(32)
+    queue = multiprocessing.JoinableQueue(100)
     logLock = multiprocessing.Lock()
     renderers = {}
     for i in range(num_threads):
@@ -55,8 +55,8 @@ def render(conf, maxZoom):
 
     metrics = conf.get('Metrics', 'active').split() + ['cluster']
     cacheDir = conf.get('DEFAULT', 'webCacheDir')
-    for z in range(1, maxZoom + 1):
-        for metric in metrics:
+    for metric in metrics:
+        for z in range(1, maxZoom + 1):
             for x in range(2 ** z):
                 for y in range(2 ** z):
                     try:

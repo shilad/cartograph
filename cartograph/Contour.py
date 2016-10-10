@@ -57,6 +57,7 @@ class CreateContours(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
+        required = ('cluster', 'vector', 'x', 'y')
         if config.sampleBorders():
             featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
                                                          "article_coordinates"),
@@ -65,12 +66,14 @@ class CreateContours(MTimeMixin, luigi.Task):
                                                config.getSample("GeneratedFiles",
                                                          "denoised_with_id"),
                                                config.getSample("ExternalFiles",
-                                                         "vecs_with_id"))
+                                                         "vecs_with_id"),
+                                               required=required)
         else:
             featuresDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
                                                config.get("GeneratedFiles", "clusters_with_id"),
                                                config.get("GeneratedFiles", "denoised_with_id"),
-                                               config.get("ExternalFiles", "vecs_with_id"))
+                                               config.get("ExternalFiles", "vecs_with_id"),
+                                               required=required)
         for key in featuresDict.keys():
             if key[0] == "w":
                 del featuresDict[key]
