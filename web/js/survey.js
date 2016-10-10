@@ -134,12 +134,26 @@ function shuffle(array) {
   return array;
 }
 
+function showCartoDemo() {
+	var cityHolder = $("#cityHolder")[0];
+
+	introJs()
+		.onbeforechange(function(targetElement) {
+			if (targetElement == cityHolder) {
+				$(cityHolder).show();
+			} else {
+				$(cityHolder).hide();
+			}
+		})
+		.setOption('overlayOpacity', 0.5)
+		.start();
+}
+
 $(document).ready(function() {
 	$('#startStudyButton').click(function() {
 		$('body').chardinJs('start'); // Show the directions
 		$('#introContainer').hide();
-		introJs().setOption('overlayOpacity', 0.5).start();
+		showCartoDemo();
 	});
 	CG.log({ event : 'startSurvey' });
-
 });
