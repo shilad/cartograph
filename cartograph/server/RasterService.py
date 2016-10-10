@@ -213,7 +213,7 @@ class RasterService:
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
             cr.set_line_width(1)
-            if z > 8 or (z - p['zpop'] > 0):
+            if z > 7 or (z - p['zpop'] > -1):
                 cr.arc(xc, yc, 1, 0, pi * 2)    # two pixels
                 cr.stroke()
             else:
