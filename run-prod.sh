@@ -7,5 +7,7 @@ fi
 
 export CARTOGRAPH_CONFIG=$1
 export PYTHONPATH=$PYTHONPATH:.
-gunicorn cartograph.server.app:app -w 8 --preload -b 127.0.0.1:4000
+
+echo "Starting server" >&2
+gunicorn cartograph.server.app:app -w 14 --max-requests 1000 --preload -b 127.0.0.1:4000
 

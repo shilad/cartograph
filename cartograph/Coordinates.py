@@ -151,6 +151,7 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
                 if len(row['vector']) == 0: continue
                 centroids = []
                 for id2, score in knn.neighbors(row['vector'], 10):
+                    if id2 not in sampleCoords: continue
                     x = float(sampleCoords[id2]['x'])
                     y = float(sampleCoords[id2]['y'])
                     if score >= 0.0:
