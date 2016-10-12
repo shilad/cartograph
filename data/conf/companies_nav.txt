@@ -1,0 +1,25 @@
+[DEFAULT]
+dataset: companies_nav
+externalDir: /Users/a558989/Projects/CartoExtractor/companies
+
+[ExternalFiles]
+vecs_with_id: %(externalDir)s/vectors.tsv
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 6
+water_level: .005
+sample_borders: False
+contour_bins: 1000
+
+[Metrics]
+active: sustainability
+sustainability: {
+         "type": "bivariate-scale",
+         "path": "%(externalDir)s/sustainability.tsv",
+         "fields": ["Overall-Sustainability"],
+         "colors": ["#f11", "#1d1"],
+         "percentile": true,
+         "neutralColor": "#bbb",
+         "maxValue": 1.0
+         }

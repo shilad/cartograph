@@ -58,7 +58,7 @@ map_height: 600
 
 [Server]
 vector_zoom: 20
-base_url: http://localhost:4000
+base_url: http://localhost:4000/%(dataset)s
 compress_png: true
 
 
