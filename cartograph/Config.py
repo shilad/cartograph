@@ -79,6 +79,8 @@ def initConf(confFile=None):
 
     return conf
 
+def getFullColorWheel():
+    return _coloringFeatures(30)
 
 def _verifyRequiredSections(conf, requiredSections):
     confSections = conf.sections()

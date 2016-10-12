@@ -153,7 +153,7 @@ class RasterService:
                 polysByName[props['clusterId'], int(props['contourNum'])] = shp
 
         numContours = self.conf.getint('PreprocessingConstants', 'num_contours')
-        colors = Config.getColorWheel()
+        colors = Config.getFullColorWheel()
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size, self.size)
         context = cairo.Context(surface)
         # First draw clusters
