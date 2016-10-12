@@ -19,12 +19,7 @@ class PointService:
     def __init__(self, config):
         self.points = {}
         self.metrics = {'cluster' : ClusterMetric() }
-        metricNames =  config.get('Metrics', 'active').split()
         self.maxZoom = config.getint('Server', 'vector_zoom')
-        self.numMetricPoints = { n : 0 for n in metricNames }
-        for n in metricNames:
-            js = json.loads(config.get('Metrics', n))
-            self.metrics[n] = getMetric(js)
 
         self.points = read_features(
             config.get('GeneratedFiles', 'article_coordinates'),
@@ -49,6 +44,12 @@ class PointService:
         self.index = PointIndex(ids, X, Y, pops)
         logger.info('finished indexing %d points...' % len(X))
 
+        metricNames =  config.get('Metrics', 'active').split()
+        self.numMetricPoints = { n : 0 for n in metricNames }
+        for n in metricNames:
+            js = json.loads(config.get('Metrics', n))
+            self.metrics[n] = getMetric(js)
+
         metricDir = config.get('DEFAULT', 'metricDir')
         for name, m in self.metrics.items():
             if name == 'cluster': continue
@@ -59,6 +60,9 @@ class PointService:
                     for (k, v) in js.items():
                         if k != 'id':
                             self.points[id][k]= v
+
+            if hasattr(m, 'train'):
+                m.train(self.points.values())
 
         fieldCounts = defaultdict(int)
         for p in self.points.values():

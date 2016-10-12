@@ -1,0 +1,25 @@
+[DEFAULT]
+dataset: movies_nav
+externalDir: /Users/a558989/Projects/CartoExtractor/movies
+
+[ExternalFiles]
+vecs_with_id: %(externalDir)s/vectors.tsv
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 6
+water_level: .005
+sample_borders: False
+contour_bins: 1000
+
+[Metrics]
+active: gender
+gender: {
+         "type": "bivariate-scale",
+         "path": "%(externalDir)s/gender.tsv",
+         "fields": ["Gender_Ratio"],
+         "colors": ["blue", "red"],
+         "percentile": true,
+         "neutralColor": "#aaa",
+         "maxValue": 1.0
+         }

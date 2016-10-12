@@ -12,9 +12,9 @@ class StaticService:
 
     def on_get(self, req, resp):
         try:
-            assert(req.path.startswith('/static'))
-            print req.path
-            path = self.staticDir + '/' + req.path[7:]
+            assert('/static' in req.path)
+            i = req.path.find('/static')
+            path = self.staticDir + '/' + req.path[i + 7:]
             resp.stream_len = os.path.getsize(path)
             resp.stream = open(path, 'rb')
             resp.status = falcon.HTTP_200
