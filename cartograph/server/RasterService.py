@@ -206,6 +206,7 @@ class RasterService:
         cr = cairo.Context(surf)
         cr.fill()
 
+        numPoints = self.pointService.getNumPoints()
         points = self.pointService.getTilePoints(z, x, y, 10000)
         points.sort(key=lambda p: p['zpop'], reverse=True)
         for p in points:
@@ -213,8 +214,21 @@ class RasterService:
             (r, g, b, a) = metric.getColor(p, z)
             cr.set_source_rgba(r, g, b, a)
             cr.set_line_width(1)
+
             if z > 7 or (z - p['zpop'] > -1):
-                cr.arc(xc, yc, 1, 0, pi * 2)    # two pixels
+                diam = 2
+            else:
+                diam = 1
+
+            # if numPoints < 100000:
+            #     diam *= 2  # HACK
+
+            if diam > 2:
+                cr.arc(xc, yc, diam / 2, 0, pi * 2)    # two pixels
+                cr.fill_preserve()
+                cr.stroke()
+            elif diam == 2:
+                cr.arc(xc, yc, diam / 2, 0, pi * 2)    # two pixels
                 cr.stroke()
             else:
                 cr.rectangle(xc, yc, 1, 1)
