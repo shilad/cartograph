@@ -80,11 +80,11 @@ layers:
                     text_source: name
                     interactive: true
 #                    collide: false
-                    font:
-                        family: Arial
-                        size: 8px
-                        fill: '#666'
-                        stroke: { color: '#fff', width: 2 }
+#                    font:
+#                        family: Arial
+#                        size: 8px
+#                        fill: '#666'
+#                        stroke: { color: '#fff', width: 2 }
         medium_cities:
             filter: { zoff : { min: 1, max: 2 } }
             draw:
@@ -105,7 +105,7 @@ layers:
                     font:
                         family: Arial
                         size: 10px
-                        fill: '#666'
+                        fill: '#333'
                         stroke: { color: '#fff', width: 2 }
         large_cities:
             filter: { zoff : { min: 2, max: 5 } }
@@ -127,8 +127,8 @@ layers:
                     font:
                         family: Arial
                         size: 14px
-                        fill: '#666'
-                        stroke: { color: '#fff', width: 2 }
+                        fill: '#333'
+                        stroke: { color: '#fff', width: 3 }
         huge_cities:
             filter: { zoff : { min: 5, max: 5000 } }
             draw:
@@ -149,8 +149,8 @@ layers:
                     font:
                         family: Arial
                         size: 20px
-                        fill: '#666'
-                        stroke: { color: '#fff', width: 2 }
+                        fill: '#333'
+                        stroke: { color: '#fff', width: 4 }
 
 
 

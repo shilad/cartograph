@@ -80,6 +80,9 @@ class PointService:
     def getAllPoints(self):
         return self.points.values()
 
+    def getNumPoints(self):
+        return len(self.points)
+
     def getTilePoints(self, z, x, y, maxN):
         extent = tileExtent(z, x, y)
         matches = self.index.queryRect(extent[0], extent[1], extent[2], extent[3], maxN)
