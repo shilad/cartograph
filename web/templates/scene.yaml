@@ -145,7 +145,7 @@ layers:
                     order: 1000
                     text_source: name
                     interactive: true
-                    collide: false
+#                    collide: false
                     font:
                         family: Arial
                         size: 20px

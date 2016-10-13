@@ -11,8 +11,8 @@ externalDir: ./data/labdata/%(dataset)s
 
 [ExternalFiles]
 external_ids: %(externalDir)s/ids.tsv
-best_vecs_with_id: %(externalDir)s/vectors.tsv
 vecs_with_id: %(externalDir)s/vectors.tsv
+best_vecs_with_id: %(externalDir)s/vectors.tsv
 w2v: %(externalDir)s/w2v.bin
 links: %(externalDir)s/links.tsv
 names_with_id: %(externalDir)s/names.tsv
