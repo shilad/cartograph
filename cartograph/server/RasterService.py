@@ -212,20 +212,28 @@ class RasterService:
         for p in points:
             xc, yc, = self.tileproj.fromLLtoTilePixel((p['x'], p['y']), z, x, y, self.size)
             (r, g, b, a) = metric.getColor(p, z)
-            cr.set_source_rgba(r, g, b, a)
-            cr.set_line_width(1)
 
             if z > 7 or (z - p['zpop'] > -1):
                 diam = 2
             else:
                 diam = 1
 
-            # if numPoints < 100000:
-            #     diam *= 2  # HACK
+            if z >= 3 and numPoints < 50000:
+                diam *= 3  # HACK
+                a *= 0.6
+            elif z >= 4 and numPoints < 100000:
+                diam *= 2  # HACK
+                a *= 0.7
+
+            cr.set_source_rgba(r, g, b, a)
+            cr.set_line_width(1)
+
 
             if diam > 2:
                 cr.arc(xc, yc, diam / 2, 0, pi * 2)    # two pixels
+                cr.set_source_rgba(r, g, b, a * 0.5)
                 cr.fill_preserve()
+                cr.set_source_rgba(r, g, b, a)
                 cr.stroke()
             elif diam == 2:
                 cr.arc(xc, yc, diam / 2, 0, pi * 2)    # two pixels

@@ -106,7 +106,7 @@ layers:
                         family: Arial
                         size: 10px
                         fill: '#333'
-                        stroke: { color: '#fff', width: 2 }
+                        stroke: { color: 'rgba(255, 255, 255, 0.7)', width: 4 }
         large_cities:
             filter: { zoff : { min: 2, max: 5 } }
             draw:
@@ -128,7 +128,7 @@ layers:
                         family: Arial
                         size: 14px
                         fill: '#333'
-                        stroke: { color: '#fff', width: 3 }
+                        stroke: { color: 'rgba(255, 255, 255, 0.7)', width: 6 }
         huge_cities:
             filter: { zoff : { min: 5, max: 5000 } }
             draw:
@@ -150,7 +150,7 @@ layers:
                         family: Arial
                         size: 20px
                         fill: '#333'
-                        stroke: { color: '#fff', width: 4 }
+                        stroke: { color: 'rgba(255, 255, 255, 0.7)', width: 8 }
 
 
 
