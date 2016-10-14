@@ -12,7 +12,7 @@ class ClusterMetric:
         nc = conf.getint('PreprocessingConstants', 'num_contours')
         self.colors = {}
         self.colorCountries = True
-        for cid, ccolors in Config.getColorWheel().items():
+        for cid, ccolors in Config.getFullColorWheel().items():
             self.colors[cid] = colour.Color(ccolors[nc - 1]).rgb
 
         self.neutralColor = colour.Color("#777").rgb
