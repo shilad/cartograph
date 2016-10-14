@@ -18,7 +18,7 @@ logger = logging.getLogger('cartograph.pointdata')
 class PointService:
     def __init__(self, config):
         self.points = {}
-        self.metrics = {'cluster' : ClusterMetric() }
+        self.metrics = {'cluster' : ClusterMetric(config) }
         self.maxZoom = config.getint('Server', 'vector_zoom')
 
         self.points = read_features(

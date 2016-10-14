@@ -6,10 +6,9 @@ from cartograph import Config
 
 
 class ClusterMetric:
-    def __init__(self):
+    def __init__(self, conf):
         self.fields = []
 
-        conf = Config.get()
         nc = conf.getint('PreprocessingConstants', 'num_contours')
         self.colors = {}
         self.colorCountries = True
