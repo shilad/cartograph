@@ -8,10 +8,10 @@ article_embedding: %(generatedDir)s/tsne_cache.tsv
 
 [PreprocessingConstants]
 sample_size: 50000
-num_clusters: 6
-water_level: .005
+num_clusters: 10
+water_level: .01
 sample_borders: False
-contour_bins: 1000
+contour_bins: 200
 
 [Metrics]
 active: gender
