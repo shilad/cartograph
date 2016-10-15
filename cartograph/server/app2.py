@@ -45,6 +45,9 @@ for path in confPaths.split(':'):
         logging.info('clearing cache directory %s' % conf.get('DEFAULT', 'webCacheDir'))
         shutil.rmtree(conf.get('DEFAULT', 'webCacheDir'), ignore_errors=True)
 
+    if os.getenv('BASE_URL'):
+        conf.set('Server', 'base_url', os.getenv('BASE_URL'))
+
     logging.info('intitializing services for ' + name)
 
     loggingService = LoggingService(conf)
