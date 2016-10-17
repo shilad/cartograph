@@ -149,7 +149,7 @@ pip2.7 install TileStache
 
 You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
 ```
-pip2.7 install -I Pillow == 2.9.0
+pip2.7 install -I Pillow==2.9.0
 ```
 
 
