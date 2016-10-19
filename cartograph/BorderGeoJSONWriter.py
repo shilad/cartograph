@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import matplotlib
 
 matplotlib.use("Agg")
@@ -13,7 +11,7 @@ import borders
 import matplotlib.path as mplPath
 from borders.BorderBuilder import BorderBuilder
 from Denoiser import Denoise
-from Regions import MakeSampleRegions, MakeRegions
+from Regions import MakeSampleRegions
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
@@ -49,46 +47,46 @@ class CreateContinents(MTimeMixin, luigi.Task):
 
     def requires(self):
         return (PreReqs.LabelNames(),
-                Coordinates.CreateFullCoordinates(),
                 Coordinates.CreateSampleCoordinates(),
                 BorderGeoJSONWriterCode(),
                 BorderFactoryCode(),
-                MakeRegions(),
+                MakeSampleRegions(),
                 Denoise())
+
+    def decomposeBorders(self, clusterDict):
+        '''
+        Break down clusters into every region that comprises the whole
+        and save for later possible data manipulation
+        TODO: Extract interior ports as well as borders
+        '''
+        regionList = []
+        membershipList = []
+        for key in clusterDict:
+            regions = clusterDict[key]
+            for region in regions:
+                regionList.append(region)
+                membershipList.append(key)
+        return regionList, membershipList
 
     def run(self):
         config = Config.get()
         clusterDict = BorderBuilder(config).build()
-        keys = sorted(clusterDict.keys())
-
-        # Flatten out region info into list of (regionId, clusterId, points)
-        regionInfo = []
-        for key in keys:
-            for region in clusterDict[key]:
-                regionInfo.append((
-                    str(len(regionInfo) + 1),   # region id
-                    str(key),                   # cluster id
-                    region                      # points on exterior
-                ))
-
+        clustList = [list(clusterDict[x]) for x in list(clusterDict.keys())]
+        regionList, membershipList = self.decomposeBorders(clusterDict)
         regionFile = config.get("ExternalFiles", "region_names")
-        BorderGeoJSONWriter(regionInfo, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
-
-        # Mapping between regions and cluster ids
+        BorderGeoJSONWriter(clustList, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
         Utils.write_tsv(config.get("MapData", "clusters_with_region_id"),
                         ("region_id", "cluster_id"),
-                        [i[0] for i in regionInfo],
-                        [i[1] for i in regionInfo])
-
-        # Mapping beween
+                        range(1, len(membershipList) + 1),
+                        membershipList)
         Utils.write_tsv(config.get("MapData", "borders_with_region_id"),
                         ("region_id", "border_list"),
-                        [i[0] for i in regionInfo],
-                        [i[2] for i in regionInfo])
+                        range(1, len(regionList) + 1),
+                        regionList)
         Utils.write_tsv(config.get("GeneratedFiles", "country_borders"),
                         ("cluster_id", "border_list"),
-                        keys,
-                        [clusterDict[k] for k in keys])
+                        range(len(clustList)),
+                        clustList)
 
 
 class BorderGeoJSONWriter:
@@ -96,44 +94,41 @@ class BorderGeoJSONWriter:
     Writes the country borders to a geojson file.
     '''
 
-    def __init__(self, regionInfo, regionFile):
+    def __init__(self, clusterList, regionFile):
         '''
         Sets the class variables.
         '''
         self.regionFile = regionFile
-        self.continents = self._buildContinentTrees(regionInfo)
+        self.clusterList = self._buildContinentTree(clusterList)
 
-    def _buildContinentTrees(self, regionInfo):
+    def _buildContinentTree(self, clusterList):
         '''
         Creates instances of the ContinentTree and Continent classes
         and uses them to create holes in the continents and returns
         the holey continents.
         '''
-
-        trees = defaultdict(ContinentTree)
-        for (regionId, clusterId, poly) in regionInfo:
-            trees[clusterId].addContinent(Continent(poly))
-
-        continents = {}
-        for clusterId, tree in trees.items():
-            tree.collapseHoles()
-            continents[clusterId] = tree
-
+        continents = []
+        for cluster in clusterList:
+            continentTree = ContinentTree()
+            for polygon in cluster:
+                shape = Continent(polygon)
+                continentTree.addContinent(shape)
+            continentTree.collapseHoles()
+            continents.append(continentTree)
         return continents
 
-    def _generateJSONFeature(self, clusterId, continents):
+    def _generateJSONFeature(self, index, continents):
         '''
         Creates the geojson geometries with the necessary properties.
         '''
-        labels = Utils.read_features(self.regionFile)
+        label = Utils.read_tsv(self.regionFile)
         shapeList = []
         for child in continents:
             polygon = child.points
             shapeList.append(polygon)
 
         newMultiPolygon = MultiPolygon(shapeList)
-        label = labels[clusterId].get("label", "Unknown")
-        properties = {"clusterId": clusterId, "labels": label}
+        properties = {"clusterNum": index, "labels": label["label"][index]}
         return Feature(geometry=newMultiPolygon, properties=properties)
 
     def writeToFile(self, filename):
@@ -142,8 +137,8 @@ class BorderGeoJSONWriter:
         of the countries.
         '''
         featureList = []
-        for clusterId, tree in self.continents.items():
-            featureList.append(self._generateJSONFeature(clusterId, tree.root))
+        for index, tree in enumerate(self.clusterList):
+            featureList.append(self._generateJSONFeature(index, tree.root))
         collection = FeatureCollection(featureList)
         textDump = dumps(collection)
         with open(filename, "w") as writeFile:

@@ -17,14 +17,9 @@ class BorderBuilder:
         self._initialize(config)
 
     def _initialize(self, config):
-        if config.sampleBorders():
-            featureDict = Utils.read_features(config.getSample("GeneratedFiles", "coordinates_with_water"),
-                                              config.getSample("GeneratedFiles", "clusters_with_water"),
-                                              config.getSample("GeneratedFiles", "denoised_with_id"))
-        else:
-            featureDict = Utils.read_features(config.get("GeneratedFiles", "coordinates_with_water"),
-                                              config.get("GeneratedFiles", "clusters_with_water"),
-                                              config.get("GeneratedFiles", "denoised_with_id"))
+        featureDict = Utils.read_features(config.getSample("GeneratedFiles", "coordinates_with_water"),
+                                          config.getSample("GeneratedFiles", "clusters_with_water"),
+                                          config.getSample("GeneratedFiles", "denoised_with_id"))
         idList = list(featureDict.keys())
         for article in idList:
             if featureDict[article]["keep"] == "True":
