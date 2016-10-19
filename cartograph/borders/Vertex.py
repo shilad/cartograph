@@ -5,7 +5,7 @@
 class Vertex:
 
     def __init__(self, index, point, isOnCoast):
-        self.index = index      # Index of point, it is a vertex in the Vornoi region
+        self.index = index
         self.x = point[0]
         self.y = point[1]
         self.isOnCoast = isOnCoast

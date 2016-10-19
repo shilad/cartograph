@@ -1,12 +1,11 @@
 import matplotlib
 
-import cartograph.PreReqs
-
 matplotlib.use("Agg")
 
 import luigi
 import json
 import Coordinates
+import Popularity
 import Config
 import Utils
 import scipy.stats as sps
@@ -36,19 +35,12 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
     def requires(self):
         config = Config.get()
-        if config.sampleBorders():
-            return (Coordinates.CreateSampleCoordinates(),
-                    cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                        "vecs_with_id")),
-                    ContourCode(),
-                    CreateContinents(),
-                    MakeRegions())
-        else:
-            return (Coordinates.CreateFullCoordinates(),
-                    cartograph.PreReqs.LabelNames(),
-                    ContourCode(),
-                    CreateContinents(),
-                    MakeRegions())
+        return (Coordinates.CreateSampleCoordinates(),
+                Popularity.SampleCreator(config.get("ExternalFiles",
+                                                    "vecs_with_id")),
+                ContourCode(),
+                CreateContinents(),
+                MakeRegions())
 
     def output(self):
         config = Config.get()
@@ -57,33 +49,23 @@ class CreateContours(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        required = ('cluster', 'vector', 'x', 'y')
-        if config.sampleBorders():
-            featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
-                                                         "article_coordinates"),
-                                               config.getSample("GeneratedFiles",
-                                                         "clusters_with_id"),
-                                               config.getSample("GeneratedFiles",
-                                                         "denoised_with_id"),
-                                               config.getSample("ExternalFiles",
-                                                         "vecs_with_id"),
-                                               required=required)
-        else:
-            featuresDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
-                                               config.get("GeneratedFiles", "clusters_with_id"),
-                                               config.get("GeneratedFiles", "denoised_with_id"),
-                                               config.get("ExternalFiles", "vecs_with_id"),
-                                               required=required)
+        featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
+                                                     "article_coordinates"),
+                                           config.getSample("GeneratedFiles",
+                                                     "clusters_with_id"),
+                                           config.getSample("GeneratedFiles",
+                                                     "denoised_with_id"),
+                                           config.getSample("ExternalFiles",
+                                                     "vecs_with_id"))
         for key in featuresDict.keys():
             if key[0] == "w":
                 del featuresDict[key]
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
-        binSize = config.getint("PreprocessingConstants", "contour_bins")
 
         countryBorders = config.get("MapData", "countries_geojson")
 
-        contour = ContourCreator(numClusters, binSize)
+        contour = ContourCreator(numClusters)
         contour.buildContours(featuresDict, countryBorders)
         contour.makeContourFeatureCollection([config.get("MapData", "density_contours_geojson"),config.get("MapData", "centroid_contours_geojson")])
 
@@ -95,9 +77,8 @@ class ContourCreator:
     out to geojson files.
     '''
 
-    def __init__(self, numClusters, binSize):
+    def __init__(self, numClusters):
         self.numClusters = numClusters
-        self.binSize = binSize
 
     def buildContours(self, featureDict, countryFile):
         '''
@@ -107,6 +88,7 @@ class ContourCreator:
         self.xs, self.ys, self.vectors = self._sortClustersInBorders(featureDict, self.numClusters, countryFile)
         self.centralities = self._centroidValues()
         self.countryFile = countryFile
+        self.binSize = 200
         self.CSs = []
         self.CSs.append(self._densityCalcContour())
         self.CSs.append(self._centroidCalcContour())
@@ -121,45 +103,46 @@ class ContourCreator:
         with open(bordersGeoJson) as f:
             bordersData = json.load(f)
 
-        allBordersDict = {}
+        allBordersDict = defaultdict(dict)
         for feature in bordersData['features']:
-            poly = shply.shape(feature['geometry']).simplify(0.01)
-            clusterId = feature['properties']['clusterId']
-            assert(clusterId)
-            allBordersDict[clusterId] = poly
+            poly = shply.shape(feature['geometry'])
+            cluster = feature['properties']['clusterNum']
+            allBordersDict[str(cluster)] = poly
 
-        xs = defaultdict(list)
-        ys = defaultdict(list)
-        vectors = defaultdict(list)
-        keys = sorted(featureDict.keys())
+        xs = [[] for i in range(numClusters)]
+        ys = [[] for i in range(numClusters)]
+        vectors = [[] for i in range(numClusters)]
+        keys = featureDict.keys()
 
         count = 0
-        keys = []
-        for index in featureDict:
-            if 'keep' not in featureDict[index]:
+        badKeys = []
+        for index in keys:
+            if 'keep' not in featureDict[index].keys():
                 count += 1
-            elif 'cluster' not in featureDict[index]:
+                badKeys.append(index)
+            elif 'cluster' not in featureDict[index].keys():
                 count += 1
-            elif 'x' not in featureDict[index]:
+                badKeys.append(index)
+            elif 'x' not in featureDict[index].keys():
                 count += 1
-            else:
-                keys.append(index)
-        print '%d of %d were bad keys' % (count, len(featureDict))
+                badKeys.append(index)
 
-        featureDict = { k: featureDict[k] for k in keys }   # filter out bad keys
+        for key in badKeys:
+            keys.remove(key)
+            del featureDict[key]
 
         for i, index in enumerate(keys):
             if i % 10000 == 0:
                 print 'doing', i, 'of', len(keys)
             pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or pointInfo.get('cluster') in (None, ''): continue
-            c = pointInfo['cluster']
+            if pointInfo['keep'] != 'True' or 'cluster' not in pointInfo: continue
+            c = int(pointInfo['cluster'])
             xy = Point(float(pointInfo['x']), float(pointInfo['y']))
-            # poly = allBordersDict.get(c)
-            # if poly and poly.contains(xy):
-            xs[c].append(xy.x)
-            ys[c].append(xy.y)
-            vectors[c].append(pointInfo['vector'])
+            poly = allBordersDict[str(c)]
+            if poly.contains(xy):
+                xs[c].append(float(pointInfo['x']))
+                ys[c].append(float(pointInfo['y']))
+                vectors[c].append(pointInfo['vector'])
 
         return xs, ys, vectors
 
@@ -170,23 +153,23 @@ class ContourCreator:
         compare each vector to the centroid and find each individual
         centroid value.
         '''
-        centralities = {}
-        for c, clusterVecs in self.vectors.items():
-            centroid = np.mean(clusterVecs, axis=0)
-            centralities[c] = [centroid.dot(v) for v in clusterVecs]
+        centralities = []
+        for vector in self.vectors:
+            centroid = np.mean(vector, axis=0)
+            dotValues = []
+            for vec in vector:
+                dotValues.append(centroid.dot(vec))
+            centralities.append(dotValues)
+
         return centralities
 
     def _centroidCalcContour(self):
         '''
         Creates the contours based off of centroids using binned_statistic_2d
         '''
-        CSs = {}
-        for c in self.xs:
-            x = self.xs[c]
-            y = self.ys[c]
-            values = self.centralities[c]
-            assert(len(x) == len(y) == len(values))
-            if len(x) < 2: continue  # essentially empty!
+        CSs = []
+        for (x, y, values) in zip(self.xs, self.ys, self.centralities):
+            if not x: continue
             centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
                                                         values,
                                                         statistic='mean',
@@ -203,7 +186,7 @@ class ContourCreator:
 
             smoothH = spn.zoom(centrality, 4)
             smoothH[smoothH < 0] = 0
-            CSs[c] = plt.contour(smoothH, extent=extent)
+            CSs.append(plt.contour(smoothH, extent=extent))
 
         return CSs
 
@@ -211,11 +194,8 @@ class ContourCreator:
         '''
         Creates the contours based off of density using histogram2d
         '''
-        CSs = {}
-        for c in self.xs:
-            x = self.xs[c]
-            y = self.ys[c]
-            values = self.centralities[c]
+        CSs = []
+        for (x, y) in zip(self.xs, self.ys):
             if not x: continue
             H, yedges, xedges = np.histogram2d(y, x,
                                                bins=self.binSize,
@@ -229,7 +209,7 @@ class ContourCreator:
 
             smoothH = spn.zoom(H, 4)
             smoothH[smoothH < 0] = 0
-            CSs[c] = plt.contour(smoothH, extent=extent)
+            CSs.append(plt.contour(smoothH, extent=extent))
 
         return CSs
 
@@ -238,8 +218,8 @@ class ContourCreator:
         Extracts the contours from CS.collections.get_paths to
         separate each contour by layer.
         '''
-        plyList = {}
-        for c, CS in CSs.items():
+        plyList = []
+        for CS in CSs:
             plys = []
             for i in range(len(CS.collections)):
                 shapes = []
@@ -248,7 +228,7 @@ class ContourCreator:
                     v = p.vertices
                     shapes.append(v)
                 plys.append(shapes)
-            plyList[c] = plys
+            plyList.append(plys)
         return plyList
 
     def _cleanContours(self, CSs):
@@ -260,11 +240,8 @@ class ContourCreator:
         js = json.load(open(self.countryFile, 'r'))
         plyList = self._getContours(CSs)
 
-        newPlys = {}
-        for clusterFeatures in js['features']:
-            clusterId = clusterFeatures['properties']['clusterId']
-            assert(clusterId)
-            if clusterId not in plyList: continue
+        newPlys = []
+        for (clusterId, clusterFeatures) in enumerate(js['features']):
             clusterGeom = shply.shape(clusterFeatures['geometry']).buffer(0.0)
             newClusterContours = []
             for clusterCounters in plyList[clusterId]:
@@ -285,7 +262,7 @@ class ContourCreator:
                                 newPolygons.append(ring.coords)
                 if len(newPolygons) > 0:
                     newClusterContours.append(newPolygons)
-            newPlys[clusterId] = newClusterContours
+            newPlys.append(newClusterContours)
 
         return newPlys
 
@@ -296,29 +273,23 @@ class ContourCreator:
         Features for each Contour.
         '''
         newPlys = self._cleanContours(CSs)
-        # newPlys = CSs
-        countryGroup = {}
-        for clusterId, plys in newPlys.items():
+        countryGroup = []
+        for plys in newPlys:
             contourList = []
             for group in plys:
                 contour = Contour(group)
                 contour.createHoles()
                 contourList.append(contour)
-            countryGroup[clusterId] = contourList
+            countryGroup.append(contourList)
 
         featureAr = []
-        for clusterId, contourList in countryGroup.items():
+        for clusterNum, contourList in enumerate(countryGroup):
             for index, contour in enumerate(contourList):
                 geoPolys = []
                 for polygon in contour.polygons:
                     geoPolys.append(polygon.points)
                 newMultiPolygon = MultiPolygon(geoPolys)
-                props = {
-                    "contourNum": index,
-                    "clusterId": clusterId,
-                    "contourId": str(clusterId) + '_' + str(index)
-                }
-                newFeature = Feature(geometry=newMultiPolygon, properties=props)
+                newFeature = Feature(geometry=newMultiPolygon, properties={"contourNum": index, "clusterNum": clusterNum, "identity": str(index) + str(clusterNum)})
                 featureAr.append(newFeature)
 
         return featureAr

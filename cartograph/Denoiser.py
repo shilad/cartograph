@@ -20,45 +20,25 @@ class Denoise(MTimeMixin, luigi.Task):
     '''
     def output(self):
         config = Config.get()
-        if config.sampleBorders():
-            return (
-                TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                                        "denoised_with_id")),
-                TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                                        "clusters_with_water")),
-                TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                                        "coordinates_with_water"))
-            )
-        else:
-            return (
-                TimestampedLocalTarget(config.get("GeneratedFiles",
-                                                  "denoised_with_id")),
-                TimestampedLocalTarget(config.get("GeneratedFiles",
-                                                  "clusters_with_water")),
-                TimestampedLocalTarget(config.get("GeneratedFiles",
-                                                  "coordinates_with_water"))
-            )
+        return (
+            TimestampedLocalTarget(config.getSample("GeneratedFiles",
+                                                    "denoised_with_id")),
+            TimestampedLocalTarget(config.getSample("GeneratedFiles",
+                                                    "clusters_with_water")),
+            TimestampedLocalTarget(config.getSample("GeneratedFiles",
+                                                    "coordinates_with_water"))
+        )
 
     def requires(self):
-        if Config.get().sampleBorders():
-            return (MakeRegions(),
-                    Coordinates.CreateSampleCoordinates(),
-                    DenoiserCode())
-        else:
-            return (MakeRegions(),
-                    Coordinates.CreateFullCoordinates(),
-                    DenoiserCode())
+        return (MakeRegions(),
+                Coordinates.CreateSampleCoordinates(),
+                DenoiserCode())
 
     def run(self):
         config = Config.get()
-        if config.sampleBorders():
-            featureDict = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
-                                              config.getSample("GeneratedFiles", "clusters_with_id"),
-                                              required=("x", "y", "cluster"))
-        else:
-            featureDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
-                                              config.get("GeneratedFiles", "clusters_with_id"),
-                                              required=("x", "y", "cluster"))
+        featureDict = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
+                                          config.getSample("GeneratedFiles",
+                                                           "clusters_with_id"))
         featureIDs = list(featureDict.keys())
         x = [float(featureDict[fID]["x"]) for fID in featureIDs]
         y = [float(featureDict[fID]["y"]) for fID in featureIDs]
@@ -72,26 +52,17 @@ class Denoise(MTimeMixin, luigi.Task):
         for x in range(len(waterX) - len(featureIDs)):
             featureIDs.append("w" + str(x))
 
-        if config.sampleBorders():
-            Utils.write_tsv(config.getSample("GeneratedFiles",
-                                             "denoised_with_id"),
-                            ("index", "keep"),
-                            featureIDs, keepBooleans)
+        Utils.write_tsv(config.getSample("GeneratedFiles",
+                                         "denoised_with_id"),
+                        ("index", "keep"),
+                        featureIDs, keepBooleans)
 
-            Utils.write_tsv(config.getSample("GeneratedFiles",
-                                             "coordinates_with_water"),
-                            ("index", "x", "y"), featureIDs, waterX, waterY)
-            Utils.write_tsv(config.getSample("GeneratedFiles", "clusters_with_water"),
-                            ("index", "cluster"), featureIDs, waterCluster)
-        else:
-            Utils.write_tsv(config.get("GeneratedFiles", "denoised_with_id"),
-                            ("index", "keep"),
-                            featureIDs, keepBooleans)
+        Utils.write_tsv(config.getSample("GeneratedFiles",
+                                         "coordinates_with_water"),
+                        ("index", "x", "y"), featureIDs, waterX, waterY)
+        Utils.write_tsv(config.getSample("GeneratedFiles", "clusters_with_water"),
+                        ("index", "cluster"), featureIDs, waterCluster)
 
-            Utils.write_tsv(config.get("GeneratedFiles", "coordinates_with_water"),
-                            ("index", "x", "y"), featureIDs, waterX, waterY)
-            Utils.write_tsv(config.get("GeneratedFiles", "clusters_with_water"),
-                            ("index", "cluster"), featureIDs, waterCluster)
 
 class Denoiser:
 
@@ -126,14 +97,13 @@ class Denoiser:
         return signal
 
     def _add_water(self, x, y, clusters):
-        maxV = max(np.max(np.abs(x)), np.max(np.abs(y)))
-
-        def f(n):
-            return (np.random.beta(0.8, 0.8, n) - 0.5) * 2 * (maxV + 5)
         length = len(x)
-        water_x = f(int(length * self.waterLevel))
-        water_y = f(int(length * self.waterLevel))
-
+        water_x = np.random.uniform(np.min(x) - 3,
+                                    np.max(x) + 3,
+                                    int(length * self.waterLevel))
+        water_y = np.random.uniform(np.min(x) - 3,
+                                    np.max(x) + 3,
+                                    int(length * self.waterLevel))
         x = np.append(x, water_x)
         y = np.append(y, water_y)
         clusters = np.append(clusters,

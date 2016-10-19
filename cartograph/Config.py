@@ -69,18 +69,10 @@ def initConf(confFile=None):
             n = target.getint('PreprocessingConstants', 'sample_size')
         return samplePath(target.get(section, key), n)
 
-    def confSampleBorders(target):
-        return target.getboolean('PreprocessingConstants', 'sample_borders')
-
     conf.getSample = types.MethodType(confSample, conf)
-    conf.sampleBorders  = types.MethodType(confSampleBorders, conf)
 
     CONFIG = conf
 
-    return conf
-
-def getFullColorWheel():
-    return _coloringFeatures(30)
 
 def _verifyRequiredSections(conf, requiredSections):
     confSections = conf.sections()
@@ -142,7 +134,8 @@ def _coloringFeatures(num_clusters):
                 28: {6: "#a11837", 5: "#aa2f4b", 4: "#b3465e", 3: "#bd5d73", 2: "#c67487", 1: "#d08b9b", 0: "#d9a2af", 7: "#e2b9c3"},
                 29: {6: "#cf7ced", 5: "#d389ee", 4: "#d896f0", 3: "#dda3f2", 2: "#e2b0f4", 1: "#e7bdf6", 0: "#ebcaf7", 7: "#f0d7f9"}}
 
-    result = {}
-    for i in range(num_clusters):
-        result[str(i)] = colors[i]
-    return result
+    keys = colors.keys()[:num_clusters]
+    for key in colors.keys():
+        if key not in keys:
+            del colors[key]
+    return colors
