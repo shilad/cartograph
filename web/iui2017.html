@@ -1,0 +1,349 @@
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Map of World Knowledge</title>
+
+    <meta property="og:title" content="Cartograph: IUI 2017" />
+
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link rel="stylesheet" href="css/auto-complete.css"/>
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.bundle.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.shadow.min.css" />
+
+  <script src="js/pace.min.js"></script>
+  <link href="css/pace.css" rel="stylesheet" />
+
+
+    <style>
+      html, body {
+        overflow: hidden;
+      }
+
+        #map {
+          position: absolute;
+          top: 23px;
+          bottom: 0;
+          left: 0;
+          right: 0;
+        }
+
+        h1, h2, h3, h4 {
+          font-family: "Verdana", "Geneva", "sans-serif";
+        }
+
+        p {
+          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+          font-size: 14px;
+          line-height: 140%;
+        }
+
+        #search {
+          width: 200px;
+          height: 30px;
+          position: absolute;
+          top: 37px;
+          left: 50px;
+          z-index: 1000000;
+          box-shadow: 5px 5px 5px #aaaaaa;
+          font-size: 14px;
+          font-family: "Verdana", "Geneva", "sans-serif";
+        }
+
+        #related-label {
+          position: absolute;
+          top: 80px;
+          left: 53px;
+          z-index: 1000000;
+          font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+          font-size: 16px;
+          display: none;
+        }
+
+        #related-label span {
+          font-weight: 600;
+        }
+
+        #search input {
+          font-size: 16px;
+          padding: 5px;
+          width: 100%;
+          height: 100%;
+        }
+
+        #tooltip {
+          position: fixed;
+          top: 100px;
+          left: 100px;
+          z-index: 100000;
+          width: 5px;
+          height: 5px;
+          cursor: pointer;
+        }
+
+        #map-choice {
+          min-height: 23px;
+          background-color: black;
+          font-size: 13px;
+          font-family: "Verdana", "Geneva", "sans-serif";
+          color: white;
+          width: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000000;
+          box-shadow: 2px 2px 2px #aaaaaa;
+          padding-top: 6px;
+        }
+
+        #map-choice .choice {
+          display: inline-block;
+          color: #ccc;
+          border-left: 1px dotted #444;
+          padding: 0 6px;
+          cursor: pointer;
+        }
+
+        #map-choice .choice.active {
+          border-bottom: solid red 1px;
+        }
+
+        div.legend {
+          font-size: 13px;
+          width: 300px;
+          position: absolute;
+          top: 37px;
+          right: 10px;
+          z-index: 1000000;
+          border: 1px solid #f0f0f0;
+          border-bottom: 2px solid #ccc;
+          background-color: rgba(250, 250, 250, 0.9);
+          box-shadow: 5px 5px 5px #aaaaaa;
+          color: #666;
+          padding: 5px;
+        }
+
+        div.legend h1 {
+          font-size: 16px;
+          color: black;
+        }
+
+        div.legend p {
+          margin-top: 8px;
+          margin-bottom: 8px;
+        }
+        .legend .spectrum {
+          margin: 0;
+          padding: 0;
+          font-size: 0;
+          text-align: center;
+          width: 100%;
+        }
+        .legend .spectrum > * {
+          font-family: "Verdana", "Geneva", "sans-serif";
+          font-size: 13px;
+        }
+        .spectrum .label {
+          display: inline-block;
+          margin-bottom: 5px;
+        }
+        .spectrum .left-label, .spectrum .right-label {
+          font-weight: 700;
+          color: black;
+          width: 25%;
+        }
+        .spectrum .center-label { width: 50%; }
+        .spectrum .grad-5 {
+          width: 20%;
+          height: 10px;
+          display: inline-block;
+          outline: solid 1px #aaa;
+        }
+
+        .autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
+        .autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+        .autocomplete-no-suggestion { padding: 2px 5px;}
+        .autocomplete-selected { background: #F0F0F0; }
+        .autocomplete-suggestions strong { font-weight: bold; color: #000; }
+        .autocomplete-group { padding: 2px 5px; }
+        .autocomplete-group strong { font-weight: bold; font-size: 16px; color: #000; display: block; border-bottom: 1px solid #000; }
+
+
+    </style>
+  </head>
+
+  <body>
+    <div id="tooltip">&nbsp;</div>
+    <div id="map"></div>
+    <div id="search">
+        <input id="search-field" type="text" placeholder="Search the map">
+    </div>
+    <div id="related-label">
+      showing concepts related to "<span>foo</span>" <a href="#">(hide)</a>
+    </div>
+    <div id="map-choice">
+      <div layerId="wmf_en-cluster" class="choice">Wikipedia topics</div>
+      <div layerId="wmf_en-gender" class="choice">Wikipedia gender</div>
+      <div layerId="movies_nav-cluster" class="choice">Movie groups</div>
+      <div layerId="movies_nav-gender" class="choice">Movie gender</div>
+      <div layerId="companies_nav-cluster" class="choice">Company groups</div>
+      <div layerId="companies_nav-sustainability" class="choice">Company sustainability</div>
+    </div>
+
+    <div class="legend" id="legend-wmf_en-cluster">
+      <h1>Map of Wikipedia Topics</h1>
+      <p>
+        This map visualizes Wikipedia articles.
+        Cities represent articles, with neighboring cities being related in meaning.
+        Colored countries correspond to groups of related articles.
+      </p>
+    </div>
+
+    <div class="legend" id="legend-movies_nav-cluster">
+      <h1>Map of Film Topics</h1>
+      <p>
+        This map visualizes films.
+        Each city represents a film, with neighboring cities being related in meaning.
+        Colored countries correspond to groups of related films.
+      </p>
+    </div>
+
+    <div class="legend" id="legend-companies_nav-cluster">
+      <h1>Map of Company Groups</h1>
+      <p>
+        This map visualizes companies.
+        Each city represents a companies, with neighboring cities being related in meaning.
+        Colored countries correspond to groups of related companies.
+      </p>
+    </div>
+
+    <div class="legend" id="legend-movies_nav-gender">
+      <h1>Map of Film Interest by Gender</h1>
+      <p>
+        This map visualizes the interest in films by gender.
+        Each city represents a film, with neighboring cities being related in meaning.
+        Film interest is defined by the relative frequency with which a gender rates a film on <a href="http://movielens.org">MovieLens</a>.
+      </p>
+      <div class="spectrum">
+        <div class="label left-label">men</div>
+        <div class="label center-label">&larr;more interest&rarr;</div>
+        <div class="label right-label">women</div>
+        <div class="grad-5" style="background-color: #00f"></div>
+        <div class="grad-5" style="background-color: #a1b6e8"></div>
+        <div class="grad-5" style="background-color: #8910C9"></div>
+        <div class="grad-5" style="background-color: #bb4992"></div>
+        <div class="grad-5" style="background-color: #f00"></div>
+      </div>
+    </div>
+
+    <div class="legend" id="legend-wmf_en-gender">
+      <h1>Map of Wikipedia Gender Focus</h1>
+      <p>
+        This map visualizes the gender focus of Wikipedia articles.
+        Cities represent articles, with neighboring cities being related in meaning.
+        Gender focus is based by the number of times a Wikipedia article refers to men and women.
+      </p>
+      <div class="spectrum">
+        <div class="label left-label">men</div>
+        <div class="label center-label">&larr;mentions more&rarr;</div>
+        <div class="label right-label">women</div>
+        <div class="grad-5" style="background-color: #00f"></div>
+        <div class="grad-5" style="background-color: #a1b6e8"></div>
+        <div class="grad-5" style="background-color: #8910C9"></div>
+        <div class="grad-5" style="background-color: #bb4992"></div>
+        <div class="grad-5" style="background-color: #f00"></div>
+      </div>
+    </div>
+
+    <div class="legend" id="legend-companies_nav-sustainability">
+      <h1>Map of Company Sustainability Ratings</h1>
+      <p>
+        This map visualizes the sustainability ratings of companies.
+        Each city represents a company, with neighboring cities being related in meaning.
+        Sustainability ratings are defined using data from <a href="http://csrhub.com">CSRHub</a>.
+      </p>
+      <div class="spectrum">
+        <div class="label left-label">poor</div>
+        <div class="label center-label">&larr;rating&rarr;</div>
+        <div class="label right-label">good</div>
+        <div class="grad-5" style="background-color: #f00"></div>
+        <div class="grad-5" style="background-color: #aa6100"></div>
+        <div class="grad-5" style="background-color: #999304"></div>
+        <div class="grad-5" style="background-color: #a2ce40"></div>
+        <div class="grad-5" style="background-color: #0f0"></div>
+      </div>
+    </div>
+
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="js/tooltipster.bundle.min.js"></script>
+    <script src="js/js.cookie.js"></script>
+
+    <!-- leaflet -->
+    <script src="js/leaflet.js"></script>
+    <script src="js/carto-hash.js"></script>
+    <script src="js/carto-log.js"></script>
+
+    <!-- Main tangram library -->
+    <script src="js/tangram.min.js"></script>
+    <script src="js/tinycolor.js"></script>
+
+    <!-- -->
+    <script src="js/cartograph.js"></script>
+
+    <script>
+
+
+      var showLayerUI = function(layerId) {
+          var choices = $("#map-choice .choice");
+          $(choices).removeClass("active");
+          $(choices).filter('[layerId=\'' + layerId + '\']').addClass('active');
+          $("div.legend").hide();
+          $("#legend-" + layerId).show();
+      };
+
+      var oldParts = window.location.href.split('#')[0].split('/');
+      var oldMap = oldParts[oldParts.length - 3];
+      console.log('oldMap', oldMap, oldParts);
+
+      var choices = $("#map-choice .choice");
+      choices.on('click', function() {
+                var layerId = $(this).attr('layerId');
+                var newParts = layerId.split('-');
+                var newMap = newParts[0];
+                var newLayer = newParts[1];
+                if (newMap == oldMap) {
+                console.log(newLayer, '1');
+                  showLayerUI(layerId);
+                  CG.changeLayer(newLayer);
+                } else {
+                  var oldUrl = window.location.href.split('#')[0];
+                  var newUrl = oldUrl.replace(oldMap, newMap) + '#' + newLayer + '/4/0.00/0.00';
+                  console.log('newUrl', newUrl);
+                  location.href = newUrl;
+                }
+                return false;
+              });
+
+      var layer = 'cluster';
+      if (window.location.hash) {
+        var l = L.Hash.parseHash(window.location.hash);
+        if (l && l.layer) {
+          layer = l.layer;
+        }
+        CG.init(l.layer);
+        CG.map.setView(l.center, l.zoom);
+      } else {
+        CG.init(layer);
+        CG.map.setView([0, 0], 4);
+      }
+      showLayerUI(oldMap + '-' + layer);
+    </script>
+
+  </body>
+</html>

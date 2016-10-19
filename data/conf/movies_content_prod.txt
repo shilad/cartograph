@@ -1,0 +1,27 @@
+[DEFAULT]
+dataset: movies_content
+externalDir: ./data/movies_content/ext
+
+[ExternalFiles]
+vecs_with_id: %(externalDir)s/vectors2.tsv
+article_embedding: %(generatedDir)s/tsne_cache.tsv
+
+[Server]
+base_url: http://nokomis.macalester.edu/cartograph/%(dataset)s
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 6
+water_level: .005
+sample_borders: False
+contour_bins: 1000
+
+[Metrics]
+active:
+gender: {
+         "type": "count",
+         "path": "%(externalDir)s/gender.tsv",
+         "fields": ["women", "men"],
+         "colors": ["red", "blue"],
+         "bins": 3
+         }

@@ -3,64 +3,78 @@ import Config
 import LuigiUtils
 import Coordinates
 from BorderGeoJSONWriter import CreateContinents
-from ZoomGeoJSONWriter import CreateLabelsFromZoom
 from Contour import CreateContours
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, LoadGeoJsonTask
-
-
-class PGLoaderCode(MTimeMixin, luigi.ExternalTask):
-    def output(self):
-        return (TimestampedLocalTarget(LuigiUtils.__file__))
+from cartograph.CalculateZPop import CoordinatesGeoJSONWriter
 
 
 class LoadContoursDensity(LoadGeoJsonTask):
-    def __init__(self):
-        config = Config.get()
-        LoadGeoJsonTask.__init__(self,
-                                 config,
-                                 'contoursdensity',
-                                 config.get('MapData',
-                                            'density_contours_geojson'))
 
-    def requires(self):
-        return CreateContours(), PGLoaderCode()
+    def __init__(self, *args, **kwargs):
+        self._geoJsonPath = Config.get().get('MapData', 'density_contours_geojson')
+        super(LoadContoursDensity, self).__init__(*args, **kwargs)
 
+    @property
+    def table(self): return 'contoursdensity'
 
-class LoadContoursCentroid(LoadGeoJsonTask):
-    def __init__(self):
-        config = Config.get()
-        LoadGeoJsonTask.__init__(self,
-                                 config,
-                                 'contourscentroid',
-                                 config.get('MapData',
-                                            'centroid_contours_geojson'))
-
-    def requires(self):
-        return CreateContours(), PGLoaderCode()
-
-
-class LoadCoordinates(LoadGeoJsonTask):
-    def __init__(self):
-        config = Config.get()
-        LoadGeoJsonTask.__init__(self,
-                                 config,
-                                 'coordinates',
-                                 config.get('MapData', 'title_by_zoom'))
+    @property
+    def geoJsonPath(self): return self._geoJsonPath
 
     def requires(self):
         return (
-            Coordinates.CreateFullCoordinates(),
-            PGLoaderCode(),
-            CreateLabelsFromZoom()
+            CreateContours(),
+        )
+
+
+
+class LoadContoursCentroid(LoadGeoJsonTask):
+
+    def __init__(self, *args, **kwargs):
+        self._geoJsonPath = Config.get().get('MapData', 'centroid_contours_geojson')
+        super(LoadContoursCentroid, self).__init__(*args, **kwargs)
+
+    @property
+    def table(self): return 'contourscentroid'
+
+    @property
+    def geoJsonPath(self): return self._geoJsonPath
+
+    def requires(self):
+        return (
+            CreateContours(),
+        )
+
+class LoadCoordinates(LoadGeoJsonTask):
+
+    def __init__(self, *args, **kwargs):
+        self._geoJsonPath = Config.get().get('MapData', 'coordinates')
+        super(LoadCoordinates, self).__init__(*args, **kwargs)
+
+    @property
+    def table(self): return 'coordinates'
+
+    @property
+    def geoJsonPath(self): return self._geoJsonPath
+
+    def requires(self):
+        return (
+            CoordinatesGeoJSONWriter(),
         )
 
 
 class LoadCountries(LoadGeoJsonTask):
-    def __init__(self):
-        config = Config.get()
-        LoadGeoJsonTask.__init__(self,
-                                 config, 'countries',
-                                 config.get('MapData', 'countries_geojson'))
+
+    def __init__(self, *args, **kwargs):
+        self._geoJsonPath = Config.get().get('MapData', 'countries_geojson')
+        super(LoadCountries, self).__init__(*args, **kwargs)
+
+    @property
+    def table(self): return 'countries'
+
+    @property
+    def geoJsonPath(self): return self._geoJsonPath
 
     def requires(self):
-        return CreateContinents(), PGLoaderCode()
+        return (
+            CreateContinents(),
+        )
