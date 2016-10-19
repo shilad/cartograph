@@ -11,8 +11,8 @@ function usage() {
     exit 1
 }
 
-MODULE=RenderMap
-TASK=RenderMap
+MODULE=cartograph
+TASK=ParentTask
 
 while [ "$1" != "" ]; do
     case $1 in

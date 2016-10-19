@@ -3,6 +3,8 @@ import codecs
 import numpy as np
 import sys
 
+import psycopg2
+
 
 def read_tsv(filename):
     with codecs.open(filename, "r", encoding="utf-8") as f:
@@ -25,26 +27,6 @@ def read_wikibrain_vecs(path):
         for line in vecs:
             matrix.append(map(float, line.rstrip("\n").split("\t")))
     return matrix
-
-
-# def write_tsv(filename, headers, data):
-#     with open(filename, "w") as f:
-#         s = ("\t".join(headers) + "\n").encode("utf-8")
-#         f.write(s)
-#         for row_num in range(len(data[0])):
-#             row = [col[row_num] for col in data]
-#             s = ("\t".join(map(unicode, row)) + "\n").encode("utf-8")
-#             f.write("%s\t%s" % (row_num, s))
-
-def read_zoom(filename):
-    values = defaultdict(dict)
-    with open(filename) as f:
-        for line in f:
-            tokens = line.split('\t')
-            zoom = tokens[0]
-            denom = tokens[1][:-1]
-            values[zoom] = denom
-    return values
 
 
 def read_features(*files, **kwargs):
@@ -101,6 +83,7 @@ def write_tsv(filename, header, indexList, *data):
             if data[i][-1] != "\n":
                 data[i] += "\n"
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
+        writeFile.close()
 
 def append_to_tsv(parentName, writeName, *data):
     with open(parentName, "r") as parentFile:
@@ -129,28 +112,6 @@ def append_to_tsv(parentName, writeName, *data):
             writeFile.write("%s\t%s" % (index, data[i]))
 
 
-''' TODO: REFACTOR ME
-def append_tsv(filename, header, indexList, *data):
-    for index, dataList in enumerate(data):
-        if len(dataList) != len(data[0]):
-            raise InputError(index, "Lists must match to map together")
-    with open(filename, "a") as writeFile:
-        writeFile.write("\t".join(header) + "\n")
-        if len(data) > 1:
-            data = zip(*data)
-            data = ["\t".join([str(val) for val in dataPt]) for dataPt in data]
-        else:
-            data = data[0]
-
-        for i in range(len(data)):
-            index = lastIndex + i + 1
-            data[i] = str(data[i])
-            if data[i][-1] != "\n":
-                data[i] += "\n"
-            writeFile.write("%s\t%s" % (index, data[i]))
-'''
-
-
 def sort_by_feature(articleDict, featureName, reverse=True):
     allArticles = []
     if featureName not in articleDict[articleDict.keys()[0]]:
@@ -170,6 +131,13 @@ def sort_by_percentile(numBins):
         # np.percentile(percentileList, (i, i+1))
 
 
+def pg_cnx(config):
+    return psycopg2.connect(
+        dbname=config.get('PG', 'database'),
+        host=config.get('PG', 'host'),
+        user=config.get('PG', 'user'),
+        password=config.get('PG', 'password'),
+    )
 
 class InputError(Exception):
     """Exception raised for errors in the input.
@@ -189,6 +157,10 @@ def calc_area(points):
     y = unzipped[1]
     # Shoelace Algorithm (a la Stackoverflow)
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
+
+def zoomMeters(zoom):
+    return 156543.03 / (2 ** zoom)
 
 if __name__=='__main__':
 

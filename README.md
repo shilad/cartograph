@@ -11,8 +11,8 @@ This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/car
 ###Github
 Fork and clone the repo:
 ```
-git clone https://github.com/Bboatman/proceduralMapGeneration.git
-cd proceduralMapGeneration/
+git clone https://github.com/shilad/cartograph
+cd cartograph/
 ```
 ###Postgres
 Then get postgres, which is where your data is going to live, from [here](http://postgresapp.com/). You'll need to change your bash profile in order to get it to work:
@@ -138,6 +138,7 @@ pip2.7 install mapnik
 pip2.7 install lxml
 pip2.7 install sklearn
 pip2.7 install Cython
+pip2.7 install numpy
 pip2.7 install tsne
 pip2.7 install psycopg2
 pip2.7 install annoy
@@ -148,7 +149,7 @@ pip2.7 install TileStache
 
 You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
 ```
-pip2.7 install -I Pillow == 2.9.0
+pip2.7 install -I Pillow==2.9.0
 ```
 
 
