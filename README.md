@@ -11,8 +11,8 @@ This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/car
 ###Github
 Fork and clone the repo:
 ```
-git clone https://github.com/Bboatman/proceduralMapGeneration.git
-cd proceduralMapGeneration/
+git clone https://github.com/shilad/cartograph
+cd cartograph/
 ```
 ###Postgres
 Then get postgres, which is where your data is going to live, from [here](http://postgresapp.com/). You'll need to change your bash profile in order to get it to work:
