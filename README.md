@@ -106,7 +106,7 @@ First up, the directories.
 1. In data/labdata, create a new file and call it something relevant to your dataset. Ours is called dev_en (development english)
 2. Put all your data files from Data Format into this folder
 3. Change the "dataset" line in the config file to point to your folder rather than dev_en
-4. One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
+4. One more conf file to create - create a file called conf.txt and put it in the base directory (cartograph). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
 ```
 [Heading]
 ```
