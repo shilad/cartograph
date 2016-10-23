@@ -1,0 +1,188 @@
+scene:
+    background:
+        color: '#F0F7FF'
+
+textures:
+    star:
+        url: {{ Server.base_url }}/static/images/gold-star.png
+
+styles:
+    point-alpha:
+        base: points
+        blend: inlay
+    point-overlay:
+        texture: star
+        base: points
+        blend: overlay
+    poly-alpha:
+        base: polygons
+        blend: inlay
+    line-alpha:
+        base: lines
+        blend: inlay
+
+sources:
+    vector:
+        type: TopoJSON
+        url: {{ Server.base_url }}/vector/{{ layer }}/{z}/{x}/{y}.topojson
+        max_zoom: 16
+    raster:
+        type: Raster
+        url: {{ Server.base_url }}/raster/{{ layer }}/{z}/{x}/{y}.png
+        max_zoom: 16
+    related:
+        type: TopoJSON
+        url: {{ Server.base_url }}/related.json?q=dog&n=0
+        max_zoom: 16
+
+
+layers:
+    base:
+        data: { source: raster }
+        filter: { $zoom : { max : {{ Server.vector_zoom }} } }
+        draw:
+            raster:
+                order: 0 # draw on bottom
+#
+#    capitals:
+#        data: { source: vector, layer: countries_labels }
+#        draw:
+#          points:
+#            color: '#dd9999'
+#            size: 0px
+#            collide: false
+#            text:
+#              text_source: name
+#              anchor: center
+#              collide: false
+#              font:
+#                  family: Arial
+#                  size: 16px
+#                  weight: 700
+#                  transform: uppercase
+#                  fill: 'rgba(255, 255, 255, 0.5)'
+#                  stroke: { color: '#666', width: 1px }
+    cities:
+        data: { source: vector, layer: cities }
+        small_cities:
+            filter: { zoff : { min: -100, max: 1 } }
+            draw:
+                points:
+                  style: point-alpha
+                  interactive: true
+                  collide: false
+                  color: function() { return feature.color; }
+                  size: 6px
+                  priority: function() { return feature.zpop; }
+                  text:
+                    required: false
+                    order: 1000
+                    text_source: name
+                    interactive: true
+#                    collide: false
+#                    font:
+#                        family: Arial
+#                        size: 8px
+#                        fill: '#666'
+#                        stroke: { color: '#fff', width: 2 }
+        medium_cities:
+            filter: { zoff : { min: 1, max: 2 } }
+            draw:
+                points:
+                  style: point-alpha
+                  order: 1000
+                  interactive: true
+                  collide: false
+                  color: function() { return feature.color; }
+                  size: 8px
+                  priority: function() { return feature.zpop ; }
+                  text:
+                    required: false
+                    order: 1000
+                    text_source: name
+                    interactive: true
+#                    collide: false
+                    font:
+                        family: Arial
+                        size: 10px
+                        fill: '#333'
+                        stroke: { color: 'rgba(255, 255, 255, 0.7)', width: 4 }
+        large_cities:
+            filter: { zoff : { min: 2, max: 5 } }
+            draw:
+                points:
+                  style: point-alpha
+                  order: 1000
+                  interactive: true
+                  collide: false
+                  color: function() { return feature.color; }
+                  size: 10px
+                  priority: function() { return  feature.zpop; }
+                  text:
+                    required: false
+                    order: 1000
+                    text_source: name
+                    interactive: true
+#                    collide: false
+                    font:
+                        family: Arial
+                        size: 14px
+                        fill: '#333'
+                        stroke: { color: 'rgba(255, 255, 255, 0.7)', width: 6 }
+        huge_cities:
+            filter: { zoff : { min: 5, max: 5000 } }
+            draw:
+                points:
+                  style: point-alpha
+                  order: 1000
+                  interactive: true
+                  collide: false
+                  color: function() { return feature.color; }
+                  size: 15px
+                  priority: function() { return  feature.zpop; }
+                  text:
+                    required: false
+                    order: 1000
+                    text_source: name
+                    interactive: true
+#                    collide: false
+                    font:
+                        family: Arial
+                        size: 20px
+                        fill: '#333'
+                        stroke: { color: 'rgba(255, 255, 255, 0.7)', width: 8 }
+
+
+
+    relatedOverlay:
+        visible: false
+        filter: { $zoom : {  max: 8 } }
+        data: { source: related, layer: related-overlay }
+        draw:
+            polygons:
+              style: poly-alpha
+              color: [[3, [1, 1, 1, 0.35]], [5, [1, 1, 1, 0.30]], [7, [1, 1, 1, 0.25]], [8, [1, 1, 1, 0.15]]]
+              order: 1005
+    related:
+        visible: false
+        filter: { $zoom : {  max: 8 } }
+        data: { source: related, layer: related }
+        draw:
+            points:
+              style: point-overlay
+              interactive: true
+              priority: function() { return  1.0 - feature.percentile; }
+              size: function() { return Math.floor(feature.percentile2 * 10 + $zoom); }
+              text:
+                required: false
+                priority: function() { return  1.0 - feature.percentile; }
+                text_source: name
+                interactive: true
+                buffer: 3px;
+                font:
+                    family: Arial
+                    size: function() { return (15 * feature.percentile + 8 + $zoom); }
+                    fill: '#555'
+
+
+

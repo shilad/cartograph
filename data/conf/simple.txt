@@ -1,0 +1,29 @@
+[DEFAULT]
+dataset: simple
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 9
+water_level: .05
+sample_borders: True
+
+[Server]
+compress_png: false
+
+[Metrics]
+active: gender quality
+gender: {
+         "type": "trivariate-count",
+         "path": "%(externalDir)s/gender.tsv",
+         "fields": ["women", "men"],
+         "colors": ["red","#8910C9","blue"]
+         }
+
+quality: {
+         "type": "bivariate-nominal",
+         "path": "%(metricDir)s/quality.tsv",
+         "fields": ["grade"],
+         "sqrt": true,
+         "scale": ["Start", "Stub", "C", "B", "GA", "FA" ],
+         "colors": ["yellow", "red"]
+         }
