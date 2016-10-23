@@ -11,8 +11,8 @@ This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/car
 ###Github
 Fork and clone the repo:
 ```
-git clone https://github.com/Bboatman/proceduralMapGeneration.git
-cd proceduralMapGeneration/
+git clone https://github.com/shilad/cartograph
+cd cartograph/
 ```
 ###Postgres
 Then get postgres, which is where your data is going to live, from [here](http://postgresapp.com/). You'll need to change your bash profile in order to get it to work:
@@ -106,7 +106,7 @@ First up, the directories.
 1. In data/labdata, create a new file and call it something relevant to your dataset. Ours is called dev_en (development english)
 2. Put all your data files from Data Format into this folder
 3. Change the "dataset" line in the config file to point to your folder rather than dev_en
-4. One more conf file to create - create a file called conf.txt and put it in the base directory (proceduralMapGeneration). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
+4. One more conf file to create - create a file called conf.txt and put it in the base directory (cartograph). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
 ```
 [Heading]
 ```
@@ -138,6 +138,7 @@ pip2.7 install mapnik
 pip2.7 install lxml
 pip2.7 install sklearn
 pip2.7 install Cython
+pip2.7 install numpy
 pip2.7 install tsne
 pip2.7 install psycopg2
 pip2.7 install annoy
@@ -148,7 +149,7 @@ pip2.7 install TileStache
 
 You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
 ```
-pip2.7 install -I Pillow == 2.9.0
+pip2.7 install -I Pillow==2.9.0
 ```
 
 
