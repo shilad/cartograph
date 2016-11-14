@@ -139,6 +139,7 @@ pip2.7 install lxml
 pip2.7 install sklearn
 pip2.7 install Cython
 pip2.7 install numpy
+pip2.7 install matplotlib
 pip2.7 install tsne
 pip2.7 install psycopg2
 pip2.7 install annoy
