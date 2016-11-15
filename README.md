@@ -126,7 +126,7 @@ $ createdb mapnik_yourdataset
 
 
 #Dependencies galore!
-You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsgp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. You will also have to install Qt outside of Python. The easiest way to do it is via Homebrew.
+You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. You will also have to install Qt outside of Python. The easiest way to do it is via Homebrew.
 
 These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
 
