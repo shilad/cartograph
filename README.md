@@ -106,15 +106,14 @@ vecs_with_id: %(externalDir)s/myvectors.tsv
 Do the same for the other four files. If you don't have the last two, it's okay to leave them - the pipeline is set up to catch that and work around it. 
 
 
-###Postgres database
-One more step for configuration - you have to create a postgres database to hold your data. Open up a terminal window and create a database with the title mapnik_yourdataset. Ours is called mapnik_dev_en.
-```
-$ createdb mapnik_yourdataset
-```
-
-
 #Dependencies galore!
-You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. You will also have to install Qt outside of Python, possibly via [Homebrew] (http://superuser.com/questions/256232/how-can-i-get-qmake-on-mac-os-x).
+You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. 
+
+You have to install Qt outside of Python, possibly via [Homebrew] (http://brew.sh/) by
+
+```
+brew install Qt
+```
 
 These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
 
@@ -138,14 +137,20 @@ pip2.7 install TileStache
 pip2.7 install colour
 pip2.7 install falcon
 pip2.7 install cairocffi
+pip2.7 install jinja2
 ```
 
 You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
 ```
 pip2.7 install -I Pillow==2.9.0
 ```
+
 Troubleshooting:
 - If installing psycopg2 stops with "ld: library not found for -lssl", consult [this] (http://stackoverflow.com/questions/26288042/error-installing-psycopg2-library-not-found-for-lssl).
+- If it runs into problem with cairo, try installing it via Homebrew
+```
+brew install cairo
+```
 
 #Test the server
 Open a browser window and go to localhost:8080. If it says "TileStache bellows hello", congrats! Your server is working properly.
