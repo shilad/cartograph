@@ -14,19 +14,6 @@ Fork and clone the repo:
 git clone https://github.com/shilad/cartograph
 cd cartograph/
 ```
-###Postgres
-Then get postgres, which is where your data is going to live, from [here](http://postgresapp.com/). You'll need to change your bash profile in order to get it to work:
-```
-nano .bash_profile
-```
-Add this line to it (assuming you're using bash):
-```
-export PATH=$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin
-```
-Ctrl-O to save and Ctrl-X to exit
-
-Make sure postgres is in your applications folder and then open it to start the server. 
-
 #Getting your data set up
 As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful. 
 
@@ -149,6 +136,7 @@ pip2.7 install marisa-trie
 pip2.7 install TileStache 
 pip2.7 install colour
 pip2.7 install falcon
+pip2.7 install cairocffi
 ```
 
 You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
