@@ -148,6 +148,7 @@ pip2.7 install werkzeug
 pip2.7 install marisa-trie
 pip2.7 install TileStache 
 pip2.7 install colour
+pip2.7 install falcon
 ```
 
 You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
