@@ -1,20 +1,46 @@
 import heapq
 import math
-
 import numpy as np
-from scipy.spatial import cKDTree, KDTree
+from scipy.spatial import  KDTree
 
 
 class PointIndex:
+    """
+    A data structure that supports spatial rectangular queries for points.
+    Each (x, y) point has a popularity assigned to it. When there are too
+    many matches for a rectangle, the most popular points are returned.
+    """
     def __init__(self, ids, X, Y, pops):
+        """
+        Construct a new point index.
+        Args:
+            ids: Ids for each point
+            X: X values for each point
+            Y: Y values for each point
+            pops: Popularities for each point.
+        """
         self.ids = list(ids)
         self.area = (max(X) - min(X)) * (max(Y) - min(Y))
         self.data = np.array(zip(X, Y))
         self.pops = list(pops)
-        self.sortedIndexes = sorted(range(len(self.ids)), key=lambda i: pops[i], reverse=True)
+        self.sortedIndexes = sorted(range(len(self.ids)),
+                                    key=lambda i: pops[i],
+                                    reverse=True)
         self.tree = KDTree(self.data)
 
     def queryRect(self, x0, y0, x1, y1, n=None):
+        """
+        Get points within the specified rectangular bounds.
+        Args:
+            x0: Min x coord
+            y0: Min y coord
+            x1: Max x coord
+            y1: Max y coord
+            n: Maximum number of points to return
+
+        Returns: a list of ids for points that fall within the specified bounds.
+        If there are more than n points, returns the most popular.
+        """
 
         # Decide whether we use brute force or not.
         qArea =(x1 - x0) * (y1 - y0)
@@ -26,10 +52,8 @@ class PointIndex:
         expGeoOps = numMatches * math.log(n)
         expBFOps = len(self.ids)
         useBruteForce = expBFOps < 10 * expGeoOps
-        # print frac, numMatches, expGeoOps, expBFOps, useBruteForce
 
         if useBruteForce:
-            # print "BRUTE"
             top = []
             for i in self.sortedIndexes:
                 x, y = self.data[i]
@@ -41,18 +65,12 @@ class PointIndex:
                     break
             return top
         else:
-            # print "ACCEL"
             assert(x0 <= x1)
             assert(y0 <= y1)
             x = (x0 + x1) / 2.0
             y = (y0 + y1) / 2.0
             r = max(x - x0, y - y0) * 2
 
-            # for i, id in enumerate(self.ids):
-            #     if id == '12706':
-            #         print i, id, self.data[i], self.pops[i]
-            # #
-            # print r, x, y
             results = self.tree.query_ball_point((x, y), r=r, p=1.0)
 
             top = []
