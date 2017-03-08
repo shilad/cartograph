@@ -108,6 +108,14 @@
           cursor: pointer;
         }
 
+        #map-choice .home-choice {
+          display: inline-block;
+          padding: 0 6px;
+        }
+        #map-choice .home-choice img {
+          height: 15px;
+        }
+
         #map-choice .choice.active {
           border-bottom: solid red 1px;
         }
@@ -186,6 +194,7 @@
       showing concepts related to "<span>foo</span>" <a href="#">(hide)</a>
     </div>
     <div id="map-choice">
+      <div layerId="home" class="home-choice"><a href="index.html"><img src="images/home-7-128.png"></a></div>
       <div layerId="wmf_en-cluster" class="choice">Wikipedia topics</div>
       <div layerId="wmf_en-gender" class="choice">Wikipedia gender</div>
       <div layerId="movies_nav-cluster" class="choice">Movie groups</div>
