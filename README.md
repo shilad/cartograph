@@ -1,14 +1,14 @@
 # Procedural Map Generation
 This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/cartograph/static/index.html), which maps Wikipedia articles into an imaginary geographical space based on their relatedness to each other. If you want to be able to generate your own maps, read on!
 
-#Requirements
+# Requirements
 - These instructions are written for a Mac system. They should be pretty easily portable to Linux/Windows with appropriate adjustment of the command line stuff, but we haven't tested it on those systems yet, so some things might be different.
 - You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( If you'd like to play around with the full Wikipedia dataset, open an issue and we'll do our best to get you set up.
 - Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice
 
-#Getting started
+# Getting started
 
-###Github
+### Github
 Fork and clone the repo:
 ```
 git clone https://github.com/shilad/cartograph
@@ -17,11 +17,11 @@ cd cartograph/
 #Getting your data set up
 As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful. 
 
-##Data format
+## Data format
 
 The basics: Your data need to be vectorized (think word2vec) and have some kind of popularity/weighting score attached to each individual data point. They'll be stored in tsvs (tab-separated files), which are pretty easy to create if you don't have them already. 
 
-###Files you need
+### Files you need
 I'll number the files you need so that you can reference them later. 
 
 1. A file of all your vectors, one per line, with individual numbers separated by tabs. The first line of this should just be a list of numbers from 1 to the length of your vectors (ours goes from 1 to 100). The line numbers in this file will eventually become the unique id numbers for each vector/item (id numbers are arbitrary and meaningless, but help with data tracking and lookup). Here are the first two lines of our vecs file so you can see:
@@ -69,7 +69,7 @@ I'll number the files you need so that you can reference them later.
   89371	-2.57335603135	25.4092678524
   ```
 
-##Config
+## Config
 This is the top of data/conf/defaultconfig.txt, which you'll need to edit to correspond to your data files. You'll also have to create a couple of directories for your files to live in. 
 ```
 [DEFAULT]
@@ -87,7 +87,7 @@ popularity: %(externalDir)s/popularity.tsv
 region_names: %(externalDir)s/region_names.tsv
 article_embedding = %(externalDir)s/tsne_cache.tsv
 ```
-###Directory setup and config
+### Directory setup and config
 This is the only part of this file you should need to change - the rest will either be generated based on your data or is constant.
 
 First up, the directories.
@@ -162,7 +162,7 @@ This runs a luigi script that works through workflow.py, checking to see if any 
 ./build.sh
 ```
 
-##Run the server!
+## Run the server!
 The last step is to run the TileStache server, which takes your map xml and turns it into tiles that can then be served. This part also handles setting up things like the search function.
 
 ```
