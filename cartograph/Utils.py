@@ -1,6 +1,7 @@
 from collections import defaultdict
 import codecs
 import numpy as np
+import pandas as pd
 import sys
 
 import psycopg2
