@@ -7,6 +7,7 @@ from Regions import MakeRegions
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dump, Point
+import filecmp
 
 import numpy as np
 import pandas as pd
@@ -36,42 +37,25 @@ class ZPopTask(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        # feats = Utils.read_features(config.get("ExternalFiles",
-        #                                       "popularity"))
-        # for f in feats.values():
-        #     f['popularity'] = float(f.get('popularity', 0.0))
-        #
-        # def log4(x): return np.log2(x) / np.log2(4)
-        #
-        # ids = list(feats.keys())
-        # ids.sort(key=lambda i: float(feats[i]['popularity']), reverse=True)
-        # zpops = list(log4(np.arange(len(ids)) / 2.0 + 1.0))
-        #
-        # Utils.write_tsv(config.get("GeneratedFiles", "zpop_with_id"),
-        #                 ("index", "zpop"), ids, zpops)
-
-        feats = pd.read_table(config.get("ExternalFiles", "popularity"), index_col=0)
-        feats = feats.sort_values(['popularity'], ascending=False)
+        feats = pd.read_table(config.get("ExternalFiles",
+                                         "popularity"), index_col='id')
+        assert(feats.shape[0]!=0) #check that the popularity data is not empty
+        feats = feats.sort_values(by='popularity', ascending=False)
 
         def log4(x): return np.log2(x) / np.log2(4)
 
-        zpops = list(log4(np.arange(len(feats)) / 2.0 + 1.0))
-        feats['zpops'] = zpops
-        feats = feats.rename(columns={'ids': 'index'})
-        feats.to_csv(config.get("GeneratedFiles", "test_zpop_with_id"), sep='\t', columns=['zpops'], index_label='index')
+        feats['zpop'] = log4(np.arange(feats.shape[0]) / 2.0 + 1.0)
+        feats['zpop'].to_csv(config.get("GeneratedFiles", "zpop_with_id"), sep='\t', index_label='index', header='zpop')
 
 
 def test_zpop_task():
     Config.initTest()
-
     # Create a unit test config object
-
     zpt = ZPopTask()
     zpt.run()
 
-
     assert zpt is not None
-
+    assert filecmp.cmp('./data/test/tsv/zpop_test.tsv', './data/test/tsv/zpop.tsv')
 
 
 class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
@@ -86,7 +70,6 @@ class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-
         config = Config.get()
         points = Utils.read_features(
             config.get("GeneratedFiles", "zpop_with_id"),
@@ -100,11 +83,11 @@ class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
         for id, pointInfo in points.items():
             pointTuple = (float(pointInfo['x']), float(pointInfo['y']))
             newPoint = Point(pointTuple)
-            properties = {'id' : id,
+            properties = {'id': id,
                           'zpop': float(pointInfo['zpop']),
                           'name': str(pointInfo['name']),
                           'x': float(pointInfo['x']),
-                          'y':float(pointInfo['y']),
+                          'y': float(pointInfo['y']),
                           'clusterid': pointInfo['cluster']
                           }
             features.append(Feature(geometry=newPoint, properties=properties))
