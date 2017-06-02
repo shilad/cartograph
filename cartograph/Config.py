@@ -47,8 +47,8 @@ def samplePath(origPath, n):
         return '%s.sample_%s.%s' % (origPath[:i], n, origPath[i + 1:])
 
 def initTest():
-    src = './data/ext/test-orig/'  # Path/Location of the source directory
-    dst = './data/ext/test/'
+    src = './data/ext/test-orig'  # Path/Location of the source directory
+    dst = './data/ext/test'
     distutils.dir_util.copy_tree(src, dst)
     return initConf("./data/conf/test.txt")
 
