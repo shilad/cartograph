@@ -50,6 +50,18 @@ class ZPopTask(MTimeMixin, luigi.Task):
                         ("index", "zpop"), ids, zpops)
 
 
+def test_zpop_task():
+    Config.initTest()
+
+    # Create a unit test config object
+
+    zpt = ZPopTask()
+    zpt.run()
+
+    assert zpt is not None
+
+
+
 class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
     def output(self):
         config = Config.get()

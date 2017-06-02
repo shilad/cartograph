@@ -46,6 +46,8 @@ def samplePath(origPath, n):
     else:
         return '%s.sample_%s.%s' % (origPath[:i], n, origPath[i + 1:])
 
+def initTest():
+    return initConf("./data/conf/test.txt")
 
 def initConf(confFile=None):
     global CONFIG

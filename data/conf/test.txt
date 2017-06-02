@@ -1,0 +1,15 @@
+[DEFAULT]
+dataset: test
+externalDir: ./data/ext/test
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 9
+water_level: .05
+sample_borders: True
+
+[Server]
+compress_png: false
+
+[Metrics]
+active:
