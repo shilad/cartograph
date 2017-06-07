@@ -58,6 +58,8 @@ def test_zpop_task():
     assert filecmp.cmp('./data/test/tsv/zpop_test.tsv', './data/test/tsv/zpop.tsv')
 
 
+
+#Is this used at all?
 class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
     def output(self):
         config = Config.get()
