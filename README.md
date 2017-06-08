@@ -4,7 +4,10 @@ This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/car
 # Requirements
 - These instructions are written for a Mac system. They should be pretty easily portable to Linux/Windows with appropriate adjustment of the command line stuff, but we haven't tested it on those systems yet, so some things might be different.
 - You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( If you'd like to play around with the full Wikipedia dataset, open an issue and we'll do our best to get you set up.
-- Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice
+- Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice.
+- Docker, which you can install [here](https://www.docker.com/)
+- PyCharm, which you can install [here](https://www.jetbrains.com/pycharm/download/)
+
 
 # Getting started
 
@@ -19,7 +22,7 @@ As long as your data is in the proper format, the pipeline should be able to han
 
 ## Data format
 
-The basics: Your data need to be vectorized (think word2vec) and have some kind of popularity/weighting score attached to each individual data point. They'll be stored in tsvs (tab-separated files), which are pretty easy to create if you don't have them already. 
+The basics: Your data need to be vectorized (think word2vec) and have some kind of popularity/weighting score attached to each individual data point. They'll be stored in tsvs (tab-separated files), which are pretty easy to create if you don't have them already. (This may change to csv files as we move to processing in Pandas.)
 
 ### Files you need
 I'll number the files you need so that you can reference them later. 
@@ -105,73 +108,36 @@ vecs_with_id: %(externalDir)s/myvectors.tsv
 ```
 Do the same for the other four files. If you don't have the last two, it's okay to leave them - the pipeline is set up to catch that and work around it. 
 
+If you'd just like to create our example map of Simple English Wikipedia, you can also download the data files for that map from the Cartograph website (or at least, you should be able to soon).
 
 #Dependencies galore!
-You'll have to install a bunch of dependencies in order to get started. Most of them are pretty quick, with the exception of pygsp, which takes about half an hour - start it installing and go get a snack or catch some Pokemon or something. 
+Docker will take care of installing a bunch of dependencies in order to get you started. Most of them are pretty quick, with the exception of pygsp, which takes about half an hour - ample time to go get a snack or catch some Pokémon or something.
 
-You have to install Qt outside of Python, possibly via [Homebrew] (http://brew.sh/) by
-
-```
-brew install Qt
-```
-
-These instructions all say pip2.7, because sometimes pip doesn't like to install things in the right place if you have Python 3, but if you only have Python 2.7, you can just say pip. 
+The actual location of the cartograph repo (and even its name) may change depending on where your data are stored in your file system. For us, the Cartograph directory contains a /data/ext/simple subdirectory that itself contains our data files.
 
 ```
-pip2.7 install luigi
-pip2.7 install geojson
-pip2.7 install shapely
-pip2.7 install mapnik
-pip2.7 install lxml
-pip2.7 install sklearn
-pip2.7 install Cython
-pip2.7 install numpy
-pip2.7 install matplotlib
-pip2.7 install tsne
-pip2.7 install psycopg2
-pip2.7 install pygsp
-pip2.7 install annoy
-pip2.7 install werkzeug
-pip2.7 install marisa-trie
-pip2.7 install TileStache 
-pip2.7 install colour
-pip2.7 install falcon
-pip2.7 install cairocffi
-pip2.7 install jinja2
-```
-
-You have to revert your Pillow version (Pillow is automatically installed by TileStache) because it doesn't play nice with the tile generation
-```
-pip2.7 install -I Pillow==2.9.0
+docker run -ti -v ~/PycharmProjects/cartograph:/testvoldir mjulstro/cartorepo:version4
 ```
 
 Troubleshooting:
-- If installing psycopg2 stops with "ld: library not found for -lssl", consult [this] (http://stackoverflow.com/questions/26288042/error-installing-psycopg2-library-not-found-for-lssl).
-- If it runs into problem with cairo, try installing it via Homebrew
-```
-brew install cairo
-```
+- ???
+- ???
 
 #Test the server
 Open a browser window and go to localhost:8080. If it says "TileStache bellows hello", congrats! Your server is working properly.
 
 #Run the pipeline!
-This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. 
+This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. What comes after the --conf tag in this command will, like the previous command, depend on your filesystem and where your data are stored.
 
 ```
-./build.sh
+./build.sh --conf ./data/conf/summer2017_simple.txt
 ```
 
 ## Run the server!
-The last step is to run the TileStache server, which takes your map xml and turns it into tiles that can then be served. This part also handles setting up things like the search function.
+The last step is to run the TileStache server, which takes your map xml and turns it into tiles that can then be served. This part also handles setting up things like the search function. For the last part of this command, just enter the same thing you entered after --conf in the last command.
 
 ```
-python run-server.py
+python cartograph/server/app2.py ./data/conf/summer2017_simple.txt
 ```
 
-If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map! 
-
-
-
-
-
+If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map!
