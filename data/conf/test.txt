@@ -4,7 +4,7 @@ externalDir: ./data/ext/test
 generatedDir: ./data/ext/test
 
 [PreprocessingConstants]
-sample_size: 15
+sample_size: 50
 num_clusters: 9
 water_level: .05
 sample_borders: True

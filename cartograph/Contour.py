@@ -66,7 +66,7 @@ class CreateContours(MTimeMixin, luigi.Task):
             clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
             denoisedPath = config.getSample("GeneratedFiles", "denoised_with_id")
             vectorsPath = config.getSample("ExternalFiles", "vecs_with_id")
-
+            print coorPath
 
 
 
