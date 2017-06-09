@@ -104,15 +104,15 @@ def contour_sampleOri():
 
 
 def contour_samplePandas():
-    coor = pd.read_table(config.getSample("TestFiles", 'article_coordinates'),   index_col='index')
+    coor = pd.read_table(config.getSample("GeneratedFiles", 'article_coordinates'),   index_col='index')
 
-    clusters = pd.read_table(config.getSample("TestFiles","clusters_with_id"), index_col='index', dtype={'cluster': 'str'})
+    clusters = pd.read_table(config.getSample("GeneratedFiles","clusters_with_id"), index_col='index', dtype={'cluster': 'str'})
     #clusters['cluster']=clusters['cluster'].astype('str') #cluster needs to be a string and not a integer to work
-    denoised = pd.read_table(config.getSample("TestFiles","denoised_with_id"), index_col='index')
+    denoised = pd.read_table(config.getSample("GeneratedFiles","denoised_with_id"), index_col='index')
     denoised = denoised.filter(regex = '^[0-9]+$', axis=0) #filter out water points
     denoised.index = denoised.index.map(np.int64) #need to convert the index to int64 for merge
 
-    vecs = pd.read_table(config.getSample("TestFiles","vecs_with_id"), skip_blank_lines=True, skiprows=1, header=None)
+    vecs = pd.read_table(config.getSample("GeneratedFiles","vecs_with_id"), skip_blank_lines=True, skiprows=1, header=None)
     vecs['vectorTemp'] = vecs.iloc[:, 1:].apply(lambda x: tuple(x), axis=1) #join all vector columns into same column as a tuple
     vecs.drop(vecs.columns[1:-1], axis=1, inplace=True) # drop all columns but the index and the vectorTemp column
     vecs.columns=['index', 'vector']
