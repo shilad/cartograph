@@ -1,20 +1,13 @@
 [DEFAULT]
 dataset: test
 externalDir: ./data/ext/test
-generatedDir: ./data/ext/test
 
 [PreprocessingConstants]
-sample_size: 50
-num_clusters: 9
+sample_size: 350
+num_clusters: 3
 water_level: .05
 sample_borders: True
-tsne_perplexity: 30
-
-[GeneratedFiles]
-test_zpop_with_id: %(generatedDir)s/test_zpop.tsv
-
-
-
+tsne_perplexity: 3
 
 [Server]
 compress_png: false
