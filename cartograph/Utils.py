@@ -7,6 +7,19 @@ import sys
 import psycopg2
 
 
+def read_vectors(path):
+    featureDict = pd.read_table(path, skiprows=1, skip_blank_lines=True, header=None)
+    featureDict['vectorTemp'] = featureDict.iloc[:, 1:].apply(lambda x: tuple(x),
+                                                              axis=1)  # join all vector columns into same column
+    featureDict.drop(featureDict.columns[1:-1], axis=1,
+                     inplace=True)  # drop all columns but the index and the vectorTemp column
+    featureDict.columns = ['index', 'vector']
+    featureDict = featureDict.set_index('index')
+    featureDict.index = featureDict.index.astype(str)
+
+    return featureDict
+
+
 def read_tsv(filename):
     with codecs.open(filename, "r", encoding="utf-8") as f:
         headers = f.readline().rstrip("\n").split("\t")

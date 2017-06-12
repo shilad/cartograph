@@ -51,13 +51,9 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
 
         config = Config.get()
         # Create the embedding.
-        featureDict = pd.read_table(config.getSample("ExternalFiles",
-                                                     "best_vecs_with_id"), skiprows=1, skip_blank_lines=True, header=None)
-        featureDict['vectorTemp'] = featureDict.iloc[:, 1:].apply(lambda x: tuple(x), axis=1)  # join all vector columns into same column
-        featureDict.drop(featureDict.columns[1:-1], axis=1, inplace=True)  # drop all columns but the index and the vectorTemp column
-        featureDict.columns = ['index', 'vector']
-        featureDict = featureDict.set_index('index')
-        featureDict = featureDict.loc[featureDict.index.isin(getSampleIds())]
+        featureDict = Utils.read_vectors(config.getSample("ExternalFiles", "best_vecs_with_id"))
+        sampleIds = getSampleIds()
+        featureDict = featureDict.loc[featureDict.index.isin(sampleIds)]
 
         vectors = [list(i) for i in featureDict['vector']]
         vectors = np.array(vectors)
@@ -71,16 +67,38 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
         data = {'index': featureDict.index, 'x': X, 'y': Y}
         result = pd.DataFrame(data, columns=['index', 'x', 'y'])
         result.set_index('index', inplace=True)
-        result.sort_index(inplace=True)
+        # result.sort_index(inplace=True)   THIS BREAKS EVERYTHING. WHY?
         result.to_csv(config.getSample("ExternalFiles", "article_embedding"), sep='\t', index_label='index',
                       columns=['x', 'y'])
 #
-# def test_CreateEmbedding_task():
-#     Config.initTest()
-#     # Create a unit test config object
-#     testEmbed = CreateEmbedding()
-#     testEmbed.run()
-#     assert testEmbed is not None
+def test_CreateEmbedding_task():
+    config = Config.initTest()
+
+    # Create a unit test config object
+    testEmbed = CreateEmbedding()
+
+    # Create the vectors sample
+    testEmbed.requires()[-1].run()
+    testEmbed.run()
+
+    # For each point, count how many neighbors are retained in the embedding
+    vecs = Utils.read_vectors(config.getSample("ExternalFiles", "best_vecs_with_id"))
+    points = pd.read_table(config.getSample("ExternalFiles", "article_embedding"))
+    points.index = points.index.astype(str)
+
+
+    features = pd.merge(vecs, points, how='inner',
+                        left_index=True, right_index=True)
+
+    for index, row in features.iterrows():
+        vectorDist = (features['vector'].dot(row['vector']))
+        pointDist = ((row['x'] - features['x']) ** 2 + (row['y'] - features['y']) ** 2) ** 0.5
+        print(vectorDist.shape, pointDist.shape)
+
+
+
+
+
 
 
 class CreateFullAnnoyIndex(MTimeMixin, luigi.Task):
@@ -173,7 +191,7 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
                       columns=['x', 'y'])
 
 
-def test_CreateSample_task():
+def test_createSample_task():
     config = Config.initTest()
 
     # Create a unit test config object
