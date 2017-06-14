@@ -9,6 +9,7 @@ from cartograph import Config
 from cartograph.FreeText import FreeText
 from cartograph.server.ConfigService import ConfigService
 from cartograph.server.CountryService import CountryService
+from cartograph.server.NewMapService import NewMapService
 from cartograph.server.LoggingService import LoggingService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
@@ -33,6 +34,9 @@ logging.info('configuring falcon')
 
 # falcon.API instances are callable WSGI apps
 app = falcon.API()
+
+addMapService = NewMapService()
+app.add_route('/addMap.html', addMapService)
 
 for path in confPaths.split(':'):
     if not os.path.isfile(path):
