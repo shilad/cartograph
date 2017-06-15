@@ -1,11 +1,13 @@
 import csv
 import falcon
 import os
+import string
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):
     """Pare down the contents of <source_dir>/<filename> to only rows that start with an id in <ids>, and output them to
-    <target_dir>/<filename>. <target_dir> must already exist.
+    <target_dir>/<filename>. <target_dir> must already exist. Also transfers over the first line of the file, which is
+    assumed to be the header.
 
     e.g.
     filter_tsv(source_dir='/some/path/', dest_dir='/another/path', ids=['1', '3', '5'], filename='file.tsv')
@@ -33,6 +35,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
         with open(os.path.join(target_dir, filename), 'w') as write_file:
             popularities_reader = csv.reader(read_file, delimiter='\t')
             popularities_writer = csv.writer(write_file, delimiter='\t')
+            popularities_writer.writerow(popularities_reader.next())  # Transfer the header
             for row in popularities_reader:
                 if row[0] in ids:
                     popularities_writer.writerow(row)
@@ -48,6 +51,7 @@ class NewMapService:
 
     def on_post(self, req, resp):
         post_data = falcon.uri.parse_query_string(req.stream.read())
+        map_name = post_data['name']
         resp.body = ''
 
         # Generate dictionary of article names to IDs TODO: is there a way to do this once (instead of once per POST)?
@@ -67,10 +71,16 @@ class NewMapService:
                 resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
 
         # Create the destination directory (if it doesn't exist already)
-        target_path = os.path.join(self.BASE_PATH, post_data['name'])
+        target_path = os.path.join(self.BASE_PATH, map_name)
         if not os.path.exists(target_path) and not os.path.isdir(target_path):
             os.makedirs(target_path)
 
         # For each of the data files, filter it and output it to the target directory
         for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
             filter_tsv(self.SOURCE_DIR, target_path, ids, filename)
+
+        # Generate a new conf file
+        with open('./data/conf_template.txt', 'r') as conf_template_file:
+            conf_template = string.Template(conf_template_file.read())
+        with open(os.path.join('./data/conf/', 'user_%s.txt' % map_name), 'w') as conf_file:
+            conf_file.write(conf_template.substitute(name=map_name))
