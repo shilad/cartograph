@@ -2,6 +2,7 @@ import csv
 import falcon
 import os
 import string
+import codecs
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):
@@ -31,14 +32,14 @@ def filter_tsv(source_dir, target_dir, ids, filename):
     :return:
     """
 
-    with open(os.path.join(source_dir, filename), 'r') as read_file:
-        with open(os.path.join(target_dir, filename), 'w') as write_file:
-            popularities_reader = csv.reader(read_file, delimiter='\t')
-            popularities_writer = csv.writer(write_file, delimiter='\t')
-            popularities_writer.writerow(popularities_reader.next())  # Transfer the header
-            for row in popularities_reader:
-                if row[0] in ids:
-                    popularities_writer.writerow(row)
+    with codecs.open(os.path.join(source_dir, filename), 'r') as read_file, \
+            codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
+        popularities_reader = csv.reader(read_file, delimiter='\t')
+        popularities_writer = csv.writer(write_file, delimiter='\t')
+        popularities_writer.writerow(popularities_reader.next())  # Transfer the header
+        for row in popularities_reader:
+            if row[0] in ids:
+                popularities_writer.writerow(row)
 
 
 class NewMapService:
@@ -57,10 +58,11 @@ class NewMapService:
         # Generate dictionary of article names to IDs TODO: is there a way to do this once (instead of once per POST)?
         names_path = os.path.join(self.SOURCE_DIR, 'names.tsv')
         name_dict = {}
-        with open(names_path, 'r') as names:
+        with codecs.open(names_path, 'r') as names:
             names_reader = csv.reader(names, delimiter='\t')
             for row in names_reader:
-                name_dict[row[1]] = row[0]
+                name = unicode(row[1], encoding='utf-8')
+                name_dict[name] = row[0]
 
         # Generate list of IDs for article names in user request
         ids = []
