@@ -11,7 +11,7 @@ from cartograph import Utils
 logger = logging.getLogger("cartograph.fast-knn")
 
 class FastKnn:
-    def __init__(self, pathVectors, pathAnnoy=None, pathIds=None, format='text'):
+    def __init__(self, pathVectors, pathAnnoy=None, pathIds=None):
         self.pathVectors = pathVectors
         if not pathAnnoy: pathAnnoy = pathVectors + ".annoy"
         if not pathIds: pathIds = pathVectors + ".annoyIds"
@@ -19,7 +19,6 @@ class FastKnn:
         self.pathIds = pathIds
         self.index = None   # annoy index
         self.ids = None     # list of string ids, alphabetically sorted
-        self.format = format
 
     def exists(self):
         for p in self.pathAnnoy, self.pathIds:
@@ -29,30 +28,8 @@ class FastKnn:
                 return False
         return True
 
-    def readVectors(self):
-        if self.format == 'text':
-            vecs = Utils.read_vectors(self.pathVectors)
-        elif self.format == 'mikolov':
-            raise NotImplementedError()  # The code that follows will no longer work...
-            vecs = {}
-            for (id, vector) in readMikolov(self.pathVectors).items():
-                vecs[id] = {'vector': vector}
-        else:
-            raise Exception, 'Unknown file format: ' + self.format
-
-        if keyTransform:
-            newVecs = {}
-            for (k, v) in vecs.items():
-                k2 = keyTransform(k)
-                if k2:
-                    newVecs[k2] = v
-            vecs = newVecs
-        assert(vecs)
-
-        return vecs
-
     def rebuild(self):
-        vecs = self.readVectors()
+        vecs = Utils.read_vectors(self.pathVectors)
 
         ids = []
         n = None
