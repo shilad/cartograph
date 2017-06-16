@@ -55,7 +55,8 @@ class NewMapService:
         map_name = post_data['name']
         resp.body = ''
 
-        # Generate dictionary of article names to IDs TODO: is there a way to do this once (instead of once per POST)?
+        # Generate dictionary of article names to IDs
+        # TODO: is there a way to do this once (instead of once per POST)?
         names_path = os.path.join(self.SOURCE_DIR, 'names.tsv')
         name_dict = {}
         with codecs.open(names_path, 'r') as names:
