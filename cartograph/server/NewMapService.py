@@ -14,6 +14,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
     filter_tsv(source_dir='/some/path/', dest_dir='/another/path', ids=['1', '3', '5'], filename='file.tsv')
 
     /some/path/file.tsv (before function call):
+    id  name
     1   hello
     2   world
     3   foo
@@ -21,6 +22,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
     5   spam
 
     /another/path/file.tsv (after function call):
+    id  name
     1   hello
     3   foo
     5   spam
