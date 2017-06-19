@@ -3,6 +3,11 @@ import falcon
 import os
 import string
 import codecs
+import pipes
+
+CONF_DIR = 'data/conf/'
+BASE_PATH = './data/ext/'
+SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):
@@ -45,8 +50,6 @@ def filter_tsv(source_dir, target_dir, ids, filename):
 
 
 class NewMapService:
-    BASE_PATH = './data/ext/'
-    SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
 
     def on_get(self, req, resp):
         resp.stream = open('./web/newMap.html', 'rb')
@@ -59,7 +62,7 @@ class NewMapService:
 
         # Generate dictionary of article names to IDs
         # TODO: is there a way to do this once (instead of once per POST)?
-        names_path = os.path.join(self.SOURCE_DIR, 'names.tsv')
+        names_path = os.path.join(SOURCE_DIR, 'names.tsv')
         name_dict = {}
         with codecs.open(names_path, 'r') as names:
             names_reader = csv.reader(names, delimiter='\t')
@@ -76,16 +79,21 @@ class NewMapService:
                 resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
 
         # Create the destination directory (if it doesn't exist already)
-        target_path = os.path.join(self.BASE_PATH, map_name)
+        target_path = os.path.join(BASE_PATH, map_name)
         if not os.path.exists(target_path) and not os.path.isdir(target_path):
             os.makedirs(target_path)
 
         # For each of the data files, filter it and output it to the target directory
         for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
-            filter_tsv(self.SOURCE_DIR, target_path, ids, filename)
+            filter_tsv(SOURCE_DIR, target_path, ids, filename)
 
         # Generate a new conf file
         with open('./data/conf_template.txt', 'r') as conf_template_file:
             conf_template = string.Template(conf_template_file.read())
-        with open(os.path.join('./data/conf/', 'user_%s.txt' % map_name), 'w') as conf_file:
-            conf_file.write(conf_template.substitute(name=map_name))
+        config_filename = 'user_%s.txt' % pipes.quote(map_name)
+        config_path = os.path.join(CONF_DIR, config_filename)
+        with open(config_path, 'w') as config_file:
+            config_file.write(conf_template.substitute(name=map_name))
+
+        # Build the new conf file
+        os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask" % config_path)
