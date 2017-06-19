@@ -5,7 +5,7 @@ import string
 import codecs
 import pipes
 
-CONF_DIR = 'data/conf/'
+USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
 
@@ -60,6 +60,9 @@ class NewMapService:
         map_name = post_data['name']
         resp.body = ''
 
+        if not os.path.exists(USER_CONF_DIR):
+            os.makedirs(USER_CONF_DIR)
+
         # Generate dictionary of article names to IDs
         # TODO: is there a way to do this once (instead of once per POST)?
         names_path = os.path.join(SOURCE_DIR, 'names.tsv')
@@ -79,8 +82,8 @@ class NewMapService:
                 resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
 
         # Create the destination directory (if it doesn't exist already)
-        target_path = os.path.join(BASE_PATH, map_name)
-        if not os.path.exists(target_path) and not os.path.isdir(target_path):
+        target_path = os.path.join(BASE_PATH, 'user/', map_name)
+        if not os.path.exists(target_path):
             os.makedirs(target_path)
 
         # For each of the data files, filter it and output it to the target directory
@@ -90,8 +93,8 @@ class NewMapService:
         # Generate a new conf file
         with open('./data/conf_template.txt', 'r') as conf_template_file:
             conf_template = string.Template(conf_template_file.read())
-        config_filename = 'user_%s.txt' % pipes.quote(map_name)
-        config_path = os.path.join(CONF_DIR, config_filename)
+        config_filename = '%s.txt' % pipes.quote(map_name)
+        config_path = os.path.join(USER_CONF_DIR, config_filename)
         with open(config_path, 'w') as config_file:
             config_file.write(conf_template.substitute(name=map_name))
 

@@ -1,6 +1,7 @@
 [DEFAULT]
 dataset: ${name}
-externalDir: ./data/ext/${name}
+baseDir: ./data/user/%(dataset)s
+externalDir: ./data/ext/user/${name}
 
 [PreprocessingConstants]
 sample_size: 50000
