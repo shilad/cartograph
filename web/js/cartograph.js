@@ -155,6 +155,7 @@ CG.init = function(layer) {
         return false;
     };
 
+
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
     $('#search-field').autocomplete({
@@ -184,7 +185,6 @@ CG.init = function(layer) {
             L.marker(info.loc).addTo(CG.map);
         }
     });
-
 
     CG.handleCityHover = function (mapX, mapY, properties) {
         var title = properties.name;
@@ -217,6 +217,7 @@ CG.init = function(layer) {
 
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
+
         var isOpen = CG.tt.status().open;
         if (CG.ttEl.data("loading") == title) {
             if (!isOpen) CG.tt.open();
@@ -238,6 +239,21 @@ CG.init = function(layer) {
         }
         var encoded = encodeURIComponent(title);
         var uri = 'https://en.wikipedia.org/w/api.php?action=query&format=json&titles=' + encoded + '&prop=pageimages|extracts&exintro&explaintext&exchars=400&callback=?';
+
+        var id = properties.id; //this will give the internal cartograph ids... FUN FACT: properties = id???
+        var relatedPoints = '../point.json?id=' + id;
+
+        //how I got the snippets: https://en.wikipedia.org/w/api.php?action=query&format=json&titles=Top%20Gun!!!!!!SOMETHING? extracts&explaintext&exsentences=3&exsectionformat=plain!!!!!!&callback=jQuery1102006687854900582613_1497380793059&_=1497380793065
+        //how I got the x,y coordinates of each link: look at RelatedPointsService.py
+
+        $.getJSON(relatedPoints, function (data) {
+            data[id].forEach(function (linkInfo) {
+                var x = linkInfo.data.loc[0];
+                var y = linkInfo.data.loc[1];
+                L.marker([x, y]).addTo(CG.map);
+            });
+        });
+
         $.getJSON(uri, function (json) {
             var info = null;
             for (var pageId in json.query.pages) {

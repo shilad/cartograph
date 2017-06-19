@@ -14,6 +14,7 @@ from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
 from cartograph.server.RelatednessService import RelatednessService
 from cartograph.server.SearchService import SearchService
+from cartograph.server.RelatedPointsService import RelatedPointsService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService
 from cartograph.server.TileService import TileService
@@ -57,21 +58,23 @@ for path in confPaths.split(':'):
     mapnikService = RasterService(conf, pointService, countryService)
     templateService = TemplateService(conf)
     staticService = StaticService(conf)
-    # freeText = FreeText(conf.get('ExternalFiles', 'w2v'))
-    # freeText.read()
+    #freeText = FreeText(conf.get('ExternalFiles', 'w2v'))
+    #freeText.read()
+    relatedPointsService = RelatedPointsService(conf, pointService)
     searchService = SearchService(pointService)
-    # relatedService = RelatednessService(freeText, pointService)
+    #relatedService = RelatednessService(freeText, pointService)
+
 
     # things will handle all requests to the '/things' URL path
     prefix = '/' + name
     app.add_route(prefix + '/search.json', searchService)
-    # app.add_route('/related.json', relatedService)
+#    app.add_route('/related.json', relatedService)
     app.add_route(prefix + '/vector/{layer}/{z}/{x}/{y}.topojson', tileService)
     app.add_route(prefix + '/raster/{layer}/{z}/{x}/{y}.png', mapnikService)
     app.add_route(prefix + '/template/{file}', templateService)
     app.add_route(prefix + '/log', loggingService)
+    app.add_route(prefix + '/point.json', relatedPointsService)
     app.add_sink(lambda req, resp: staticService.on_get(req, resp), prefix + '/static')
-
 app.add_sink(lambda req, resp: staticService.on_get(req, resp), '/static')
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
