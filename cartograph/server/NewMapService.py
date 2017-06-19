@@ -4,6 +4,7 @@ import os
 import string
 import codecs
 import pipes
+from cartograph.server.utils import add_conf
 
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
@@ -50,6 +51,9 @@ def filter_tsv(source_dir, target_dir, ids, filename):
 
 
 class NewMapService:
+
+    def __init__(self, app):
+        self.app = app
 
     def on_get(self, req, resp):
         resp.stream = open('./web/newMap.html', 'rb')
@@ -100,3 +104,6 @@ class NewMapService:
 
         # Build the new conf file
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask" % config_path)
+
+        # Add urls to new map
+        add_conf(config_path, self.app)
