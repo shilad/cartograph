@@ -4,7 +4,7 @@ import os
 import string
 import codecs
 import pipes
-from cartograph.server.utils import add_conf
+from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
@@ -51,7 +51,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
                 popularities_writer.writerow(row)
 
 
-class NewMapService:
+class AddMapService:
 
     def __init__(self, app):
         self.app = app
@@ -111,4 +111,4 @@ class NewMapService:
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask" % config_path)
 
         # Add urls to new map
-        add_conf(config_path, self.app)
+        MapService(config_path, self.app)
