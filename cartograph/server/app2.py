@@ -76,7 +76,6 @@ for path in confPaths.split(':'):
     app.add_route(prefix + '/log', loggingService)
     app.add_sink(lambda req, resp: staticService.on_get(req, resp), prefix + '/static')
 
-app.add_sink(lambda req, resp: staticService.on_get(req, resp), '/static')
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
 # can also use Gunicorn to host your app. Gunicorn can be configured to
