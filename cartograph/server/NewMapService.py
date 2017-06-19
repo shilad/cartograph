@@ -9,6 +9,7 @@ from cartograph.server.utils import add_conf
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
+ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):
@@ -61,8 +62,11 @@ class NewMapService:
 
     def on_post(self, req, resp):
         post_data = falcon.uri.parse_query_string(req.stream.read())
-        map_name = post_data['name']
         resp.body = ''
+
+        map_name = post_data['name']
+        for c in map_name:
+            assert c in ACCEPTABLE_MAP_NAME_CHARS
 
         if not os.path.exists(USER_CONF_DIR):
             os.makedirs(USER_CONF_DIR)
@@ -83,6 +87,7 @@ class NewMapService:
             try:
                 ids += [name_dict[term]]  # Attempts to find entry in dict of Articles to IDs
             except KeyError:
+                # TODO: The following line is for debugging; proper behavior yet to be defined
                 resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
 
         # Create the destination directory (if it doesn't exist already)
@@ -102,7 +107,7 @@ class NewMapService:
         with open(config_path, 'w') as config_file:
             config_file.write(conf_template.substitute(name=map_name))
 
-        # Build the new conf file
+        # Build from the new conf file
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask" % config_path)
 
         # Add urls to new map
