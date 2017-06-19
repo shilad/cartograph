@@ -5,8 +5,8 @@ import sys
 
 import falcon
 
-from cartograph.server.NewMapService import NewMapService
-from cartograph.server.utils import add_conf
+from cartograph.server.NewMapService import AddMapService
+from cartograph.server.MapService import MapService
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
@@ -24,11 +24,15 @@ logging.info('configuring falcon')
 # falcon.API instances are callable WSGI apps
 app = falcon.API()
 
-addMapService = NewMapService(app)
-app.add_route('/addMap.html', addMapService)
 
+# Add a hook for adding new maps
+add_map_service = AddMapService(app)
+app.add_route('/add_map.html', add_map_service)
+
+
+# Start up a set of services for each map (as specified by its config file)
 for path in confPaths.split(':'):
-    add_conf(path, app)
+    MapService(path, app)
 
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
