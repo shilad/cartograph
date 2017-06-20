@@ -247,11 +247,43 @@ CG.init = function(layer) {
         //how I got the x,y coordinates of each link: look at RelatedPointsService.py
 
         $.getJSON(relatedPoints, function (data) {
-            data[id].forEach(function (linkInfo) {
-                var x = linkInfo.data.loc[0];
-                var y = linkInfo.data.loc[1];
-                L.marker([x, y]).addTo(CG.map);
+
+            var smallMarker = L.icon({
+            iconUrl: 'images/blackDot.png',
+            iconSize: [10,10]
             });
+
+            var coords = []
+            //var idCoord = RelatedPointsService.getPointCoord(data[id]);
+            //coords.push(idCoord);
+
+            data[id].forEach(function (linkInfo) {
+                  var x = linkInfo.data.loc[0];
+                  var y = linkInfo.data.loc[1];
+                  L.marker([x, y], {icon: smallMarker}).addTo(CG.map);
+                  coords.push([x,y]);
+            });
+
+            console.log('coords is ', coords);
+
+            function collectLinks(linkArray){
+                var pts = [];
+                for(i=1; i < linkArray.length; i++) {
+
+                    pts.push(linkArray[0]);
+                    pts.push(linkArray[i]);
+                }
+                return pts;
+            }
+            var linkPairArray = collectLinks(coords);
+
+            L.polyline(linkPairArray, {
+            color: '#ffcc22',
+            weight: 1,
+            opacity: 1,
+            smoothFactor: 1
+            }).addTo(CG.map);
+
         });
 
         $.getJSON(uri, function (json) {
