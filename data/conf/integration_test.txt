@@ -1,0 +1,17 @@
+[DEFAULT]
+dataset: integration_test
+externalDir: ./data/ext/test
+
+[PreprocessingConstants]
+sample_size: 350
+num_clusters: 3
+water_level: .3
+sample_borders: True
+tsne_perplexity: 3
+min_num_in_cluster: 10
+
+[Server]
+compress_png: false
+
+[Metrics]
+active:

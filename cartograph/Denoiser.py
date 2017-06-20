@@ -130,15 +130,39 @@ class Denoiser:
 
         def f(n):
             return (np.random.beta(0.8, 0.8, n) - 0.5) * 2 * (maxV + 5)
+
+
         length = len(x)
         water_x = f(int(length * self.waterLevel))
         water_y = f(int(length * self.waterLevel))
 
+        # These are heuristics
+        num_squares = 5
+        square_dot_sep = 2.0 * maxV / (length * self.waterLevel)
+
+        # Create nested squares around outside to prevent land masses from touching borders.
+        for i in range(num_squares):
+            sz = maxV + 1.0 * i / num_squares
+            n = np.arange(-maxV, maxV, square_dot_sep).shape[0]
+            # coordinates for points on top, right, bottom, left of square
+            square_x = np.concatenate([
+                np.arange(-maxV, maxV, square_dot_sep),
+                np.repeat(maxV, n),
+                np.arange(-maxV, maxV, square_dot_sep),
+                np.repeat(-maxV, n)])
+            square_y = np.concatenate([
+                np.repeat(maxV, n),
+                np.arange(-maxV, maxV, square_dot_sep),
+                np.repeat(maxV, n),
+                np.arange(-maxV, maxV, square_dot_sep)])
+            water_x = np.concatenate([water_x, square_x])
+            water_y = np.concatenate([water_y, square_y])
+
+        water_cluster_ids = np.full(water_x.shape[0], max(clusters) + 1, dtype=np.int)
+
         x = np.append(x, water_x)
         y = np.append(y, water_y)
-        clusters = np.append(clusters,
-                             np.full(int(length * self.waterLevel),
-                                     max(clusters) + 1, dtype=np.int))
+        clusters = np.append(clusters, water_cluster_ids)
         return x, y, clusters
 
     def denoise(self):
