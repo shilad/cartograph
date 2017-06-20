@@ -1,0 +1,16 @@
+[DEFAULT]
+dataset: test
+externalDir: ./data/ext/test
+
+[PreprocessingConstants]
+sample_size: 350
+num_clusters: 3
+water_level: .05
+sample_borders: True
+tsne_perplexity: 3
+
+[Server]
+compress_png: false
+
+[Metrics]
+active:

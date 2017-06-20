@@ -1,6 +1,8 @@
 import matplotlib
 
 import cartograph.PreReqs
+import pandas as pd
+import numpy as np
 
 matplotlib.use("Agg")
 
@@ -57,36 +59,84 @@ class CreateContours(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        required = ('cluster', 'vector', 'x', 'y')
+
+
         if config.sampleBorders():
-            featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
-                                                         "article_coordinates"),
-                                               config.getSample("GeneratedFiles",
-                                                         "clusters_with_id"),
-                                               config.getSample("GeneratedFiles",
-                                                         "denoised_with_id"),
-                                               config.getSample("ExternalFiles",
-                                                         "vecs_with_id"),
-                                               required=required)
-        else:
-            featuresDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
-                                               config.get("GeneratedFiles", "clusters_with_id"),
-                                               config.get("GeneratedFiles", "denoised_with_id"),
-                                               config.get("ExternalFiles", "vecs_with_id"),
-                                               required=required)
-        for key in featuresDict.keys():
-            if key[0] == "w":
-                del featuresDict[key]
+            coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
+            clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
+            denoisedPath = config.getSample("GeneratedFiles", "denoised_with_id")
+            vectorsPath = config.getSample("ExternalFiles", "vecs_with_id")
+            print coorPath
+
+
+
+        else: #is this ever used?
+            coorPath = config.get("GeneratedFiles", 'article_coordinates')
+            clusterPath = config.get("GeneratedFiles", "clusters_with_id")
+            denoisedPath = config.get("GeneratedFiles", "denoised_with_id")
+            vectorsPath = config.get("ExternalFiles", "vecs_with_id")
+
+        coor = pd.read_table(coorPath, index_col='index')
+
+        clusters = pd.read_table(clusterPath, index_col='index',
+                                 dtype={'cluster': 'str'})
+
+        denoised = pd.read_table(denoisedPath, index_col='index')
+        denoised = denoised.filter(regex='^[0-9]+$', axis=0)  # filter out water points
+        denoised.index = denoised.index.map(np.int64)  # need to convert the index to int64 for merge
+
+        vecs = pd.read_table(vectorsPath, skip_blank_lines=True, skiprows=1,
+                             header=None)
+        vecs['vectorTemp'] = vecs.iloc[:, 1:].apply(lambda x: tuple(x),
+                                                    axis=1)  # join all vector columns into same column as a tuple
+        vecs.drop(vecs.columns[1:-1], axis=1,
+                  inplace=True)  # drop all columns but the index and the vectorTemp column
+        vecs.columns = ['index', 'vector']
+        vecs = vecs.set_index('index')
+
+        # below merge all files
+        featuresDict = coor.merge(clusters, left_index=True, right_index=True)
+        featuresDict = featuresDict.merge(denoised, left_index=True, right_index=True)
+        featuresDict = featuresDict.merge(vecs, left_index=True, right_index=True)
+
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         binSize = config.getint("PreprocessingConstants", "contour_bins")
-
         countryBorders = config.get("MapData", "countries_geojson")
-
         contour = ContourCreator(numClusters, binSize)
         contour.buildContours(featuresDict, countryBorders)
         contour.makeContourFeatureCollection([config.get("MapData", "density_contours_geojson"),config.get("MapData", "centroid_contours_geojson")])
 
+
+#To successfully run this test make sure that on the config file "test.txt" the sample_size = 15
+def test_CreateContours():
+
+    config = Config.initTest()
+
+    # Create a unit test config object
+    cc = CreateContours()
+    cc.run()
+    with open(config.get("MapData", "centroid_contours_geojson")) as data_filePandas:
+        cPanda = json.load(data_filePandas)
+    with open('./data/ext/test-orig/geojson/centroid_contours_geojson_test.geojson')  as  data_fileOri:
+        cOri = json.load(data_fileOri)
+    cPandaProp = []
+    cPandaCoor = []
+    cOriProp = []
+    cOriCoor = []
+    for feature in cPanda['features']:
+        cPandaProp.append(feature['properties'])
+        cPandaCoor.append(np.sort(feature['geometry']['coordinates'], axis=None))
+    for feature in cOri['features']:
+        cOriProp.append(feature['properties'])
+        cOriCoor.append(np.sort(feature['geometry']['coordinates'], axis=None))
+    for i in range(len(cPandaCoor)):
+        for j in range(len(cPandaCoor[i])):
+            np.testing.assert_allclose(cPandaCoor[i][j], cOriCoor[i][j])
+
+    # assert cPandaCoor == cOriCoor
+    assert cPandaProp == cOriProp
+    return cOriCoor, cPandaCoor
 
 class ContourCreator:
     '''
@@ -111,57 +161,33 @@ class ContourCreator:
         self.CSs.append(self._densityCalcContour())
         self.CSs.append(self._centroidCalcContour())
 
-    def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):
+    def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson): #numClusters not used?
         '''
         Sorts through the featureDict to find the points and vectors
         that correspond to each individual country and returns lists
         with those variables in the correct country spot. This only catches
         the points that are within the country borders.
         '''
-        with open(bordersGeoJson) as f:
-            bordersData = json.load(f)
 
-        allBordersDict = {}
-        for feature in bordersData['features']:
-            poly = shply.shape(feature['geometry']).simplify(0.01)
-            clusterId = feature['properties']['clusterId']
-            assert(clusterId)
-            allBordersDict[clusterId] = poly
 
         xs = defaultdict(list)
         ys = defaultdict(list)
         vectors = defaultdict(list)
-        keys = sorted(featureDict.keys())
 
         count = 0
-        keys = []
-        for index in featureDict:
-            if 'keep' not in featureDict[index]:
-                count += 1
-            elif 'cluster' not in featureDict[index]:
-                count += 1
-            elif 'x' not in featureDict[index]:
-                count += 1
-            else:
-                keys.append(index)
-        print '%d of %d were bad keys' % (count, len(featureDict))
-
-        featureDict = { k: featureDict[k] for k in keys }   # filter out bad keys
-
-        for i, index in enumerate(keys):
-            if i % 10000 == 0:
-                print 'doing', i, 'of', len(keys)
-            pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or pointInfo.get('cluster') in (None, ''): continue
-            c = pointInfo['cluster']
-            xy = Point(float(pointInfo['x']), float(pointInfo['y']))
-            # poly = allBordersDict.get(c)
-            # if poly and poly.contains(xy):
-            xs[c].append(xy.x)
-            ys[c].append(xy.y)
-            vectors[c].append(pointInfo['vector'])
-
+        for row in featureDict.itertuples():
+            if count % 10000 == 0:
+                print 'doing', count, 'of', featureDict.shape[0]
+            if row[4] == False: continue
+            c = row[3]
+            xs[c].append(row[1])
+            ys[c].append(row[2])
+            vectors[c].append(row[5])
+            count += 1
         return xs, ys, vectors
+
+
+
 
     def _centroidValues(self):
         '''
