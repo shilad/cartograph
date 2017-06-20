@@ -3,7 +3,7 @@ This is the code behind [our map of Wikipedia](http://nokomis.macalester.edu/car
 
 # Requirements
 - These instructions are written for a Mac system. They should be pretty easily portable to Linux/Windows with appropriate adjustment of the command line stuff, but we haven't tested it on those systems yet, so some things might be different.
-- You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, you can't run the code on our Wikipedia dataset - there are ~10GB of it so it doesn't fit on Github :( If you'd like to play around with the full Wikipedia dataset, open an issue and we'll do our best to get you set up.
+- You'll need your own vectorized dataset and some kind of popularity/weighting measure for it (for Wikipedia, ours was a combination of page views and page rank). Unfortunately, we can't publish our Wikipedia dataset - it is ~10GB of it so it doesn't fit on Github :( If you'd like to play around with the full Wikipedia dataset, open an issue and we'll do our best to get you set up.
 - Python 2.7, which you can install [here](https://www.python.org/downloads/) if you don't already have it, and your text editor of choice.
 - Docker, which you can install [here](https://www.docker.com/)
 - PyCharm, which you can install [here](https://www.jetbrains.com/pycharm/download/)
@@ -63,15 +63,6 @@ I'll number the files you need so that you can reference them later.
   3	Physics & Maths
   ```
 
-5. (OPTIONAL) t-sne cache. This is a cache of your embedding, a three-column tsv file with an header "index x y", which represents the index/id number of the point and then its x/y coordinates after embedding. Caching this file maintains a consistent embedding and also speeds up the run-time of the process. 
-  ```
-  index	x	y
-  91139	1.29488570272	6.27138495391
-  40135	20.3768748707	-9.27980846186
-  89370	-6.43982634997	-4.71632724942
-  89371	-2.57335603135	25.4092678524
-  ```
-
 ## Config
 This is the top of data/conf/defaultconfig.txt, which you'll need to edit to correspond to your data files. You'll also have to create a couple of directories for your files to live in. 
 ```
@@ -110,7 +101,8 @@ Do the same for the other four files. If you don't have the last two, it's okay 
 
 If you'd just like to create our example map of Simple English Wikipedia, you can also download the data files for that map from the Cartograph website (or at least, you should be able to soon).
 
-#Dependencies galore!
+# Docker: Dependencies galore!
+
 Docker will take care of installing a bunch of dependencies in order to get you started. Most of them are pretty quick, with the exception of pygsp, which takes about half an hour - ample time to go get a snack or catch some Pokémon or something.
 
 The actual location of the cartograph repo (and even its name) may change depending on where your data are stored in your file system. For us, the Cartograph directory contains a /data/ext/simple subdirectory that itself contains our data files.
@@ -119,14 +111,7 @@ The actual location of the cartograph repo (and even its name) may change depend
 docker run -ti -v ~/PycharmProjects/cartograph:/testvoldir mjulstro/cartorepo:version4
 ```
 
-Troubleshooting:
-- ???
-- ???
-
-#Test the server
-Open a browser window and go to localhost:8080. If it says "TileStache bellows hello", congrats! Your server is working properly.
-
-#Run the pipeline!
+# Run the pipeline!
 This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. What comes after the --conf tag in this command will, like the previous command, depend on your filesystem and where your data are stored.
 
 ```
