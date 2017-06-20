@@ -71,13 +71,6 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         featureDict.columns = ['index', 'vector']
         featureDict = featureDict.set_index('index')
 
-        # Change order to produce same result
-        results = ['42', '48', '43', '49', '24', '25', '26', '27', '20', '21', '22', '23', '46', '47', '44', '45', '28',
-                   '29', '40', '41', '1', '3', '2', '5', '4', '7', '6', '9', '8', '39', '38', '11', '10', '13', '12',
-                   '15', '14', '17', '16', '19', '18', '31', '30', '37', '36', '35', '34', '33', '32', '50']
-        results = list(map(int, results))
-        featureDict = featureDict.reindex(results)
-
         vectors = [list(i) for i in featureDict['vector']]
         vectors = np.array(vectors)
 
