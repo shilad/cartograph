@@ -24,7 +24,7 @@ class RelatedPointsService:
             for line in f: #reads over each line
                 row = str(line).split() #creates an array where each column is a value
                 key = row[0] #makes the key the first item in the array
-                list = row[1:] #makes a list of the rest of values in the array
+                list = row[:] #makes a list of the rest of values in the array
                 valuelist = []
                 for item in list:
                     try:
