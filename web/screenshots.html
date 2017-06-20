@@ -1,0 +1,139 @@
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Map of World Knowledge</title>
+
+    <meta property="og:title" content="Cartograph: IUI 2017" />
+
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <link rel="stylesheet" href="css/auto-complete.css"/>
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.bundle.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/tooltipster.shadow.min.css" />
+
+  <script src="js/pace.min.js"></script>
+  <link href="css/pace.css" rel="stylesheet" />
+
+
+    <style>
+        .leaflet-control-container {
+          display: none;
+        }
+
+        #map {
+          position: absolute;
+          top: 23px;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 1200px;
+          height: 800px;
+        }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.autocomplete.js"></script>
+    <script type="text/javascript" src="js/tooltipster.bundle.min.js"></script>
+    <script src="js/js.cookie.js"></script>
+
+    <!-- leaflet -->
+    <script src="js/leaflet.js"></script>
+    <script src="js/carto-hash.js"></script>
+    <script src="js/carto-log.js"></script>
+
+    <!-- Main tangram library -->
+    <script src="js/tangram.min.js"></script>
+    <script src="js/tinycolor.js"></script>
+
+    <!-- -->
+    <script src="js/cartograph.js"></script>
+    <script src="js/FileSaver.js"></script>
+
+    <script>
+      var pages = [
+//          	'Batman v Superman: Dawn of Justice',
+//            'Citizen Kane',
+//            'Star Trek Beyond',
+//            'The Social Network',
+//            'Fight Club',
+//            'The Departed',
+//            'The Lego Movie',
+//            'Dr. Strangelove',
+//            'Suriya',
+//            'The Graduate',
+//            'Cloverfield',
+//            'Pan\'s Labyrinth',
+//            'It\'s a Wonderful Life',
+//            'A.I. Artificial Intelligence',
+//            'Ferris Bueller\'s Day Off',
+//            'Shakespeare in Love',
+//            'Ilaiyaraaja',
+//            'The Texas Chain Saw Massacre',
+//            'Napoleon Dynamite',
+//            'Princess Mononoke',
+//            'Our Gang',
+//            'The Notebook',
+//            'American Graffiti',
+//            'The Conjuring',
+//            'There Will Be Blood',
+//            'Animal House',
+//            'The Bridge on the River Kwai',
+//            'The Karate Kid',
+//            'The Princess and the Frog',
+//            'Bajirao Mastani',
+//            'Night of the Living Dead',
+//            'Chariots of Fire',
+//            'Amélie',
+//            'Crimson Peak',
+//            'All About Eve',
+//            'Beetlejuice',
+//            'Super Size Me',
+//            'An Inconvenient Truth',
+//            'Close Encounters of the Third Kind',
+//            'Dirty Dancing',
+      ];
+
+      var index = 0;
+      CG.init('cluster');
+      CG.map.setView([0, 0], 7);
+
+      function screenshot() {
+          CG.layer.scene.screenshot().then(
+              function(screenshot) {
+                  var f = "cartoScreenshots-" + pages[index] + ".png";
+                  console.log('saving to ' + f);
+                  saveAs(screenshot.blob, f);
+                  index++;
+                  if (index < pages.length) {
+                    advance();
+                  }
+              });
+
+      }
+
+      function advance() {
+          $.ajax({
+            url: '../search.json',
+            data: { q : pages[index]},
+            success: function(result) {
+                var data = result.suggestions[0].data;
+                CG.map.setView(data.loc, 7);
+                setTimeout(screenshot, 5000);
+            }
+          });
+      }
+
+    setTimeout(advance, 3000);
+
+
+    </script>
+
+  </body>
+</html>

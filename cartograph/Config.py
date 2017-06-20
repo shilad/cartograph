@@ -1,7 +1,7 @@
 import os
 import logging
 import types
-
+import distutils.core
 
 logger = logging.getLogger('cartograph.config')
 
@@ -46,6 +46,11 @@ def samplePath(origPath, n):
     else:
         return '%s.sample_%s.%s' % (origPath[:i], n, origPath[i + 1:])
 
+def initTest():
+    src = './data/ext/test-orig'  # Path/Location of the source directory
+    dst = './data/ext/test'
+    distutils.dir_util.copy_tree(src, dst)
+    return initConf("./data/conf/test.txt")
 
 def initConf(confFile=None):
     global CONFIG
