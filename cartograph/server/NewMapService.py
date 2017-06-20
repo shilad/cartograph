@@ -44,7 +44,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
     with codecs.open(os.path.join(source_dir, filename), 'r') as read_file, \
             codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
         popularities_reader = csv.reader(read_file, delimiter='\t')
-        popularities_writer = csv.writer(write_file, delimiter='\t')
+        popularities_writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
         popularities_writer.writerow(popularities_reader.next())  # Transfer the header
         for row in popularities_reader:
             if row[0] in ids:
