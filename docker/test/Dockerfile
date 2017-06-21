@@ -45,4 +45,7 @@ WORKDIR /home/cartograph
 RUN git checkout integration-test
 
 #Define default command
-CMD bash
+CMD  git pull && \
+    ./build.sh  --conf ./data/conf/integration_test.txt
+
+

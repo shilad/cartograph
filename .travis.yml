@@ -1,0 +1,21 @@
+language: python
+python:
+  - "2.7"
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libgeos-dev
+  - sudo apt-get install -y libatlas-base-dev
+  - sudo apt-get install -y libffi-dev
+  - sudo apt-get install -y libssl-dev
+  - sudo apt-get install -y qt4-default
+  - sudo apt-get install -y cmake
+  - sudo apt-get install -y libcairo2-dev
+
+# command to install dependencies
+install:
+  - "pip install numpy Cython"
+  - "pip install -r requirements.txt"
+
+# command to run tests
+script:
+  - ./build.sh  --conf ./data/conf/integration_test.txt
