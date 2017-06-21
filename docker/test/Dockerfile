@@ -46,6 +46,6 @@ RUN git checkout integration-test
 
 #Define default command
 CMD  git pull && \
-    ./build.sh  --conf ./data/conf/integration_test.txt
+    ./docker/test/run-docker-tests.sh
 
 
