@@ -12,6 +12,7 @@ before_install:
   - sudo apt-get install -y qt4-default
   - sudo apt-get install -y cmake
   - sudo apt-get install -y libcairo2-dev
+#  - sudo apt-get install -y python-pyside
 
 # command to install dependencies
 install:
