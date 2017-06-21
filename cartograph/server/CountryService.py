@@ -2,7 +2,6 @@ import logging
 
 import shapely
 
-from cartograph.Utils import pg_cnx
 from cartograph.server.PolyLayer import PolyLayer
 from cartograph.server.ServerUtils import tileExtent
 
