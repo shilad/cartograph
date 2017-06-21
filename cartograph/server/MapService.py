@@ -30,7 +30,7 @@ class MapService:
         if os.getenv('BASE_URL'):
             conf.set('Server', 'base_url', os.getenv('BASE_URL'))
     
-        logging.info('initializing services for ' + name)
+        logging.info('initializing services for ' + self.name)
     
         self.logging_service = LoggingService(conf)
         self.point_service = PointService(conf)
@@ -40,12 +40,3 @@ class MapService:
         self.template_service = TemplateService(conf)
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
-
-        # things will handle all requests to the '/things' URL path
-        prefix = '/' + self.name
-        app.add_route(prefix + '/search.json', self.search_service)
-        app.add_route(prefix + '/vector/{layer}/{z}/{x}/{y}.topojson', self.tile_service)
-        app.add_route(prefix + '/raster/{layer}/{z}/{x}/{y}.png', self.mapnik_service)
-        app.add_route(prefix + '/template/{file}', self.template_service)
-        app.add_route(prefix + '/log', self.logging_service)
-        app.add_sink(lambda req, resp: self.static_service.on_get(req, resp), prefix + '/static')
