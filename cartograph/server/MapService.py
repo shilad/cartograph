@@ -16,7 +16,7 @@ from cartograph.server.TileService import TileService
 class MapService:
     """A set of services for a particular map    
     """
-    def __init__(self, conf_path, app):
+    def __init__(self, conf_path):
         if not os.path.isfile(conf_path):
             raise Exception, 'Cartograph Config Path %s does not exist' % `conf_path`
     
