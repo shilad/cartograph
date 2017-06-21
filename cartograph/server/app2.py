@@ -82,6 +82,6 @@ if __name__ == '__main__':
     logging.info('starting server')
 
     from wsgiref import simple_server
-    httpd = simple_server.make_server('127.0.0.1', 4000, app)
+    httpd = simple_server.make_server('0.0.0.0', 4000, app)
     logging.info('server ready!')
     httpd.serve_forever()
