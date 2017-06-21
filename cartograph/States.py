@@ -4,7 +4,7 @@ import Utils
 from Denoiser import Denoise
 from BorderGeoJSONWriter import CreateContinents
 from Contour import CreateContours
-from luigiUtils import MTimeMixin, TimestampedLocalTarget
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from sklearn.cluster import KMeans
 
 

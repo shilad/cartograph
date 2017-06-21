@@ -50,6 +50,9 @@ def initTest():
     src = './data/ext/test-orig'  # Path/Location of the source directory
     dst = './data/ext/test'
     distutils.dir_util.copy_tree(src, dst)
+    src = './data/test-orig'  # Path/Location of the source directory
+    dst = './data/test'
+    distutils.dir_util.copy_tree(src, dst)
     return initConf("./data/conf/test.txt")
 
 def initConf(confFile=None):
