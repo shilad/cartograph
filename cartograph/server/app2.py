@@ -31,8 +31,19 @@ app.add_route('/add_map.html', add_map_service)
 
 
 # Start up a set of services for each map (as specified by its config file)
+
+
+map_services = {}
 for path in confPaths.split(':'):
-    MapService(path, app)
+    map_service = MapService(path, app)
+    map_services[map_service.name] = map_service
+
+app.add_route('/{name}/search.json', MapService('search_service'))
+app.add_route('/{name}/vector/{layer}/{z}/{x}/{y}.topojson', self.tile_service)
+app.add_route('/{name}/raster/{layer}/{z}/{x}/{y}.png', self.mapnik_service)
+app.add_route('/{name}/template/{file}', self.template_service)
+app.add_route('/{name}/log', self.logging_service)
+app.add_sink(lambda req, resp: self.static_service.on_get(req, resp), prefix + '/static')
 
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You

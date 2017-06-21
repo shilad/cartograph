@@ -21,7 +21,7 @@ class MapService:
             raise Exception, 'Cartograph Config Path %s does not exist' % `conf_path`
     
         conf = Config.initConf(conf_path)
-        name = conf.get('DEFAULT', 'dataset')
+        self.name = conf.get('DEFAULT', 'dataset')
     
         if os.getenv('CLEAR_CACHE'):
             logging.info('clearing cache directory %s' % conf.get('DEFAULT', 'webCacheDir'))
@@ -42,7 +42,7 @@ class MapService:
         self.search_service = SearchService(self.point_service)
 
         # things will handle all requests to the '/things' URL path
-        prefix = '/' + name
+        prefix = '/' + self.name
         app.add_route(prefix + '/search.json', self.search_service)
         app.add_route(prefix + '/vector/{layer}/{z}/{x}/{y}.topojson', self.tile_service)
         app.add_route(prefix + '/raster/{layer}/{z}/{x}/{y}.png', self.mapnik_service)
