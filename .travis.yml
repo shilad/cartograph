@@ -4,7 +4,7 @@ services:
   - docker
 
 before_install:
-- docker pull shilad/integration-test:latest
+- docker pull shilad/cartograph-integration:latest
 
 scripts:
-- docker run shilad/integration-test:latest
+- docker run shilad/cartograph-integration:latest
