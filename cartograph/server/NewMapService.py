@@ -53,8 +53,8 @@ def filter_tsv(source_dir, target_dir, ids, filename):
 
 class AddMapService:
 
-    def __init__(self, app):
-        self.app = app
+    def __init__(self, map_services):
+        self.map_services = map_services
 
     def on_get(self, req, resp):
         resp.stream = open('./web/newMap.html', 'rb')
@@ -111,4 +111,5 @@ class AddMapService:
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask" % config_path)
 
         # Add urls to new map
-        MapService(config_path, self.app)
+        map_service = MapService(config_path)
+        self.map_services[map_service.name] = map_service
