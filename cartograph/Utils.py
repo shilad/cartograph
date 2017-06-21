@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import sys
 
-import psycopg2
-
 
 def read_vectors(path):
     featureDict = pd.read_table(path, skiprows=1, skip_blank_lines=True, header=None)
@@ -143,15 +141,6 @@ def sort_by_percentile(numBins):
         print("=========")
         print(i+1)
         # np.percentile(percentileList, (i, i+1))
-
-
-def pg_cnx(config):
-    return psycopg2.connect(
-        dbname=config.get('PG', 'database'),
-        host=config.get('PG', 'host'),
-        user=config.get('PG', 'user'),
-        password=config.get('PG', 'password'),
-    )
 
 class InputError(Exception):
     """Exception raised for errors in the input.

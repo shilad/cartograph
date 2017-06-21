@@ -1,6 +1,7 @@
 luigi
 geojson
 shapely
+mapnik
 lxml
 numpy
 matplotlib
