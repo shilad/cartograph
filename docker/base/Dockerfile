@@ -41,3 +41,6 @@ RUN pip install -r ../../requirements.txt
 # We need git!
 RUN apt-get --assume-yes install git
 
+# Late addition: gunicorn
+RUN pip install gunicorn
+
