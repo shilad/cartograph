@@ -8,7 +8,7 @@
 export DOCKER_ID_USER="shilad"
 
 USERNAME=$DOCKER_ID_USER
-IMAGE=carto-integration
+IMAGE=cartograph-integration
 
 version=$1
 if [ -z "$version" ]; then
