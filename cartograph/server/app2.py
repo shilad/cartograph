@@ -5,6 +5,7 @@ import sys
 
 import falcon
 
+from cartograph.server.ParentService import ParentService
 from cartograph.server.NewMapService import AddMapService
 from cartograph.server.MapService import MapService
 
@@ -38,12 +39,12 @@ for path in confPaths.split(':'):
     map_service = MapService(path, app)
     map_services[map_service.name] = map_service
 
-app.add_route('/{name}/search.json', MapService('search_service'))
-app.add_route('/{name}/vector/{layer}/{z}/{x}/{y}.topojson', self.tile_service)
-app.add_route('/{name}/raster/{layer}/{z}/{x}/{y}.png', self.mapnik_service)
-app.add_route('/{name}/template/{file}', self.template_service)
-app.add_route('/{name}/log', self.logging_service)
-app.add_sink(lambda req, resp: self.static_service.on_get(req, resp), prefix + '/static')
+app.add_route('/{map_name}/search.json', ParentService(map_services, 'search_service'))
+app.add_route('/{map_name}/vector/{layer}/{z}/{x}/{y}.topojson', ParentService(map_services, 'tile_service'))
+app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_services, 'mapnik_service'))
+app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
+app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
+app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
