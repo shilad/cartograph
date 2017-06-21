@@ -276,13 +276,45 @@ CG.init = function(layer) {
                 return pts;
             }
             var linkPairArray = collectLinks(coords);
-
+            var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256)) + ')';
+            /*
             L.polyline(linkPairArray, {
-            color: '#ffcc22',
+            color: randHue,
             weight: 1,
-            opacity: 1,
+            opacity: 0.65,
             smoothFactor: 1
             }).addTo(CG.map);
+            */
+
+            function drawCurves(){
+                for (var i=0; i<linkPairArray.length-2; i+=2){
+                    var pointA = linkPairArray[i];
+                    var pointB = linkPairArray[i+1];
+
+                    var difX = Math.abs(pointA[0] - pointB[0]);
+                    var difY = Math.abs(pointA[1] - pointB[1]);
+
+
+
+                    if (difX > difY){
+                        var halfwayX = 1 * (pointA[0] + pointB[0])/2;
+                        var halfwayY = 1.1 * (pointA[1] + pointB[1])/2;
+                    } else {
+                        var halfwayX = 1.1 * (pointA[0] + pointB[0])/2;
+                        var halfwayY = 1 * (pointA[1] + pointB[1])/2;
+                    }
+
+                    L.curve(['M',pointA,
+					         'Q',[halfwayX,halfwayY],
+						     pointB,
+					         ], {color: randHue, weight: 1, opacity: 0.65, smoothFactor: 1
+                             }).addTo(CG.map);
+                }
+            }
+
+            drawCurves();
 
         });
 
