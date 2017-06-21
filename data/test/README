@@ -1,6 +1,0 @@
-This directory should contain "correct" files for the full cartoraph pipeline.
-
-At the start of every unit test, this directory will replace whatever is in the parallel "test directory."
-
-Individual unit tests may require some of these files, and then overwrite select files.
-The individual unit tests should also verify that the files that are created are "correct."

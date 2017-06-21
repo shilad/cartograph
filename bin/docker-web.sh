@@ -14,7 +14,8 @@ if [[ "$conf" = /* ]]; then
     exit 1
 fi
 
-
+# TODO SWS: Add ":delegated" to the end of the -v line to improve mounted volume
+# performance after version 17.04 is released.
 docker pull shilad/cartograph-base:latest &&
 docker run \
     -e PYTHONPATH=.:./cartograph/server \
