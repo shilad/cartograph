@@ -215,6 +215,14 @@ CG.init = function(layer) {
         }
     };
 
+    CG.handleEdgeHover = function(mapX, mapY, properties){
+
+    };
+
+    CG.cancelEdgeHover = function(){
+
+    };
+
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
 
@@ -246,6 +254,20 @@ CG.init = function(layer) {
         //how I got the snippets: https://en.wikipedia.org/w/api.php?action=query&format=json&titles=Top%20Gun!!!!!!SOMETHING? extracts&explaintext&exsentences=3&exsectionformat=plain!!!!!!&callback=jQuery1102006687854900582613_1497380793059&_=1497380793065
         //how I got the x,y coordinates of each link: look at RelatedPointsService.py
 
+        var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+        var edgeHoverStyle =   {weight: 3,
+                                opacity: 0.9,
+                                smoothFactor: 1,
+                                attribution: 'edge'};
+        var edgeNeutralStyle = {color: randHue,
+                                weight: 1,
+                                opacity: 0.6,
+                                smoothFactor: 1,
+                                attribution: 'edge'};
+
         $.getJSON(relatedPoints, function (data) {
 
             var smallMarker = L.icon({
@@ -254,41 +276,30 @@ CG.init = function(layer) {
             });
 
             var coords = []
-            //var idCoord = RelatedPointsService.getPointCoord(data[id]);
-            //coords.push(idCoord);
 
             data[id].forEach(function (linkInfo) {
                   var x = linkInfo.data.loc[0];
                   var y = linkInfo.data.loc[1];
-                  L.marker([x, y], {icon: smallMarker}).addTo(CG.map);
+                  marker = L.marker([x, y], {icon: smallMarker});
+                  marker.addTo(CG.map);
                   coords.push([x,y]);
             });
 
             console.log('coords is ', coords);
 
-            function collectLinks(linkArray){
+            function createPathPairs(array){
                 var pts = [];
-                for(i=1; i < linkArray.length; i++) {
-
-                    pts.push(linkArray[0]);
-                    pts.push(linkArray[i]);
+                for(i=1; i < array.length; i++) {
+                    pts.push(array[0]);
+                    pts.push(array[i]);
                 }
                 return pts;
             }
-            var linkPairArray = collectLinks(coords);
-            var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256)) + ')';
-            /*
-            L.polyline(linkPairArray, {
-            color: randHue,
-            weight: 1,
-            opacity: 0.65,
-            smoothFactor: 1
-            }).addTo(CG.map);
-            */
+
+            var linkPairArray = createPathPairs(coords);
 
             function drawCurves(){
+
                 for (var i=0; i<linkPairArray.length-2; i+=2){
                     var pointA = linkPairArray[i];
                     var pointB = linkPairArray[i+1];
@@ -296,24 +307,24 @@ CG.init = function(layer) {
                     var difX = Math.abs(pointA[0] - pointB[0]);
                     var difY = Math.abs(pointA[1] - pointB[1]);
 
-
-
                     if (difX > difY){
                         var halfwayX = 1 * (pointA[0] + pointB[0])/2;
-                        var halfwayY = 1.1 * (pointA[1] + pointB[1])/2;
-                    } else {
-                        var halfwayX = 1.1 * (pointA[0] + pointB[0])/2;
+                        var halfwayY = 1.15 * (pointA[1] + pointB[1])/2;
+                    } else if (difY > difX){
+                        var halfwayX = 1.15 * (pointA[0] + pointB[0])/2;
+                        var halfwayY = 1 * (pointA[1] + pointB[1])/2;
+                    } else{
+                        var halfwayX = 1 * (pointA[0] + pointB[0])/2;
                         var halfwayY = 1 * (pointA[1] + pointB[1])/2;
                     }
-
                     L.curve(['M',pointA,
 					         'Q',[halfwayX,halfwayY],
 						     pointB,
-					         ], {color: randHue, weight: 1, opacity: 0.65, smoothFactor: 1
-                             }).addTo(CG.map);
+					         ], edgeNeutralStyle).addTo(CG.map);
                 }
             }
 
+            //L.polyline(linkPairArray, edgeNeutralStyle).addTo(CG.map);
             drawCurves();
 
         });
