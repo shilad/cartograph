@@ -113,3 +113,7 @@ class AddMapService:
         # Add urls to new map
         map_service = MapService(config_path)
         self.map_services[map_service.name] = map_service
+
+        # Add map config path to meta-config
+        with open(self.map_services['_meta_config'], 'a') as meta_config:
+            meta_config.write('\n'+config_path)

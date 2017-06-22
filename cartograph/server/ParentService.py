@@ -1,3 +1,9 @@
+import csv
+import os
+
+from cartograph.server.MapService import MapService
+
+
 class ParentService:
     """A ParentService represents a given service (specified by <service_name>) for every map in <map_services>.
 
@@ -27,8 +33,19 @@ class ParentService:
         # Item is the method name
 
         def func(*args, **kwargs):  # = on_<method>()
+                # Extract map name
                 map_name = kwargs['map_name']
                 del kwargs['map_name']
+
+                # If the meta-config has been updated, update map_services
+                meta_config = self.map_services['_meta_config']
+                if os.stat(meta_config) != self.map_services['_last_update']:
+                    with open(meta_config, 'r') as configs:
+                        for map_config in configs:
+                            map_service = MapService(map_config.strip('\r\n'))
+                            self.map_services[map_service.name] = map_service
+                    self.map_services['_last_update'] = os.stat(meta_config)
+
                 service = self.service_for_map(map_name)
                 return getattr(service, item)(*args, **kwargs)
 
