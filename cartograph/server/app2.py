@@ -26,14 +26,14 @@ logging.info('configuring falcon')
 app = falcon.API()
 
 
-# Start up a set of services for each map (as specified by its config file)
-
-
+# Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
 map_services = {}
 for path in confPaths.split(':'):
     map_service = MapService(path)
     map_services[map_service.name] = map_service
 
+
+# Start a ParentService for each service; a ParentService represents a given service for every map in <map_services>
 app.add_route('/{map_name}/search.json', ParentService(map_services, 'search_service'))
 app.add_route('/{map_name}/vector/{layer}/{z}/{x}/{y}.topojson', ParentService(map_services, 'tile_service'))
 app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_services, 'mapnik_service'))
