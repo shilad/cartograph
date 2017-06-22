@@ -19,7 +19,6 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 from collections import defaultdict
 from shapely.geometry import shape, Point
-from area import area
 
 matplotlib.use("Agg")
 
@@ -232,7 +231,7 @@ def test_density(config, densityContour):
                 point = Point(embedding.loc[vecID]['x'], embedding.loc[vecID]['y'])
                 if contourShape.contains(point):
                     numVecs += 1
-            areaContour = area(densityContour['features'][contour]['geometry'])
+            areaContour = shply.shape(densityContour['features'][contour]['geometry']).buffer(0.0).area
             density = float(numVecs) / areaContour
             # Note: The contours are already sorted from the lowest level to the highest level
             assert all(density > i for i in densityList)
