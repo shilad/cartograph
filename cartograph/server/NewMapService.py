@@ -108,7 +108,7 @@ class AddMapService:
             config_file.write(conf_template.substitute(name=map_name))
 
         # Build from the new conf file
-        os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask" % config_path)
+        os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)
 
         # Add urls to new map
         map_service = MapService(config_path)
