@@ -180,8 +180,14 @@ def test_MakeRegions_task():
     knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
     knn.rebuild()
 
+    # First get regions for samples to get centroids
+    testSampleRegion = MakeSampleRegions()
+    testSampleRegion.run()
+
+    # Then run on everything
     testRegion = MakeRegions()
     testRegion.run()
+
     assert testRegion is not None
 
     clusters = pd.read_table(config.get("GeneratedFiles", "clusters_with_id"), index_col= 'index')

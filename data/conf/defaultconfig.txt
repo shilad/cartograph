@@ -47,6 +47,7 @@ water_level: .05
 num_contours: 7
 min_border_noise_length: .01
 contour_bins: 200
+tsne_perplexity: 30
 
 [MapConstants]
 max_coordinate: 40
