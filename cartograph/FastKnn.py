@@ -32,9 +32,7 @@ class FastKnn:
         return True
 
     def rebuild(self):
-        print('here 1')
         vecs = Utils.read_vectors(self.pathVectors)
-        print('here 2')
 
         ids = []
         n = None
@@ -47,7 +45,6 @@ class FastKnn:
             else:
                 assert(n == len(vecs.iloc[k][0]))
         ids.sort()
-        print('here 3')
 
         ai = annoy.AnnoyIndex(n)
         for i in range(len(vecs.index)):
@@ -61,7 +58,6 @@ class FastKnn:
         logger.info('saving annoy datastructure')
         ai.save(self.pathAnnoy)
 
-        print('here 4')
         with open(self.pathIds, 'wb') as f:
             cPickle.dump([n] + ids, f)
         self.ids = ids
