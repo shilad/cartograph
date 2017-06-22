@@ -13,6 +13,8 @@ from PreReqs import WikiBrainNumbering
 from sklearn.cluster import KMeans
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 
+global clusterCenters
+
 
 class RegionCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
@@ -43,40 +45,19 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        # featureDict = Utils.read_features(config.getSample("ExternalFiles",
-        #                                                    "best_vecs_with_id"))
-        # keys = list(k for k in featureDict.keys() if len(featureDict[k]['vector']) > 0)
-        # results = list(map(int, keys))
-        # results.sort()
-        # keys = list(map(str, results))
-        #
-        # print keys
-        #
-        # vectors = np.array([featureDict[vID]["vector"] for vID in keys])
-        # print vectors
+        featureDict = Utils.read_vectors(config.getSample("ExternalFiles", "best_vecs_with_id"))
+        vectors = np.array([list(i) for i in featureDict['vector']])
+
         # labels = list(KMeans((config.getint("PreprocessingConstants",
         #                                     "num_clusters")),
         #                      random_state=42).fit(vectors).labels_)
-        #
-        # Utils.write_tsv(config.getSample("GeneratedFiles", "clusters_with_id"),
-        #                 ("index", "cluster"), keys, labels)
-        #
-        featureDict = pd.read_table(config.getSample("ExternalFiles",
-                                                     "best_vecs_with_id"), skiprows=1, skip_blank_lines=True,
-                                    header=None)
-        featureDict['vectorTemp'] = featureDict.iloc[:, 1:].apply(lambda x: tuple(x),
-                                                                  axis=1)  # join all vector columns into same column
-        featureDict.drop(featureDict.columns[1:-1], axis=1,
-                         inplace=True)  # drop all columns but the index and the vectorTemp column
-        featureDict.columns = ['index', 'vector']
-        featureDict = featureDict.set_index('index')
-
-        vectors = [list(i) for i in featureDict['vector']]
-        vectors = np.array(vectors)
-
-        labels = list(KMeans((config.getint("PreprocessingConstants",
+        kMeans = KMeans((config.getint("PreprocessingConstants",
                                             "num_clusters")),
-                             random_state=42).fit(vectors).labels_)
+                             random_state=42).fit(vectors)
+        labels = list(kMeans.labels_)
+
+        global clusterCenters  # For unittest
+        clusterCenters = kMeans.cluster_centers_
 
         data = {'index': featureDict.index, 'cluster': labels}
         result = pd.DataFrame(data, columns=['index', 'cluster'])
@@ -85,19 +66,45 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         result.to_csv(config.getSample("GeneratedFiles", "clusters_with_id"), sep='\t', index_label='index',
                       columns=['cluster'])
 
-
 def test_MakeSampleRegions_task():
-    # sample_size in config == 50
-    Config.initTest()
+    config = Config.initTest()
     # Create a unit test config object
     testSampleRegion = MakeSampleRegions()
     testSampleRegion.run()
     assert testSampleRegion is not None
-    correct = pd.read_table('./data/test/tsv/numberedClusters.sample_50_correct.tsv', index_col='index')
-    result = pd.read_table('./data/test/tsv/numberedClusters.sample_50.tsv', index_col='index')
-    for (id1, row1), (id2, row2) in zip(correct.iterrows(), result.iterrows()):
-        assert id1 == id2
-        assert row1['cluster'] == row2['cluster']
+
+    clusters = pd.read_table(config.getSample("GeneratedFiles", "clusters_with_id"), index_col= 'index')
+
+    # All points in a cluster are closer to its centroid than to other centroids
+    global clusterCenters
+    vecs = Utils.read_vectors(config.getSample("ExternalFiles", "best_vecs_with_id"))
+    clusters.index = clusters.index.astype(str)
+    for i, (index, row) in enumerate(vecs.iterrows()):
+        centroid = clusterCenters[clusters.loc[index]['cluster']]  # Centroid of cluster this vector is in
+        centroidDist = np.sum((centroid - row['vector']) * (centroid - row['vector']))
+        for center in clusterCenters:
+            centerdDist = np.sum((center - row['vector']) * (center - row['vector']))
+            assert centerdDist >= centroidDist
+
+    # Neighbors of a point should also be in the same cluster
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "best_vecs_with_id"))
+    vecsdf = pd.read_table(config.get("ExternalFiles", "best_vecs_with_id"), skiprows=1,
+                           skip_blank_lines=True,
+                           header=None, index_col=0)  # Vectors are merged in one column
+    features = pd.merge(vecs, clusters, how='inner', left_index=True, right_index=True)
+    stat = []
+    for i, (index, row) in enumerate(features.iterrows()):
+        dist = vecsdf - row['vector']
+        vectorDist = dist * dist
+        vectorDist['distance'] = vectorDist.sum(axis=1)
+        vectorDist.sort_values('distance', inplace=True)
+        vectorDist.index = vectorDist.index.astype(str)
+        top10Vec = vectorDist.index[:10]  # 10 nearest neighbors of this point
+        clusterOfNeighbor = clusters.loc[top10Vec]['cluster']  # List of clusters that neighbors belong to
+        cluster = clusters.loc[index]['cluster']  # Cluster this point belongs to
+        preserved = clusterOfNeighbor[clusterOfNeighbor == cluster].count()
+        stat.append(preserved)
+    assert np.mean(stat) >= 4
 
 
 class MakeRegions(MTimeMixin, luigi.Task):
@@ -124,18 +131,12 @@ class MakeRegions(MTimeMixin, luigi.Task):
     def run(self):
         config = Config.get()
 
-        vecs = pd.read_table(config.get("ExternalFiles", "vecs_with_id"), skip_blank_lines=True, skiprows=1,
-                             header=None)
-        vecs['vectorTemp'] = vecs.iloc[:, 1:].apply(lambda x: tuple(x),
-                                                    axis=1)  # join all vector columns into same column
-        vecs.drop(vecs.columns[1:-1], axis=1,
-                  inplace=True)  # drop all columns but the index and the vectorTemp column
-        vecs.columns = ['index', 'vector']
-        vecs = vecs.set_index('index')
+        vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))
 
         if config.sampleBorders():
             logger = logging.getLogger('workload')
             sampleRegions = pd.read_table(config.getSample("GeneratedFiles", "clusters_with_id"), index_col='index')
+            sampleRegions.index = sampleRegions.index.astype(str)
             knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
             assert (knn.exists())
             knn.read()
@@ -144,7 +145,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
             for i, (id, row) in enumerate(vecs.iterrows()):
                 if i % 10000 == 0:
                     logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-                if id in sampleRegions.index and sampleRegions.loc[id]['cluster']:
+                if id in sampleRegions.index:
                     cluster = sampleRegions.loc[id]['cluster']
                 else:
                     sums = defaultdict(float)
@@ -152,18 +153,16 @@ class MakeRegions(MTimeMixin, luigi.Task):
                     hood = knn.neighbors(row['vector'], 5)
                     if not hood: continue
                     for (id2, score) in hood:
-                        if id2.isdigit():
-                            c = sampleRegions.loc[int(id2)]['cluster']
+                        c = sampleRegions.loc[id2]['cluster']
                         if c is not None and score > 0:
                             sums[c] += score
                     if not sums: continue
                     cluster = max(sums, key=sums.get)
                 ids.append(id)
                 clusters.append(cluster)
-
         else:
             ids = list(k for k in vecs.index if len(vecs.loc[k]['vector']) > 0)
-            vectors = [list(i) for i in vecs['vector']]
+            vectors = np.array([list(i) for i in vecs['vector']])
             clusters = list(KMeans((config.getint("PreprocessingConstants",
                                                   "num_clusters")),
                                    random_state=42).fit(vectors).labels_)
@@ -175,7 +174,6 @@ class MakeRegions(MTimeMixin, luigi.Task):
         result.to_csv(config.get("GeneratedFiles", "clusters_with_id"), sep='\t', index_label='index',
                       columns=['cluster'])
 
-
 def test_MakeRegions_task():
     # sample_size in config == 50
     config = Config.initTest()
@@ -186,11 +184,40 @@ def test_MakeRegions_task():
     testRegion.run()
     assert testRegion is not None
 
-    correct = pd.read_table('./data/test/tsv/numberedClusters_correct.tsv', index_col='index')
-    correct.sort_index(inplace=True)
-    correct.to_csv('./data/test/tsv/numberedClusters_correct.tsv', sep='\t', index_label='index',
-                  columns=['cluster'])
-    result = pd.read_table('./data/test/tsv/numberedClusters.tsv', index_col='index')
-    for (id1, row1), (id2, row2) in zip(correct.iterrows(), result.iterrows()):
-        assert id1 == id2
-        assert row1['cluster'] == row2['cluster']
+    clusters = pd.read_table(config.get("GeneratedFiles", "clusters_with_id"), index_col= 'index')
+
+    global clusterCenters
+    # All points in a cluster are closer to its centroid than to other centroids
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "best_vecs_with_id"))
+    clusters.index = clusters.index.astype(str)
+    count = 0
+    for i, (index, row) in enumerate(vecs.iterrows()):
+        if index in clusters.index:
+            centroid = clusterCenters[clusters.loc[index]['cluster']]  # Centroid of cluster this vector is in
+            centroidDist = np.sum((centroid - row['vector']) * (centroid - row['vector']))
+            for center in clusterCenters:
+                centerdDist = np.sum((center - row['vector']) * (center - row['vector']))
+                if centerdDist >= centroidDist:
+                    count += 1
+
+    # Neighbors of a point should also be in the same cluster
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "best_vecs_with_id"))
+    vecsdf = pd.read_table(config.get("ExternalFiles", "best_vecs_with_id"), skiprows=1,
+                           skip_blank_lines=True,
+                           header=None, index_col=0)  # Vectors are merged in one column
+    features = pd.merge(vecs, clusters, how='inner', left_index=True, right_index=True)
+    stat = []
+    for i, (index, row) in enumerate(features.iterrows()):
+        dist = vecsdf - row['vector']
+        vectorDist = dist * dist
+        vectorDist['distance'] = vectorDist.sum(axis=1)
+        vectorDist.sort_values('distance', inplace=True)
+        vectorDist.index = vectorDist.index.astype(str)
+        top10Vec = vectorDist.index[:10]  # 10 nearest neighbors of this point
+        clusterOfNeighbor = clusters.loc[top10Vec]['cluster']  # List of clusters that neighbors belong to
+        cluster = clusters.loc[index]['cluster']  # Cluster this point belongs to
+        preserved = clusterOfNeighbor[clusterOfNeighbor == cluster].count()
+        stat.append(preserved)
+    assert np.mean(stat) >= 5
+
+
