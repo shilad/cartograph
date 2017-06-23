@@ -20,6 +20,8 @@ from geojson import dumps, MultiPolygon
 from collections import defaultdict
 from shapely.geometry import shape, Point
 
+from area import area
+
 matplotlib.use("Agg")
 
 
@@ -194,7 +196,7 @@ def _test_centrality(config, clusterIdDict, centroidContour):
             # Note: The contours are already sorted from the lowest level to the highest level
             successBool.extend([meanCentrality > i for i in centralityList])
             centralityList.append(meanCentrality)
-    assert float(successBool.count(True)) / len(successBool) > 0.8
+    assert float(successBool.count(True)) / len(successBool) > 0.7
 
 
 def _test_density(config, densityContour):
@@ -231,8 +233,9 @@ def _test_density(config, densityContour):
                 point = Point(embedding.loc[vecID]['x'], embedding.loc[vecID]['y'])
                 if contourShape.contains(point):
                     numVecs += 1
-            areaContour = shply.shape(densityContour['features'][contour]['geometry']).buffer(0.0).area
+            areaContour = area(densityContour['features'][contour]['geometry'])
             density = float(numVecs) / areaContour
+            print(contour, density, areaContour, densityList)
             # Note: The contours are already sorted from the lowest level to the highest level
             assert all(density > i for i in densityList)
             densityList.append(density)
