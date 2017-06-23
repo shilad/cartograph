@@ -71,6 +71,15 @@ class AddMapService:
         if not os.path.exists(USER_CONF_DIR):
             os.makedirs(USER_CONF_DIR)
 
+        # Generate a new conf file
+        with open('./data/conf_template.txt', 'r') as conf_template_file:
+            conf_template = string.Template(conf_template_file.read())
+        config_filename = '%s.txt' % pipes.quote(map_name)
+        config_path = os.path.join(USER_CONF_DIR, config_filename)
+        assert not os.path.exists(config_path)  # Make sure no map config with this name exists
+        with open(config_path, 'w') as config_file:
+            config_file.write(conf_template.substitute(name=map_name))
+
         # Generate dictionary of article names to IDs
         # TODO: is there a way to do this once (instead of once per POST)?
         names_path = os.path.join(SOURCE_DIR, 'names.tsv')
@@ -98,14 +107,6 @@ class AddMapService:
         # For each of the data files, filter it and output it to the target directory
         for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
             filter_tsv(SOURCE_DIR, target_path, ids, filename)
-
-        # Generate a new conf file
-        with open('./data/conf_template.txt', 'r') as conf_template_file:
-            conf_template = string.Template(conf_template_file.read())
-        config_filename = '%s.txt' % pipes.quote(map_name)
-        config_path = os.path.join(USER_CONF_DIR, config_filename)
-        with open(config_path, 'w') as config_file:
-            config_file.write(conf_template.substitute(name=map_name))
 
         # Build from the new conf file
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)
