@@ -1,14 +1,11 @@
-#Pull base image
+# Pull base image
 FROM shilad/cartograph-base:latest
 
-# Checkout cartograph and clone to appropriate path
-WORKDIR /home
-RUN git clone https://github.com/shilad/cartograph.git ./cartograph
-WORKDIR /home/cartograph
-RUN git checkout integration-test
-
-#Define default command
-CMD  git pull && \
+# Define default command
+# Note that EFFECTIVE_TRAVIS_BRANCH is set in Cartograph's .travis.yml
+CMD  git clone https://github.com/shilad/cartograph.git /cartograph && \
+    cd /cartograph && \
+    git checkout ${EFFECTIVE_TRAVIS_BRANCH} && \
     ./bin/docker-integration-test.sh
 
 
