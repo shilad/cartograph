@@ -368,7 +368,7 @@ CG.init = function(layer) {
                         }
                         line.push('Z');
                         //console.log(line);
-                        storedcurves.push(L.curve(line), edgeNeutralStyle);
+                        storedcurves.push(L.curve(line));
                     }
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
