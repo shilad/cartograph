@@ -35,6 +35,7 @@ docker pull shilad/cartograph-base:latest || die "Docker pull failed."
 # TODO: Switch to multi-process gunicorn, but adding maps dynamically
 # will require cross-process coordination.
 #
+
 docker run \
     -e PYTHONPATH=.:./cartograph/server \
     -e CARTOGRAPH_CONFIGS="$conf" \
