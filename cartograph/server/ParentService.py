@@ -1,6 +1,7 @@
 import csv
 import os
 
+from cartograph import Config
 from cartograph.server.MapService import MapService
 
 
@@ -42,8 +43,14 @@ class ParentService:
                 if os.stat(meta_config) != self.map_services['_last_update']:
                     with open(meta_config, 'r') as configs:
                         for map_config in configs:
-                            map_service = MapService(map_config.strip('\r\n'))
-                            self.map_services[map_service.name] = map_service
+                            map_config_path = map_config.strip('\r\n')
+
+                            # If the name of a map isn't in map_services, initialize it
+                            config = Config.initConf(map_config_path)
+                            config_name = config.get('DEFAULT', 'dataset')
+                            if config_name not in self.map_services.keys():
+                                map_service = MapService(map_config_path)
+                                self.map_services[map_service.name] = map_service
                     self.map_services['_last_update'] = os.stat(meta_config)
 
                 service = self.service_for_map(map_name)
