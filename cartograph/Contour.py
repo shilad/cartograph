@@ -110,13 +110,13 @@ def test_CreateContours():
     with open(config.get("MapData", "centroid_contours_geojson")) as densityContourData:
         densityContour = json.load(densityContourData)
 
-    clusterCentroid = test_geometry(centroidContour)  # Dictionary with clusterID and list of contours in each cluster
-    test_geometry(densityContour)
-    test_centrality(config, clusterCentroid, centroidContour)
-    test_density(config, densityContour)
+    clusterCentroid = _test_geometry(centroidContour)  # Dictionary with clusterID and list of contours in each cluster
+    _test_geometry(densityContour)
+    _test_centrality(config, clusterCentroid, centroidContour)
+    _test_density(config, densityContour)
 
 
-def test_geometry(contourType):
+def _test_geometry(contourType):
     """
     Test geometry: Lower level contours contain higher level contours
     """
@@ -135,7 +135,7 @@ def test_geometry(contourType):
     return clusterIdDict
 
 
-def test_centrality(config, clusterIdDict, centroidContour):
+def _test_centrality(config, clusterIdDict, centroidContour):
     """
     Test for centrality: The higher level, the closer points in contour are to the centroid of a cluster.
     """
@@ -197,7 +197,7 @@ def test_centrality(config, clusterIdDict, centroidContour):
     assert float(successBool.count(True)) / len(successBool) > 0.8
 
 
-def test_density(config, densityContour):
+def _test_density(config, densityContour):
     """
     Test for density: Choose a window frame, calculate the number of dots and contour level (positive correlation
     """
