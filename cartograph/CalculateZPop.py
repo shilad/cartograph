@@ -49,14 +49,17 @@ class ZPopTask(MTimeMixin, luigi.Task):
 
 
 def test_zpop_task():
-    Config.initTest()
+    config = Config.initTest()
     # Create a unit test config object
     zpt = ZPopTask()
     zpt.run()
 
-    assert zpt is not None
-    assert filecmp.cmp('./data/test/tsv/zpop_test.tsv', './data/test/tsv/zpop.tsv')
-
+    # Ordering should be the same.
+    ptable = pd.read_table(config.get("ExternalFiles", "popularity"))
+    ztable = pd.read_table(config.get("GeneratedFiles", "zpop_with_id"))
+    ptable = ptable.sort_values('popularity', ascending=False)
+    ztable = ztable.sort_values('zpop', ascending=True)
+    assert ptable['id'].tolist() == ztable['index'].tolist()
 
 
 #Is this used at all?
