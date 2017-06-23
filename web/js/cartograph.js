@@ -217,6 +217,14 @@ CG.init = function(layer) {
         }
     };
 
+    CG.handleEdgeHover = function(mapX, mapY, properties){
+
+    };
+
+    CG.cancelEdgeHover = function(){
+
+    };
+
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
 
@@ -300,7 +308,6 @@ CG.init = function(layer) {
 
 
             var linkPairArray = createPathPairs(coords);
-
 
 
             function drawCurves(){
