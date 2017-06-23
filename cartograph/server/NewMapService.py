@@ -65,8 +65,15 @@ class AddMapService:
         resp.body = ''
 
         map_name = post_data['name']
+
+        # Prevent map names with special characters (for security/prevents shell injection)
         for c in map_name:
             assert c in ACCEPTABLE_MAP_NAME_CHARS
+
+        # Prevent adding a map with the same name as a currently-served map
+        # This will prevent adding user-generated maps with the same names as
+        # active non-user-generated maps, e.g. "simple" or "en"
+        assert map_name not in self.map_services.keys()
 
         if not os.path.exists(USER_CONF_DIR):
             os.makedirs(USER_CONF_DIR)
