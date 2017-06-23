@@ -51,6 +51,31 @@ def filter_tsv(source_dir, target_dir, ids, filename):
                 popularities_writer.writerow(row)
 
 
+def gen_config(map_name):
+    """Generate the config file for a user-generated map named <map_name> and return a path to it
+
+    :param map_name: name of new map
+    :return: path to the newly-generated config file
+    """
+    # Prevent map names with special characters (for security/prevents shell injection)
+    for c in map_name:
+        assert c in ACCEPTABLE_MAP_NAME_CHARS
+
+    if not os.path.exists(USER_CONF_DIR):
+        os.makedirs(USER_CONF_DIR)
+
+    # Generate a new conf file
+    with open('./data/conf_template.txt', 'r') as conf_template_file:
+        conf_template = string.Template(conf_template_file.read())
+    config_filename = '%s.txt' % pipes.quote(map_name)
+    config_path = os.path.join(USER_CONF_DIR, config_filename)
+    assert not os.path.exists(config_path)  # Make sure no map config with this name exists
+    with open(config_path, 'w') as config_file:
+        config_file.write(conf_template.substitute(name=map_name))
+
+    return config_path
+
+
 def gen_data(map_name, articles):
     """Generate the data files (i.e. "TSV" files) for a map named <map_name> and a string of articles <articles>.
 
@@ -102,30 +127,15 @@ class AddMapService:
         map_name = post_data['name']
         articles = post_data['articles']
 
-        # Prevent map names with special characters (for security/prevents shell injection)
-        for c in map_name:
-            assert c in ACCEPTABLE_MAP_NAME_CHARS
-
         # Prevent adding a map with the same name as a currently-served map
         # This will prevent adding user-generated maps with the same names as
         # active non-user-generated maps, e.g. "simple" or "en"
         assert map_name not in self.map_services.keys()
 
-        if not os.path.exists(USER_CONF_DIR):
-            os.makedirs(USER_CONF_DIR)
-
-        # Generate a new conf file
-        with open('./data/conf_template.txt', 'r') as conf_template_file:
-            conf_template = string.Template(conf_template_file.read())
-        config_filename = '%s.txt' % pipes.quote(map_name)
-        config_path = os.path.join(USER_CONF_DIR, config_filename)
-        assert not os.path.exists(config_path)  # Make sure no map config with this name exists
-        with open(config_path, 'w') as config_file:
-            config_file.write(conf_template.substitute(name=map_name))
-
         gen_data(map_name, articles)
+        config_path = gen_config(map_name)
 
-        # Build from the new conf file
+        # Build from the new config file
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)
 
         # Add urls to new map
