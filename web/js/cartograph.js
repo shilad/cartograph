@@ -215,13 +215,6 @@ CG.init = function(layer) {
         }
     };
 
-    CG.handleEdgeHover = function(mapX, mapY, properties){
-
-    };
-
-    CG.cancelEdgeHover = function(){
-
-    };
 
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
@@ -317,10 +310,15 @@ CG.init = function(layer) {
                         var halfwayX = 1 * (pointA[0] + pointB[0])/2;
                         var halfwayY = 1 * (pointA[1] + pointB[1])/2;
                     }
-                    L.curve(['M',pointA,
-					         'Q',[halfwayX,halfwayY],
-						     pointB,
-					         ], edgeNeutralStyle).addTo(CG.map);
+
+
+                    singleCurve = L.curve(['M',pointA,'Q',[halfwayX,halfwayY],pointB,],
+                                            edgeNeutralStyle);
+                    singleCurve.addTo(CG.map);
+                    singleCurve.on('mouseover', function(e){
+                    e.target.setStyle(edgeHoverStyle);});
+                    singleCurve.on('mouseout', function(e){
+                    e.target.setStyle(edgeNeutralStyle);});
                 }
             }
 
