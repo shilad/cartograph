@@ -352,23 +352,37 @@ CG.init = function(layer) {
 
                 bundle.graph.each(function(node) {
                     var edges = node.unbundleEdges(1); //where is delta, also why unbundle?
+                    var pct = 0; //should this change?
                     for (i = 0, l = edges.length; i < l; ++i) {
-                        var e = edges[i];
-                        var line = ['M', e[0].unbundledPos];
-                        for (j = 1, n = e.length; j < n; ++j) {
-                          //console.log(e[j].unbundledPos[0])
-                          pos = e[j].unbundledPos;
-                          if (j == 0){
-                            line.push('M', pos[0], pos[1]);
-                          }
-                          else{
-                            line.push('L', [pos[0], pos[1]]);
-                          }
-
-                        }
-                        line.push('Z');
-                        //console.log(line);
-                        storedcurves.push(L.curve(line));
+                        e = edges[i];
+                        start = e[0].unbundledPos;
+                        midpoint = e[(e.length - 1) / 2].unbundledPos;
+                        var line = ['M', e[0].unbundledPos]; //start the line always
+                        if (e.length > 3) {
+                            c1 = e[1].unbundledPos;
+                            c2 = e[(e.length - 1) / 2 - 1].unbundledPos;
+                            end = [ midpoint[0] * (1 - (1 - pct)) + c2[0] * (1 - pct), midpoint[1] * (1 - (1 - pct)) + c2[1] * (1 - pct) ]
+                            //started the line here (before)
+                            line.push('C', c1, c2, end);
+                            console.log(c1, c2, end);
+                            c1 = e[(e.length - 1) / 2 + 1].unbundledPos;
+                            c2 = e[e.length - 2].unbundledPos;
+                            end = e[e.length - 1].unbundledPos;
+                            if (1 - pct) {
+                            //line to midpoint + pct of something
+                            start = [ midpoint[0] * (1 - (1 - pct)) + c1[0] * (1 - pct), midpoint[1] * (1 - (1 - pct)) + c1[1] * (1 - pct) ]
+                            line.push('L', start);
+                            }
+                            line.push('C', c1, c2, end);
+                            console.log(c1, c2, end);
+                            //line.push('Z'); //maybe comment this out?
+                            } else {
+                                //started the line here (before)
+                                end = e[e.length -1].unbundledPos;
+                                line.push('L', end);
+                            }
+                    console.log(line);
+                    storedcurves.push(L.curve(line));
                     }
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
