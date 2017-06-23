@@ -261,12 +261,12 @@ CG.init = function(layer) {
                             + ',' + (Math.floor(Math.random() * 256)) + ')';
 
         var edgeHoverStyle =   {weight: 3,
-                                opacity: 0.9,
+                                opacity: 0.95,
                                 smoothFactor: 1,
                                 attribution: 'edge'};
         var edgeNeutralStyle = {color: randHue,
                                 weight: 1,
-                                opacity: 0.6,
+                                opacity: 0.65,
                                 smoothFactor: 1,
                                 attribution: 'edge'};
         $.getJSON(relatedPoints, function (data) {
@@ -283,7 +283,7 @@ CG.init = function(layer) {
             });
 
             var coords = [];
-
+            var names = [];
 
             data[id].forEach(function (linkInfo) {
 
@@ -319,30 +319,14 @@ CG.init = function(layer) {
 
                     json.push({
                     "id": linkPairArray[i][0] + " " + linkPairArray[i+1][0], //source + dest id
-                    "name": linkPairArray[i][1] + " " + linkPairArray[i+1][1], //source + dest name
+                    "name": linkPairArray[i][1] + " -> " + linkPairArray[i+1][1], //source + dest name
                     "data": {
                         "coords": [
                             pointA[0], pointA[1], pointB[0], pointB[1]
                                   ]
                             }
-                    })
+                    });
 
-
-                    var difX = Math.abs(pointA[0] - pointB[0]);
-                    var difY = Math.abs(pointA[1] - pointB[1]);
-
-                    if (difX > difY){
-                        var halfwayX = 1 * (pointA[0] + pointB[0])/2;
-                        var halfwayY = 1.15 * (pointA[1] + pointB[1])/2;
-                    } else if (difY > difX){
-                        var halfwayX = 1.15 * (pointA[0] + pointB[0])/2;
-                        var halfwayY = 1 * (pointA[1] + pointB[1])/2;
-                    } else{
-                        var halfwayX = 1 * (pointA[0] + pointB[0])/2;
-                        var halfwayY = 1 * (pointA[1] + pointB[1])/2;
-                    }
-                    //curve = L.curve(['M',pointA,'Q',[halfwayX,halfwayY], pointB,], edgeNeutralStyle)
-                    //storedcurves.push(curve)
                 }
 
                 var bundle = new Bundler();
@@ -355,6 +339,7 @@ CG.init = function(layer) {
                     var pct = 0; //should this change?
                     for (i = 0, l = edges.length; i < l; ++i) {
                         e = edges[i];
+                        console.log(e);
                         start = e[0].unbundledPos;
                         midpoint = e[(e.length - 1) / 2].unbundledPos;
                         var line = ['M', e[0].unbundledPos]; //start the line always
@@ -364,7 +349,7 @@ CG.init = function(layer) {
                             end = [ midpoint[0] * (1 - (1 - pct)) + c2[0] * (1 - pct), midpoint[1] * (1 - (1 - pct)) + c2[1] * (1 - pct) ]
                             //started the line here (before)
                             line.push('C', c1, c2, end);
-                            console.log(c1, c2, end);
+                            //console.log(c1, c2, end);
                             c1 = e[(e.length - 1) / 2 + 1].unbundledPos;
                             c2 = e[e.length - 2].unbundledPos;
                             end = e[e.length - 1].unbundledPos;
@@ -374,15 +359,25 @@ CG.init = function(layer) {
                             line.push('L', start);
                             }
                             line.push('C', c1, c2, end);
-                            console.log(c1, c2, end);
+                            //console.log(c1, c2, end);
                             //line.push('Z'); //maybe comment this out?
                             } else {
                                 //started the line here (before)
                                 end = e[e.length -1].unbundledPos;
                                 line.push('L', end);
                             }
-                    console.log(line);
-                    storedcurves.push(L.curve(line));
+                        var newCurve = L.curve(line, edgeNeutralStyle);
+                        storedcurves.push(newCurve);
+                        newCurve.bindPopup(e[0].node.name);
+
+                        newCurve.on('mouseover', function(e){
+                        e.target.setStyle(edgeHoverStyle);
+                        newCurve.openPopup();
+                        });
+                        newCurve.on('mouseout', function(e){
+                        e.target.setStyle(edgeNeutralStyle);
+                        newCurve.closePopup();
+                        });
                     }
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
