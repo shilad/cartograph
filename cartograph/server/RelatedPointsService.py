@@ -1,7 +1,6 @@
 import logging
 
 import json
-import sys
 
 import falcon
 
@@ -16,7 +15,7 @@ class RelatedPointsService:
         pointsdict = {} #pointsdict is a dictionary where the key is an article's id and the value is its x,y coordinates.
         for p in points.getAllPoints():
             k = p['id']
-            value = (p['x'], p['y'])
+            value = [p['id'], p['name'], p['x'], p['y']]
             pointsdict[k] = value
         d = {}  # d is a dictionary where the key is an article id and the value is a list of all its related articles' x,y coordinates.
         with open("./data/ext/simple/links.tsv") as f: #opens tsv file
@@ -49,11 +48,11 @@ class RelatedPointsService:
         # empty list to hold json-formatted results
         jsonList = []
 
-        for (x, y) in self.d[id]:
-            locat = [y, x]
+        for list in self.d[id]:
+            locat = [list[3], list[2]]
             rJsonDict = {
                 'type': 'concept',
-                'data': {"loc": locat}
+                'data': {"id": list[0], "name": list[1], "loc": locat}
             }
             jsonList.append(rJsonDict)
         return jsonList #jsonList in right format?
