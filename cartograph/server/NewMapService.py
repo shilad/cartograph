@@ -51,6 +51,41 @@ def filter_tsv(source_dir, target_dir, ids, filename):
                 popularities_writer.writerow(row)
 
 
+def gen_data(map_name, articles):
+    """Generate the data files (i.e. "TSV" files) for a map named <map_name> and a string of articles <articles>.
+
+    :param map_name: name of new map
+    :param articles: string containing exact titles of articles for new map, separated by Windows-style newlines
+    """
+    # Generate dictionary of article names to IDs
+    # TODO: is there a way to do this once (instead of once per POST)?
+    names_path = os.path.join(SOURCE_DIR, 'names.tsv')
+    name_dict = {}
+    with codecs.open(names_path, 'r') as names:
+        names_reader = csv.reader(names, delimiter='\t')
+        for row in names_reader:
+            name = unicode(row[1], encoding='utf-8')
+            name_dict[name] = row[0]
+
+    # Generate list of IDs for article names in user request
+    ids = []
+    for term in articles.split('\r\n'):
+        try:
+            ids += [name_dict[term]]  # Attempts to find entry in dict of Articles to IDs
+        except KeyError:
+            # TODO: The following line is for debugging; proper behavior yet to be defined
+            resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
+
+    # Create the destination directory (if it doesn't exist already)
+    target_path = os.path.join(BASE_PATH, 'user/', map_name)
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
+
+    # For each of the data files, filter it and output it to the target directory
+    for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
+        filter_tsv(SOURCE_DIR, target_path, ids, filename)
+
+
 class AddMapService:
 
     def __init__(self, map_services):
@@ -65,6 +100,7 @@ class AddMapService:
         resp.body = ''
 
         map_name = post_data['name']
+        articles = post_data['articles']
 
         # Prevent map names with special characters (for security/prevents shell injection)
         for c in map_name:
@@ -87,33 +123,7 @@ class AddMapService:
         with open(config_path, 'w') as config_file:
             config_file.write(conf_template.substitute(name=map_name))
 
-        # Generate dictionary of article names to IDs
-        # TODO: is there a way to do this once (instead of once per POST)?
-        names_path = os.path.join(SOURCE_DIR, 'names.tsv')
-        name_dict = {}
-        with codecs.open(names_path, 'r') as names:
-            names_reader = csv.reader(names, delimiter='\t')
-            for row in names_reader:
-                name = unicode(row[1], encoding='utf-8')
-                name_dict[name] = row[0]
-
-        # Generate list of IDs for article names in user request
-        ids = []
-        for term in post_data['articles'].split('\r\n'):
-            try:
-                ids += [name_dict[term]]  # Attempts to find entry in dict of Articles to IDs
-            except KeyError:
-                # TODO: The following line is for debugging; proper behavior yet to be defined
-                resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
-
-        # Create the destination directory (if it doesn't exist already)
-        target_path = os.path.join(BASE_PATH, 'user/', map_name)
-        if not os.path.exists(target_path):
-            os.makedirs(target_path)
-
-        # For each of the data files, filter it and output it to the target directory
-        for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
-            filter_tsv(SOURCE_DIR, target_path, ids, filename)
+        gen_data(map_name, articles)
 
         # Build from the new conf file
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)
