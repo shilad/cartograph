@@ -80,7 +80,8 @@ def gen_data(map_name, articles):
     """Generate the data files (i.e. "TSV" files) for a map named <map_name> and a string of articles <articles>.
 
     :param map_name: name of new map
-    :param articles: string containing exact titles of articles for new map, separated by Windows-style newlines
+    :param articles: list of exact titles of articles for new map
+    :return: list of article titles for which there was no exact match in the existing dataset
     """
     # Generate dictionary of article names to IDs
     # TODO: is there a way to do this once (instead of once per POST)?
@@ -94,12 +95,12 @@ def gen_data(map_name, articles):
 
     # Generate list of IDs for article names in user request
     ids = []
-    for term in articles.split('\r\n'):
+    bad_articles = []
+    for term in articles:
         try:
             ids += [name_dict[term]]  # Attempts to find entry in dict of Articles to IDs
         except KeyError:
-            # TODO: The following line is for debugging; proper behavior yet to be defined
-            resp.body += 'NO MATCH FOR TERM: %s\n' % (term,)
+            bad_articles += [term]
 
     # Create the destination directory (if it doesn't exist already)
     target_path = os.path.join(BASE_PATH, 'user/', map_name)
@@ -109,6 +110,8 @@ def gen_data(map_name, articles):
     # For each of the data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         filter_tsv(SOURCE_DIR, target_path, ids, filename)
+
+    return bad_articles
 
 
 class AddMapService:
@@ -125,14 +128,14 @@ class AddMapService:
         resp.body = ''
 
         map_name = post_data['name']
-        articles = post_data['articles']
+        articles = post_data['articles'].split('\r\n')
 
         # Prevent adding a map with the same name as a currently-served map
         # This will prevent adding user-generated maps with the same names as
         # active non-user-generated maps, e.g. "simple" or "en"
         assert map_name not in self.map_services.keys()
 
-        gen_data(map_name, articles)
+        bad_articles = gen_data(map_name, articles)
         config_path = gen_config(map_name)
 
         # Build from the new config file
