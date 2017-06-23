@@ -3,6 +3,8 @@ var CG = CG || {};
 
 
 CG.init = function(layer) {
+    var storeddotslayer = []
+    var storedcurveslayer = []
     CG.map = L.map('map');
     CG.addMapLogging(CG.map);
     CG.mapEl = $("#map");  // optimization
@@ -259,25 +261,33 @@ CG.init = function(layer) {
                                 opacity: 0.6,
                                 smoothFactor: 1,
                                 attribution: 'edge'};
-
         $.getJSON(relatedPoints, function (data) {
+            CG.map.removeLayer(storeddotslayer);
+            CG.map.removeLayer(storedcurveslayer);
+
+            storeddots = [];
+            storedcurves = [];
+            storededges = [];
 
             var smallMarker = L.icon({
             iconUrl: 'images/blackDot.png',
             iconSize: [10,10]
             });
 
-            var coords = []
+            var coords = [];
+
 
             data[id].forEach(function (linkInfo) {
+
                   var x = linkInfo.data.loc[0];
                   var y = linkInfo.data.loc[1];
                   marker = L.marker([x, y], {icon: smallMarker});
-                  marker.addTo(CG.map);
-                  coords.push([x,y]);
+                  storeddots.push(marker);
+                  coords.push([linkInfo.data.id, linkInfo.data.name, [x, y]]);
             });
+            storeddotslayer = L.layerGroup(storeddots);
+            CG.map.addLayer(storeddotslayer);
 
-            console.log('coords is ', coords);
 
             function createPathPairs(array){
                 var pts = [];
@@ -288,12 +298,28 @@ CG.init = function(layer) {
                 return pts;
             }
 
+
             var linkPairArray = createPathPairs(coords);
-            
+
+
+
             function drawCurves(){
+                json = [];
                 for (var i=0; i<linkPairArray.length-2; i+=2){
-                    var pointA = linkPairArray[i];
-                    var pointB = linkPairArray[i+1];
+
+                    var pointA = linkPairArray[i][2]; //source x,y
+                    var pointB = linkPairArray[i+1][2]; //dest x,y
+
+                    json.push({
+                    "id": linkPairArray[i][0] + " " + linkPairArray[i+1][0], //source + dest id
+                    "name": linkPairArray[i][1] + " " + linkPairArray[i+1][1], //source + dest name
+                    "data": {
+                        "coords": [
+                            pointA[0], pointA[1], pointB[0], pointB[1]
+                                  ]
+                            }
+                    })
+
 
                     var difX = Math.abs(pointA[0] - pointB[0]);
                     var difY = Math.abs(pointA[1] - pointB[1]);
@@ -308,21 +334,44 @@ CG.init = function(layer) {
                         var halfwayX = 1 * (pointA[0] + pointB[0])/2;
                         var halfwayY = 1 * (pointA[1] + pointB[1])/2;
                     }
-
-                    singleCurve = L.curve(['M',pointA,'Q',[halfwayX,halfwayY],pointB,],
-                                            edgeNeutralStyle);
-                    singleCurve.addTo(CG.map);
-                    singleCurve.on('mouseover', function(e){
-                    e.target.setStyle(edgeHoverStyle);});
-                    singleCurve.on('mouseout', function(e){
-                    e.target.setStyle(edgeNeutralStyle);});
+                    //curve = L.curve(['M',pointA,'Q',[halfwayX,halfwayY], pointB,], edgeNeutralStyle)
+                    //storedcurves.push(curve)
                 }
+
+                var bundle = new Bundler();
+                bundle.setNodes(json);
+                bundle.buildNearestNeighborGraph();
+                bundle.MINGLE();
+
+                bundle.graph.each(function(node) {
+                    var edges = node.unbundleEdges(1); //where is delta, also why unbundle?
+                    for (i = 0, l = edges.length; i < l; ++i) {
+                        var e = edges[i];
+                        var line = ['M', e[0].unbundledPos];
+                        for (j = 1, n = e.length; j < n; ++j) {
+                          //console.log(e[j].unbundledPos[0])
+                          pos = e[j].unbundledPos;
+                          if (j == 0){
+                            line.push('M', pos[0], pos[1]);
+                          }
+                          else{
+                            line.push('L', [pos[0], pos[1]]);
+                          }
+
+                        }
+                        line.push('Z');
+                        //console.log(line);
+                        storedcurves.push(L.curve(line), edgeNeutralStyle);
+                    }
+                });
+                storedcurveslayer = L.layerGroup(storedcurves);
+                CG.map.addLayer(storedcurveslayer);
             }
 
-            //L.polyline(linkPairArray, edgeNeutralStyle).addTo(CG.map);
             drawCurves();
 
         });
+
 
         $.getJSON(uri, function (json) {
             var info = null;
