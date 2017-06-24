@@ -30,30 +30,40 @@ class ParentService:
         """
         return getattr(self.map_services[map_name], self.service_name)
 
+    def update_maps(self, meta_config):
+        """Initialize any map whose map-config is in the meta-config,
+        :return:
+        """
+        with open(meta_config, 'r') as configs:
+            for map_config in configs:
+                map_config_path = map_config.strip('\r\n')
+
+                # If the name of a map isn't in map_services, initialize it
+                config = Config.initConf(map_config_path)
+                config_name = config.get('DEFAULT', 'dataset')
+                if config_name not in self.map_services.keys():
+                    map_service = MapService(map_config_path)
+                    self.map_services[map_service.name] = map_service
+
+        # indicate that map_services has been updated
+        self.map_services['_last_update'] = os.stat(meta_config)
+
     def __getattr__(self, item):
         # Item is the method name
 
         def func(*args, **kwargs):  # = on_<method>()
-                # Extract map name
-                map_name = kwargs['map_name']
-                del kwargs['map_name']
 
-                # If the meta-config has been updated, update map_services
-                meta_config = self.map_services['_meta_config']
-                if os.stat(meta_config) != self.map_services['_last_update']:
-                    with open(meta_config, 'r') as configs:
-                        for map_config in configs:
-                            map_config_path = map_config.strip('\r\n')
+            # Housekeeping: check if the meta-config has been updated; if so, update map_services
+            meta_config = self.map_services['_meta_config']
+            if os.stat(meta_config) != self.map_services['_last_update']:
+                self.update_maps(meta_config)
 
-                            # If the name of a map isn't in map_services, initialize it
-                            config = Config.initConf(map_config_path)
-                            config_name = config.get('DEFAULT', 'dataset')
-                            if config_name not in self.map_services.keys():
-                                map_service = MapService(map_config_path)
-                                self.map_services[map_service.name] = map_service
-                    self.map_services['_last_update'] = os.stat(meta_config)
+            # Extract map name from request
+            map_name = kwargs['map_name']
+            del kwargs['map_name']
 
-                service = self.service_for_map(map_name)
-                return getattr(service, item)(*args, **kwargs)
+            # Return whatever the appropriate service's appropriate method would've returned
+            service = self.service_for_map(map_name)
+            return getattr(service, item)(*args, **kwargs)
 
         return func
