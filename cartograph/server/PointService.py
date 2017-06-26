@@ -38,6 +38,7 @@ class PointService:
             point['zpop'] = float(point['zpop'])
             point['clusterid'] = point['cluster']
             point['id'] = id
+            point['skipped'] = point['name'] and point['name'].strip()[-1] in 'abcdefghijk'
 
         logger.info('building spatial index...')
         ids = sorted(self.points.keys())
@@ -92,6 +93,8 @@ class PointService:
         results = []
         for (pop, id, x, y) in matches:
             # print pop, id, x, y
+            # print(self.points[id]['skipped'])
+            # if id in self.points and not self.points[id]['skipped']:
             if id in self.points:
                 results.append(self.points[id])
         return results
