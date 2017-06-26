@@ -31,7 +31,7 @@ class ParentService:
         return getattr(self.map_services[map_name], self.service_name)
 
     def update_maps(self, meta_config):
-        """Initialize any map whose map-config is in the meta-config,
+        """Initialize any map whose map-config is in the meta-config, but has not yet been initialized.
         :return:
         """
         with open(meta_config, 'r') as configs:
