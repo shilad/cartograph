@@ -61,9 +61,6 @@ class MetricData(MTimeMixin, luigi.Task):
         )
         externalData = read_features(self.inPath)
 
-        print(points)
-        print(externalData)
-
         records = []
         stringFields = set()
 
@@ -80,14 +77,9 @@ class MetricData(MTimeMixin, luigi.Task):
                 pinfo[k] = v
             records.append(pinfo)
 
-        print(len(records))
-
         for r in records:
             for sf in stringFields:
                 r[sf] = str(r[sf])
-
-
-        print(len(r))
 
         with open(self.outPath, "w") as f:
             for r in records:
