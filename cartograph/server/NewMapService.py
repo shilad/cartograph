@@ -52,12 +52,16 @@ def filter_tsv(source_dir, target_dir, ids, filename):
                 popularities_writer.writerow(row)
 
 
-def gen_config(map_name):
+def gen_config(map_name, metric_type, field_name):
     """Generate the config file for a user-generated map named <map_name> and return a path to it
 
     :param map_name: name of new map
+    :param metric_type: type of metric as a string, e.g. 'BIVARIATE' or 'COUNT'
+    :param field_name: the name of the field in-file for the column whose values will be used for the metric
     :return: path to the newly-generated config file
     """
+    TYPE_NAME = {'BIVARIATE': 'bivariate-scale'}
+
     # Prevent map names with special characters (for security/prevents shell injection)
     for c in map_name:
         assert c in ACCEPTABLE_MAP_NAME_CHARS
@@ -68,11 +72,21 @@ def gen_config(map_name):
     # Generate a new conf file
     with open('./data/conf_template.txt', 'r') as conf_template_file:
         conf_template = string.Template(conf_template_file.read())
+    if metric_type == 'NONE':
+        with open('data/no_metric_template.txt', 'r') as metric_template_file:
+            metric_section = metric_template_file.read()
+    elif metric_type == 'BIVARIATE':
+        with open('data/metric_template.txt', 'r') as metric_template_file:
+            metric_section = string.Template(metric_template_file.read())\
+                .substitute(metric_type=TYPE_NAME[metric_type], field_name=field_name,
+                            metric_name=string.lower(field_name))
+    elif metric_type == 'COUNT':
+        raise NotImplementedError()
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
     assert not os.path.exists(config_path)  # Make sure no map config with this name exists
     with open(config_path, 'w') as config_file:
-        config_file.write(conf_template.substitute(name=map_name))
+        config_file.write(conf_template.substitute(name=map_name, metric_section=metric_section))
 
     return config_path
 
@@ -148,6 +162,7 @@ class AddMapService:
 
         map_name = post_data['name']
         metric = post_data['metric']
+        field_name = '' if metric == 'NONE' else post_data['field_name']
         # FIXME: non-ASCII compatible?
         articles_file = StringIO.StringIO(post_data['articles'])
 
@@ -159,7 +174,7 @@ class AddMapService:
 
         # TODO: Figure out what to do with <bad_articles>
         bad_articles = gen_data(map_name, articles_file, metric)
-        config_path = gen_config(map_name)
+        config_path = gen_config(map_name, metric, field_name)
 
         # Build from the new config file
         os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)

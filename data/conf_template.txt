@@ -12,5 +12,4 @@ sample_borders: True
 [Server]
 compress_png: false
 
-[Metrics]
-active:
+${metric_section}
