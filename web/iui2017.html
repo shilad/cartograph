@@ -332,6 +332,8 @@
       };
 
       var oldParts = window.location.href.split('#')[0].split('/');
+
+
       var oldMap = oldParts[oldParts.length - 3];
       console.log('oldMap', oldMap, oldParts);
 
@@ -355,6 +357,7 @@
               });
 
       var layer = 'cluster';
+
       if (window.location.hash) {
         var l = L.Hash.parseHash(window.location.hash);
         if (l && l.layer) {
@@ -362,6 +365,8 @@
         }
         CG.init(l.layer);
         CG.map.setView(l.center, l.zoom);
+
+        console.log(CG.map.getBounds())
       } else {
         CG.init(layer);
         CG.map.setView([0, 0], 4);

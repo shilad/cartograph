@@ -4,6 +4,7 @@ var CG = CG || {};
 
 CG.init = function(layer) {
     CG.map = L.map('map');
+
     CG.addMapLogging(CG.map);
     CG.mapEl = $("#map");  // optimization
     CG.ttEl = $("#tooltip");
@@ -155,6 +156,11 @@ CG.init = function(layer) {
         return false;
     };
 
+    $('#test_button').on('click', function () {
+        console.log("clicked on test button")
+
+    })
+
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
     $('#search-field').autocomplete({
@@ -280,4 +286,5 @@ CG.init = function(layer) {
             }
         });
     }
+
 }
