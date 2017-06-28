@@ -4,11 +4,13 @@ import random
 import luigi
 import numpy as np
 from tsne import bh_sne
+import pandas as pd
+import filecmp
 
 import FastKnn, Utils, Config
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
 from PreReqs import WikiBrainNumbering
-from cartograph.PreReqs import SampleCreator
+from PreReqs import SampleCreator
 
 logger = logging.getLogger('cartograph.coordinates')
 
@@ -18,10 +20,11 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
     Use TSNE to reduce high dimensional vectors to x, y coordinates for
     mapping purposes
     '''
+
     def output(self):
         config = Config.get()
         return TimestampedLocalTarget(config.getSample("ExternalFiles",
-                                            "article_embedding"))
+                                                       "article_embedding"))
 
     def requires(self):
         config = Config.get()
@@ -33,17 +36,65 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
     def run(self):
         config = Config.get()
         # Create the embedding.
-        featureDict = Utils.read_features(config.getSample("ExternalFiles",
-                                                          "best_vecs_with_id"),
-                                          id_set=getSampleIds())
-        keys = list(featureDict.keys())
-        vectors = np.array([featureDict[vID]["vector"] for vID in keys])
+        featureDict = Utils.read_vectors(config.getSample("ExternalFiles", "best_vecs_with_id"))
+        sampleIds = getSampleIds()
+        featureDict = featureDict.loc[featureDict.index.isin(sampleIds)]
+
+        vectors = [list(i) for i in featureDict['vector']]
+        vectors = np.array(vectors)
+
         out = bh_sne(vectors,
                      pca_d=None,
+                     perplexity=config.getfloat("PreprocessingConstants", "tsne_perplexity"),
                      theta=config.getfloat("PreprocessingConstants", "tsne_theta"))
         X, Y = list(out[:, 0]), list(out[:, 1])
-        Utils.write_tsv(config.getSample("ExternalFiles", "article_embedding"),
-                        ("index", "x", "y"), keys, X, Y)
+
+        data = {'index': featureDict.index, 'x': X, 'y': Y}
+        result = pd.DataFrame(data, columns=['index', 'x', 'y'])
+        result.set_index('index', inplace=True)
+        # result.sort_index(inplace=True)   # THIS BREAKS EVERYTHING. WHY?
+        result.to_csv(config.getSample("ExternalFiles", "article_embedding"), sep='\t', index_label='index',
+                      columns=['x', 'y'])
+
+
+def test_CreateEmbedding_task():
+    config = Config.initTest()
+    report = []
+    # Create a unit test config object
+    for i in range(3):
+        testEmbed = CreateEmbedding()
+
+        # Create the vectors sample
+        testEmbed.requires()[-1].run()
+        testEmbed.run()
+
+        # For each point, count how many neighbors are retained in the embedding
+        vecs = Utils.read_vectors(config.getSample("ExternalFiles", "best_vecs_with_id"))
+        vecsdf = pd.read_table(config.getSample("ExternalFiles", "best_vecs_with_id"), skiprows=1,
+                               skip_blank_lines=True,
+                               header=None, index_col=0)
+        points = pd.read_table(config.getSample("ExternalFiles", "article_embedding"), index_col='index')
+        points.index = points.index.astype(str)
+
+        features = pd.merge(vecs, points, how='inner', left_index=True, right_index=True)
+
+        stat = []
+        for i, (index, row) in enumerate(features.iterrows()):
+            dist = vecsdf - row['vector']
+            vectorDist = dist * dist
+            vectorDist['distance'] = vectorDist.sum(axis=1)
+            pointDist = ((row['x'] - features['x']) ** 2 + (row['y'] - features['y']) ** 2) ** 0.5
+            vectorDist.sort_values('distance', inplace=True)
+            pointDist.sort_values(inplace=True)
+            vectorDist.index = vectorDist.index.astype(str)
+            top10Vec = vectorDist.index[:10]  # 10 nearest neighbors of original vectors
+            top10Point = pointDist.index[:10]  # 10 nearest neighbors of embedded points
+            common = len(set(top10Vec).intersection(top10Point))  # Number of common neighbors
+            stat.append(common)
+        report.append(np.mean(stat))
+
+    prob = np.mean(report)
+    assert prob >= 4
 
 
 class CreateFullAnnoyIndex(MTimeMixin, luigi.Task):
@@ -86,10 +137,11 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
     Use TSNE to reduce high dimensional vectors to x, y coordinates for
     mapping purposes.
     '''
+
     def output(self):
         config = Config.get()
         return TimestampedLocalTarget(config.getSample("GeneratedFiles",
-                                            "article_coordinates"))
+                                                       "article_coordinates"))
 
     def requires(self):
         return CreateEmbedding()
@@ -98,19 +150,35 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
         config = Config.get()
 
         # Rescale sampled embedded points
-        points = Utils.read_features(config.getSample("ExternalFiles",
-                                               "article_embedding"))
-        keys = list(points.keys())
-        X = [float(points[k]['x']) for k in keys]
-        Y = [float(points[k]['y']) for k in keys]
-        maxVal = max(abs(v) for v in X + Y)
+        points = pd.read_table(config.getSample("ExternalFiles",
+                                                "article_embedding"), index_col='index')
+        points.sort_index(inplace=True)
+        X = pd.np.array(points['x'])
+        Y = pd.np.array(points['y'])
+        maxVal = max(abs(np.append(X, Y)))
+
         scaling = config.getint("MapConstants", "max_coordinate") / maxVal
         X = [x * scaling for x in X]
         Y = [y * scaling for y in Y]
 
-        Utils.write_tsv(config.getSample("GeneratedFiles",
-                                  "article_coordinates"),
-                        ("index", "x", "y"), keys, X, Y)
+        points['x'] = X
+        points['y'] = Y
+        points.to_csv(config.getSample("GeneratedFiles", "article_coordinates"), sep='\t', index_label='index',
+                      columns=['x', 'y'])
+
+
+def test_createSample_task():
+    config = Config.initTest()
+
+    # Create a unit test config object
+    testSample = CreateSampleCoordinates()
+    testSample.run()
+    assert testSample is not None
+
+    # All x,y coordinates <= config.getint("MapConstants", "max_coordinate")
+    embedding = pd.read_table(config.getSample("GeneratedFiles", "article_coordinates"), index_col='index')
+    maxCoor = config.getint("MapConstants", "max_coordinate")
+    assert abs(embedding.all()).between(0, maxCoor).all()
 
 
 class CreateFullCoordinates(MTimeMixin, luigi.Task):
@@ -123,12 +191,17 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        sampleCoords = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
-                                           required=('x', 'y'))
-        vecs = Utils.read_features(config.get("ExternalFiles", "vecs_with_id"))
+        sampleCoords = pd.read_table(config.getSample("GeneratedFiles",
+                                                      "article_coordinates"), index_col='index')
+        sampleCoords.dropna(axis=0, how='any', inplace=True)
+        sampleCoords.index = sampleCoords.index.astype(str)
+
+        vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))
+
         knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
-        assert(knn.exists())
+        assert (knn.exists())
         knn.read()
+
         ids = []
         X = []
         Y = []
@@ -139,21 +212,24 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
             return (dx * dx + dy * dy) ** 0.5
 
         threshold = config.getfloat('MapConstants', 'max_coordinate') / 100.0
-        noise = threshold / 10.0    # for points with only one surrogate, add this much random noise
+        noise = threshold / 10.0  # for points with only one surrogate, add this much random noise
 
-        for i, (id, row) in enumerate(vecs.items()):
-            if i % 10000 == 0:
-                logger.info('interpolating coordinates for point %d of %d' % (i, len(vecs)))
-            if id in sampleCoords:
-                x = float(sampleCoords[id]['x'])
-                y = float(sampleCoords[id]['y'])
+        j = 0  # For logging
+        for id, row in vecs.iterrows():
+            if j % 10000 == 0:
+                logger.info('interpolating coordinates for point %s of %d' % (id, len(vecs)))
+            if id in sampleCoords.index:
+                x = float(sampleCoords.ix[id, 'x'])
+                y = float(sampleCoords.ix[id, 'y'])
             else:
                 if len(row['vector']) == 0: continue
                 centroids = []
                 for id2, score in knn.neighbors(row['vector'], 10):
-                    if id2 not in sampleCoords: continue
-                    x = float(sampleCoords[id2]['x'])
-                    y = float(sampleCoords[id2]['y'])
+                    # if id2.isdigit():
+                    # id2 = int(id2)
+                    if id2 not in sampleCoords.index: continue
+                    x = float(sampleCoords.ix[id2, 'x'])
+                    y = float(sampleCoords.ix[id2, 'y'])
                     if score >= 0.0:
                         closestIndex = -1
                         closestDist = 1000000000000
@@ -183,11 +259,63 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
                 if n == 1:
                     x += random.uniform(-noise, +noise)
                     y += random.uniform(-noise, +noise)
-
             X.append(x)
             Y.append(y)
             ids.append(id)
+            j += 1
 
-        Utils.write_tsv(config.get("GeneratedFiles",
-                                  "article_coordinates"),
-                        ("index", "x", "y"), ids, X, Y)
+        result = pd.DataFrame()
+        result['x'] = X
+        result['y'] = Y
+        result['index'] = ids
+
+        result.set_index('index', inplace=True)
+        result.to_csv(config.get("GeneratedFiles", "article_coordinates"), sep='\t', index_label='index',
+                      columns=['x', 'y'])
+
+
+def test_createCoordinates_task():
+    config = Config.initTest()
+
+    knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
+    knn.rebuild()
+
+    # Create a unit test config object
+    testCoor = CreateFullCoordinates()
+    testCoor.run()
+    assert testCoor is not None
+
+    # Coordinates within Max_Coordinates
+    embedding = pd.read_table(config.get("GeneratedFiles", "article_coordinates"), index_col='index')
+    maxCoor = config.getint("MapConstants", "max_coordinate")
+    assert abs(embedding.all()).between(0, maxCoor).all()
+
+    # Neighbors are preserved
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "best_vecs_with_id"))  # Each entry of vectors in a column
+    vecsdf = pd.read_table(config.get("ExternalFiles", "best_vecs_with_id"), skiprows=1,
+                           skip_blank_lines=True,
+                           header=None, index_col=0)  # Vectors are merged in one column
+    embedding.index = embedding.index.astype(str)
+
+    features = pd.merge(vecs, embedding, how='inner', left_index=True, right_index=True)
+
+    stat = []
+    for i, (index, row) in enumerate(features.iterrows()):
+        dist = vecsdf - row['vector']
+        vectorDist = dist * dist
+        vectorDist['distance'] = vectorDist.sum(axis=1)
+        pointDist = ((row['x'] - features['x']) ** 2 + (row['y'] - features['y']) ** 2) ** 0.5
+        vectorDist.sort_values('distance', inplace=True)
+        pointDist.sort_values(inplace=True)
+        vectorDist.index = vectorDist.index.astype(str)
+        top10Vec = vectorDist.index[:10]  # 10 nearest neighbors of original vectors
+        top10Point = pointDist.index[:10]  # 10 nearest neighbors of embedded points
+        common = len(set(top10Vec).intersection(top10Point))  # Number of common neighbors
+        stat.append(common)
+    assert np.mean(stat) >= 3
+
+    # Points are not on top of each other
+    uniqueX = np.unique(embedding.as_matrix(['x']).round(5))
+    uniqueY = np.unique(embedding.as_matrix(['y']).round(5))
+    assert len(uniqueX) == len(embedding['x'])
+    assert len(uniqueY) == len(embedding['y'])

@@ -1,9 +1,6 @@
 import matplotlib
-
 import cartograph.PreReqs
-
-matplotlib.use("Agg")
-
+import pandas as pd
 import luigi
 import json
 import Coordinates
@@ -21,7 +18,11 @@ from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 from collections import defaultdict
-from shapely.geometry import Point
+from shapely.geometry import shape, Point
+
+from area import area
+
+matplotlib.use("Agg")
 
 
 class ContourCode(MTimeMixin, luigi.ExternalTask):
@@ -34,12 +35,13 @@ class CreateContours(MTimeMixin, luigi.Task):
     Make contours based on density of points inside the map
     Generated as geojson data for later use inside map.xml
     '''
+
     def requires(self):
         config = Config.get()
         if config.sampleBorders():
             return (Coordinates.CreateSampleCoordinates(),
                     cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                        "vecs_with_id")),
+                                                                "vecs_with_id")),
                     ContourCode(),
                     CreateContinents(),
                     MakeRegions())
@@ -57,35 +59,198 @@ class CreateContours(MTimeMixin, luigi.Task):
 
     def run(self):
         config = Config.get()
-        required = ('cluster', 'vector', 'x', 'y')
+
         if config.sampleBorders():
-            featuresDict = Utils.read_features(config.getSample("GeneratedFiles",
-                                                         "article_coordinates"),
-                                               config.getSample("GeneratedFiles",
-                                                         "clusters_with_id"),
-                                               config.getSample("GeneratedFiles",
-                                                         "denoised_with_id"),
-                                               config.getSample("ExternalFiles",
-                                                         "vecs_with_id"),
-                                               required=required)
+            coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
+            clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
+            denoisedPath = config.getSample("GeneratedFiles", "denoised_with_id")
+            vectorsPath = config.getSample("ExternalFiles", "vecs_with_id")
+
         else:
-            featuresDict = Utils.read_features(config.get("GeneratedFiles", "article_coordinates"),
-                                               config.get("GeneratedFiles", "clusters_with_id"),
-                                               config.get("GeneratedFiles", "denoised_with_id"),
-                                               config.get("ExternalFiles", "vecs_with_id"),
-                                               required=required)
-        for key in featuresDict.keys():
-            if key[0] == "w":
-                del featuresDict[key]
+            coorPath = config.get("GeneratedFiles", 'article_coordinates')
+            clusterPath = config.get("GeneratedFiles", "clusters_with_id")
+            denoisedPath = config.get("GeneratedFiles", "denoised_with_id")
+            vectorsPath = config.get("ExternalFiles", "vecs_with_id")
+
+        coor = pd.read_table(coorPath, index_col='index')
+
+        clusters = pd.read_table(clusterPath, index_col='index',
+                                 dtype={'cluster': 'str'})
+
+        denoised = pd.read_table(denoisedPath, index_col='index')
+        denoised = denoised.filter(regex='^[0-9]+$', axis=0)  # filter out water points
+        denoised.index = denoised.index.map(np.int64)  # need to convert the index to int64 for merge
+
+        vecs = pd.read_table(vectorsPath, skip_blank_lines=True, skiprows=1,
+                             header=None)
+        vecs['vectorTemp'] = vecs.iloc[:, 1:].apply(lambda x: tuple(x),
+                                                    axis=1)  # join all vector columns into same column as a tuple
+        vecs.drop(vecs.columns[1:-1], axis=1,
+                  inplace=True)  # drop all columns but the index and the vectorTemp column
+        vecs.columns = ['index', 'vector']
+        vecs = vecs.set_index('index')
+
+        # below merge all files
+        featuresDict = coor.merge(clusters, left_index=True, right_index=True)
+        featuresDict = featuresDict.merge(denoised, left_index=True, right_index=True)
+        featuresDict = featuresDict.merge(vecs, left_index=True, right_index=True)
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         binSize = config.getint("PreprocessingConstants", "contour_bins")
-
         countryBorders = config.get("MapData", "countries_geojson")
-
         contour = ContourCreator(numClusters, binSize)
         contour.buildContours(featuresDict, countryBorders)
-        contour.makeContourFeatureCollection([config.get("MapData", "density_contours_geojson"),config.get("MapData", "centroid_contours_geojson")])
+        contour.makeContourFeatureCollection(
+            [config.get("MapData", "density_contours_geojson"), config.get("MapData", "centroid_contours_geojson")])
+
+
+def test_CreateContours():
+    config = Config.initTest()
+
+    with open(config.get("MapData", "centroid_contours_geojson")) as centroidContourData:
+        centroidContour = json.load(centroidContourData)
+    with open(config.get("MapData", "centroid_contours_geojson")) as densityContourData:
+        densityContour = json.load(densityContourData)
+
+    clusterCentroid = _test_geometry(centroidContour)  # Dictionary with clusterID and list of contours in each cluster
+    _test_geometry(densityContour)
+    _test_centrality(config, clusterCentroid, centroidContour)
+    _test_density(config, densityContour)
+
+
+def _test_geometry(contourType):
+    """
+    Test geometry: Lower level contours contain higher level contours
+    """
+    clusterIdDict = findContourInCluster(contourType)
+    for id in clusterIdDict.keys():
+        lowerContour = None
+        for contour in contourType['features']:
+            if id == contour['properties']['clusterId']:
+                if lowerContour:
+                    for j in contour['geometry']['coordinates']:
+                        for i in j[0]:
+                            point = Point(i[0], i[1])
+                            assert lowerContour.contains(point)
+                lowerContour = shape(contour['geometry']).buffer(0.001)
+
+    return clusterIdDict
+
+
+def _test_centrality(config, clusterIdDict, centroidContour):
+    """
+    Test for centrality: The higher level, the closer points in contour are to the centroid of a cluster.
+    """
+    if config.sampleBorders():
+        coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
+        clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
+        vectorsPath = config.getSample("ExternalFiles", "vecs_with_id")
+
+    else:
+        coorPath = config.get("GeneratedFiles", 'article_coordinates')
+        clusterPath = config.get("GeneratedFiles", "clusters_with_id")
+        vectorsPath = config.get("ExternalFiles", "vecs_with_id")
+
+    vecs = Utils.read_vectors(vectorsPath)
+    clusters = pd.read_table(clusterPath, index_col='index')
+    clusters.index = clusters.index.astype(str)
+    clusters = clusters.astype(str)
+    embedding = pd.read_table(coorPath, index_col='index')
+    embedding.index = embedding.index.astype(str)
+
+    # Find vectors of each cluster
+    vecsInCluster = {}
+    for i in clusters['cluster'].unique():
+        vecsInCluster[i] = clusters[clusters['cluster'] == i].index
+
+    # Calculate centroid of each cluster in higher dimension
+    centroidList = {}
+    for cluster in vecsInCluster.keys():
+        vecList = vecsInCluster[cluster]
+        npVecs = np.array([0] * 200)
+        for vec in vecList:
+            npVecs = np.vstack((npVecs, vecs.loc[vec]['vector']))
+        npVecs = np.delete(npVecs, 0, 0)
+        centroidList[cluster] = np.mean(npVecs, axis=0)
+
+    # Calculate the probability of success
+    successBool = []
+    for cluster in clusters['cluster'].unique():
+        centroid = centroidList[cluster]
+        centralityList = []
+        for contour in clusterIdDict[cluster]:
+            contourShape = shape(centroidContour['features'][contour]['geometry'])
+            vecInContour = []
+            # Find vectors in each contour
+            for vecID in vecsInCluster[cluster]:
+                point = Point(embedding.loc[vecID]['x'], embedding.loc[vecID]['y'])
+                if contourShape.contains(point):
+                    vecInContour.append(vecID)
+            total = []
+            # Calculate the mean centrality of the contour
+            for vec in vecInContour:
+                centrality = np.dot(vecs.loc[vec]['vector'], centroid)  # Centrality of a vector to the centroid
+                total.append(centrality)
+            meanCentrality = np.mean(total)
+            # Check if the mean centrality of higher level contour is larger than that of lower level contour
+            # Note: The contours are already sorted from the lowest level to the highest level
+            successBool.extend([meanCentrality > i for i in centralityList])
+            centralityList.append(meanCentrality)
+    assert float(successBool.count(True)) / len(successBool) > 0.7
+
+
+def _test_density(config, densityContour):
+    """
+    Test for density: Choose a window frame, calculate the number of dots and contour level (positive correlation
+    """
+    if config.sampleBorders():
+        coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
+        clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
+    else:
+        coorPath = config.get("GeneratedFiles", 'article_coordinates')
+        clusterPath = config.get("GeneratedFiles", "clusters_with_id")
+
+    clusters = pd.read_table(clusterPath, index_col='index')
+    clusters.index = clusters.index.astype(str)
+    clusters = clusters.astype(str)
+    embedding = pd.read_table(coorPath, index_col='index')
+    embedding.index = embedding.index.astype(str)
+
+    clusterIdDict = findContourInCluster(densityContour)
+
+    # Find vectors of each cluster
+    vecsInCluster = {}
+    for i in clusters['cluster'].unique():
+        vecsInCluster[i] = clusters[clusters['cluster'] == i].index
+
+    for cluster in clusterIdDict.keys():
+        densityList = []
+        for contour in clusterIdDict[cluster]:
+            contourShape = shape(densityContour['features'][contour]['geometry'])
+            numVecs = 0
+            # Find vectors in each contour
+            for vecID in vecsInCluster[cluster]:
+                point = Point(embedding.loc[vecID]['x'], embedding.loc[vecID]['y'])
+                if contourShape.contains(point):
+                    numVecs += 1
+            areaContour = area(densityContour['features'][contour]['geometry'])
+            density = float(numVecs) / areaContour
+            print(contour, density, areaContour, densityList)
+            # Note: The contours are already sorted from the lowest level to the highest level
+            assert all(density > i for i in densityList)
+            densityList.append(density)
+
+
+def findContourInCluster(typeOfContour):
+    """ A helper function for unittests """
+    clusterIdDict = {}  # Dictionary with clusterID and list of contours in each cluster
+    for i in range(0, len(typeOfContour['features'])):
+        clusterId = typeOfContour['features'][i]['properties']['clusterId']
+        if clusterId not in clusterIdDict.keys():
+            clusterIdDict[clusterId] = [i]
+        else:
+            clusterIdDict[clusterId].append(i)
+    return clusterIdDict
 
 
 class ContourCreator:
@@ -111,56 +276,28 @@ class ContourCreator:
         self.CSs.append(self._densityCalcContour())
         self.CSs.append(self._centroidCalcContour())
 
-    def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):
+    def _sortClustersInBorders(self, featureDict, numClusters, bordersGeoJson):  # numClusters not used?
         '''
         Sorts through the featureDict to find the points and vectors
         that correspond to each individual country and returns lists
         with those variables in the correct country spot. This only catches
         the points that are within the country borders.
         '''
-        with open(bordersGeoJson) as f:
-            bordersData = json.load(f)
-
-        allBordersDict = {}
-        for feature in bordersData['features']:
-            poly = shply.shape(feature['geometry']).simplify(0.01)
-            clusterId = feature['properties']['clusterId']
-            assert(clusterId)
-            allBordersDict[clusterId] = poly
 
         xs = defaultdict(list)
         ys = defaultdict(list)
         vectors = defaultdict(list)
-        keys = sorted(featureDict.keys())
 
         count = 0
-        keys = []
-        for index in featureDict:
-            if 'keep' not in featureDict[index]:
-                count += 1
-            elif 'cluster' not in featureDict[index]:
-                count += 1
-            elif 'x' not in featureDict[index]:
-                count += 1
-            else:
-                keys.append(index)
-        print '%d of %d were bad keys' % (count, len(featureDict))
-
-        featureDict = { k: featureDict[k] for k in keys }   # filter out bad keys
-
-        for i, index in enumerate(keys):
-            if i % 10000 == 0:
-                print 'doing', i, 'of', len(keys)
-            pointInfo = featureDict[index]
-            if pointInfo['keep'] != 'True' or pointInfo.get('cluster') in (None, ''): continue
-            c = pointInfo['cluster']
-            xy = Point(float(pointInfo['x']), float(pointInfo['y']))
-            # poly = allBordersDict.get(c)
-            # if poly and poly.contains(xy):
-            xs[c].append(xy.x)
-            ys[c].append(xy.y)
-            vectors[c].append(pointInfo['vector'])
-
+        for row in featureDict.itertuples():
+            if count % 10000 == 0:
+                print 'doing', count, 'of', featureDict.shape[0]
+            if row[4] == False: continue
+            c = row[3]
+            xs[c].append(row[1])
+            ys[c].append(row[2])
+            vectors[c].append(row[5])
+            count += 1
         return xs, ys, vectors
 
     def _centroidValues(self):
@@ -185,16 +322,16 @@ class ContourCreator:
             x = self.xs[c]
             y = self.ys[c]
             values = self.centralities[c]
-            assert(len(x) == len(y) == len(values))
+            assert (len(x) == len(y) == len(values))
             if len(x) < 2: continue  # essentially empty!
             centrality, yedges, xedges, binNumber = sps.binned_statistic_2d(y, x,
-                                                        values,
-                                                        statistic='mean',
-                                                        bins=self.binSize,
-                                                        range=[[np.min(y),
-                                                        np.max(y)],
-                                                        [np.min(x),
-                                                        np.max(x)]])
+                                                                            values,
+                                                                            statistic='mean',
+                                                                            bins=self.binSize,
+                                                                            range=[[np.min(y),
+                                                                                    np.max(y)],
+                                                                                   [np.min(x),
+                                                                                    np.max(x)]])
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
@@ -220,9 +357,9 @@ class ContourCreator:
             H, yedges, xedges = np.histogram2d(y, x,
                                                bins=self.binSize,
                                                range=[[np.min(y),
-                                                      np.max(y)],
+                                                       np.max(y)],
                                                       [np.min(x),
-                                                      np.max(x)]])
+                                                       np.max(x)]])
 
             H = spn.filters.gaussian_filter(H, 2)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
@@ -263,7 +400,7 @@ class ContourCreator:
         newPlys = {}
         for clusterFeatures in js['features']:
             clusterId = clusterFeatures['properties']['clusterId']
-            assert(clusterId)
+            assert (clusterId)
             if clusterId not in plyList: continue
             clusterGeom = shply.shape(clusterFeatures['geometry']).buffer(0.0)
             newClusterContours = []
@@ -375,7 +512,7 @@ class Contour:
             path = mplPath.Path(poly.points[0])
             for otherPolys in self.polygons:
                 if poly is not otherPolys \
-                   and path.contains_points(otherPolys.points[0]).all():
+                        and path.contains_points(otherPolys.points[0]).all():
                     poly.children.add(otherPolys)
                     toRemove.add(otherPolys)
         for poly in toRemove:

@@ -1,9 +1,8 @@
-# Let's get this party started!
+import falcon
 import logging
 import os
 import sys
-
-import falcon
+import csv
 
 from cartograph.server.ParentService import ParentService
 from cartograph.server.NewMapService import AddMapService
@@ -12,10 +11,10 @@ from cartograph.server.MapService import MapService
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 if __name__ == '__main__' and len(sys.argv) > 1:
-    confPaths = sys.argv[1]
+    meta_config = sys.argv[1]
 else:
-    confPaths = os.getenv('CARTOGRAPH_CONFIGS')
-    if not confPaths:
+    meta_config = os.getenv('CARTOGRAPH_CONFIGS')
+    if not meta_config:
         raise Exception, 'CARTOGRAPH_CONFIGS environment variable not set!'
 
 configs = {}
@@ -26,19 +25,22 @@ logging.info('configuring falcon')
 app = falcon.API()
 
 
-# Start up a set of services for each map (as specified by its config file)
-
-
+# Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
 map_services = {}
-for path in confPaths.split(':'):
-    map_service = MapService(path)
-    map_services[map_service.name] = map_service
+with open(meta_config, 'r') as conf_files:
+    for path in conf_files:
+        map_service = MapService(path.strip('\r\n'))
+        map_services[map_service.name] = map_service
+map_services['_meta_config'] = meta_config
+map_services['_last_update'] = os.stat(meta_config)
 
-app.add_route('/{map_name}/search.json', ParentService(map_services, 'search_service'))
+
+# Start a ParentService for each service; a ParentService represents a given service for every map in <map_services>
+app.add_route('/{map_name}/search.json',                         ParentService(map_services, 'search_service'))
 app.add_route('/{map_name}/vector/{layer}/{z}/{x}/{y}.topojson', ParentService(map_services, 'tile_service'))
-app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_services, 'mapnik_service'))
-app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
-app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
+app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png',      ParentService(map_services, 'mapnik_service'))
+app.add_route('/{map_name}/template/{file}',                     ParentService(map_services, 'template_service'))
+app.add_route('/{map_name}/log',                                 ParentService(map_services, 'logging_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 
@@ -55,6 +57,6 @@ if __name__ == '__main__':
     logging.info('starting server')
 
     from wsgiref import simple_server
-    httpd = simple_server.make_server('127.0.0.1', 4000, app)
+    httpd = simple_server.make_server('0.0.0.0', 4000, app)
     logging.info('server ready!')
     httpd.serve_forever()

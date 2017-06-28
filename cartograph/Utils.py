@@ -1,9 +1,21 @@
 from collections import defaultdict
 import codecs
 import numpy as np
+import pandas as pd
 import sys
 
-import psycopg2
+
+def read_vectors(path):
+    featureDict = pd.read_table(path, skiprows=1, skip_blank_lines=True, header=None)
+    featureDict['vectorTemp'] = featureDict.iloc[:, 1:].apply(lambda x: tuple(x),
+                                                              axis=1)  # join all vector columns into same column
+    featureDict.drop(featureDict.columns[1:-1], axis=1,
+                     inplace=True)  # drop all columns but the index and the vectorTemp column
+    featureDict.columns = ['index', 'vector']
+    featureDict = featureDict.set_index('index')
+    featureDict.index = featureDict.index.astype(str)
+
+    return featureDict
 
 
 def read_tsv(filename):
@@ -129,15 +141,6 @@ def sort_by_percentile(numBins):
         print("=========")
         print(i+1)
         # np.percentile(percentileList, (i, i+1))
-
-
-def pg_cnx(config):
-    return psycopg2.connect(
-        dbname=config.get('PG', 'database'),
-        host=config.get('PG', 'host'),
-        user=config.get('PG', 'user'),
-        password=config.get('PG', 'password'),
-    )
 
 class InputError(Exception):
     """Exception raised for errors in the input.

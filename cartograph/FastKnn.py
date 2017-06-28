@@ -3,6 +3,9 @@ import logging
 import numpy as np
 import os.path
 from bisect import bisect_left
+from numpy import dot
+from numpy.linalg import norm
+
 
 import annoy
 
@@ -11,7 +14,7 @@ from cartograph import Utils
 logger = logging.getLogger("cartograph.fast-knn")
 
 class FastKnn:
-    def __init__(self, pathVectors, pathAnnoy=None, pathIds=None, format='text'):
+    def __init__(self, pathVectors, pathAnnoy=None, pathIds=None):
         self.pathVectors = pathVectors
         if not pathAnnoy: pathAnnoy = pathVectors + ".annoy"
         if not pathIds: pathIds = pathVectors + ".annoyIds"
@@ -19,7 +22,6 @@ class FastKnn:
         self.pathIds = pathIds
         self.index = None   # annoy index
         self.ids = None     # list of string ids, alphabetically sorted
-        self.format = format
 
     def exists(self):
         for p in self.pathAnnoy, self.pathIds:
@@ -29,47 +31,26 @@ class FastKnn:
                 return False
         return True
 
-    def readVectors(self, keyTransform):
-        if self.format == 'text':
-            vecs = Utils.read_features(self.pathVectors)
-        elif self.format == 'mikolov':
-            vecs = {}
-            for (id, vector) in readMikolov(self.pathVectors).items():
-                vecs[id] = { 'vector' : vector }
-        else:
-            raise Exception, 'Unknown file format: ' + self.format
-
-        if keyTransform:
-            newVecs = {}
-            for (k, v) in vecs.items():
-                k2 = keyTransform(k)
-                if k2:
-                    newVecs[k2] = v
-            vecs = newVecs
-        assert(vecs)
-
-        return vecs
-
-    def rebuild(self, keyTransform=None):
-        vecs = self.readVectors(keyTransform)
+    def rebuild(self):
+        vecs = Utils.read_vectors(self.pathVectors)
 
         ids = []
         n = None
-        for k, v in vecs.items():
-            ids.append(k)
-            if len(v['vector']) == 0:
+        for k in range(len(vecs.index)):
+            ids.append(vecs.iloc[k].name)
+            if len(vecs.iloc[k][0]) == 0:
                 pass
             elif n is None:
-                n = len(v['vector'])
+                n = len(vecs.iloc[k][0])
             else:
-                assert(n == len(v['vector']))
+                assert(n == len(vecs.iloc[k][0]))
         ids.sort()
 
         ai = annoy.AnnoyIndex(n)
-        for i, (k, v) in enumerate(vecs.items()):
-            if len(v['vector']) == 0: continue
-            j = binary_search(ids, k)
-            ai.add_item(j, v['vector'])
+        for i in range(len(vecs.index)):
+            if len(vecs.iloc[i][0]) == 0: continue
+            j = binary_search(ids, vecs.iloc[i].name)
+            ai.add_item(j, vecs.iloc[i][0])
             if i % 10000 == 0:
                 logger.info('loading vector %d into annoy index' % i)
         logger.info('building annoy datastructure')
@@ -115,29 +96,46 @@ def binary_search(a, x, lo=0, hi=None):   # can't use a to specify default for h
     pos = bisect_left(a,x,lo,hi)          # find insertion position
     return (pos if pos != hi and a[pos] == x else -1) # don't walk off the end
 
-def readMikolov(path):
-    vectors = {}
-    with open(path, 'rb') as f:
-        header = f.readline()
-        vocab_size, vector_size = map(int, header.split())  # throws for invalid file format
 
-        binary_len = np.dtype(np.float32).itemsize * vector_size
-        for i in range(vocab_size):
 
-            word = []
-            while True:
-                ch = f.read(1)
-                if ch == b' ':
-                    break
-                if ch == b'':
-                    raise EOFError("unexpected end of input; is count incorrect or file otherwise damaged?")
-                if ch != b'\n':  # ignore newlines in front of words (some binary files have)
-                    word.append(ch)
-            word = b''.join(word).decode('utf-8')
-            weights = np.fromstring(f.read(binary_len), dtype=np.float32)
-            vectors[word] = weights
+# ============================================= Test stuff ================================================
 
-            if i % 100000 == 0:
-                logger.info('parsing %s, line %d of %d (id=%s)', path, i, vocab_size, word)
+def nearestVector(knn, vectorID):
+    selectedVector = np.array(knn.getVector(vectorID))  # Transform the vectorID into an array containing the selected vector's dimensions
+    idDistanceDict = {}
+    for id in knn.ids:
+        if id != vectorID:  # prevents the function from just saying every vector is closest to itself. It is, but that's not helpful
+            otherVector = np.array(knn.getVector(id))
+            distance = cosine_sim(selectedVector, otherVector)
+            idDistanceDict[id] = distance
+    return max(idDistanceDict, key=idDistanceDict.get)
 
-    return vectors
+def testNeighbors():
+    # Note to my future self: This test is O(n^2), so don't run it on large lists of vectors! Give it shortened files
+    # with like 100 or so vectors in them so it'll run faster.
+
+    tester = FastKnn("./data/ext/test-orig/vectors.tsv")  # load in vectors
+    tester.rebuild()
+
+    numVectorsCalculated = 0
+    numRight = 0
+    numWrong = 0
+    for id in tester.ids[:200]:
+        neighborList = []  # probably not the most efficient, but there will only be 5 for each vector, so...
+        for tuple in tester.neighbors(tester.getVector(id)):
+             neighborList.append(int(tuple[0]))
+        nearest = nearestVector(tester, id)
+        if int(nearest) in neighborList:
+            numRight += 1
+        else:
+            numWrong += 1
+        numVectorsCalculated += 1
+
+    percentRight = 100*numRight/numVectorsCalculated
+    percentWrong = 100*numWrong/numVectorsCalculated
+    print "%d chosen vectors compared to neighbor list. %d percent (%d) were on the list; %d percent (%d) were not." %\
+          (numVectorsCalculated, percentRight, numRight, percentWrong, numWrong)
+    assert (percentWrong <= 20)
+
+def cosine_sim(a, b):
+    return dot(a, b) / (norm(a) * norm(b))
