@@ -158,7 +158,13 @@ CG.init = function(layer) {
 
     $('#test_button').on('click', function () {
         console.log("clicked on test button");
-        console.log(CG.map.getBounds())
+
+        var viewport = CG.map.getBounds()
+        var x_min = viewport._southWest.lng
+        var x_max = viewport._northEast.lng
+        var y_min = viewport._southWest.lat
+        var y_max = viewport._northEast.lat
+
     })
 
     $('#search-field').on('focus', CG.hideRelated);
