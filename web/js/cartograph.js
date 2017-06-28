@@ -157,8 +157,8 @@ CG.init = function(layer) {
     };
 
     $('#test_button').on('click', function () {
-        console.log("clicked on test button")
-
+        console.log("clicked on test button");
+        console.log(CG.map.getBounds())
     })
 
     $('#search-field').on('focus', CG.hideRelated);
