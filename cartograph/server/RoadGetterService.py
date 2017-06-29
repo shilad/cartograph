@@ -1,5 +1,5 @@
 import os
-
+from math import log
 import falcon
 import jinja2
 import heapq
@@ -32,7 +32,7 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 class RoadGetterService:
-    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices):
+    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathtoBundleEdges):
         #This sets up all the variables we need for any work done.
         self.articlesZpop = {}
         with open(pathToZPop, "r") as zpop:
@@ -50,6 +50,11 @@ class RoadGetterService:
             for line in ptbv:
                 lst = line.split()
                 self.bundledVertices[lst[0]] = lst[1:]
+        self.bundledEdges = {}
+        with open(pathtoBundleEdges, 'r') as ptbe:
+            for line in ptbe:
+                lst = line.split()
+                self.bundledEdges[(lst[0], lst[1])] = lst[2]
         self.edgeDictionary, self.outboundPaths = self.getEdgeDictionaries(semanticPathFile)
 
     def on_get(self, req, resp):
@@ -57,20 +62,47 @@ class RoadGetterService:
         paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
                                                       float(req.params['ymin']), float(req.params['ymax']), int(req.params['n_cities']))
         print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
-        jsonPaths = self.formJsonPaths(paths)
+        output = self.formJsonPaths(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
-        resp.body = json.dumps(jsonPaths)
+        resp.body = json.dumps(output)
 
     def formJsonPaths(self, paths):
         jsonPaths = {}
         for path in paths:
+            print path
             coordList = []
             for point in path:
                 if point in self.originalVertices:
                     coordList.append(self.originalVertices[point])
                 elif point in self.bundledVertices:
                     coordList.append(self.bundledVertices[point])
+            if path[0] in jsonPaths:
+                jsonPaths[path[0]].append(coordList)
+            else:
+                jsonPaths[path[0]] = [coordList]
+        return jsonPaths
+
+    def formWeightedJSONPaths(self, paths):
+        jsonPaths = {}
+        for path in paths:
+            coordList = []
+            for i in range(0, len(path)-1):
+                src = path[i]
+                dest = path[i+1]
+                entry = []
+                if src in self.originalVertices:
+                    entry.append(self.originalVertices[src])
+                else:
+                    entry.append(self.bundledVertices[src])
+                if dest in self.originalVertices:
+                    entry.append(self.originalVertices[dest])
+                else:
+                    entry.append(self.bundledVertices[dest])
+                weight = max(log(float(self.bundledEdges[(src, dest)]), 100) * float(60), 1)
+                entry.append([weight])
+                print(entry)
+                coordList.append(entry)
             if path[0] in jsonPaths:
                 jsonPaths[path[0]].append(coordList)
             else:
@@ -102,8 +134,7 @@ class RoadGetterService:
                             outboundPaths[elements[1]].update({elements[2]: [elements[0], elements[3]]})
                         else:
                             outboundPaths[elements[1]] = {elements[2]: [elements[0], elements[3]]}
-                    elif len(
-                            elements) == 5:  # here we are still at a child and have to append the parent. format: Src key -> dest Key -> [EdgeId, Weight, Parent if exists], if path[src][dest].size = 3, we gotta keep going, if =2, we at end
+                    elif len(elements) == 5:  # here we are still at a child and have to append the parent. format: Src key -> dest Key -> [EdgeId, Weight, Parent if exists], if path[src][dest].size = 3, we gotta keep going, if =2, we at end
                         if elements[1] in outboundPaths:
                             outboundPaths[elements[1]].update({elements[2]: [elements[0], elements[4], elements[3]]})
                         else:
