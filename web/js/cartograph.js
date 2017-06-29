@@ -171,7 +171,7 @@ CG.init = function(layer) {
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
         $.get(url, function(response){
             var duplicateEdgeCatcher = {}
-            console.log(response)
+
             var curves = []
             $.each(response, function(city, paths) {
 
@@ -183,10 +183,10 @@ CG.init = function(layer) {
                     for(var j = 1; j < path.length - 1; j ++) {
                         var src = path[j]
                         var dest = path[j+1]
-                        console.log("src " + src)
+
                         if(src != dest){
                             if(!duplicateEdgeCatcher[(src, dest)]){
-                                console.log("GET HERE")
+
                                 line.push('L', [parseFloat(src[0]), parseFloat(src[1])])
                                 line.push('L', [parseFloat(dest[0]), parseFloat(dest[1])])
                                 duplicateEdgeCatcher[(src, dest)] = true
@@ -201,7 +201,7 @@ CG.init = function(layer) {
 
 
              });
-            var storedcurveslayer = L.layerGroup(curves);
+            storedcurveslayer = L.layerGroup(curves);
             CG.map.addLayer(storedcurveslayer);
 
         })
@@ -211,6 +211,9 @@ CG.init = function(layer) {
 
     })
 
+    $('#test_buttonRemove').on('click', function () {
+        CG.map.removeLayer(storedcurveslayer);
+    })
 
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
