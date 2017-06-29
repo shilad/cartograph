@@ -167,8 +167,43 @@ CG.init = function(layer) {
         var y_min = viewport._southWest.lat
         var y_max = viewport._northEast.lat
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max
-        $.get(url, function(){
-            console.log("REQUEST SENT YEP")
+        $.get(url, function(response){
+            var duplicateEdgeCatcher = {}
+            console.log(response)
+            var curves = []
+            $.each(response, function(city, paths) {
+
+                for(var i = 0; i < paths.length; i ++){
+                    var line = []
+                    var path = paths[i]
+                    line.push('M', [parseFloat(path[0][0]),parseFloat(path[0][1])])
+                    console.log(path[0])
+                    console.log(line)
+                    for(var j = 1; j < path.length - 1; j ++) {
+                        var src = path[j]
+                        var dest = path[j+1]
+                        console.log("src " + src)
+                        if(src != dest){
+                            if(!duplicateEdgeCatcher[(src, dest)]){
+                                console.log("GET HERE")
+                                line.push('L', [parseFloat(src[0]), parseFloat(src[1])])
+                                line.push('L', [parseFloat(dest[0]), parseFloat(dest[1])])
+                                duplicateEdgeCatcher[(src, dest)] = true
+                            }
+                        }
+                        var newCurve = L.curve(line)
+                        curves.push(newCurve)
+                    }
+
+
+                }
+
+                console.log(line)
+
+
+             });
+            var storedcurveslayer = L.layerGroup(curves);
+            CG.map.addLayer(storedcurveslayer);
 
         })
 
@@ -176,6 +211,7 @@ CG.init = function(layer) {
         // next step send request to port with view_port 
 
     })
+
 
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
