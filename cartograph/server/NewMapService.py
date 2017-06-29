@@ -113,10 +113,14 @@ def gen_data(map_name, articles_file, metric_type):
         target_file_path = os.path.join(target_path, filename)
         # Treat vectors.tsv as a special case because it is *not* a true TSV (for some reason)
         if filename == 'vectors.tsv':
+            source_data.index.name = 'id'  # FIXME: w/o this line, it comes out as 'index' (just in vectors.tsv)
             with open(target_file_path, 'w') as target_file:
-                target_file.write('\t'.join([filtered_data.index.name] + list(filtered_data)) + '\n')
-                for index, row in filtered_data.iterrows():
-                    target_file.write(str(index) + '\t' + str(row[0]) + '\n')
+                target_file.write('\t'.join([source_data.index.name] + list(source_data)) + '\n')
+                for index, row in source_data.iterrows():
+                    # str of the vector, each component separated by tabs
+                    # FIXME: components should be in scientific notation
+                    vector = '\t'.join([str(component) for component in row[0]])
+                    target_file.write(str(index) + '\t' + vector + '\n')
         # For all other TSVs, just write them normally
         else:
             filtered_data.to_csv(target_file_path, sep='\t')
