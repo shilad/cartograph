@@ -170,14 +170,11 @@ CG.init = function(layer) {
         var n_cities = 2
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
 
-         var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256)) + ')';
 
-        var edgeNeutralStyle = {color: randHue,
-                                weight: 1,
-                                opacity: 0.65,
-                                smoothFactor: 1,
+
+        var edgeNeutralStyle = {color: 'rgb(171, 171, 171)',
+                                opacity: 0.5,
+                                smoothFactor: 3,
                                 attribution: 'edge'};
 
         $.get(url, function(response){
@@ -189,11 +186,20 @@ CG.init = function(layer) {
                 for(var i = 0; i < paths.length; i ++){
                     var line = []
                     var path = paths[i]
-                    line.push('M', [parseFloat(path[0][0]),parseFloat(path[0][1])])
+                    line.push('M', [parseFloat(path[0][0][0]),parseFloat(path[0][0][1])])
+                    console.log(path)
+                    var weight = parseFloat(path[0][0][2])
+                    var newCurve = L.curve(line, edgeNeutralStyle)
+                    allLayers.push(newCurve)
+                    curves.push(newCurve)
+                    for(var j = 1; j < path.length; j ++) {
 
-                    for(var j = 1; j < path.length - 1; j ++) {
-                        var src = path[j]
-                        var dest = path[j+1]
+                        var src = path[j][0]
+                        var dest = path[j][1]
+                        weight = parseFloat(path[j][2][0])
+                        weight =  Math.min(weight, 3)
+
+                        console.log(src + " " +  dest + " "+ weight)
 
                         if(src != dest){
                             if(!duplicateEdgeCatcher[(src, dest)]){
@@ -203,7 +209,8 @@ CG.init = function(layer) {
                                 duplicateEdgeCatcher[(src, dest)] = true
                             }
                         }
-                        var newCurve = L.curve(line, edgeNeutralStyle)
+                        edgeNeutralStyle['weight'] = weight
+                        newCurve = L.curve(line, edgeNeutralStyle)
                         allLayers.push(newCurve)
                         curves.push(newCurve)
                     }
