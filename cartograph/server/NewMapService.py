@@ -6,50 +6,16 @@ import os
 import string
 import codecs
 import pipes
+
+import pandas
+
+from cartograph.Utils import read_tsv, read_vectors
 from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase
-
-
-def filter_tsv(source_dir, target_dir, ids, filename):
-    """Pare down the contents of <source_dir>/<filename> to only rows that start with an id in <ids>, and output them to
-    <target_dir>/<filename>. <target_dir> must already exist. Also transfers over the first line of the file, which is
-    assumed to be the header.
-
-    e.g.
-    filter_tsv(source_dir='/some/path/', dest_dir='/another/path', ids=['1', '3', '5'], filename='file.tsv')
-
-    /some/path/file.tsv (before function call):
-    id  name
-    1   hello
-    2   world
-    3   foo
-    4   bar
-    5   spam
-
-    /another/path/file.tsv (after function call):
-    id  name
-    1   hello
-    3   foo
-    5   spam
-
-    :param source_dir:
-    :param target_dir:
-    :param ids: an iterable of the ids
-    :param filename: the name of the file in <source_dir> to be filtered into a file of the same name in <target_dir>
-    """
-
-    with codecs.open(os.path.join(source_dir, filename), 'r') as read_file, \
-            codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
-        popularities_reader = csv.reader(read_file, delimiter='\t')
-        popularities_writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
-        popularities_writer.writerow(popularities_reader.next())  # Transfer the header
-        for row in popularities_reader:
-            if row[0] in ids:
-                popularities_writer.writerow(row)
 
 
 def gen_config(map_name, metric_type, field_name):
@@ -133,16 +99,28 @@ def gen_data(map_name, articles_file, metric_type):
 
     # For each of the data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
-        filter_tsv(SOURCE_DIR, target_path, ids, filename)
 
-    # Generate a data file with metric data
-    with codecs.open(os.path.join(target_path, 'metric.tsv'), 'w') as metric_file:
-        metric_writer = csv.writer(metric_file, delimiter='\t', lineterminator='\n')
-        metric_writer.writerow(header)
-        for row in data:
-            title = row[0]
-            id = name_dict[title]
-            metric_writer.writerow([id]+row[1:])
+        # Read the file into a dataframe (source_data)
+        source_file_path = os.path.join(SOURCE_DIR, filename)
+        if filename == 'vectors.tsv':
+            source_data = read_vectors(source_file_path)
+        else:
+            source_data = pandas.read_csv(source_file_path, sep='\t', index_col='id')
+
+        # Filter the dataframe
+        filtered_data = source_data[source_data.index.isin(ids)]
+
+        # Write the dataframe to the target file
+        target_file_path = os.path.join(target_path, filename)
+        # Treat vectors.tsv as a special case because it is *not* a true TSV (for some reason)
+        if filename == 'vectors.tsv':
+            with open(target_file_path, 'w') as target_file:
+                target_file.write('\t'.join([filtered_data.index.name] + list(filtered_data)) + '\n')
+                for index, row in filtered_data.iterrows():
+                    target_file.write(str(index) + '\t' + str(row[0]) + '\n')
+        # For all other TSVs, just write them normally
+        else:
+            filtered_data.to_csv(target_file_path, sep='\t')
 
     return bad_articles
 

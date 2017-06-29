@@ -6,6 +6,7 @@ import sys
 
 
 def read_vectors(path):
+    # FIXME: Needs documentation
     featureDict = pd.read_table(path, skiprows=1, skip_blank_lines=True, header=None)
     featureDict['vectorTemp'] = featureDict.iloc[:, 1:].apply(lambda x: tuple(x),
                                                               axis=1)  # join all vector columns into same column
@@ -19,6 +20,7 @@ def read_vectors(path):
 
 
 def read_tsv(filename):
+    # FIXME: Needs documentation
     with codecs.open(filename, "r", encoding="utf-8") as f:
         headers = f.readline().rstrip("\n").split("\t")
         data = {header: [] for header in headers}
@@ -80,6 +82,7 @@ def read_features(*files, **kwargs):
 
 
 def write_tsv(filename, header, indexList, *data):
+    # FIXME: Desperately needs documentation!
     for index, dataList in enumerate(data):
         if len(dataList) != len(data[0]):
             raise InputError(index, "Lists must match to map together")
