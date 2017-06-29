@@ -87,15 +87,14 @@ def gen_data(map_name, articles_file, metric_type):
         data.append(row)
 
     # Generate list of IDs for article names in user request
-    ids = []
-    bad_articles = []
+    ids = set()
+    bad_articles = set()
     for row in data:
         title = row[0]
         try:
-            ids.append(name_dict[title])  # Attempts to find entry in dict of Articles to IDs
+            ids.add(name_dict[title])  # Attempts to find entry in dict of Articles to IDs
         except KeyError:
-            bad_articles.append(title)
-
+            bad_articles.add(title)
 
     # For each of the data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
