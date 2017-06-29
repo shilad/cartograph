@@ -55,7 +55,7 @@ class RoadGetterService:
     def on_get(self, req, resp):
         print("hehe ecks dee")
         paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
-                                                      float(req.params['ymin']), float(req.params['ymax']), 5)#req.params['n_cities'])
+                                                      float(req.params['ymin']), float(req.params['ymax']), int(req.params['n_cities']))
         print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
         jsonPaths = self.formJsonPaths(paths)
         resp.status = falcon.HTTP_200

@@ -166,7 +166,9 @@ CG.init = function(layer) {
         var x_max = viewport._northEast.lng
         var y_min = viewport._southWest.lat
         var y_max = viewport._northEast.lat
-        var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max
+
+        var n_cities = 2
+        var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
         $.get(url, function(response){
             var duplicateEdgeCatcher = {}
             console.log(response)
@@ -177,8 +179,7 @@ CG.init = function(layer) {
                     var line = []
                     var path = paths[i]
                     line.push('M', [parseFloat(path[0][0]),parseFloat(path[0][1])])
-                    console.log(path[0])
-                    console.log(line)
+
                     for(var j = 1; j < path.length - 1; j ++) {
                         var src = path[j]
                         var dest = path[j+1]
@@ -197,8 +198,6 @@ CG.init = function(layer) {
 
 
                 }
-
-                console.log(line)
 
 
              });
