@@ -35,6 +35,7 @@ class PrioritySet(object):
         return str(self.heap)
 class RoadGetterService:
     def __init__(self, config, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathToBundledEdges):
+        print("GET HERE")
         #This sets up all the variables we need for any work done.
         pathToOriginalVertices = origVertsPath
         semanticPath = semanticPathFile
@@ -67,10 +68,30 @@ class RoadGetterService:
         self.edgeDictionary, self.inboundPaths, self.outboundPaths = self.getEdgeDictionaries(semanticPath)
 
     def on_get(self, req, resp):
-        paths, pointsInPort = self.getPathsInViewPort(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'], req.params['n_cities'])
+        print("GET HERE! :D")
+        paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
+                                                      float(req.params['ymin']), float(req.params['ymax']), 10)#req.params['n_cities'])
+        print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
         resp.status = falcon.HTTP_200
-        resp.content_type = getMimeType(file)
+        resp.content_type = "application/json"  #getMimeType(file)
+        resp.body = json.dumps({"Success": "Yep", "Great":"I Know!"})
 
+    def getPath(self, childEdgeId, edgeDict, frontStack=[], backStack=[]):
+        frontStack.append(edgeDict[childEdgeId][0])
+        backStack.insert(0, edgeDict[childEdgeId][1])
+
+        #  if(edgeDict[childEdgeId][0] != edgeDict[childEdgeId][1]):
+        #   frontStack.append(edgeDict[childEdgeId][0])
+        #    backStack.insert(0, edgeDict[childEdgeId][1])
+
+
+        if (len(edgeDict[childEdgeId]) == 4):
+            # we still have parents!
+            parentID = edgeDict[childEdgeId][2]
+            return self.getPath(parentID, edgeDict, frontStack, backStack)
+        elif (len(edgeDict[childEdgeId]) == 3):
+            frontStack = frontStack + backStack
+            return frontStack
 
     def getEdgeDictionaries(self, semanticPath):
         outboundPaths = {}
@@ -81,8 +102,7 @@ class RoadGetterService:
                 elements = line.split(" ")
                 edgeDictionary[elements[0]] = elements[1:]  # Edge ID as key,  [src, dest, parent, weight] as vals
                 # if both src and dst are in orig Vertices:
-                if (elements[1] in self.originalVertices and elements[
-                    2] in self.originalVertices):  # elements = [edgeId, src, dst, parent, weight]
+                if (elements[1] in self.originalVertices and elements[2] in self.originalVertices):  # elements = [edgeId, src, dst, parent, weight]
                     #       pairings.append((elements[1], elements[2]))
                     if len(elements) == 4:  # here there's EdgeID, src, dest, weight, here we ARE at the parent
                         if elements[1] in outboundPaths:
@@ -123,6 +143,23 @@ class RoadGetterService:
 
 
         return n_cities.heap
+
+    def edgeShouldShow(self,  src, dest, threshold = 2):
+        '''
+        If sum of the zpop score of the two articles is greater than a threshold the edge should not show
+        :param src:
+        :param dest:
+        :param threshold:
+        :return:
+        '''
+        srcZpop = float(self.articlesZpop[src])
+        destZpop = float(self.articlesZpop[dest])
+
+        if srcZpop + destZpop > threshold:
+            return False
+        else:
+            return True
+
     def getPathsForEachCity(self, citiesToShowEdges, xmin, xmax, ymin, ymax,):
         outpathsToMine = []
         inpathsToMine = []

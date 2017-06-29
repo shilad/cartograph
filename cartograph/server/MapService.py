@@ -11,7 +11,7 @@ from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService
 from cartograph.server.TileService import TileService
-
+from cartograph.server.RoadGetterService import RoadGetterService
 
 class MapService:
     """A set of services for a particular map    
@@ -40,3 +40,9 @@ class MapService:
         self.template_service = TemplateService(conf)
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
+        self.roads_service = RoadGetterService(conf,
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_semanticTreeWiki.txt",
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/Original Vertices.txt",
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv",
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_verticesWiki.txt",
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_edgesWiki.txt")

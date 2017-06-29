@@ -20,6 +20,7 @@ class TileService:
         return builder.getData()
 
     def on_get(self, req, resp, layer, z, x, y):
+        print("GET HERE - tiles :D")
         if self.cache.serveFromCache(req, resp):
             return
         z, x, y = int(z), int(x), int(y)

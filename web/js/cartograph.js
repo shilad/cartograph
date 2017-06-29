@@ -159,11 +159,21 @@ CG.init = function(layer) {
     $('#test_button').on('click', function () {
         console.log("clicked on test button");
 
+
         var viewport = CG.map.getBounds()
+
         var x_min = viewport._southWest.lng
         var x_max = viewport._northEast.lng
         var y_min = viewport._southWest.lat
         var y_max = viewport._northEast.lat
+        var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max
+        $.get(url, function(){
+            console.log("REQUEST SENT YEP")
+
+        })
+
+
+        // next step send request to port with view_port 
 
     })
 
