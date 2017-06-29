@@ -40,8 +40,8 @@ class MapService:
         self.template_service = TemplateService(conf)
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
-        self.roads_service = RoadGetterService(conf,
-                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_semanticTreeWiki.txt",
+        self.roads_service = RoadGetterService(
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/NewSemanticTree.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/Original Vertices.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_verticesWiki.txt",

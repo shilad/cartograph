@@ -5,8 +5,6 @@ import jinja2
 import heapq
 import json
 
-from cartograph.server.ConfigService import ConfigService
-from cartograph.server.ServerUtils import getMimeType
 class PrioritySet(object):
     def __init__(self, max_size = 10):
         self.heap = []
@@ -34,13 +32,10 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 class RoadGetterService:
-    def __init__(self, config, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathToBundledEdges):
-        print("GET HERE")
+    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathToBundledEdges):
         #This sets up all the variables we need for any work done.
         pathToOriginalVertices = origVertsPath
         semanticPath = semanticPathFile
-        self.config = config
-        self.configService = ConfigService(config)
         self.outboundPaths = {}
         self.edgeDictionary = {}
         self.inboundPaths = {}
@@ -68,23 +63,33 @@ class RoadGetterService:
         self.edgeDictionary, self.inboundPaths, self.outboundPaths = self.getEdgeDictionaries(semanticPath)
 
     def on_get(self, req, resp):
-        print("GET HERE! :D")
+        print("hehe ecks dee")
         paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
-                                                      float(req.params['ymin']), float(req.params['ymax']), 10)#req.params['n_cities'])
+                                                      float(req.params['ymin']), float(req.params['ymax']), 1)#req.params['n_cities'])
         print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
+        jsonPaths = self.formJsonPaths(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
-        resp.body = json.dumps({"Success": "Yep", "Great":"I Know!"})
+        resp.body = json.dumps(jsonPaths)
+
+    def formJsonPaths(self, paths):
+        jsonPaths = {}
+        for path in paths:
+            coordList = []
+            for point in path:
+                if point in self.originalVertices:
+                    coordList.append(self.originalVertices[point])
+                elif point in self.bundledVertices:
+                    coordList.append(self.bundledVertices[point])
+            if path[0] in jsonPaths:
+                jsonPaths[path[0]].append(coordList)
+            else:
+                jsonPaths[path[0]] = [coordList]
+        return jsonPaths
 
     def getPath(self, childEdgeId, edgeDict, frontStack=[], backStack=[]):
         frontStack.append(edgeDict[childEdgeId][0])
         backStack.insert(0, edgeDict[childEdgeId][1])
-
-        #  if(edgeDict[childEdgeId][0] != edgeDict[childEdgeId][1]):
-        #   frontStack.append(edgeDict[childEdgeId][0])
-        #    backStack.insert(0, edgeDict[childEdgeId][1])
-
-
         if (len(edgeDict[childEdgeId]) == 4):
             # we still have parents!
             parentID = edgeDict[childEdgeId][2]
@@ -103,7 +108,6 @@ class RoadGetterService:
                 edgeDictionary[elements[0]] = elements[1:]  # Edge ID as key,  [src, dest, parent, weight] as vals
                 # if both src and dst are in orig Vertices:
                 if (elements[1] in self.originalVertices and elements[2] in self.originalVertices):  # elements = [edgeId, src, dst, parent, weight]
-                    #       pairings.append((elements[1], elements[2]))
                     if len(elements) == 4:  # here there's EdgeID, src, dest, weight, here we ARE at the parent
                         if elements[1] in outboundPaths:
                             outboundPaths[elements[1]].update({elements[2]: [elements[0], elements[3]]})
@@ -125,23 +129,21 @@ class RoadGetterService:
                             inboundPaths[elements[2]] = {elements[1]: [elements[0], elements[4], elements[3]]}
         return edgeDictionary, inboundPaths, outboundPaths
 
-    def getPathsInViewPort(self, xmin, xmax, ymin, ymax, n_cities = 10):
+    def getPathsInViewPort(self, xmin, xmax, ymin, ymax, n_cities=5):
         pointsinPort = []
 
         for point in self.originalVertices:
             if xmax > float(self.originalVertices[point][0]) > xmin and ymin < float(self.originalVertices[point][1]) < ymax:
                 pointsinPort.append(point)  # points in port is an array of pointIDs which are strings.
         cities = self.get_n_most_prominent_cities(n_cities, pointsinPort)
-        paths = self.getPathsForEachCity(cities, xmin, xmax, ymin, ymax )
+        paths = self.getPathsForEachCity(cities)
         return paths, pointsinPort
+
     def get_n_most_prominent_cities(self, n, vertices_in_view_port):
         n_cities = PrioritySet(max_size=n)
-
         for vertex in vertices_in_view_port:
             z_pop_score = self.articlesZpop[vertex]
             n_cities.add(-float(z_pop_score), vertex)
-
-
         return n_cities.heap
 
     def edgeShouldShow(self,  src, dest, threshold = 2):
@@ -160,38 +162,18 @@ class RoadGetterService:
         else:
             return True
 
-    def getPathsForEachCity(self, citiesToShowEdges, xmin, xmax, ymin, ymax,):
-        outpathsToMine = []
-        inpathsToMine = []
-        threshholdval = 4
+    def getPathsForEachCity(self, citiesToShowEdges):
+        pathsToMine = []
+        thresholdVal = 4
         for city in citiesToShowEdges:
-
             if city[1] in self.outboundPaths:
                 for dest in self.outboundPaths[city[1]]:
-                    if self.edgeShouldShow(city[1], dest, threshold= threshholdval):
-                        outpathsToMine.append(
+                    if self.edgeShouldShow(city[1], dest, threshold= thresholdVal):
+                        pathsToMine.append(
                             (city[1], dest))  # outpaths and inpaths include points and dest of edges we want to reconstruct
-
-            #if city[1] in self.inboundPaths:
-                #for src in self.inboundPaths[city[1]]:
-
-                    #p = self.originalVertices[src]
-                    #if (xmax < float(p[0]) or float(p[0]) < xmin) or (ymin > float(p[1]) or float(p[1]) > ymax):
-                      # pass
-                        #if self.edgeShouldShow(src, city[1], threshold= threshholdval):
-                            #inpathsToMine.append([src, city[1]])
-
         paths = []
-
-        print("Finding paths now. Paths to do: " + str(len(inpathsToMine) + len(outpathsToMine)))
-        for path in inpathsToMine:  # path[0] = src, path[1] = dest
-            results = self.getPath(self.inboundPaths[path[1]][path[0]][0], self.edgeDictionary, [], [])
-            paths.append(results)
-
-            if (len(paths) % 100000 == 0):
-                print(len(paths))
-
-        for path in outpathsToMine:
+        print("Finding paths now. Paths to do: " + str(len(pathsToMine)))
+        for path in pathsToMine:
             results = self.getPath(self.outboundPaths[path[0]][path[1]][0], self.edgeDictionary, [], [])
             paths.append(results)
 
