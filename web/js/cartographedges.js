@@ -77,31 +77,36 @@ var storedcurveslayer = [];
                 bundle.buildNearestNeighborGraph();
                 bundle.MINGLE();
 
-                bundle.graph.each(function(node) { //render the graph
-                    var edges = node.unbundleEdges(1); //edges's an array of arrays that contain Graph.Node objects (which either represent an edge between two specific nodes or represent a merged edge)
-                    for (i = 0, l = edges.length; i < l; ++i) { //loop over edges
-                        e = edges[i]; //an array that contains Graph.Node objects (which either represent an edge between two specific nodes (ex: "Movie -> Sound effect") or represent a merged edge (ex: "3 4988-3 19150-3 343-3 442" merges 4 edges))
-                        //the first and last item in e will always be an edge between the SAME two specific nodes (ex: both will represent "Movie -> Sound effect")
-                        console.log(e);
-                        start = e[0].unbundledPos; //set the starting position to the x,y of the destination node
-                        var line = ['M', start]; //move to the starting position
-                        if (e.length > 3) { //if e has more than 3 Graph.Node objects, you can create a benzier curve. if it's equal to three it's just the two specific nodes 3 times over and you just create a straight line
-                            c1 = e[1].unbundledPos; //set the first control point to the mid unbundled position?
-                            c2 = e[(e.length - 1) / 2 - 1].unbundledPos; //set the second control point to the second to last unbundled position?
-                            end = [c2[0], c2[1]] //set the ending position equal to c2
+                /*
+                The function below renders the graph. It first sets the variable edges to an array of arrays that contain Graph.Node objects. These arrays either represent an edge between two specific nodes (ex: "Movie -> Sound effect")
+                or represent a merged edge (ex: "3 4988-3 19150-3 343-3 442" merges 4 edges into a single edge). It then loops over each e in edges and draws the appropriate curves/lines. To do this, it sets the starting position to the x,y of the destination node
+                and moves to the starting position. Then, if e contains more than 3 Graph.Node objects, it creates a benzier curve. Otherwise, it draws a straight line. After the graph is rendered, hovering effects are added, so that a user can view the source and
+                destination of a edge they are hovering over.
+                */
 
-                            line.push('C', c1, c2, end); //draw the benzier curve
-                            c1 = e[(e.length - 1) / 2 + 1].unbundledPos; //set the first control point to the mid unbundled position?
-                            c2 = e[e.length - 2].unbundledPos; //set the second control point to the second to last unbundled position?
-                            end = e[e.length - 1].unbundledPos; //set the ending position to the x,y of the destination node
+                bundle.graph.each(function(node) {
+                    var edges = node.unbundleEdges(1);
+                    for (i = 0, l = edges.length; i < l; ++i) {
+                        e = edges[i];
+                        start = e[0].unbundledPos;
+                        var line = ['M', start];
+                        if (e.length > 3) {
+                            c1 = e[1].unbundledPos;
+                            c2 = e[(e.length - 1) / 2 - 1].unbundledPos;
+                            end = [c2[0], c2[1]]
 
-                            start = [c1[0], c1[1]] //set the starting position equal to c1
-                            line.push('L', start); //draw a line to the starting position
+                            line.push('C', c1, c2, end);
+                            c1 = e[(e.length - 1) / 2 + 1].unbundledPos;
+                            c2 = e[e.length - 2].unbundledPos;
+                            end = e[e.length - 1].unbundledPos;
 
-                            line.push('C', c1, c2, end); //draw the benzier curve
-                            } else { //otherwise, create a straight line
-                                end = e[e.length -1].unbundledPos; //set the ending position to the x,y of the destination node
-                                line.push('L', end); //draw a line to the ending position
+                            start = [c1[0], c1[1]]
+                            line.push('L', start);
+
+                            line.push('C', c1, c2, end);
+                            } else {
+                                end = e[e.length -1].unbundledPos;
+                                line.push('L', end);
                             }
                         var newCurve = L.curve(line, edgeNeutralStyle);
                         storedcurves.push(newCurve);
