@@ -3,8 +3,6 @@ var CG = CG || {};
 
 
 CG.init = function(layer) {
-    var storeddotslayer = []
-    var storedcurveslayer = []
     CG.map = L.map('map');
     CG.addMapLogging(CG.map);
     CG.mapEl = $("#map");  // optimization
@@ -217,13 +215,6 @@ CG.init = function(layer) {
         }
     };
 
-    CG.handleEdgeHover = function(mapX, mapY, properties){
-
-    };
-
-    CG.cancelEdgeHover = function(){
-
-    };
 
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
@@ -250,144 +241,7 @@ CG.init = function(layer) {
         var encoded = encodeURIComponent(title);
         var uri = 'https://en.wikipedia.org/w/api.php?action=query&format=json&titles=' + encoded + '&prop=pageimages|extracts&exintro&explaintext&exchars=400&callback=?';
 
-        var id = properties.id; //this will give the internal cartograph ids... FUN FACT: properties = id???
-        var relatedPoints = '../point.json?id=' + id;
-
-        //how I got the snippets: https://en.wikipedia.org/w/api.php?action=query&format=json&titles=Top%20Gun!!!!!!SOMETHING? extracts&explaintext&exsentences=3&exsectionformat=plain!!!!!!&callback=jQuery1102006687854900582613_1497380793059&_=1497380793065
-        //how I got the x,y coordinates of each link: look at RelatedPointsService.py
-
-        var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256)) + ')';
-
-        var edgeHoverStyle =   {weight: 3,
-                                opacity: 0.95,
-                                smoothFactor: 1,
-                                attribution: 'edge'};
-        var edgeNeutralStyle = {color: randHue,
-                                weight: 1,
-                                opacity: 0.65,
-                                smoothFactor: 1,
-                                attribution: 'edge'};
-        $.getJSON(relatedPoints, function (data) {
-            CG.map.removeLayer(storeddotslayer);
-            CG.map.removeLayer(storedcurveslayer);
-
-            storeddots = [];
-            storedcurves = [];
-            storededges = [];
-
-            var smallMarker = L.icon({
-            iconUrl: 'images/blackDot.png',
-            iconSize: [10,10]
-            });
-
-            var coords = [];
-            var names = [];
-
-            data[id].forEach(function (linkInfo) {
-
-                  var x = linkInfo.data.loc[0];
-                  var y = linkInfo.data.loc[1];
-                  marker = L.marker([x, y], {icon: smallMarker});
-                  storeddots.push(marker);
-                  coords.push([linkInfo.data.id, linkInfo.data.name, [x, y]]);
-            });
-            storeddotslayer = L.layerGroup(storeddots);
-            CG.map.addLayer(storeddotslayer);
-
-
-            function createPathPairs(array){
-                var pts = [];
-                for(i=1; i < array.length; i++) {
-                    pts.push(array[0]);
-                    pts.push(array[i]);
-                }
-                return pts;
-            }
-
-
-            var linkPairArray = createPathPairs(coords);
-
-
-            function drawCurves(){
-                json = [];
-                for (var i=0; i<linkPairArray.length-2; i+=2){
-
-                    var pointA = linkPairArray[i][2]; //source x,y
-                    var pointB = linkPairArray[i+1][2]; //dest x,y
-
-                    json.push({
-                    "id": linkPairArray[i][0] + " " + linkPairArray[i+1][0], //source + dest id
-                    "name": linkPairArray[i][1] + " -> " + linkPairArray[i+1][1], //source + dest name
-                    "data": {
-                        "coords": [
-                            pointA[0], pointA[1], pointB[0], pointB[1]
-                                  ]
-                            }
-                    });
-
-                }
-
-                var bundle = new Bundler();
-                bundle.setNodes(json);
-                bundle.buildNearestNeighborGraph();
-                bundle.MINGLE();
-
-                bundle.graph.each(function(node) {
-                    var edges = node.unbundleEdges(1); //where is delta, also why unbundle?
-                    var pct = 0; //should this change?
-                    for (i = 0, l = edges.length; i < l; ++i) {
-                        e = edges[i];
-                        console.log(e);
-                        start = e[0].unbundledPos;
-                        midpoint = e[(e.length - 1) / 2].unbundledPos;
-                        var line = ['M', e[0].unbundledPos]; //start the line always
-                        if (e.length > 3) {
-                            c1 = e[1].unbundledPos;
-                            c2 = e[(e.length - 1) / 2 - 1].unbundledPos;
-                            end = [ midpoint[0] * (1 - (1 - pct)) + c2[0] * (1 - pct), midpoint[1] * (1 - (1 - pct)) + c2[1] * (1 - pct) ]
-                            //started the line here (before)
-                            line.push('C', c1, c2, end);
-                            //console.log(c1, c2, end);
-                            c1 = e[(e.length - 1) / 2 + 1].unbundledPos;
-                            c2 = e[e.length - 2].unbundledPos;
-                            end = e[e.length - 1].unbundledPos;
-                            if (1 - pct) {
-                            //line to midpoint + pct of something
-                            start = [ midpoint[0] * (1 - (1 - pct)) + c1[0] * (1 - pct), midpoint[1] * (1 - (1 - pct)) + c1[1] * (1 - pct) ]
-                            line.push('L', start);
-                            }
-                            line.push('C', c1, c2, end);
-                            //console.log(c1, c2, end);
-                            //line.push('Z'); //maybe comment this out?
-                            } else {
-                                //started the line here (before)
-                                end = e[e.length -1].unbundledPos;
-                                line.push('L', end);
-                            }
-                        var newCurve = L.curve(line, edgeNeutralStyle);
-                        storedcurves.push(newCurve);
-                        newCurve.bindPopup(e[0].node.name);
-
-                        newCurve.on('mouseover', function(e){
-                        e.target.setStyle(edgeHoverStyle);
-                        newCurve.openPopup();
-                        });
-                        newCurve.on('mouseout', function(e){
-                        e.target.setStyle(edgeNeutralStyle);
-                        newCurve.closePopup();
-                        });
-                    }
-                });
-                storedcurveslayer = L.layerGroup(storedcurves);
-                CG.map.addLayer(storedcurveslayer);
-            }
-
-            drawCurves();
-
-        });
-
+        CG.showEdgesCityTooltip(mapX, mapY, properties);
 
         $.getJSON(uri, function (json) {
             var info = null;

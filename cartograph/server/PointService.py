@@ -7,7 +7,6 @@ from collections import defaultdict
 
 import shapely.geometry
 
-import falcon
 
 from cartograph import getMetric
 from cartograph.PointIndex import PointIndex
