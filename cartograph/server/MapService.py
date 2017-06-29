@@ -44,5 +44,4 @@ class MapService:
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/NewSemanticTree.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/Original Vertices.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv",
-                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_verticesWiki.txt",
-                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_edgesWiki.txt")
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/output_verticesWiki.txt")

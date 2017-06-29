@@ -32,19 +32,15 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 class RoadGetterService:
-    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathToBundledEdges):
+    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices):
         #This sets up all the variables we need for any work done.
-        pathToOriginalVertices = origVertsPath
-        semanticPath = semanticPathFile
-        self.outboundPaths = {}
-        self.edgeDictionary = {}
         self.articlesZpop = {}
         with open(pathToZPop, "r") as zpop:
             for line in zpop:
                 lst = line.split()
                 self.articlesZpop[lst[0]] = lst[1]
         self.originalVertices = {}
-        with open(pathToOriginalVertices) as ptov:
+        with open(origVertsPath) as ptov:
             for line in ptov:
                 lst = line.split()
                 if len(lst) == 1: continue
@@ -54,12 +50,7 @@ class RoadGetterService:
             for line in ptbv:
                 lst = line.split()
                 self.bundledVertices[lst[0]] = lst[1:]
-        self.bundledEdges = {}
-        with open(pathToBundledEdges) as pte:
-            for line in pte:
-                lst = line.split()
-                self.bundledEdges[(lst[0], lst[1])] = lst[2]
-        self.edgeDictionary, self.outboundPaths = self.getEdgeDictionaries(semanticPath)
+        self.edgeDictionary, self.outboundPaths = self.getEdgeDictionaries(semanticPathFile)
 
     def on_get(self, req, resp):
         print("hehe ecks dee")
