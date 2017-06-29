@@ -155,7 +155,7 @@ CG.init = function(layer) {
         $("#search-field").val('');
         return false;
     };
-
+    allLayers = []
     $('#test_button').on('click', function () {
         console.log("clicked on test button");
 
@@ -169,6 +169,17 @@ CG.init = function(layer) {
 
         var n_cities = 2
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
+
+         var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+        var edgeNeutralStyle = {color: randHue,
+                                weight: 1,
+                                opacity: 0.65,
+                                smoothFactor: 1,
+                                attribution: 'edge'};
+
         $.get(url, function(response){
             var duplicateEdgeCatcher = {}
 
@@ -192,7 +203,8 @@ CG.init = function(layer) {
                                 duplicateEdgeCatcher[(src, dest)] = true
                             }
                         }
-                        var newCurve = L.curve(line)
+                        var newCurve = L.curve(line, edgeNeutralStyle)
+                        allLayers.push(newCurve)
                         curves.push(newCurve)
                     }
 
@@ -212,7 +224,11 @@ CG.init = function(layer) {
     })
 
     $('#test_buttonRemove').on('click', function () {
-        CG.map.removeLayer(storedcurveslayer);
+        for(var j = 0; j < allLayers.length; j ++){
+            CG.map.removeLayer(allLayers[j]);
+        }
+
+        allLayers = []
     })
 
     $('#search-field').on('focus', CG.hideRelated);
