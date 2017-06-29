@@ -62,7 +62,7 @@ class RoadGetterService:
         paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
                                                       float(req.params['ymin']), float(req.params['ymax']), int(req.params['n_cities']))
         print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
-        output = self.formJsonPaths(paths)
+        output = self.formWeightedJSONPaths(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
         resp.body = json.dumps(output)
@@ -99,7 +99,7 @@ class RoadGetterService:
                     entry.append(self.originalVertices[dest])
                 else:
                     entry.append(self.bundledVertices[dest])
-                weight = max(log(float(self.bundledEdges[(src, dest)]), 100) * float(60), 1)
+                weight = float(self.bundledEdges[(src, dest)])
                 entry.append([weight])
                 print(entry)
                 coordList.append(entry)
