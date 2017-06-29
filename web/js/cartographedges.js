@@ -2,39 +2,31 @@ var CG = CG || {};
 var storeddotslayer = [];
 var storedcurveslayer = [];
 
- CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
+/* showEdgesCityTooltip is responsible for rendering the edges and dots, as well as calling point.json.
+*/
+CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
         var id = properties.id;
         var relatedPoints = '../point.json?id=' + id;
 
-        var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256)) + ')';
-
-        var edgeHoverStyle =   {weight: 3,
-                                opacity: 0.95,
-                                smoothFactor: 1,
-                                attribution: 'edge'};
-        var edgeNeutralStyle = {color: randHue,
-                                weight: 1,
-                                opacity: 0.65,
-                                smoothFactor: 1,
-                                attribution: 'edge'};
-
         $.getJSON(relatedPoints, function (data) {
+            //Removes any dots or curves from the map
             CG.map.removeLayer(storeddotslayer);
             CG.map.removeLayer(storedcurveslayer);
 
+            //Initializes arrays that will store the dots and curves to be empty
             storeddots = [];
             storedcurves = [];
 
+            //Sets the marker to be a small black dot
             var smallMarker = L.icon({
-            iconUrl: 'images/blackDot.png',
-            iconSize: [10,10]
+                iconUrl: 'images/blackDot.png',
+                iconSize: [10,10]
             });
 
+            //Initializes coords to an empty array. coords stores the id, name and location of the src and its dests
             coords = [];
-            names = [];
 
+            //Loops over the data to create the markers of the src and its dest, as well as push them to coords
             data[id].forEach(function (linkInfo) {
                   var x = linkInfo.data.loc[0];
                   var y = linkInfo.data.loc[1];
@@ -52,8 +44,14 @@ var storedcurveslayer = [];
                 linkPairArray.push(coords[i]);
             }
 
+            drawCurves(linkPairArray);
 
-            function drawCurves(){
+        });
+
+}
+
+function drawCurves(linkPairArray){
+                //Creates a json file from the link pair array. It stores the edges between the src and its dests
                 json = [];
                 for (var i=0; i<linkPairArray.length-2; i+=2){
 
@@ -72,16 +70,41 @@ var storedcurveslayer = [];
 
                 }
 
+                //Calls the mingling algorithm
                 var bundle = new Bundler();
                 bundle.setNodes(json);
                 bundle.buildNearestNeighborGraph();
                 bundle.MINGLE();
 
                 /*
-                The function below renders the graph. It first sets the variable edges to an array of arrays that contain Graph.Node objects. These arrays either represent an edge between two specific nodes (ex: "Movie -> Sound effect")
-                or represent a merged edge (ex: "3 4988-3 19150-3 343-3 442" merges 4 edges into a single edge). It then loops over each e in edges and draws the appropriate curves/lines. To do this, it sets the starting position to the x,y of the destination node
-                and moves to the starting position. Then, if e contains more than 3 Graph.Node objects, it creates a benzier curve. Otherwise, it draws a straight line. After the graph is rendered, hovering effects are added, so that a user can view the source and
-                destination of a edge they are hovering over.
+                The three variables below set up the style for the edges that will be rendered. It gives the edges a
+                random hue and changes opacity and weight depending on where the user's mouse is hovering.
+                */
+
+                var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256))
+                            + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+                var edgeHoverStyle =   {weight: 3,
+                                opacity: 0.95,
+                                smoothFactor: 1,
+                                attribution: 'edge'};
+
+                var edgeNeutralStyle = {color: randHue,
+                                weight: 1,
+                                opacity: 0.65,
+                                smoothFactor: 1,
+                                attribution: 'edge'};
+
+                /*
+                The code below renders the graph. It first sets the variable edges to an array of arrays that
+                contain Graph.Node objects. These arrays either represent an edge between two specific nodes (ex:
+                "Movie -> Sound effect") or represent a merged edge (ex: "3 4988-3 19150-3 343-3 442" merges 4 edges
+                into a single edge). It then loops over each e in edges and draws the appropriate curves/lines. To do
+                this, it sets the starting position to the x,y of a destination node and moves there. Then, if e
+                contains more than 3 Graph.Node objects, it creates a bezier curve. Otherwise, it draws a straight
+                line to the source node. After the graph is rendered, hovering effects are added, so that a user can
+                view the source and destination of a edge they are hovering over.
                 */
 
                 bundle.graph.each(function(node) {
@@ -124,9 +147,4 @@ var storedcurveslayer = [];
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
                 CG.map.addLayer(storedcurveslayer);
-            }
-            drawCurves();
-
-        });
-
- }
+}
