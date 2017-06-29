@@ -32,20 +32,15 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 class RoadGetterService:
-    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathToBundledEdges):
+    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices):
         #This sets up all the variables we need for any work done.
-        pathToOriginalVertices = origVertsPath
-        semanticPath = semanticPathFile
-        self.outboundPaths = {}
-        self.edgeDictionary = {}
-        self.inboundPaths = {}
         self.articlesZpop = {}
         with open(pathToZPop, "r") as zpop:
             for line in zpop:
                 lst = line.split()
                 self.articlesZpop[lst[0]] = lst[1]
         self.originalVertices = {}
-        with open(pathToOriginalVertices) as ptov:
+        with open(origVertsPath) as ptov:
             for line in ptov:
                 lst = line.split()
                 if len(lst) == 1: continue
@@ -55,17 +50,12 @@ class RoadGetterService:
             for line in ptbv:
                 lst = line.split()
                 self.bundledVertices[lst[0]] = lst[1:]
-        self.bundledEdges = {}
-        with open(pathToBundledEdges) as pte:
-            for line in pte:
-                lst = line.split()
-                self.bundledEdges[(lst[0], lst[1])] = lst[2]
-        self.edgeDictionary, self.inboundPaths, self.outboundPaths = self.getEdgeDictionaries(semanticPath)
+        self.edgeDictionary, self.outboundPaths = self.getEdgeDictionaries(semanticPathFile)
 
     def on_get(self, req, resp):
         print("hehe ecks dee")
         paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
-                                                      float(req.params['ymin']), float(req.params['ymax']), 1)#req.params['n_cities'])
+                                                      float(req.params['ymin']), float(req.params['ymax']), 5)#req.params['n_cities'])
         print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
         jsonPaths = self.formJsonPaths(paths)
         resp.status = falcon.HTTP_200
@@ -101,7 +91,6 @@ class RoadGetterService:
     def getEdgeDictionaries(self, semanticPath):
         outboundPaths = {}
         edgeDictionary = {}
-        inboundPaths = {}
         with open(semanticPath, 'r') as dictFormingSemanticTree:
             for line in dictFormingSemanticTree:
                 elements = line.split(" ")
@@ -113,21 +102,13 @@ class RoadGetterService:
                             outboundPaths[elements[1]].update({elements[2]: [elements[0], elements[3]]})
                         else:
                             outboundPaths[elements[1]] = {elements[2]: [elements[0], elements[3]]}
-                        if elements[2] in inboundPaths:
-                            inboundPaths[elements[2]].update({elements[1]: [elements[0], elements[3]]})
-                        else:
-                            inboundPaths[elements[2]] = {elements[1]: [elements[0], elements[3]]}
                     elif len(
                             elements) == 5:  # here we are still at a child and have to append the parent. format: Src key -> dest Key -> [EdgeId, Weight, Parent if exists], if path[src][dest].size = 3, we gotta keep going, if =2, we at end
                         if elements[1] in outboundPaths:
                             outboundPaths[elements[1]].update({elements[2]: [elements[0], elements[4], elements[3]]})
                         else:
                             outboundPaths[elements[1]] = {elements[2]: [elements[0], elements[4], elements[3]]}
-                        if elements[2] in inboundPaths:
-                            inboundPaths[elements[2]].update({elements[1]: [elements[0], elements[4], elements[3]]})
-                        else:
-                            inboundPaths[elements[2]] = {elements[1]: [elements[0], elements[4], elements[3]]}
-        return edgeDictionary, inboundPaths, outboundPaths
+        return edgeDictionary, outboundPaths
 
     def getPathsInViewPort(self, xmin, xmax, ymin, ymax, n_cities=5):
         pointsinPort = []
