@@ -167,13 +167,13 @@ CG.init = function(layer) {
         var y_min = viewport._southWest.lat
         var y_max = viewport._northEast.lat
 
-        var n_cities = 2
+        var n_cities = 1
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
 
 
 
         var edgeNeutralStyle = {color: 'rgb(171, 171, 171)',
-                                opacity: 0.5,
+                                opacity: 0.2,
                                 smoothFactor: 3,
                                 attribution: 'edge'};
 
@@ -186,7 +186,7 @@ CG.init = function(layer) {
                 for(var i = 0; i < paths.length; i ++){
                     var line = []
                     var path = paths[i]
-                    line.push('M', [parseFloat(path[0][0][0]),parseFloat(path[0][0][1])])
+                    line.push('M', [parseFloat(path[0][0][1]),parseFloat(path[0][0][0])])
                     console.log(path)
                     var weight = parseFloat(path[0][0][2])
                     var newCurve = L.curve(line, edgeNeutralStyle)
@@ -204,12 +204,12 @@ CG.init = function(layer) {
                         if(src != dest){
                             if(!duplicateEdgeCatcher[(src, dest)]){
 
-                                line.push('L', [parseFloat(src[0]), parseFloat(src[1])])
-                                line.push('L', [parseFloat(dest[0]), parseFloat(dest[1])])
+                                line.push('L', [parseFloat(src[1]), parseFloat(src[0])])
+                                line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])])
                                 duplicateEdgeCatcher[(src, dest)] = true
                             }
                         }
-                        edgeNeutralStyle['weight'] = weight
+                        edgeNeutralStyle['weight'] = 1
                         newCurve = L.curve(line, edgeNeutralStyle)
                         allLayers.push(newCurve)
                         curves.push(newCurve)
