@@ -155,6 +155,7 @@ CG.init = function(layer) {
         return false;
     };
 
+
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
     $('#search-field').autocomplete({
@@ -185,7 +186,6 @@ CG.init = function(layer) {
         }
     });
 
-
     CG.handleCityHover = function (mapX, mapY, properties) {
         var title = properties.name;
         clearTimeout(CG.ttHideTimer);
@@ -215,8 +215,10 @@ CG.init = function(layer) {
         }
     };
 
+
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
+
         var isOpen = CG.tt.status().open;
         if (CG.ttEl.data("loading") == title) {
             if (!isOpen) CG.tt.open();
@@ -238,6 +240,9 @@ CG.init = function(layer) {
         }
         var encoded = encodeURIComponent(title);
         var uri = 'https://en.wikipedia.org/w/api.php?action=query&format=json&titles=' + encoded + '&prop=pageimages|extracts&exintro&explaintext&exchars=400&callback=?';
+
+        CG.showEdgesCityTooltip(mapX, mapY, properties);
+
         $.getJSON(uri, function (json) {
             var info = null;
             for (var pageId in json.query.pages) {
