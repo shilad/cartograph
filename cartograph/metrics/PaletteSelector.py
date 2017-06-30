@@ -2,7 +2,6 @@ import csv
 import random
 
 class PaletteSelector:
-    scheme_dict = {}
 
     def __init__(self):
         self.scheme_dict = {'Qualitative': {}, 'Sequential': {}, 'Diverging': {}}
