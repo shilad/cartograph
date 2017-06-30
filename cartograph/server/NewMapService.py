@@ -124,6 +124,10 @@ class AddMapService:
         resp.content_type = 'text/html'
 
     def on_post(self, req, resp):
+        # Make sure the server is in multi-map mode
+        # FIXME: This should be a better error
+        assert self.map_services['_multi_map']
+
         post_data = falcon.uri.parse_query_string(req.stream.read())
         resp.body = ''
 

@@ -35,6 +35,7 @@ class ParentService:
         :return:
         """
         with open(meta_config, 'r') as configs:
+            configs.next()  # Skip the multi-map flag (i.e. '######')
             for map_config in configs:
                 map_config_path = map_config.strip('\r\n')
 
@@ -55,7 +56,7 @@ class ParentService:
 
             # Housekeeping: check if the meta-config has been updated; if so, update map_services
             meta_config = self.map_services['_meta_config']
-            if os.stat(meta_config) != self.map_services['_last_update']:
+            if self.map_services['_multi_map'] and os.stat(meta_config) != self.map_services['_last_update']:
                 self.update_maps(meta_config)
 
             # Extract map name from request
