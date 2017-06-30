@@ -43,8 +43,3 @@ class PaletteSelector:
     def select_palette(self, scheme_type, num_levels):
         palette = random.choice(self.scheme_dict[scheme_type].keys())
         return self.scheme_dict[scheme_type][palette][num_levels]
-
-selector = PaletteSelector()
-print selector.select_palette('Qualitative', 4)
-print selector.select_palette('Sequential', 6)
-print selector.select_palette('Diverging', 3)
