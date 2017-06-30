@@ -1,15 +1,11 @@
-import csv
 import StringIO
-
 import falcon
 import os
 import string
-import codecs
 import pipes
-
 import pandas
 
-from cartograph.Utils import read_tsv, read_vectors
+from cartograph.Utils import read_vectors
 from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
@@ -57,55 +53,49 @@ def gen_config(map_name, metric_type, field_name):
     return config_path
 
 
-def gen_data(map_name, articles_file, metric_type):
+def gen_data(map_name, user_file):
     """Generate the data files (i.e. "TSV" files) for a map named <map_name> and a string of articles <articles>.
+    
+    For ids.tsv, links.tsv, names.tsv, popularity.tsv, and vectors.tsv: read the corresponding files in SOURCE_DIR,
+    filter them down to just the ones whose
 
     :param map_name: name of new map
     :param articles: list of exact titles of articles for new map
     :return: list of article titles for which there was no exact match in the existing dataset
     """
-    # Generate dictionary of article names to IDs
-    # TODO: is there a way to do this once (instead of once per POST)?
-    names_path = os.path.join(SOURCE_DIR, 'names.tsv')
-    name_dict = {}
-    with codecs.open(names_path, 'r') as names:
-        names_reader = csv.reader(names, delimiter='\t')
-        header = names_reader.next()
-        for row in names_reader:
-            name = unicode(row[1], encoding='utf-8')
-            name_dict[name] = int(row[0])
+
+    # Generate dataframe of user data
+    user_data = pandas.read_csv(user_file, delimiter='\t')
+    first_column = list(user_data)[0]
+    user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
+
+    # Generate dataframe of names to IDs
+    names_file_path = os.path.join(SOURCE_DIR, 'names.tsv')
+    names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name')
+
+    # Append internal ids with the user data; set the index to 'id';
+    # preserve old index (i.e. 1st column goes to 2nd column)
+    user_data_with_internal_ids = user_data.join(names_to_ids)
+    user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
+    user_data_with_internal_ids.set_index('id', inplace=True)
+
+    # Generate list of IDs for article names in user request
+    ids = set(user_data_with_internal_ids.index)
+    bad_articles = set()
 
     # Create the destination directory (if it doesn't exist already)
     target_path = os.path.join(BASE_PATH, 'user/', map_name)
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
-    # Generate data matrix
-    user_data = pandas.read_csv(articles_file, delimiter='\t')
-    first_column = list(user_data)[0]
-    user_data.set_index(first_column, inplace=True)  # Set index to the first column; assume it contains names of articles
-    other_columns = list(user_data)[:]
-
-    # Generate list of IDs for article names in user request
-    ids = set()
-    bad_articles = set()
-    user_data['id'] = ''  # Add a new, empty column
-    for title, row in user_data.iterrows():
-        try:
-            internal_id = name_dict[title]
-            user_data.set_value(title, 'id', internal_id)
-            ids.add(internal_id)  # Attempts to find entry in dict of Articles to IDs
-        except KeyError:
-            bad_articles.add(title)
-    user_data[first_column] = user_data.index
-    user_data.set_index('id', inplace=True)
-
-    # For each of the data files, filter it and output it to the target directory
+    # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
 
         # Read the file into a dataframe (source_data)
         source_file_path = os.path.join(SOURCE_DIR, filename)
         if filename == 'vectors.tsv':
+            # There's a special function for reading vectors.tsv, but it leaves the index as a Series of str's,
+            # which is inconsistent with the members of the <ids> set (each of which is an int).
             source_data = read_vectors(source_file_path)
             source_data.index = source_data.index.map(int)
         else:
@@ -114,16 +104,15 @@ def gen_data(map_name, articles_file, metric_type):
         # Filter the dataframe
         filtered_data = source_data[source_data.index.isin(ids)]
 
-        # Use ids.tsv to append external ids for each row, then write the output to file
-        # FIXME: What happens when there's no match for an article?
+        # Use ids.tsv for replacing internal ids with external ids, then write the output to file
+        # FIXME: What happens when there's no match for an article? This needs to be determined upstream
         if filename == 'ids.tsv':
-            user_data_with_external_ids = user_data.join(filtered_data)
-            metric_file_path = os.path.join(target_path, 'metric.tsv')
+            # Make a new dataframe, replacing [internal] id with external id
+            user_data_with_external_ids = user_data_with_internal_ids.join(filtered_data)
+            user_data_with_external_ids.set_index('externalId', inplace=True)
 
-            # Replace the original first column with externalIds
-            user_data_with_external_ids[first_column] = user_data_with_external_ids['externalId']
-            del user_data_with_external_ids['externalId']
-            user_data_with_external_ids.set_index(first_column, inplace=True)
+            # Write to file
+            metric_file_path = os.path.join(target_path, 'metric.tsv')
             user_data_with_external_ids.to_csv(metric_file_path, sep='\t')
 
 
@@ -172,7 +161,7 @@ class AddMapService:
         assert map_name not in self.map_services.keys()
 
         # TODO: Figure out what to do with <bad_articles>
-        bad_articles = gen_data(map_name, articles_file, metric)
+        bad_articles = gen_data(map_name, articles_file)
         config_path = gen_config(map_name, metric, field_name)
 
         # Build from the new config file
