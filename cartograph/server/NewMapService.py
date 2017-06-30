@@ -108,8 +108,6 @@ def gen_data(map_name, articles_file, metric_type):
         if filename == 'vectors.tsv':
             source_data = read_vectors(source_file_path)
             source_data.index = source_data.index.map(int)
-            print("Vectors index = ")
-            print(source_data.index)
         else:
             source_data = pandas.read_csv(source_file_path, sep='\t', index_col='id')
 
@@ -119,20 +117,14 @@ def gen_data(map_name, articles_file, metric_type):
         # Use ids.tsv to append external ids for each row, then write the output to file
         # FIXME: What happens when there's no match for an article?
         if filename == 'ids.tsv':
-            print("Before: ")
-            print(user_data)
             user_data_with_external_ids = user_data.join(filtered_data)
             metric_file_path = os.path.join(target_path, 'metric.tsv')
-            print("After: ")
-            print(user_data)
 
             # Replace the original first column with externalIds
             user_data_with_external_ids[first_column] = user_data_with_external_ids['externalId']
             del user_data_with_external_ids['externalId']
             user_data_with_external_ids.set_index(first_column, inplace=True)
             user_data_with_external_ids.to_csv(metric_file_path, sep='\t')
-            print("Even later: ")
-            print(user_data)
 
 
         # Write the dataframe to the target file
