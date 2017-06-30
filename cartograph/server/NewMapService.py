@@ -70,9 +70,10 @@ def gen_data(map_name, articles_file, metric_type):
     name_dict = {}
     with codecs.open(names_path, 'r') as names:
         names_reader = csv.reader(names, delimiter='\t')
+        header = names_reader.next()
         for row in names_reader:
             name = unicode(row[1], encoding='utf-8')
-            name_dict[name] = row[0]
+            name_dict[name] = int(row[0])
 
     # Create the destination directory (if it doesn't exist already)
     target_path = os.path.join(BASE_PATH, 'user/', map_name)
@@ -80,21 +81,24 @@ def gen_data(map_name, articles_file, metric_type):
         os.makedirs(target_path)
 
     # Generate data matrix
-    data = []
-    articles_reader = csv.reader(articles_file, delimiter='\t')
-    header = articles_reader.next()
-    for row in articles_reader:
-        data.append(row)
+    user_data = pandas.read_csv(articles_file, delimiter='\t')
+    first_column = list(user_data)[0]
+    user_data.set_index(first_column, inplace=True)  # Set index to the first column; assume it contains names of articles
+    other_columns = list(user_data)[:]
 
     # Generate list of IDs for article names in user request
     ids = set()
     bad_articles = set()
-    for row in data:
-        title = row[0]
+    user_data['id'] = ''  # Add a new, empty column
+    for title, row in user_data.iterrows():
         try:
-            ids.add(name_dict[title])  # Attempts to find entry in dict of Articles to IDs
+            internal_id = name_dict[title]
+            user_data.set_value(title, 'id', internal_id)
+            ids.add(internal_id)  # Attempts to find entry in dict of Articles to IDs
         except KeyError:
             bad_articles.add(title)
+    user_data[first_column] = user_data.index
+    user_data.set_index('id', inplace=True)
 
     # For each of the data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
@@ -103,11 +107,33 @@ def gen_data(map_name, articles_file, metric_type):
         source_file_path = os.path.join(SOURCE_DIR, filename)
         if filename == 'vectors.tsv':
             source_data = read_vectors(source_file_path)
+            source_data.index = source_data.index.map(int)
+            print("Vectors index = ")
+            print(source_data.index)
         else:
             source_data = pandas.read_csv(source_file_path, sep='\t', index_col='id')
 
         # Filter the dataframe
         filtered_data = source_data[source_data.index.isin(ids)]
+
+        # Use ids.tsv to append external ids for each row, then write the output to file
+        # FIXME: What happens when there's no match for an article?
+        if filename == 'ids.tsv':
+            print("Before: ")
+            print(user_data)
+            user_data_with_external_ids = user_data.join(filtered_data)
+            metric_file_path = os.path.join(target_path, 'metric.tsv')
+            print("After: ")
+            print(user_data)
+
+            # Replace the original first column with externalIds
+            user_data_with_external_ids[first_column] = user_data_with_external_ids['externalId']
+            del user_data_with_external_ids['externalId']
+            user_data_with_external_ids.set_index(first_column, inplace=True)
+            user_data_with_external_ids.to_csv(metric_file_path, sep='\t')
+            print("Even later: ")
+            print(user_data)
+
 
         # Write the dataframe to the target file
         target_file_path = os.path.join(target_path, filename)
