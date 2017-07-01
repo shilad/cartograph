@@ -4,8 +4,7 @@ services:
   - docker
 
 before_install:
-- docker pull shilad/cartograph-integration:latest
+- docker pull shilad/cartograph-base:latest
 
 script:
-- export EFFECTIVE_TRAVIS_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-TRAVIS_BRANCH}
-- docker run shilad/cartograph-integration:latest
+- ./bin/docker-test.sh

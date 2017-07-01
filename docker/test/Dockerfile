@@ -6,6 +6,7 @@ FROM shilad/cartograph-base:latest
 CMD  git clone https://github.com/shilad/cartograph.git /cartograph && \
     cd /cartograph && \
     git checkout ${EFFECTIVE_TRAVIS_BRANCH} && \
-    ./bin/docker-integration-test.sh
+    ./bin/unit-test.sh && \
+    ./bin/integration-test.sh
 
 
