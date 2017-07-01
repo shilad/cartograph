@@ -70,7 +70,6 @@ class RoadGetterService:
     def formJsonPaths(self, paths):
         jsonPaths = {}
         for path in paths:
-            print path
             coordList = []
             for point in path:
                 if point in self.originalVertices:
@@ -99,10 +98,13 @@ class RoadGetterService:
                     entry.append(self.originalVertices[dest])
                 else:
                     entry.append(self.bundledVertices[dest])
-                weight = float(self.bundledEdges[(src, dest)])
+                if (src, dest) in self.bundledEdges:
+                    weight = float(self.bundledEdges[(src, dest)])
+                else:
+                    weight = 1
                 entry.append([weight])
-                print(entry)
                 coordList.append(entry)
+                print(coordList)
             if path[0] in jsonPaths:
                 jsonPaths[path[0]].append(coordList)
             else:
@@ -176,7 +178,7 @@ class RoadGetterService:
 
     def getPathsForEachCity(self, citiesToShowEdges):
         pathsToMine = []
-        thresholdVal = 2
+        thresholdVal = 3
         for city in citiesToShowEdges:
             if city[1] in self.outboundPaths:
                 for dest in self.outboundPaths[city[1]]:

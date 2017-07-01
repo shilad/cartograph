@@ -167,7 +167,7 @@ CG.init = function(layer) {
         var y_min = viewport._southWest.lat
         var y_max = viewport._northEast.lat
 
-        var n_cities = 5
+        var n_cities = 1
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
 
 
@@ -188,21 +188,20 @@ CG.init = function(layer) {
                     var line = []
                     var path = paths[i]
                     line.push('M', [parseFloat(path[0][0][1]),parseFloat(path[0][0][0])])
-                    console.log(path)
-                    var weight = parseFloat(path[0][0][2])
+                    line.push("L", [path[0][1][1],path[0][1][0]])
+                    var newWeight = parseFloat(path[0][0][2])
+                    newWeight =  Math.ceil(newWeight/25.5)
                     var newCurve = L.curve(line, edgeNeutralStyle)
-                    newCurve.setStyle({weight: weight})
                     allLayers.push(newCurve)
                     curves.push(newCurve)
-
                     for(var j = 1; j < path.length; j ++) {
 
                         var src = path[j][0]
                         var dest = path[j][1]
-                        weight = parseFloat(path[j][2][0])
-                        weight =  Math.ceil(Math.max(weight/100, 1))
+                        newWeight = parseFloat(path[j][2][0])
+                        newWeight =  Math.ceil(newWeight/25.5)
 
-                        console.log(src + " " +  dest + " "+ weight)
+                        console.log(src + " " +  dest + " "+ newWeight)
 
                         if(src != dest){
                             if(!duplicateEdgeCatcher[(src, dest)]){
@@ -211,14 +210,13 @@ CG.init = function(layer) {
                                 line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])])
                                 duplicateEdgeCatcher[(src, dest)] = true
                             }
-
                         }
-
+                        edgeNeutralStyle['weight'] = newWeight
+                        newCurve = L.curve(line, edgeNeutralStyle)
+                        allLayers.push(newCurve)
+                        curves.push(newCurve)
                     }
-                    newCurve = L.curve(line, edgeNeutralStyle)
-                    newCurve.setStyle({weight: 2})
-                    allLayers.push(newCurve)
-                    curves.push(newCurve)
+
 
                 }
 
@@ -285,6 +283,7 @@ return color;
         }
     });
 
+
     CG.handleCityHover = function (mapX, mapY, properties) {
         var title = properties.name;
         clearTimeout(CG.ttHideTimer);
@@ -314,10 +313,8 @@ return color;
         }
     };
 
-
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
-
         var isOpen = CG.tt.status().open;
         if (CG.ttEl.data("loading") == title) {
             if (!isOpen) CG.tt.open();
