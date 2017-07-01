@@ -155,20 +155,20 @@ CG.init = function(layer) {
         $("#search-field").val('');
         return false;
     };
-    allLayers = []
+    allLayers = [];
     $('#test_button').on('click', function () {
         console.log("clicked on test button");
 
 
-        var viewport = CG.map.getBounds()
+        var viewport = CG.map.getBounds();
 
-        var x_min = viewport._southWest.lng
-        var x_max = viewport._northEast.lng
-        var y_min = viewport._southWest.lat
-        var y_max = viewport._northEast.lat
+        var x_min = viewport._southWest.lng;
+        var x_max = viewport._northEast.lng;
+        var y_min = viewport._southWest.lat;
+        var y_max = viewport._northEast.lat;
 
-        var n_cities = 1
-        var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
+        var n_cities = 2;
+        var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities;
 
 
 
@@ -178,29 +178,29 @@ CG.init = function(layer) {
                                 attribution: 'edge'};
 
         $.get(url, function(response){
-            var duplicateEdgeCatcher = {}
-            var maxWeigh = 10
-            var curves = []
+            var duplicateEdgeCatcher = {};
+            var maxWeigh = 10;
+            var curves = [];
 
             $.each(response, function(city, paths) {
 
                 for(var i = 0; i < paths.length; i ++){
-                    var line = []
-                    var path = paths[i]
-                    line.push('M', [parseFloat(path[0][0][1]),parseFloat(path[0][0][0])])
-                    line.push("L", [path[0][1][1],path[0][1][0]])
-                    var newWeight = parseFloat(path[0][0][2])
-                    newWeight =  Math.ceil(newWeight)
-                    edgeNeutralStyle['weight'] = newWeight
-                    var newCurve = L.curve(line, edgeNeutralStyle)
-                    allLayers.push(newCurve)
-                    curves.push(newCurve)
+                    var line = [];
+                    var path = paths[i];
+                    line.push('M', [parseFloat(path[0][0][1]),parseFloat(path[0][0][0])]);
+                    line.push("L", [path[0][1][1],path[0][1][0]]);
+                    var newWeight = parseFloat(path[0][0][2]);
+                    newWeight =  Math.ceil(newWeight);
+                    edgeNeutralStyle['weight'] = newWeight;
+                    var newCurve = L.curve(line, edgeNeutralStyle);
+                    allLayers.push(newCurve);
+                    curves.push(newCurve);
 
                     for(var j = 1; j < path.length; j ++) {
-                        line = []
-                        var src = path[j][0]
-                        var dest = path[j][1]
-                        newWeight = parseFloat(path[j][2][0])/2
+                        line = [];
+                        var src = path[j][0];
+                        var dest = path[j][1];
+                        newWeight = parseFloat(path[j][2][0])/2;
                         if(newWeight > maxWeigh){
                             newWeight = maxWeigh
                         }
@@ -208,24 +208,23 @@ CG.init = function(layer) {
                             newWeight = 1
                         }
 
+                        console.log(src + " " +  dest + " "+ newWeight);
 
-                        console.log(src + " " +  dest + " "+ newWeight)
 
-                        //if(src != dest){
-                            if(!duplicateEdgeCatcher[(src, dest)]){
+                        if(!duplicateEdgeCatcher[(src, dest)]){
 
-                                line.push('M', [parseFloat(src[1]), parseFloat(src[0])])
-                                line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])])
-                                duplicateEdgeCatcher[(src, dest)] = true
-                            }
+                            line.push('M', [parseFloat(src[1]), parseFloat(src[0])]);
+                            line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])]);
+                            duplicateEdgeCatcher[(src, dest)] = true;
+                        }
 
-                      //  }
 
-                        edgeNeutralStyle['weight'] = newWeight
-                        newCurve = L.curve(line, edgeNeutralStyle)
-                        console.log(newCurve)
-                        allLayers.push(newCurve)
-                        curves.push(newCurve)
+
+                        edgeNeutralStyle['weight'] = newWeight;
+                        newCurve = L.curve(line, edgeNeutralStyle);
+                        console.log(newCurve);
+                        allLayers.push(newCurve);
+                        curves.push(newCurve);
 
                     }
 
@@ -240,18 +239,9 @@ CG.init = function(layer) {
 
 
 
-    })
+    });
 
-    function get_random_color()
-{
-    var letters = '0123456789ABCDEF'.split('');
-    var color = '#';
-    for (var i = 0; i < 6; i++ )
-    {
-       color += letters[Math.round(Math.random() * 15)];
-    }
-return color;
-}
+
 
 
 
@@ -260,8 +250,8 @@ return color;
             CG.map.removeLayer(allLayers[j]);
         }
 
-        allLayers = []
-    })
+        allLayers = [];
+    });
 
 
     $('#search-field').on('focus', CG.hideRelated);

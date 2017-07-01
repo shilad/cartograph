@@ -58,10 +58,10 @@ class RoadGetterService:
         self.edgeDictionary, self.outboundPaths = self.getEdgeDictionaries(semanticPathFile)
 
     def on_get(self, req, resp):
-        print("hehe ecks dee")
+        #print("hehe ecks dee")
         paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
                                                       float(req.params['ymin']), float(req.params['ymax']), int(req.params['n_cities']))
-        print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
+        #print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
         output = self.formWeightedJSONPaths(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
@@ -73,6 +73,8 @@ class RoadGetterService:
         print(paths)
         for path in paths:
             coordList = []
+            print('path', path)
+            if len(path) == 0: continue
             for i in range(0, len(path)-1):
                 src = path[i]
                 dest = path[i+1]
@@ -91,7 +93,7 @@ class RoadGetterService:
                     weight = 1
                 entry.append([weight])
                 coordList.append(entry)
-                print(coordList)
+                #print(coordList)
             if path[0] in jsonPaths:
                 jsonPaths[path[0]].append(coordList)
             else:
