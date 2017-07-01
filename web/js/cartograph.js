@@ -173,7 +173,7 @@ CG.init = function(layer) {
 
 
         var edgeNeutralStyle = {color: 'rgb(171, 171, 171)',
-                                opacity: 0.5,
+                                opacity: 1,
                                 smoothFactor: 3,
                                 attribution: 'edge'};
 
@@ -190,33 +190,38 @@ CG.init = function(layer) {
                     line.push('M', [parseFloat(path[0][0][1]),parseFloat(path[0][0][0])])
                     line.push("L", [path[0][1][1],path[0][1][0]])
                     var newWeight = parseFloat(path[0][0][2])
-                    newWeight =  Math.ceil(newWeight/25.5)
+                    newWeight =  Math.ceil(newWeight)
+                    edgeNeutralStyle['weight'] = newWeight
                     var newCurve = L.curve(line, edgeNeutralStyle)
                     allLayers.push(newCurve)
                     curves.push(newCurve)
-                    for(var j = 1; j < path.length; j ++) {
 
+                    for(var j = 1; j < path.length; j ++) {
+                        line = []
                         var src = path[j][0]
                         var dest = path[j][1]
                         newWeight = parseFloat(path[j][2][0])
-                        newWeight =  Math.ceil(newWeight/25.5)
+                        newWeight =  Math.min(Math.ceil(newWeight), 10)
 
                         console.log(src + " " +  dest + " "+ newWeight)
 
-                        if(src != dest){
-                            if(!duplicateEdgeCatcher[(src, dest)]){
+                      //  if(src != dest){
+                            //if(!duplicateEdgeCatcher[(src, dest)]){
 
-                                line.push('L', [parseFloat(src[1]), parseFloat(src[0])])
+                                line.push('M', [parseFloat(src[1]), parseFloat(src[0])])
                                 line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])])
                                 duplicateEdgeCatcher[(src, dest)] = true
-                            }
-                        }
+                            //}
+
+                        //}
+
                         edgeNeutralStyle['weight'] = newWeight
                         newCurve = L.curve(line, edgeNeutralStyle)
+                        console.log(newCurve)
                         allLayers.push(newCurve)
                         curves.push(newCurve)
-                    }
 
+                    }
 
                 }
 
@@ -227,7 +232,7 @@ CG.init = function(layer) {
         })
 
 
-        // next step send request to port with view_port 
+
 
     })
 
@@ -313,8 +318,10 @@ return color;
         }
     };
 
+
     CG.showCityTooltip = function (mapX, mapY, properties) {
         var title = properties.name;
+
         var isOpen = CG.tt.status().open;
         if (CG.ttEl.data("loading") == title) {
             if (!isOpen) CG.tt.open();

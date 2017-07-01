@@ -67,20 +67,6 @@ class RoadGetterService:
         resp.content_type = "application/json"  #getMimeType(file)
         resp.body = json.dumps(output)
 
-    def formJsonPaths(self, paths):
-        jsonPaths = {}
-        for path in paths:
-            coordList = []
-            for point in path:
-                if point in self.originalVertices:
-                    coordList.append(self.originalVertices[point])
-                elif point in self.bundledVertices:
-                    coordList.append(self.bundledVertices[point])
-            if path[0] in jsonPaths:
-                jsonPaths[path[0]].append(coordList)
-            else:
-                jsonPaths[path[0]] = [coordList]
-        return jsonPaths
 
     def formWeightedJSONPaths(self, paths):
         jsonPaths = {}
@@ -178,7 +164,7 @@ class RoadGetterService:
 
     def getPathsForEachCity(self, citiesToShowEdges):
         pathsToMine = []
-        thresholdVal = 3
+        thresholdVal =10
         for city in citiesToShowEdges:
             if city[1] in self.outboundPaths:
                 for dest in self.outboundPaths[city[1]]:
