@@ -7,11 +7,13 @@ from collections import defaultdict
 
 import shapely.geometry
 
+
 from cartograph import getMetric
 from cartograph.PointIndex import PointIndex
 from cartograph.Utils import read_features
 from cartograph.metrics.ClusterMetric import ClusterMetric
 from cartograph.server.ServerUtils import tileExtent
+from cartograph.server import RelatedPointsService
 
 logger = logging.getLogger('cartograph.pointdata')
 
@@ -112,7 +114,6 @@ class PointService:
             builder.addPoint('cities', p['name'],
                              shapely.geometry.Point(p['x'], p['y']), props)
 
-
 if __name__ == '__main__':
     from cartograph import Config
 
@@ -129,4 +130,5 @@ if __name__ == '__main__':
     # pd.addLayers(builder, 'gender', 6, 27, 36)
     # pd.addLayers(builder, 'gender', 6, 27, 37)
     # print builder.toJson()
+
 

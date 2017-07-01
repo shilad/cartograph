@@ -39,6 +39,7 @@ app.add_route('/{map_name}/search.json', ParentService(map_services, 'search_ser
 app.add_route('/{map_name}/vector/{layer}/{z}/{x}/{y}.topojson', ParentService(map_services, 'tile_service'))
 app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_services, 'mapnik_service'))
 app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
+app.add_route('/{map_name}/point.json', ParentService(map_services, 'related_points_service'))
 app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
 app.add_route('/{map_name}/static/roads',ParentService(map_services, 'roads_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
