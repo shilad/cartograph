@@ -176,7 +176,7 @@ class RoadGetterService:
 
     def getPathsForEachCity(self, citiesToShowEdges):
         pathsToMine = []
-        thresholdVal = 4
+        thresholdVal = 2
         for city in citiesToShowEdges:
             if city[1] in self.outboundPaths:
                 for dest in self.outboundPaths[city[1]]:

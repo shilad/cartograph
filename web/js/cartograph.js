@@ -167,13 +167,13 @@ CG.init = function(layer) {
         var y_min = viewport._southWest.lat
         var y_max = viewport._northEast.lat
 
-        var n_cities = 1
+        var n_cities = 5
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&n_cities=" + n_cities
 
 
 
         var edgeNeutralStyle = {color: 'rgb(171, 171, 171)',
-                                opacity: 0.2,
+                                opacity: 0.5,
                                 smoothFactor: 3,
                                 attribution: 'edge'};
 
@@ -181,6 +181,7 @@ CG.init = function(layer) {
             var duplicateEdgeCatcher = {}
 
             var curves = []
+
             $.each(response, function(city, paths) {
 
                 for(var i = 0; i < paths.length; i ++){
@@ -190,14 +191,16 @@ CG.init = function(layer) {
                     console.log(path)
                     var weight = parseFloat(path[0][0][2])
                     var newCurve = L.curve(line, edgeNeutralStyle)
+                    newCurve.setStyle({weight: weight})
                     allLayers.push(newCurve)
                     curves.push(newCurve)
+
                     for(var j = 1; j < path.length; j ++) {
 
                         var src = path[j][0]
                         var dest = path[j][1]
                         weight = parseFloat(path[j][2][0])
-                        weight =  Math.min(weight, 3)
+                        weight =  Math.ceil(Math.max(weight/100, 1))
 
                         console.log(src + " " +  dest + " "+ weight)
 
@@ -208,16 +211,16 @@ CG.init = function(layer) {
                                 line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])])
                                 duplicateEdgeCatcher[(src, dest)] = true
                             }
-                        }
-                        edgeNeutralStyle['weight'] = 1
-                        newCurve = L.curve(line, edgeNeutralStyle)
-                        allLayers.push(newCurve)
-                        curves.push(newCurve)
-                    }
 
+                        }
+
+                    }
+                    newCurve = L.curve(line, edgeNeutralStyle)
+                    newCurve.setStyle({weight: 2})
+                    allLayers.push(newCurve)
+                    curves.push(newCurve)
 
                 }
-
 
              });
             storedcurveslayer = L.layerGroup(curves);
@@ -229,6 +232,19 @@ CG.init = function(layer) {
         // next step send request to port with view_port 
 
     })
+
+    function get_random_color()
+{
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ )
+    {
+       color += letters[Math.round(Math.random() * 15)];
+    }
+return color;
+}
+
+
 
     $('#test_buttonRemove').on('click', function () {
         for(var j = 0; j < allLayers.length; j ++){
