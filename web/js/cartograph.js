@@ -173,13 +173,13 @@ CG.init = function(layer) {
 
 
         var edgeNeutralStyle = {color: 'rgb(171, 171, 171)',
-                                opacity: 1,
+                                opacity: 0.7,
                                 smoothFactor: 3,
                                 attribution: 'edge'};
 
         $.get(url, function(response){
             var duplicateEdgeCatcher = {}
-
+            var maxWeigh = 10
             var curves = []
 
             $.each(response, function(city, paths) {
@@ -200,20 +200,26 @@ CG.init = function(layer) {
                         line = []
                         var src = path[j][0]
                         var dest = path[j][1]
-                        newWeight = parseFloat(path[j][2][0])
-                        newWeight =  Math.min(Math.ceil(newWeight), 10)
+                        newWeight = parseFloat(path[j][2][0])/2
+                        if(newWeight > maxWeigh){
+                            newWeight = maxWeigh
+                        }
+                        else if(newWeight < 1){
+                            newWeight = 1
+                        }
+
 
                         console.log(src + " " +  dest + " "+ newWeight)
 
-                      //  if(src != dest){
-                            //if(!duplicateEdgeCatcher[(src, dest)]){
+                        //if(src != dest){
+                            if(!duplicateEdgeCatcher[(src, dest)]){
 
                                 line.push('M', [parseFloat(src[1]), parseFloat(src[0])])
                                 line.push('L', [parseFloat(dest[1]), parseFloat(dest[0])])
                                 duplicateEdgeCatcher[(src, dest)] = true
-                            //}
+                            }
 
-                        //}
+                      //  }
 
                         edgeNeutralStyle['weight'] = newWeight
                         newCurve = L.curve(line, edgeNeutralStyle)

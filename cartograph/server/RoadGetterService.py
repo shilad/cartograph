@@ -70,6 +70,7 @@ class RoadGetterService:
 
     def formWeightedJSONPaths(self, paths):
         jsonPaths = {}
+        print(paths)
         for path in paths:
             coordList = []
             for i in range(0, len(path)-1):
@@ -98,8 +99,10 @@ class RoadGetterService:
         return jsonPaths
 
     def getPath(self, childEdgeId, edgeDict, frontStack=[], backStack=[]):
-        frontStack.append(edgeDict[childEdgeId][0])
-        backStack.insert(0, edgeDict[childEdgeId][1])
+        if(edgeDict[childEdgeId][0] != edgeDict[childEdgeId][1]):
+            frontStack.append(edgeDict[childEdgeId][0])
+            backStack.insert(0, edgeDict[childEdgeId][1])
+
         if (len(edgeDict[childEdgeId]) == 4):
             # we still have parents!
             parentID = edgeDict[childEdgeId][2]
@@ -164,7 +167,7 @@ class RoadGetterService:
 
     def getPathsForEachCity(self, citiesToShowEdges):
         pathsToMine = []
-        thresholdVal =10
+        thresholdVal = 3
         for city in citiesToShowEdges:
             if city[1] in self.outboundPaths:
                 for dest in self.outboundPaths[city[1]]:
