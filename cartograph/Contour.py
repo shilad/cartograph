@@ -19,6 +19,7 @@ from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
 from collections import defaultdict
 from shapely.geometry import shape, Point
+
 from area import area
 
 matplotlib.use("Agg")
@@ -111,13 +112,13 @@ def test_CreateContours():
     with open(config.get("MapData", "centroid_contours_geojson")) as densityContourData:
         densityContour = json.load(densityContourData)
 
-    clusterCentroid = test_geometry(centroidContour)  # Dictionary with clusterID and list of contours in each cluster
-    test_geometry(densityContour)
-    test_centrality(config, clusterCentroid, centroidContour)
-    test_density(config, densityContour)
+    clusterCentroid = _test_geometry(centroidContour)  # Dictionary with clusterID and list of contours in each cluster
+    _test_geometry(densityContour)
+    _test_centrality(config, clusterCentroid, centroidContour)
+    _test_density(config, densityContour)
 
 
-def test_geometry(contourType):
+def _test_geometry(contourType):
     """
     Test geometry: Lower level contours contain higher level contours
     """
@@ -136,7 +137,7 @@ def test_geometry(contourType):
     return clusterIdDict
 
 
-def test_centrality(config, clusterIdDict, centroidContour):
+def _test_centrality(config, clusterIdDict, centroidContour):
     """
     Test for centrality: The higher level, the closer points in contour are to the centroid of a cluster.
     """
@@ -195,10 +196,10 @@ def test_centrality(config, clusterIdDict, centroidContour):
             # Note: The contours are already sorted from the lowest level to the highest level
             successBool.extend([meanCentrality > i for i in centralityList])
             centralityList.append(meanCentrality)
-    assert float(successBool.count(True)) / len(successBool) > 0.8
+    assert float(successBool.count(True)) / len(successBool) > 0.7
 
 
-def test_density(config, densityContour):
+def _test_density(config, densityContour):
     """
     Test for density: Choose a window frame, calculate the number of dots and contour level (positive correlation
     """
@@ -234,6 +235,7 @@ def test_density(config, densityContour):
                     numVecs += 1
             areaContour = area(densityContour['features'][contour]['geometry'])
             density = float(numVecs) / areaContour
+            print(contour, density, areaContour, densityList)
             # Note: The contours are already sorted from the lowest level to the highest level
             assert all(density > i for i in densityList)
             densityList.append(density)

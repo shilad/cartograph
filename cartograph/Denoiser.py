@@ -1,4 +1,3 @@
-import math
 from pygsp import graphs, filters
 import numpy as np
 import Config
@@ -10,7 +9,7 @@ from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from collections import defaultdict
-
+import math
 class DenoiserCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return (TimestampedLocalTarget(__file__))
@@ -82,7 +81,7 @@ class Denoise(MTimeMixin, luigi.Task):
 
 
 
-def test_CreateContours():
+def test_Denoiser():
     '''
     This tests the accuracy rate of the denoiser compared to a knn.
     It selects a random sample of articles from the output of denoiser, finds each article k nearest neighbors

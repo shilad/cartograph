@@ -1,6 +1,6 @@
 [DEFAULT]
-dataset: test
-externalDir: ./data/ext/test
+dataset: integration_test
+externalDir: ./data/ext/test-orig
 
 [PreprocessingConstants]
 sample_size: 350
