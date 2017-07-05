@@ -170,19 +170,11 @@ CG.init = function(layer) {
         var n_paths = 10;
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&num_paths=" + n_paths;
 
-        var edgeNeutralStyle = {
-            color: 'rgb(171, 171, 171)',
-            opacity: 0.7,
-            smoothFactor: 3,
-            attribution: 'edge'
-        };
 
-
-
-      //  var response1 = [[1, "United States", [12.3538545815, 5.20046651851]], [385, "Farming", [-23.7344964423,-14.299574043]],[1, "United States", [12.3538545815, 5.20046651851]],[4085, "Test",[0,0]]]
 
         $.get(url, function (response) {
-             drawCurves(response)
+             console.log(response)
+             allLayers.push(drawCurves(response))
 
 
         });

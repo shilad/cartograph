@@ -169,7 +169,7 @@ class RoadGetterService:
                 for pair in self.origEdges[point]:
                     dest = pair[0]
                     edgeID = pair[1]
-                    if xmax > float(self.originalVertices[dest][0]) > xmin and ymin < float(self.originalVertices[dest][1]) < ymax:
+                    if dest in self.originalVertices and xmax > float(self.originalVertices[dest][0]) > xmin and ymin < float(self.originalVertices[dest][1]) < ymax:
                         if dest in self.articlesZpop and edgeID in self.edgeIDPath:
                             edgeVal = self.articlesZpop[point]*self.articlesZpop[dest]
                             topPaths.add(-edgeVal, edgeID)

@@ -12,7 +12,8 @@ CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
             //Removes any dots or curves from the map
             CG.map.removeLayer(storeddotslayer);
             CG.map.removeLayer(storedcurveslayer);
-
+            storeddots = [];
+            storedcurves = [];
 
 
             //Sets the marker to be a small black dot
@@ -54,8 +55,11 @@ function drawCurves(linkPairArray){
                  //Initializes arrays that will store the dots and curves to be empty
                 storeddots = [];
                 storedcurves = [];
+                colors = {}
                 for (var i=0; i<linkPairArray.length-1; i+=2){
-
+                    if(!(colors[linkPairArray[i][0]] in colors)) {
+                        colors[linkPairArray[i][0]] = getRandomColor()
+                    }
                     var pointA = linkPairArray[i][2]; //source x,y
                     var pointB = linkPairArray[i+1][2]; //dest x,y
 
@@ -109,9 +113,11 @@ function drawCurves(linkPairArray){
                 */
 
                 bundle.graph.each(function(node) {
+                    var srcId = node['id'].split(' ')[0]
                     var edges = node.unbundleEdges(1);
                     for (i = 0, l = edges.length; i < l; ++i) {
                         e = edges[i];
+
                         start = e[0].unbundledPos;
                         var line = ['M', start];
                         if (e.length > 3) {
@@ -132,6 +138,9 @@ function drawCurves(linkPairArray){
                                 end = e[e.length -1].unbundledPos;
                                 line.push('L', end);
                             }
+
+                        edgeNeutralStyle['color'] = colors[srcId];
+
                         var newCurve = L.curve(line, edgeNeutralStyle);
                         storedcurves.push(newCurve);
                         newCurve.bindPopup(e[0].node.name);
@@ -148,4 +157,14 @@ function drawCurves(linkPairArray){
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
                 CG.map.addLayer(storedcurveslayer);
+                return(storedcurveslayer)
+}
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
