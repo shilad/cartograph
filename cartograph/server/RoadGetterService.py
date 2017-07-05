@@ -74,7 +74,8 @@ class RoadGetterService:
             [src, dest] = self.edgeIDPath[pathId]
             srcCord = self.originalVertices[src] #both of the Cord vals are arrays [x,y]
             dstCord = self.originalVertices[dest]
-            paths.append([[src, "Jek", srcCord],[dest, "Lyndunn", dstCord]])
+            paths.append([src, "Jek", srcCord])
+            paths.append([dest, "Lyndunn", dstCord])
         print(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
