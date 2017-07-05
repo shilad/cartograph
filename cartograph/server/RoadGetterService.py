@@ -32,41 +32,53 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 class RoadGetterService:
-    def __init__(self, semanticPathFile, origVertsPath, pathToZPop, pathToBundledVertices, pathtoBundleEdges):
+    def __init__(self, origEdgesPath, origVertsPath, pathToZPop):
         #This sets up all the variables we need for any work done.
-        self.articlesZpop = {}
+        self.articlesZpop = {} #here articlesZpop key is article ID, and val is a float zpop val
         with open(pathToZPop, "r") as zpop:
             for line in zpop:
                 lst = line.split()
-                self.articlesZpop[lst[0]] = lst[1]
+                if lst[0] == "index":
+                    continue
+                self.articlesZpop[lst[0]] = float(lst[1]) + 1.0
         self.originalVertices = {}
         with open(origVertsPath) as ptov:
             for line in ptov:
                 lst = line.split()
                 if len(lst) == 1: continue
-                self.originalVertices[lst[0]] = lst[1:]
-        self.bundledVertices = {}
-        with open(pathToBundledVertices, 'r') as ptbv:
-            for line in ptbv:
-                lst = line.split()
-                self.bundledVertices[lst[0]] = lst[1:]
-        self.bundledEdges = {}
-        with open(pathtoBundleEdges, 'r') as ptbe:
+                self.originalVertices[lst[0]] = [float(lst[1]), float(lst[2])]
+        self.origEdges = {}
+        self.edgeIDPath = {}
+        edgeGenerator = 1
+        with open(origEdgesPath, 'r') as ptbe:
             for line in ptbe:
                 lst = line.split()
-                self.bundledEdges[(lst[0], lst[1])] = lst[2]
-        self.edgeDictionary, self.outboundPaths = self.getEdgeDictionaries(semanticPathFile)
+                if len(lst) == 1: continue
+                if lst[0] in self.origEdges:
+                    self.origEdges[lst[0]].append([lst[1], edgeGenerator])
+                else:
+                    self.origEdges[lst[0]] = [[lst[1], edgeGenerator]]
+                self.edgeIDPath[edgeGenerator] = lst
+                edgeGenerator+=1
 
     def on_get(self, req, resp):
         #print("hehe ecks dee")
-        paths, pointsInPort = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
-                                                      float(req.params['ymin']), float(req.params['ymax']), int(req.params['n_cities']))
-        #print(req.params['xmin'], req.params['xmax'], req.params['ymin'], req.params['ymax'])
-        output = self.formWeightedJSONPaths(paths)
+        edges = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
+                                                      float(req.params['ymin']), float(req.params['ymax']), int(req.params['num_paths']))
+        pathIds = []
+        for edge in edges:
+            if len(edge) == 2:
+                pathIds.append(edge[1])
+        paths = []
+        for pathId in pathIds:
+            [src, dest] = self.edgeIDPath[pathId]
+            srcCord = self.originalVertices[src] #both of the Cord vals are arrays [x,y]
+            dstCord = self.originalVertices[dest]
+            paths.append([[src, "Jek", srcCord],[dest, "Lyndunn", dstCord]])
+        print(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
-        resp.body = json.dumps(output)
-
+        resp.body = json.dumps(paths)
 
     def formWeightedJSONPaths(self, paths):
         jsonPaths = {}
@@ -134,15 +146,21 @@ class RoadGetterService:
                             outboundPaths[elements[1]] = {elements[2]: [elements[0], elements[4], elements[3]]}
         return edgeDictionary, outboundPaths
 
-    def getPathsInViewPort(self, xmin, xmax, ymin, ymax, n_cities=5):
+    def getPathsInViewPort(self, xmin, xmax, ymin, ymax, num_paths=5):
         pointsinPort = []
-
         for point in self.originalVertices:
             if xmax > float(self.originalVertices[point][0]) > xmin and ymin < float(self.originalVertices[point][1]) < ymax:
                 pointsinPort.append(point)  # points in port is an array of pointIDs which are strings.
-        cities = self.get_n_most_prominent_cities(n_cities, pointsinPort)
-        paths = self.getPathsForEachCity(cities)
-        return paths, pointsinPort
+        topPaths = PrioritySet(max_size=num_paths)
+        for point in pointsinPort:
+            if point in self.origEdges:
+                for pair in self.origEdges[point]:
+                    dest = pair[0]
+                    edgeID = pair[1]
+                    if dest in self.articlesZpop and edgeID in self.edgeIDPath:
+                        edgeVal = self.articlesZpop[point]*self.articlesZpop[dest]
+                        topPaths.add(-edgeVal, edgeID)
+        return topPaths.heap
 
     def get_n_most_prominent_cities(self, n, vertices_in_view_port):
         n_cities = PrioritySet(max_size=n)
