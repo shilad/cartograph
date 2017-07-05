@@ -47,7 +47,7 @@ class RoadGetterService:
         self.names = {}
         with open(pathToNames, "r") as namesFile:
             for line in namesFile:
-                lst = line.split()
+                lst = line.split('\t')
                 if lst[0] == "id": continue
                 self.names[lst[0]] = lst[1]
         self.originalVertices = {}
