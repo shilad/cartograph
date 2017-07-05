@@ -45,4 +45,5 @@ class MapService:
         self.roads_service = RoadGetterService(
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalEdges.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalVertices.txt",
-                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv")
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv"
+                                               "/Users/sen/PycharmProjects/cartograph/data/ext/simple/names.tsv")

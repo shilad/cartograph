@@ -32,7 +32,7 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 class RoadGetterService:
-    def __init__(self, origEdgesPath, origVertsPath, pathToZPop):
+    def __init__(self, origEdgesPath, origVertsPath, pathToZPop, pathToNames):
         #This sets up all the variables we need for any work done.
         self.articlesZpop = {} #here articlesZpop key is article ID, and val is a float zpop val
         with open(pathToZPop, "r") as zpop:
@@ -41,6 +41,12 @@ class RoadGetterService:
                 if lst[0] == "index":
                     continue
                 self.articlesZpop[lst[0]] = float(lst[1]) + 1.0
+        self.names = {}
+        with open(pathToNames, "r") as namesFile:
+            for line in namesFile:
+                lst = line.split()
+                if lst[0] == "id": continue
+                self.names[lst[0]] = lst[1]
         self.originalVertices = {}
         with open(origVertsPath) as ptov:
             for line in ptov:
@@ -76,8 +82,8 @@ class RoadGetterService:
             dstCord = self.originalVertices[dest]
             srcCord = [srcCord[1], srcCord[0]]
             dstCord = [dstCord[1], dstCord[0]]
-            paths.append([src, "Jek", srcCord])
-            paths.append([dest, "Lyndunn", dstCord])
+            paths.append([src, self.names[src], srcCord])
+            paths.append([dest, self.names[dest], dstCord])
         print(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
