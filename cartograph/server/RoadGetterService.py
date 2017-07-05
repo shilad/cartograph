@@ -72,8 +72,8 @@ class RoadGetterService:
         paths = []
         for pathId in pathIds:
             [src, dest] = self.edgeIDPath[pathId]
-            srcCord = self.originalVertices[src] #both of the Cord vals are arrays [x,y]
-            dstCord = self.originalVertices[dest]
+            srcCord = self.originalVertices[src[1], src[0]] #both of the Cord vals are arrays [y,x]
+            dstCord = self.originalVertices[dest[1], dest[0]]
             paths.append([src, "Jek", srcCord])
             paths.append([dest, "Lyndunn", dstCord])
         print(paths)
