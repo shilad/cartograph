@@ -167,7 +167,7 @@ CG.init = function(layer) {
         var y_min = viewport._southWest.lat;
         var y_max = viewport._northEast.lat;
 
-        var n_paths = 10;
+        var n_paths = 100;
         var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&num_paths=" + n_paths;
 
 

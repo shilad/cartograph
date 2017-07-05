@@ -12,8 +12,8 @@ CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
             //Removes any dots or curves from the map
             CG.map.removeLayer(storeddotslayer);
             CG.map.removeLayer(storedcurveslayer);
-            storeddots = [];
-            storedcurves = [];
+            var storeddots = [];
+            var storedcurves = [];
 
 
             //Sets the marker to be a small black dot
@@ -53,9 +53,9 @@ function drawCurves(linkPairArray){
                 //Creates a json file from the link pair array. It stores the edges between the src and its dests
                 json = [];
                  //Initializes arrays that will store the dots and curves to be empty
-                storeddots = [];
-                storedcurves = [];
-                colors = {}
+                var storeddots = [];
+                var storedcurves = [];
+                var colors = {}
                 for (var i=0; i<linkPairArray.length-1; i+=2){
                     if(!(colors[linkPairArray[i][0]] in colors)) {
                         colors[linkPairArray[i][0]] = getRandomColor()
@@ -90,13 +90,13 @@ function drawCurves(linkPairArray){
                             + ',' + (Math.floor(Math.random() * 256))
                             + ',' + (Math.floor(Math.random() * 256)) + ')';
 
-                var edgeHoverStyle =   {weight: 3,
+                var edgeHoverStyle =   {weight: 4,
                                 opacity: 0.95,
                                 smoothFactor: 1,
                                 attribution: 'edge'};
 
-                var edgeNeutralStyle = {color: randHue,
-                                weight: 1,
+                var edgeNeutralStyle = {
+                                weight: 2,
                                 opacity: 0.65,
                                 smoothFactor: 1,
                                 attribution: 'edge'};
@@ -151,6 +151,7 @@ function drawCurves(linkPairArray){
                         });
                         newCurve.on('mouseout', function(e){
                         e.target.setStyle(edgeNeutralStyle);
+                        e.target.setStyle({color:colors[srcId]})
                         newCurve.closePopup();
                         });
                     }
