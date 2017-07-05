@@ -9,7 +9,7 @@ from cartograph.server.MapService import MapService
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
-ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase
+ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):
