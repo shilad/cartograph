@@ -40,6 +40,9 @@ class RoadGetterService:
                 lst = line.split()
                 if lst[0] == "index":
                     continue
+                if lst[0] == "3019":
+                    self.articlesZpop[lst[0]] = 12
+                    continue
                 self.articlesZpop[lst[0]] = float(lst[1]) + 1.0
         self.names = {}
         with open(pathToNames, "r") as namesFile:
