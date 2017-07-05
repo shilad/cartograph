@@ -13,9 +13,7 @@ CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
             CG.map.removeLayer(storeddotslayer);
             CG.map.removeLayer(storedcurveslayer);
 
-            //Initializes arrays that will store the dots and curves to be empty
-            storeddots = [];
-            storedcurves = [];
+
 
             //Sets the marker to be a small black dot
             var smallMarker = L.icon({
@@ -53,7 +51,10 @@ CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
 function drawCurves(linkPairArray){
                 //Creates a json file from the link pair array. It stores the edges between the src and its dests
                 json = [];
-                for (var i=0; i<linkPairArray.length-2; i+=2){
+                 //Initializes arrays that will store the dots and curves to be empty
+                storeddots = [];
+                storedcurves = [];
+                for (var i=0; i<linkPairArray.length-1; i+=2){
 
                     var pointA = linkPairArray[i][2]; //source x,y
                     var pointB = linkPairArray[i+1][2]; //dest x,y
