@@ -17,10 +17,11 @@ class ParentService:
     """
     def __init__(self, map_services, service_name):
         """
-        :param map_services: a dict mapping names of maps (as strings) to MapService's
+        :param map_services: a dict mapping names of maps (as strings) to MapService's; this should point to *one* copy
+                             of map_services shared across the whole server.
         :param service_name: the name (as a string) of the service that this ParentService should provide
         """
-        self.map_services = map_services
+        self.map_services = map_services  # Points to singleton instance of a dictionary of names to MapServices;
         self.service_name = service_name
 
     def service_for_map(self, map_name):
@@ -54,11 +55,12 @@ class ParentService:
 
         def func(*args, **kwargs):  # = on_<method>()
 
-            # Housekeeping: check if the meta-config has been updated; if so, update map_services
+            # Housekeeping: check if the meta-config has been updated; if so, update (server-wide dict) map_services
             meta_config = self.map_services['_meta_config']
             if self.map_services['_multi_map'] and os.stat(meta_config) != self.map_services['_last_update']:
                 self.update_maps(meta_config)
 
+            # Now, process the request:
             # Extract map name from request
             map_name = kwargs['map_name']
             del kwargs['map_name']
