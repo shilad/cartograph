@@ -169,9 +169,10 @@ class RoadGetterService:
                 for pair in self.origEdges[point]:
                     dest = pair[0]
                     edgeID = pair[1]
-                    if dest in self.articlesZpop and edgeID in self.edgeIDPath:
-                        edgeVal = self.articlesZpop[point]*self.articlesZpop[dest]
-                        topPaths.add(-edgeVal, edgeID)
+                    if xmax > float(self.originalVertices[dest][0]) > xmin and ymin < float(self.originalVertices[dest][1]) < ymax:
+                        if dest in self.articlesZpop and edgeID in self.edgeIDPath:
+                            edgeVal = self.articlesZpop[point]*self.articlesZpop[dest]
+                            topPaths.add(-edgeVal, edgeID)
         return topPaths.heap
 
     def get_n_most_prominent_cities(self, n, vertices_in_view_port):
