@@ -85,8 +85,8 @@ class RoadGetterService:
             dstCord = self.originalVertices[dest]
             srcCord = [srcCord[1], srcCord[0]]
             dstCord = [dstCord[1], dstCord[0]]
-            paths.append([src, self.names[src], srcCord])
-            paths.append([dest, self.names[dest], dstCord])
+            paths.append([src, self.names[src][:-1], srcCord])
+            paths.append([dest, self.names[dest][:-1], dstCord])
         print(paths)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
@@ -158,7 +158,7 @@ class RoadGetterService:
                             outboundPaths[elements[1]] = {elements[2]: [elements[0], elements[4], elements[3]]}
         return edgeDictionary, outboundPaths
 
-    def getPathsInViewPort(self, xmin, xmax, ymin, ymax, num_paths=5):
+    def getPathsInViewPort(self, xmin, xmax, ymin, ymax, num_paths):
         pointsinPort = []
         for point in self.originalVertices:
             if xmax > float(self.originalVertices[point][0]) > xmin and ymin < float(self.originalVertices[point][1]) < ymax:
@@ -175,44 +175,3 @@ class RoadGetterService:
                             topPaths.add(-edgeVal, edgeID)
         return topPaths.heap
 
-    def get_n_most_prominent_cities(self, n, vertices_in_view_port):
-        n_cities = PrioritySet(max_size=n)
-        for vertex in vertices_in_view_port:
-            z_pop_score = self.articlesZpop[vertex]
-            n_cities.add(-float(z_pop_score), vertex)
-        return n_cities.heap
-
-    def edgeShouldShow(self,  src, dest, threshold = 2):
-        '''
-        If sum of the zpop score of the two articles is greater than a threshold the edge should not show
-        :param src:
-        :param dest:
-        :param threshold:
-        :return:
-        '''
-        srcZpop = float(self.articlesZpop[src])
-        destZpop = float(self.articlesZpop[dest])
-
-        if srcZpop + destZpop > threshold:
-            return False
-        else:
-            return True
-
-    def getPathsForEachCity(self, citiesToShowEdges):
-        pathsToMine = []
-        thresholdVal = 3
-        for city in citiesToShowEdges:
-            if city[1] in self.outboundPaths:
-                for dest in self.outboundPaths[city[1]]:
-                    if self.edgeShouldShow(city[1], dest, threshold= thresholdVal):
-                        pathsToMine.append(
-                            (city[1], dest))  # outpaths and inpaths include points and dest of edges we want to reconstruct
-        paths = []
-        print("Finding paths now. Paths to do: " + str(len(pathsToMine)))
-        for path in pathsToMine:
-            results = self.getPath(self.outboundPaths[path[0]][path[1]][0], self.edgeDictionary, [], [])
-            paths.append(results)
-
-            if len(paths) % 100000 == 0:
-                print(len(paths))
-        return paths

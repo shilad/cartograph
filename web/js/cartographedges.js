@@ -56,9 +56,13 @@ function drawCurves(linkPairArray){
                 var storeddots = [];
                 var storedcurves = [];
                 var colors = {}
+                var pairs = {}
                 for (var i=0; i<linkPairArray.length-1; i+=2){
-                    if(!(colors[linkPairArray[i][0]] in colors)) {
-                        colors[linkPairArray[i][0]] = getRandomColor()
+                    if(!(colors[linkPairArray[i][2]] in colors)) {
+                        colors[linkPairArray[i][2]] = getRandomColor()
+                    }
+                    if(!([linkPairArray[i][2],linkPairArray[i+1][2]] in pairs)){
+                        pairs[[linkPairArray[i][2],linkPairArray[i+1][2]]] = linkPairArray[i][1] + " -> " + linkPairArray[i+1][1]
                     }
                     var pointA = linkPairArray[i][2]; //source x,y
                     var pointB = linkPairArray[i+1][2]; //dest x,y
@@ -113,24 +117,32 @@ function drawCurves(linkPairArray){
                 */
 
                 bundle.graph.each(function(node) {
-                    var srcId = node['id'].split(' ')[0]
+
+
                     var edges = node.unbundleEdges(1);
+
                     for (i = 0, l = edges.length; i < l; ++i) {
                         e = edges[i];
 
                         start = e[0].unbundledPos;
                         var line = ['M', start];
+                        var newCurve = L.curve(line, edgeNeutralStyle);
+                        newCurve.bindPopup(e[0]['node']['name']);
+
+                        storedcurves.push(newCurve);
+
                         if (e.length > 3) {
+
+
                             c1 = e[1].unbundledPos;
                             c2 = e[(e.length - 1) / 2 - 1].unbundledPos;
-                            end = [c2[0], c2[1]]
-
+                            end = [c2[0], c2[1]];
                             line.push('C', c1, c2, end);
                             c1 = e[(e.length - 1) / 2 + 1].unbundledPos;
                             c2 = e[e.length - 2].unbundledPos;
                             end = e[e.length - 1].unbundledPos;
 
-                            start = [c1[0], c1[1]]
+                            start = [c1[0], c1[1]];
                             line.push('L', start);
 
                             line.push('C', c1, c2, end);
@@ -139,27 +151,32 @@ function drawCurves(linkPairArray){
                                 line.push('L', end);
                             }
 
-                        edgeNeutralStyle['color'] = colors[srcId];
-
                         var newCurve = L.curve(line, edgeNeutralStyle);
-                        storedcurves.push(newCurve);
-                        newCurve.bindPopup(e[0].node.name);
+                        newCurve.bindPopup(e[0]['node']['name']);
 
-                        newCurve.on('mouseover', function(e){
-                        e.target.setStyle(edgeHoverStyle);
-                        newCurve.openPopup(e.latlng);
-                        });
-                        newCurve.on('mouseout', function(e){
-                        e.target.setStyle(edgeNeutralStyle);
-                        e.target.setStyle({color:colors[srcId]})
-                        newCurve.closePopup();
-                        });
+                        storedcurves.push(newCurve);
+
+
+
                     }
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
+                storedcurveslayer.eachLayer(function (layer) {
+                    layer.setStyle( {color:colors[layer._coords[1]]})
+                    layer.on('mouseover', function(e){
+                            e.target.setStyle(edgeHoverStyle);
+                            layer.openPopup(e.latlng);
+                    });
+                    layer.on('mouseout', function(e){
+                            e.target.setStyle(edgeNeutralStyle);
+                            layer.closePopup();
+                    });
+                })
                 CG.map.addLayer(storedcurveslayer);
+
                 return(storedcurveslayer)
 }
+
 
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
