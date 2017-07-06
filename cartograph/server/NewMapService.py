@@ -3,6 +3,7 @@ import re
 
 import falcon
 import os
+import subprocess
 import string
 import codecs
 import pipes
@@ -174,7 +175,14 @@ class AddMapService:
         config_path = gen_config(map_name)
 
         # Build from the new config file
-        os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)
+        python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
+        working_dir = os.getcwd()
+        exec_path = os.getenv('PATH')
+        subprocess.call(
+            ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
+            env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
 
         # Add urls to new map
         map_service = MapService(config_path)
