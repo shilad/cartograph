@@ -40,7 +40,7 @@ for path in conf_files:
     map_service = MapService(path.strip('\r\n'))
     map_services[map_service.name] = map_service
 map_services['_meta_config'] = meta_config_path
-map_services['_last_update'] = os.stat(meta_config_path)
+map_services['_last_update'] = os.path.getmtime(meta_config_path)
 
 
 # Start a ParentService for each service; a ParentService represents a given service for every map in <map_services>

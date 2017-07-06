@@ -54,7 +54,7 @@ class ParentService:
                     self.map_services[map_service.name] = map_service
 
         # indicate that map_services has been updated
-        self.map_services['_last_update'] = os.stat(meta_config)
+        self.map_services['_last_update'] = os.path.getmtime(meta_config)
 
     def __getattr__(self, item):
         # Item is the method name
@@ -63,7 +63,7 @@ class ParentService:
 
             # Housekeeping: check if the meta-config has been updated; if so, update (server-wide dict) map_services
             meta_config = self.map_services['_meta_config']
-            if self.map_services['_multi_map'] and os.stat(meta_config) != self.map_services['_last_update']:
+            if self.map_services['_multi_map'] and os.path.getmtime(meta_config) != self.map_services['_last_update']:
                 self.update_maps(meta_config)
 
             # Now, process the request:
