@@ -76,10 +76,11 @@ def gen_config(map_name):
     return config_path
 
 
-def gen_data(map_name, articles):
-    """Generate the data files (i.e. "TSV" files) for a map named <map_name> and a string of articles <articles>.
+def gen_data(target_path, articles):
+    """Generate the data files (i.e. "TSV" files) for a map with a string of articles <articles>
+    in the directory at target_path.
 
-    :param map_name: name of new map
+    :param target_path: path to directory (that will be created) to be filled with data files
     :param articles: list of exact titles of articles for new map
     :return: list of article titles for which there was no exact match in the existing dataset
     """
@@ -103,7 +104,6 @@ def gen_data(map_name, articles):
             bad_articles += [term]
 
     # Create the destination directory (if it doesn't exist already)
-    target_path = os.path.join(BASE_PATH, 'user/', map_name)
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
@@ -114,7 +114,7 @@ def gen_data(map_name, articles):
     return bad_articles
 
 
-def is_valid_map_name(map_name, map_services):
+def check_map_name(map_name, map_services):
     """Check that map_name is not already in map_services, that all of its characters are in
     the list of acceptable characters, and that there is no existing directory named map_name in
     data/ext/user (i.e. the place where data for user maps is stored). If any of these conditions
@@ -169,9 +169,10 @@ class AddMapService:
         map_name = post_data['name']
         articles = re.split('[\\r\\n]+', post_data['articles'])
 
-        is_valid_map_name(map_name, self.map_services)
+        check_map_name(map_name, self.map_services)
 
-        bad_articles = gen_data(map_name, articles)
+        target_path = os.path.join(BASE_PATH, 'user/', map_name)
+        bad_articles = gen_data(target_path, articles)
         config_path = gen_config(map_name)
 
         # Build from the new config file
@@ -181,7 +182,8 @@ class AddMapService:
         subprocess.call(
             ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
             env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            stdout=open(os.path.join(target_path, 'build.log'), 'w'),
+            stderr=open(os.path.join(target_path, 'build.err'), 'w')
         )
 
         # Add urls to new map
