@@ -57,9 +57,6 @@ def gen_config(map_name):
     :param map_name: name of new map
     :return: path to the newly-generated config file
     """
-    # Prevent map names with special characters (for security/prevents shell injection)
-    for c in map_name:
-        assert c in ACCEPTABLE_MAP_NAME_CHARS
 
     if not os.path.exists(USER_CONF_DIR):
         os.makedirs(USER_CONF_DIR)
@@ -114,6 +111,41 @@ def gen_data(map_name, articles):
     return bad_articles
 
 
+def is_valid_map_name(map_name, map_services):
+    """Check that map_name is not already in map_services, that all of its characters are in
+    the list of acceptable characters, and that there is no existing directory named map_name in
+    data/ext/user (i.e. the place where data for user maps is stored). If any of these conditions
+    is not met, this will raise a ValueError with an appropriate message.
+
+    :param map_name: Name of the map to check
+    :param map_services: (pointer to) dictionary whose keys are names of currently active maps
+    """
+    # FIXME: This does not check if a non-user-generated non-active map with the same name \
+    # FIXME: already exists. I can't think of an easy way to fix that.
+
+    # Prevent map names with special characters (for security/prevents shell injection)
+    bad_chars = set()
+    for c in map_name:
+        if c not in ACCEPTABLE_MAP_NAME_CHARS:
+            bad_chars.add(c)
+    if bad_chars:
+        bad_char_string = ', '.join(['"%s"' % (c,) for c in bad_chars])
+        good_char_string = ', '.join(['"%s"' % (c,) for c in ACCEPTABLE_MAP_NAME_CHARS])
+        raise ValueError('Map name "%s" contains unacceptable characters: [%s]\n'
+                         'Accepted characters are: [%s]' % (map_name, bad_char_string, good_char_string))
+
+    # Prevent adding a map with the same name as a currently-served map
+    # This will prevent adding user-generated maps with the same names as
+    # active non-user-generated maps, e.g. "simple" or "en"
+    if map_name in map_services.keys():
+        raise ValueError('Map name "%s" already in use for an active map!' % (map_name,))
+
+    # Prevent adding a map for which there is already a user-generated map
+    # of the same name
+    if map_name in os.listdir(os.path.join(BASE_PATH, 'user')):
+        raise ValueError('Map name "%s" already taken by a user-generated map' % (map_name,))
+
+
 class AddMapService:
 
     def __init__(self, map_services):
@@ -134,10 +166,7 @@ class AddMapService:
         map_name = post_data['name']
         articles = post_data['articles'].split('\r\n')
 
-        # Prevent adding a map with the same name as a currently-served map
-        # This will prevent adding user-generated maps with the same names as
-        # active non-user-generated maps, e.g. "simple" or "en"
-        assert map_name not in self.map_services.keys()
+        is_valid_map_name(map_name, self.map_services)
 
         bad_articles = gen_data(map_name, articles)
         config_path = gen_config(map_name)
