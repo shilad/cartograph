@@ -3,11 +3,10 @@ import logging
 import os
 import sys
 
-from cartograph.server.ParentService import ParentService
+from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.NewMapService import AddMapService
 from cartograph.server.MapService import MapService
 
-METACONF_FLAG = '######'
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
