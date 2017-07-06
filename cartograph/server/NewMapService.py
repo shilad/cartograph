@@ -1,4 +1,6 @@
 import csv
+import re
+
 import falcon
 import os
 import string
@@ -62,7 +64,7 @@ def gen_config(map_name):
         os.makedirs(USER_CONF_DIR)
 
     # Generate a new conf file
-    with open('./data/conf_template.txt', 'r') as conf_template_file:
+    with open('data/conf/TEMPLATE.txt', 'r') as conf_template_file:
         conf_template = string.Template(conf_template_file.read())
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
@@ -164,7 +166,7 @@ class AddMapService:
         resp.body = ''
 
         map_name = post_data['name']
-        articles = post_data['articles'].split('\r\n')
+        articles = re.split('[\\r\\n]+', post_data['articles'])
 
         is_valid_map_name(map_name, self.map_services)
 
