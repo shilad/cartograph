@@ -1,4 +1,3 @@
-import csv
 import os
 
 from cartograph import Config

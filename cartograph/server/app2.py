@@ -2,7 +2,6 @@ import falcon
 import logging
 import os
 import sys
-import csv
 
 from cartograph.server.ParentService import ParentService
 from cartograph.server.NewMapService import AddMapService
