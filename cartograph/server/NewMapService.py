@@ -1,4 +1,6 @@
 import StringIO
+from ConfigParser import SafeConfigParser
+import json
 import falcon
 import os
 import subprocess
@@ -15,37 +17,46 @@ SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which wi
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
-def gen_config(map_name, metric_type, field_name):
+def gen_config(map_name, metric_type, fields):
     """Generate the config file for a user-generated map named <map_name> and return a path to it
 
     :param map_name: name of new map
     :param metric_type: type of metric as a string, e.g. 'BIVARIATE' or 'COUNT'
-    :param field_name: the name of the field in-file for the column whose values will be used for the metric
+    :param fields: a list of the fields that are used for the metric
     :return: path to the newly-generated config file
     """
-    TYPE_NAME = {'BIVARIATE': 'bivariate-scale'}
+    TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
 
     if not os.path.exists(USER_CONF_DIR):
         os.makedirs(USER_CONF_DIR)
 
-    # Generate a new conf file
-    with open('data/conf/TEMPLATE.txt', 'r') as conf_template_file:
-        conf_template = string.Template(conf_template_file.read())
-    if metric_type == 'NONE':
-        with open('data/no_metric_template.txt', 'r') as metric_template_file:
-            metric_section = metric_template_file.read()
-    elif metric_type == 'BIVARIATE':
-        with open('data/metric_template.txt', 'r') as metric_template_file:
-            metric_section = string.Template(metric_template_file.read())\
-                .substitute(metric_type=TYPE_NAME[metric_type], field_name=field_name,
-                            metric_name=string.lower(field_name))
-    elif metric_type == 'COUNT':
-        raise NotImplementedError()
+    # Generate a new config file
+    # Start with base values from template
+    config = SafeConfigParser()
+    config.read('data/conf/BASE.txt')
+
+    # Set name of dataset
+    config.set('DEFAULT', 'dataset', map_name)
+
+    if metric_type != 'NONE':
+        # Configure settings for one metric
+        metric_settings = {
+            'type': TYPE_NAME[metric_type],
+            'path': '%(externalDir)s/metric.tsv',
+            'fields': fields,
+            'colors': ['#f11', '#1d1'],
+            'percentile': True,
+            'neutralColor': '#bbb',
+            'maxValue': 1.0
+        }
+        # WARNING: this config format normalizes to all-lowercase in some places but is case-sensitive in others. Beware!
+        metric_name = string.lower(fields[0])  # TODO: figure out how to name metrics other than with the first field; also figure out how to do count
+        config.set('Metrics', 'active', metric_name)
+        config.set('Metrics', metric_name, json.dumps(metric_settings))
+
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
-    with open(config_path, 'w') as config_file:
-        config_file.write(conf_template.substitute(name=map_name, metric_section=metric_section))
-
+    config.write(open(config_path, 'w'))
     return config_path
 
 
@@ -100,7 +111,7 @@ def gen_data(target_path, articles):
         # Use ids.tsv for replacing internal ids with external ids, then write the output to file
         # FIXME: What happens when there's no match for an article? This needs to be determined upstream
         if filename == 'ids.tsv':
-            # Make a new dataframe, replacing [internal] id with external id
+            # Make a new dataframe, replacing [internal] id with corresponding external id
             user_data_with_external_ids = user_data_with_internal_ids.join(filtered_data)
             user_data_with_external_ids.set_index('externalId', inplace=True)
 
@@ -111,21 +122,28 @@ def gen_data(target_path, articles):
 
         # Write the dataframe to the target file
         target_file_path = os.path.join(target_path, filename)
-        # Treat vectors.tsv as a special case because it is *not* a true TSV (for some reason)
         if filename == 'vectors.tsv':
-            filtered_data.index.name = 'id'  # FIXME: w/o this line, it comes out as 'index' (just in vectors.tsv)
-            with open(target_file_path, 'w') as target_file:
-                target_file.write('\t'.join([filtered_data.index.name] + list(filtered_data)) + '\n')
-                for index, row in filtered_data.iterrows():
-                    # str of the vector, each component separated by tabs
-                    # FIXME: components should be in scientific notation
-                    vector = '\t'.join([str(component) for component in row[0]])
-                    target_file.write(str(index) + '\t' + vector + '\n')
-        # For all other TSVs, just write them normally
+            # Treat vectors.tsv as a special case because it is *not* a true TSV (for some reason)
+            write_vectors(filtered_data, target_file_path)
         else:
+            # For all other TSVs, just write them normally
             filtered_data.to_csv(target_file_path, sep='\t')
 
     return bad_articles
+
+
+def write_vectors(filtered_data, target_file_path):
+    """Special function to write a vectors file, because vectors.tsv is *not* a true TSV >:(
+    """
+    filtered_data.index.name = 'id'  # FIXME: w/o this line, it comes out as 'index' (just in vectors.tsv)
+    with open(target_file_path, 'w') as target_file:
+        # Write the header
+        target_file.write('\t'.join([filtered_data.index.name] + list(filtered_data)) + '\n')
+        for index, row in filtered_data.iterrows():
+            # str of the vector, each component separated by tabs
+            # FIXME: components should be in scientific notation
+            vector = '\t'.join([str(component) for component in row[0]])
+            target_file.write(str(index) + '\t' + vector + '\n')
 
 
 def check_map_name(map_name, map_services):
@@ -182,16 +200,15 @@ class AddMapService:
 
         map_name = post_data['name']
         metric = post_data['metric']
-        field_name = '' if metric == 'NONE' else post_data['field_name']
+        fields = [] if metric == 'NONE' else post_data['fields'].split(':')
         # FIXME: non-ASCII compatible?
         articles_file = StringIO.StringIO(post_data['articles'])
-
 
         check_map_name(map_name, self.map_services)
 
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
         bad_articles = gen_data(target_path, articles_file)  # TODO: Figure out what to do with <bad_articles>
-        config_path = gen_config(map_name, metric, field_name)
+        config_path = gen_config(map_name, metric, fields)
 
         # Build from the new config file
         python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
