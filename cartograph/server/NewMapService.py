@@ -195,7 +195,7 @@ class AddMapService:
         check_map_name(map_name, self.map_services)
 
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
-        bad_articles = gen_data(map_name, articles_file)  # TODO: Figure out what to do with <bad_articles>
+        bad_articles = gen_data(target_path, articles_file)  # TODO: Figure out what to do with <bad_articles>
         config_path = gen_config(map_name, metric, field_name)
 
         # Build from the new config file

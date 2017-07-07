@@ -1,3 +1,5 @@
+import re
+
 import falcon
 import logging
 import os
@@ -32,12 +34,14 @@ with open(meta_config_path, 'r') as meta_config:
         conf_files = [meta_config_path]
         map_services = {'_multi_map': False}
     else:
-        conf_files = meta_config.read().split('\n')  # Note that the .readline() above means we skip the first line
+        conf_files = re.split('[\\r\\n]+', meta_config.read())  # Note that the .readline() above means we skip the first line
         map_services = {'_multi_map': True}
 
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
 for path in conf_files:
-    map_service = MapService(path.strip('\r\n'))
+    if path == '':
+        continue  # Skip blank lines
+    map_service = MapService(path)
     map_services[map_service.name] = map_service
 map_services['_meta_config'] = meta_config_path
 map_services['_last_update'] = os.path.getmtime(meta_config_path)
