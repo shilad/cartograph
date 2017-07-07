@@ -1,22 +1,21 @@
-# Let's get this party started!
+import falcon
 import logging
 import os
 import sys
 
-import falcon
-
-from cartograph.server.ParentService import ParentService
+from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.NewMapService import AddMapService
 from cartograph.server.MapService import MapService
 from cartograph.server.RoadGetterService import RoadGetterService
 
+
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 if __name__ == '__main__' and len(sys.argv) > 1:
-    confPaths = sys.argv[1]
+    meta_config_path = sys.argv[1]
 else:
-    confPaths = os.getenv('CARTOGRAPH_CONFIGS')
-    if not confPaths:
+    meta_config_path = os.getenv('CARTOGRAPH_CONFIGS')
+    if not meta_config_path:
         raise Exception, 'CARTOGRAPH_CONFIGS environment variable not set!'
 
 configs = {}
@@ -27,11 +26,22 @@ logging.info('configuring falcon')
 app = falcon.API()
 
 
+# Determine whether the input file is a multi-config (i.e. paths to multiple files) or a single config file
+with open(meta_config_path, 'r') as meta_config:
+    first_line = meta_config.readline().strip('\r\n')
+    if first_line != METACONF_FLAG:
+        conf_files = [meta_config_path]
+        map_services = {'_multi_map': False}
+    else:
+        conf_files = meta_config.read().split('\n')  # Note that the .readline() above means we skip the first line
+        map_services = {'_multi_map': True}
+
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
-map_services = {}
-for path in confPaths.split(':'):
-    map_service = MapService(path)
+for path in conf_files:
+    map_service = MapService(path.strip('\r\n'))
     map_services[map_service.name] = map_service
+map_services['_meta_config'] = meta_config_path
+map_services['_last_update'] = os.path.getmtime(meta_config_path)
 
 
 # Start a ParentService for each service; a ParentService represents a given service for every map in <map_services>
