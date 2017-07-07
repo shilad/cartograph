@@ -25,10 +25,6 @@ def gen_config(map_name, metric_type, field_name):
     """
     TYPE_NAME = {'BIVARIATE': 'bivariate-scale'}
 
-    # Prevent map names with special characters (for security/prevents shell injection)
-    for c in map_name:
-        assert c in ACCEPTABLE_MAP_NAME_CHARS
-
     if not os.path.exists(USER_CONF_DIR):
         os.makedirs(USER_CONF_DIR)
 
@@ -47,7 +43,6 @@ def gen_config(map_name, metric_type, field_name):
         raise NotImplementedError()
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
-    assert not os.path.exists(config_path)  # Make sure no map config with this name exists
     with open(config_path, 'w') as config_file:
         config_file.write(conf_template.substitute(name=map_name, metric_section=metric_section))
 
