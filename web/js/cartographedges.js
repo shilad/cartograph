@@ -56,14 +56,12 @@ function drawCurves(linkPairArray){
                 var storeddots = [];
                 var storedcurves = [];
                 var colors = {}
-                var pairs = {}
+
                 for (var i=0; i<linkPairArray.length-1; i+=2){
                     if(!(colors[linkPairArray[i][2]] in colors)) {
                         colors[linkPairArray[i][2]] = getRandomColor()
                     }
-                    if(!([linkPairArray[i][2],linkPairArray[i+1][2]] in pairs)){
-                        pairs[[linkPairArray[i][2],linkPairArray[i+1][2]]] = linkPairArray[i][1] + " -> " + linkPairArray[i+1][1]
-                    }
+
                     var pointA = linkPairArray[i][2]; //source x,y
                     var pointB = linkPairArray[i+1][2]; //dest x,y
 
