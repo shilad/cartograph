@@ -114,14 +114,18 @@ def gen_data(target_path, articles):
     return bad_articles
 
 
-def write_vectors(filtered_data, target_file_path):
+def write_vectors(vectors_data, target_file_path):
     """Special function to write a vectors file, because vectors.tsv is *not* a true TSV >:(
+
+    :param vectors_data: a Pandas dataframe with ids as the index and vectors (with tab separators) as the second column
+    :param target_file_path: path of file to write. Intermediate directories must exist. File at path will be
+    overwritten if it already exists.
     """
-    filtered_data.index.name = 'id'  # FIXME: w/o this line, it comes out as 'index' (just in vectors.tsv)
+    vectors_data.index.name = 'id'  # FIXME: w/o this line, it comes out as 'index' (just in vectors.tsv)
     with open(target_file_path, 'w') as target_file:
         # Write the header
-        target_file.write('\t'.join([filtered_data.index.name] + list(filtered_data)) + '\n')
-        for index, row in filtered_data.iterrows():
+        target_file.write('\t'.join([vectors_data.index.name] + list(vectors_data)) + '\n')
+        for index, row in vectors_data.iterrows():
             # str of the vector, each component separated by tabs
             # FIXME: components should be in scientific notation
             vector = '\t'.join([str(component) for component in row[0]])
