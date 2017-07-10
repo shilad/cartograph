@@ -5,6 +5,7 @@ import shutil
 from cartograph import Config
 from cartograph.server.CountryService import CountryService
 from cartograph.server.LoggingService import LoggingService
+from cartograph.server.MapAdminService import MapAdminService
 from cartograph.server.PointService import PointService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.RelatedPointsService import RelatedPointsService
@@ -18,6 +19,9 @@ class MapService:
     """A set of services for a particular map    
     """
     def __init__(self, conf_path):
+        """Initialize all necessary services for a map for this
+        :param conf_path: Path to config file for this map
+        """
         if not os.path.isfile(conf_path):
             raise Exception, 'Cartograph Config Path %s does not exist' % `conf_path`
     
@@ -32,7 +36,8 @@ class MapService:
             conf.set('Server', 'base_url', os.getenv('BASE_URL'))
     
         logging.info('initializing services for ' + self.name)
-    
+
+        self.map_admin_service = MapAdminService(conf_path)
         self.logging_service = LoggingService(conf)
         self.point_service = PointService(conf)
         self.country_service = CountryService(conf)

@@ -17,15 +17,12 @@ SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which wi
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
-def gen_config(map_name, metric_type, fields):
+def gen_config(map_name):
     """Generate the config file for a user-generated map named <map_name> and return a path to it
 
     :param map_name: name of new map
-    :param metric_type: type of metric as a string, e.g. 'BIVARIATE' or 'COUNT'
-    :param fields: a list of the fields that are used for the metric
     :return: path to the newly-generated config file
     """
-    TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
 
     if not os.path.exists(USER_CONF_DIR):
         os.makedirs(USER_CONF_DIR)
@@ -38,22 +35,7 @@ def gen_config(map_name, metric_type, fields):
     # Set name of dataset
     config.set('DEFAULT', 'dataset', map_name)
 
-    if metric_type != 'NONE':
-        # Configure settings for one metric
-        metric_settings = {
-            'type': TYPE_NAME[metric_type],
-            'path': '%(externalDir)s/metric.tsv',
-            'fields': fields,
-            'colors': ['#f11', '#1d1'],
-            'percentile': True,
-            'neutralColor': '#bbb',
-            'maxValue': 1.0
-        }
-        # WARNING: this config format normalizes to all-lowercase in some places but is case-sensitive in others. Beware!
-        metric_name = string.lower(fields[0])  # TODO: figure out how to name metrics other than with the first field; also figure out how to do count
-        config.set('Metrics', 'active', metric_name)
-        config.set('Metrics', metric_name, json.dumps(metric_settings))
-
+    # Write newly-generated config to file
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
     config.write(open(config_path, 'w'))
@@ -187,7 +169,7 @@ class AddMapService:
         self.map_services = map_services
 
     def on_get(self, req, resp):
-        resp.stream = open('./web/newMap.html', 'rb')
+        resp.stream = open('./web/new_map.html', 'rb')
         resp.content_type = 'text/html'
 
     def on_post(self, req, resp):

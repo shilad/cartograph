@@ -37,6 +37,7 @@ with open(meta_config_path, 'r') as meta_config:
         conf_files = re.split('[\\r\\n]+', meta_config.read())  # Note that the .readline() above means we skip the first line
         map_services = {'_multi_map': True}
 
+
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
 for path in conf_files:
     if path == '':
@@ -54,6 +55,7 @@ app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_se
 app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
 app.add_route('/{map_name}/point.json', ParentService(map_services, 'related_points_service'))
 app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
+app.add_route('/{map_name}/admin', ParentService(map_services, 'map_admin_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 

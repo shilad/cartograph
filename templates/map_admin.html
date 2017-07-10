@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<form action="" method="POST">
+    <table>
+        <tr>
+            <td><p>Metric name: </p></td>
+            <td><input type="text" name="metric_name"></td>
+        </tr>
+        <tr>
+            <td><p>Metric type: </p></td>
+            <td><select name="metric_type">
+                <option value="NONE">None</option>
+                <option value="BIVARIATE">Bivariate-scale</option>
+                <option value="COUNT">Count</option>
+            </select></td>
+        </tr>
+        <tr>
+            <td><p>Column(s): </p></td>
+            <td>${columns}</td>
+        </tr>
+        <tr>
+            <td><p>Color range: </p></td>
+            <td><input type="text" name="color_one" value="${color_one}"></td>
+            <td><input type="text" name="color_two" value="${color_two}"></td>
+        </tr>
+        <tr>
+            <td><p>Neutral color: </p></td>
+            <td><input type="text" name="neutral_color" value="${neutral_color}"></td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Submit"></td>
+        </tr>
+    </table>
+</form>
+
+</body>
+</html>
