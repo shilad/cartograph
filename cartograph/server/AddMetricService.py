@@ -73,4 +73,4 @@ class AddMetricService:
         config.read(self.conf_path)
         config.set('Metrics', 'active', metric_name)
         config.set('Metrics', metric_name, json.dumps(metric_settings))
-        config.write(open(self.conf_path))
+        config.write(open(self.conf_path, 'w'))
