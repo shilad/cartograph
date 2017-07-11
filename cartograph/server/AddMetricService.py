@@ -28,7 +28,6 @@ class AddMetricService:
 
         # color_one, color_two = config.get('Metrics', 'colors')
         # neutral_color = config.get('Metrics', 'neutralColor')
-        color_one, color_two, neutral_color = ('', '', '')
 
         resp.body = template.substitute(
             columns=columns_input,
