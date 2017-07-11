@@ -47,6 +47,7 @@ CG.init = function(layer) {
     CG.changeLayer = function (newLayer) {
         CG.activeLayer = newLayer;
         var changed = false;
+
         ["vector", "raster"].forEach(function (srcName) {
             var src = CG.layer.scene.config.sources[srcName];
             var i = src.url.indexOf('/' + srcName + '/');
@@ -63,6 +64,7 @@ CG.init = function(layer) {
             }
         });
         if (changed) {
+
             CG.layer.scene.updateConfig();
         }
     };
@@ -90,6 +92,7 @@ CG.init = function(layer) {
 
     CG.layer.scene.subscribe({
         load: function (e) {
+
             if (L.Hash) {
                 CG.hash = new L.Hash(CG.map);
             }
@@ -160,6 +163,13 @@ CG.init = function(layer) {
         console.log("clicked on test button");
 
 
+        getPathsInViewPort()
+
+
+    });
+
+
+    getPathsInViewPort = function(){
         var viewport = CG.map.getBounds();
 
         var x_min = viewport._southWest.lng;
@@ -173,24 +183,24 @@ CG.init = function(layer) {
 
 
         $.get(url, function (response) {
-             console.log(response)
-             allLayers.push(drawCurves(response))
+            console.log(response)
+            allLayers.push(drawCurves(response))
 
 
         });
-    });
-
-
-
+    }
 
 
     $('#test_buttonRemove').on('click', function () {
+       removePathsInViewPort()
+    });
+    removePathsInViewPort = function(){
         for(var j = 0; j < allLayers.length; j ++){
             CG.map.removeLayer(allLayers[j]);
         }
 
         allLayers = [];
-    });
+    }
 
 
     $('#search-field').on('focus', CG.hideRelated);
