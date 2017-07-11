@@ -65,16 +65,25 @@ CG.logMany = function(messages) {
     } else {
        //if user moved the map far enough, or zoomed in or out far enough it will send a call to the server to recalculate paths and redraw them to the screen
         if(!isRoadLocked()){
-             if((Math.abs(CG.lastLoc.lat.toFixed(precision) - params.lat) >= 2 && Math.abs(CG.lastLoc.lng.toFixed(precision) - params.lng) >= 2) ||
+            var threshold = 60/params.zoom;
+            //console.log('zoom');
+            //console.log(params.zoom);
+           // console.log(threshold);
+            var lat_mov = Math.abs(CG.lastLoc.lat.toFixed(precision) - params.lat);
+            var lng_mov = Math.abs(CG.lastLoc.lng.toFixed(precision) - params.lng);
+           // console.log(lat_mov + lng_mov);
+
+            if( lat_mov + lng_mov >= threshold  ||
             (Math.abs(CG.lastZoom - params.zoom)>= 1)){
-            removePathsInViewPort();
-            getPathsInViewPort();
-        }
+                removePathsInViewPort();
+                getPathsInViewPort();
+                CG.lastLoc = center; //set last location as current location
+                CG.lastZoom = params.zoom;  //set last zoom level as current zoom level
+
+            }
         }
 
 
-        CG.lastLoc = center; //set last location as current location
-        CG.lastZoom = params.zoom;  //set last zoom level as current zoom level
         $.ajax({
           type: "POST",
           url: "../log",
