@@ -7,7 +7,7 @@ import falcon
 
 
 TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
-COL_PREFIX = 'column_'
+COL_PREFIX = 'column_'  # Prefix appended to checkbox form field for a given column
 
 
 class MapAdminService:
@@ -22,15 +22,13 @@ class MapAdminService:
 
         template = string.Template(open('templates/map_admin.html', 'r').read())
 
-        all_columns = [header.strip('\r\n') for header in csv.reader(open(os.path.join(config.get('DEFAULT', 'externalDir'), 'metric.tsv')), delimiter='\t').next()]
+        all_columns = json.loads(config.get('DEFAULT', 'columns'))
         columns_input = ''.join(['<input type="checkbox" name="%s" value="%s"> %s' %
                                 (COL_PREFIX+column, column, column) for column in all_columns])
 
         # color_one, color_two = config.get('Metrics', 'colors')
         # neutral_color = config.get('Metrics', 'neutralColor')
         color_one, color_two, neutral_color = ('', '', '')
-
-        print('neutral_color: %s' % (neutral_color.__repr__(),))
 
         resp.body = template.substitute(
             columns=columns_input,
@@ -53,7 +51,7 @@ class MapAdminService:
         columns = []
         for kw in post_data.keys():
             print('Value of %s = %s' % (kw, post_data[kw]))  # TODO: Remove once you figure out the below
-            if kw.startswith(COL_PREFIX) and post_data[kw] == True:  # TODO: Check if True is the right value
+            if kw.startswith(COL_PREFIX):
                 columns.append(kw[len(COL_PREFIX):])
 
         # Extract colors from request

@@ -17,7 +17,7 @@ SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which wi
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
-def gen_config(map_name):
+def gen_config(map_name, column_headers):
     """Generate the config file for a user-generated map named <map_name> and return a path to it
 
     :param map_name: name of new map
@@ -34,6 +34,9 @@ def gen_config(map_name):
 
     # Set name of dataset
     config.set('DEFAULT', 'dataset', map_name)
+
+    # Record list of column names in JSON format
+    config.set('DEFAULT', 'columns', json.dumps(column_headers))
 
     # Write newly-generated config to file
     config_filename = '%s.txt' % pipes.quote(map_name)
@@ -101,7 +104,6 @@ def gen_data(target_path, articles):
             metric_file_path = os.path.join(target_path, 'metric.tsv')
             user_data_with_external_ids.to_csv(metric_file_path, sep='\t')
 
-
         # Write the dataframe to the target file
         target_file_path = os.path.join(target_path, filename)
         if filename == 'vectors.tsv':
@@ -111,7 +113,9 @@ def gen_data(target_path, articles):
             # For all other TSVs, just write them normally
             filtered_data.to_csv(target_file_path, sep='\t')
 
-    return bad_articles
+    data_columns = list(user_data_with_external_ids)
+
+    return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
 
 def write_vectors(vectors_data, target_file_path):
@@ -185,16 +189,15 @@ class AddMapService:
         resp.body = ''
 
         map_name = post_data['name']
-        metric = post_data['metric']
-        fields = [] if metric == 'NONE' else post_data['fields'].split(':')
         # FIXME: non-ASCII compatible?
         articles_file = StringIO.StringIO(post_data['articles'])
 
         check_map_name(map_name, self.map_services)
 
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
-        bad_articles = gen_data(target_path, articles_file)  # TODO: Figure out what to do with <bad_articles>
-        config_path = gen_config(map_name, metric, fields)
+        # TODO: Figure out what to do with <bad_articles>
+        bad_articles, data_columns = gen_data(target_path, articles_file)
+        config_path = gen_config(map_name, data_columns)
 
         # Build from the new config file
         python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
