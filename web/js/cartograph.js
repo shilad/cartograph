@@ -202,7 +202,20 @@ CG.init = function(layer) {
         allLayers = [];
     }
 
+    lockRoads = false
+    $('#test_lockRoads').on('click', function () {
+        if(lockRoads){
+            lockRoads = false
+            removePathsInViewPort()
+            getPathsInViewPort()
 
+        }else{
+            lockRoads = true
+        }
+    })
+    isRoadLocked = function(){
+        return lockRoads
+    }
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
     $('#search-field').autocomplete({
