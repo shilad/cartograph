@@ -21,6 +21,7 @@ def gen_config(map_name, column_headers):
     """Generate the config file for a user-generated map named <map_name> and return a path to it
 
     :param map_name: name of new map
+    :param column_headers: list of headers for non-index columns
     :return: path to the newly-generated config file
     """
 
