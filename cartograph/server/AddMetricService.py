@@ -32,9 +32,7 @@ class AddMetricService:
 
         resp.body = template.substitute(
             columns=columns_input,
-            color_one=color_one,
-            color_two=color_two,
-            neutral_color=neutral_color
+            map_name=config.get('DEFAULT', 'dataset')
         )
         resp.content_type = 'text/html'
 
