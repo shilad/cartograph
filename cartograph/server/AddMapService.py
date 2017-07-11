@@ -1,14 +1,14 @@
 import StringIO
-from ConfigParser import SafeConfigParser
 import json
-import falcon
 import os
-import subprocess
-import string
 import pipes
+import string
+from ConfigParser import SafeConfigParser
+
+import falcon
 import pandas
 
-from cartograph.Utils import read_vectors
+from cartograph.Utils import read_vectors, build_map
 from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
@@ -201,15 +201,7 @@ class AddMapService:
         config_path = gen_config(map_name, data_columns)
 
         # Build from the new config file
-        python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
-        working_dir = os.getcwd()
-        exec_path = os.getenv('PATH')
-        subprocess.call(
-            ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
-            env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
-            stdout=open(os.path.join(target_path, 'build.log'), 'w'),
-            stderr=open(os.path.join(target_path, 'build.err'), 'w')
-        )
+        build_map(config_path, target_path)
 
         # Add urls to new map
         map_service = MapService(config_path)

@@ -1,3 +1,6 @@
+import os
+import subprocess
+from ConfigParser import SafeConfigParser
 from collections import defaultdict
 import codecs
 import numpy as np
@@ -168,7 +171,31 @@ def calc_area(points):
 def zoomMeters(zoom):
     return 156543.03 / (2 ** zoom)
 
+
+def build_map(config_path):
+    """Build the map config file at config_path and output the build log/errors to files in its baseDir
+    :param config_path: full path to the config file of the map to be built
+    """
+
+    # Extract the location of the base dir from the config file
+    config = SafeConfigParser()
+    config.read(config_path)
+    output_path = config.get('DEFAULT', 'baseDir')
+
+    # Set up the environment variables
+    python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
+    working_dir = os.getcwd()
+    exec_path = os.getenv('PATH')
+
+    # Build it!
+    subprocess.call(
+        ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
+        env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
+        stdout=open(os.path.join(output_path, 'build.log'), 'w'),
+        stderr=open(os.path.join(output_path, 'build.err'), 'w')
+    )
+
+
 if __name__=='__main__':
 
     sort_by_percentile(4)
-

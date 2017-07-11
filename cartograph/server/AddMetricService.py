@@ -5,6 +5,7 @@ from ConfigParser import SafeConfigParser
 import string
 import falcon
 
+from cartograph.Utils import build_map
 
 TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
 COL_PREFIX = 'column_'  # Prefix appended to checkbox form field for a given column
@@ -73,3 +74,6 @@ class AddMetricService:
         config.set('Metrics', 'active', metric_name)
         config.set('Metrics', metric_name, json.dumps(metric_settings))
         config.write(open(self.conf_path, 'w'))
+
+        # Rebuild the map from the newly-written config file
+        build_map(self.conf_path)
