@@ -5,7 +5,7 @@ import shutil
 from cartograph import Config
 from cartograph.server.CountryService import CountryService
 from cartograph.server.LoggingService import LoggingService
-from cartograph.server.MapAdminService import MapAdminService
+from cartograph.server.AddMetricService import AddMetricService
 from cartograph.server.PointService import PointService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.RelatedPointsService import RelatedPointsService
@@ -37,7 +37,7 @@ class MapService:
     
         logging.info('initializing services for ' + self.name)
 
-        self.map_admin_service = MapAdminService(conf_path)
+        self.add_metric_service = AddMetricService(conf_path)
         self.logging_service = LoggingService(conf)
         self.point_service = PointService(conf)
         self.country_service = CountryService(conf)

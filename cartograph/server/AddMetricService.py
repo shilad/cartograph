@@ -10,7 +10,7 @@ TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
 COL_PREFIX = 'column_'  # Prefix appended to checkbox form field for a given column
 
 
-class MapAdminService:
+class AddMetricService:
     def __init__(self, conf_path):
         """
         """
@@ -20,7 +20,7 @@ class MapAdminService:
         config = SafeConfigParser()
         config.read(self.conf_path)
 
-        template = string.Template(open('templates/map_admin.html', 'r').read())
+        template = string.Template(open('templates/add_metric.html', 'r').read())
 
         all_columns = json.loads(config.get('DEFAULT', 'columns'))
         columns_input = ''.join(['<input type="checkbox" name="%s" value="%s"> %s' %

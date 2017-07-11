@@ -177,7 +177,7 @@ class AddMapService:
         self.map_services = map_services
 
     def on_get(self, req, resp):
-        resp.stream = open('templates/new_map.html', 'rb')
+        resp.stream = open('templates/add_map.html', 'rb')
         resp.content_type = 'text/html'
 
     def on_post(self, req, resp):
