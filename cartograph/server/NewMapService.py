@@ -1,5 +1,4 @@
 import csv
-import falcon
 import os
 import string
 import codecs
@@ -124,11 +123,17 @@ class AddMapService:
         resp.content_type = 'text/html'
 
     def on_post(self, req, resp):
-        post_data = falcon.uri.parse_query_string(req.stream.read())
         resp.body = ''
 
-        map_name = post_data['name']
-        articles = post_data['articles'].split('\r\n')
+        map_name = req.get_param('Map Name')
+        articles_file = req.get_param('articles')
+        articles_text = req.get_param('articles_text')
+        if articles_file != "" and not isinstance(articles_file, type(None)):
+            articles = articles_file.file.read().split('\n')
+        elif articles_text:
+            articles = articles_text.split('\r\n')
+        else:
+            print "No input! How am I supposed to make a map?"  # Change this to an actual error shown on the next page
 
         # Prevent adding a map with the same name as a currently-served map
         # This will prevent adding user-generated maps with the same names as
