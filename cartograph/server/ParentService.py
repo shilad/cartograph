@@ -75,14 +75,8 @@ class ParentService:
                 # if a map has requested an update, change mod time of the meta-config file, which should trigger (via
                 # self.update_maps) an update of all maps whose config files have changed.
                 for map_name in self.map_services.keys():
-
-                    if (not map_name.startswith('_')):
-                        print('Map %s doesn''t start with _' % (map_name,))
-                        if self.map_services[map_name].needs_update():
-                            print(
-                            'Metaconfig %s mod time updated!\nWas: %s' % (meta_config, os.path.getmtime(meta_config)))
+                    if (not map_name.startswith('_')) and self.map_services[map_name].needs_update():
                             os.utime(meta_config, None)
-                            print('Is now: %s' % (os.path.getmtime(meta_config),))
 
                 # if the meta-config has been updated, update (server-wide dict) map_services
                 if os.path.getmtime(meta_config) != self.map_services['_last_update']:
