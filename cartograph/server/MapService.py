@@ -57,7 +57,6 @@ class MapService:
         cause all other parallel servers on the same meta-config file to check if any individual map configs have been
         updated
         """
-        print("Update triggered for map %s" % (self.name,))
         self._send_update = True
 
     def needs_update(self):
@@ -69,6 +68,4 @@ class MapService:
         """
         needs_update = self._send_update
         self._send_update = False
-        if needs_update:
-            print('Map %s requests an update!' % (self.name,))
         return needs_update
