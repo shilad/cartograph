@@ -180,7 +180,7 @@ def build_map(config_path):
     # Extract the location of the base dir from the config file
     config = SafeConfigParser()
     config.read(config_path)
-    output_path = config.get('DEFAULT', 'baseDir')
+    output_path = config.get('DEFAULT', 'externalDir')
 
     # Set up the environment variables
     python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')

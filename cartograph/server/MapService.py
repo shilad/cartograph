@@ -24,6 +24,9 @@ class MapService:
         """
         if not os.path.isfile(conf_path):
             raise Exception, 'Cartograph Config Path %s does not exist' % `conf_path`
+
+        self.last_update = os.path.getmtime(conf_path)
+        self._send_update = False
     
         conf = Config.initConf(conf_path)
         self.name = conf.get('DEFAULT', 'dataset')
@@ -37,7 +40,7 @@ class MapService:
     
         logging.info('initializing services for ' + self.name)
 
-        self.add_metric_service = AddMetricService(conf_path)
+        self.add_metric_service = AddMetricService(conf_path, self)
         self.logging_service = LoggingService(conf)
         self.point_service = PointService(conf)
         self.country_service = CountryService(conf)
@@ -47,3 +50,22 @@ class MapService:
         self.related_points_service = RelatedPointsService(conf, self.point_service)
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
+
+    def trigger_update(self):
+        """Trigger an update to be propagated system-wide
+        :return:
+        """
+        print("Update triggered for map %s" % (self.name,))
+        self._send_update = True
+
+    def needs_update(self):
+        """Check if this map wants to trigger an update. If this returns True, it is the responsibility of the caller to
+        change the modification time of the active meta-conf, if there is one. All server instances should be watching
+        the mod time of the meta-conf to know when to update their maps. If this
+        :return: True if
+        """
+        needs_update = self._send_update
+        self._send_update = False
+        if needs_update:
+            print('Map %s requests an update!' % (self.name,))
+        return needs_update

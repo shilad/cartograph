@@ -201,7 +201,7 @@ class AddMapService:
         config_path = gen_config(map_name, data_columns)
 
         # Build from the new config file
-        build_map(config_path, target_path)
+        build_map(config_path)
 
         # Add urls to new map
         map_service = MapService(config_path)

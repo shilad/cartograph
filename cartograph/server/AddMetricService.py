@@ -12,10 +12,13 @@ COL_PREFIX = 'column_'  # Prefix appended to checkbox form field for a given col
 
 
 class AddMetricService:
-    def __init__(self, conf_path):
+    def __init__(self, conf_path, map_service):
         """
+        :param conf_path: path to the config file
+        :param map_service: pointer to the map that this service is attached to
         """
         self.conf_path = conf_path
+        self.map_service = map_service
 
     def on_get(self, req, resp):
         config = SafeConfigParser()
@@ -26,9 +29,6 @@ class AddMetricService:
         all_columns = json.loads(config.get('DEFAULT', 'columns'))
         columns_input = ''.join(['<input type="checkbox" name="%s" value="%s"> %s' %
                                 (COL_PREFIX+column, column, column) for column in all_columns])
-
-        # color_one, color_two = config.get('Metrics', 'colors')
-        # neutral_color = config.get('Metrics', 'neutralColor')
 
         resp.body = template.substitute(
             columns=columns_input,
@@ -48,7 +48,6 @@ class AddMetricService:
         # Extract selected columns from the form
         columns = []
         for kw in post_data.keys():
-            print('Value of %s = %s' % (kw, post_data[kw]))  # TODO: Remove once you figure out the below
             if kw.startswith(COL_PREFIX):
                 columns.append(kw[len(COL_PREFIX):])
 
@@ -77,3 +76,6 @@ class AddMetricService:
 
         # Rebuild the map from the newly-written config file
         build_map(self.conf_path)
+
+        # Mark this map to trigger an update
+        self.map_service.trigger_update()

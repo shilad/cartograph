@@ -46,25 +46,47 @@ class ParentService:
                 if map_config == '':
                     continue
 
+                map_name = Config.initConf(map_config).get('DEFAULT', 'dataset')
+
                 # If the name of a map isn't in map_services, initialize it
-                config = Config.initConf(map_config)
-                config_name = config.get('DEFAULT', 'dataset')
-                if config_name not in self.map_services.keys():
+                if map_name not in self.map_services.keys():
                     map_service = MapService(map_config)
                     self.map_services[map_service.name] = map_service
+
+                # If the config file has been updated, start a new MapService for it
+                if os.path.getmtime(map_config) != self.map_services[map_name].last_update:
+                    self.map_services[map_name] = MapService(map_config)
 
         # indicate that map_services has been updated
         self.map_services['_last_update'] = os.path.getmtime(meta_config)
 
     def __getattr__(self, item):
-        # Item is the method name
+        """
+        :param item: name of method (e.g. "on_get")
+        :return: the method
+        """
 
         def func(*args, **kwargs):  # = on_<method>()
 
-            # Housekeeping: check if the meta-config has been updated; if so, update (server-wide dict) map_services
+            # Housekeeping: make sure maps are updated
             meta_config = self.map_services['_meta_config']
-            if self.map_services['_multi_map'] and os.path.getmtime(meta_config) != self.map_services['_last_update']:
-                self.update_maps(meta_config)
+            if self.map_services['_multi_map']:
+
+                # if a map has requested an update, change mod time of the meta-config file, which should trigger (via
+                # self.update_maps) an update of all maps whose config files have changed.
+                for map_name in self.map_services.keys():
+
+                    if (not map_name.startswith('_')):
+                        print('Map %s doesn''t start with _' % (map_name,))
+                        if self.map_services[map_name].needs_update():
+                            print(
+                            'Metaconfig %s mod time updated!\nWas: %s' % (meta_config, os.path.getmtime(meta_config)))
+                            os.utime(meta_config, None)
+                            print('Is now: %s' % (os.path.getmtime(meta_config),))
+
+                # if the meta-config has been updated, update (server-wide dict) map_services
+                if os.path.getmtime(meta_config) != self.map_services['_last_update']:
+                    self.update_maps(meta_config)
 
             # Now, process the request:
             # Extract map name from request
