@@ -21,8 +21,10 @@ configs = {}
 
 logging.info('configuring falcon')
 
+from falcon_multipart.middleware import MultipartMiddleware
+
 # falcon.API instances are callable WSGI apps
-app = falcon.API()
+app = falcon.API(middleware=[MultipartMiddleware()])
 
 
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
