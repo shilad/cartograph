@@ -12,53 +12,50 @@
         <script src="tether-1.3.3/dist/js/tether.js"></script>
         <script src="tether-1.3.3/dist/js/tether.min.js"></script>
         <script src="js/mapCreator.js"></script>
+        <script src="js/jquery.form.js"></script>
 
         <!-- Bootstrap core -->
         <link href="css/bootstrap.css" rel="stylesheet">
         <script src="js/bootstrap.js"></script>
-        <script src="js/bootstrap.min.js"></script>
 
     </head>
     <body>
-    <form method="POST" enctype="multipart/form-data">
-        <div id="header">
-            <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
-            <h1>Welcome to Cartograph MapCreator!</h1>
-            <p>You can upload a csv file and generate awesome visualizations here!</p>
+        <form method="POST" enctype="multipart/form-data">
+            <div id="header">
+                <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
+                <h1>Welcome to Cartograph MapCreator!</h1>
+                <p>You can upload a csv file and generate awesome visualizations here!</p>
 
-            <p>
-                <label>Map Name</label>
-                <textarea name = "Map Name",
-                          id = "Map Name",
-                          rows = "1",
-                          cols = "40">What do you want to call this map?</textarea>
-            </p>
+                <p>
+                    <label>Map Name</label>
+                    <textarea name = "Map Name",
+                              id = "Map Name",
+                              rows = "1",
+                              cols = "40">What do you want to call this map?</textarea>
+                </p>
 
-            <span>
                 <label>Upload a file or copy-paste your data in!</label>
                 <label class="btn btn-secondary">
                     <input type="file" name="articles" id="uploadFile">
                     upload file
                 </label><br/>
-                <textarea name="articles_text" id="articles_text">Copy-paste</textarea><br/>
+                <textarea name="articles_text" id="articles_text" cols="40" rows="3">Copy-paste</textarea><br/>
                 <label class="btn btn-secondary">
                     <input type="submit"  id="submitFile">
-                    Go!
+                    Process File
                 </label>
-            </span>
+            </div>
 
-        </div>
+            <hr>
+            <p></p>
+            <p id="newRequirements"></p>
 
-        <hr>
-        <p></p>
-        <p id="newRequirements"></p>
+            <button type="button" class="btn btn-addVisualization">Add Visualization</button>
+            <p></p>
+            <button type="button" class="btn btn-generateMap">GENERATE MAP!</button>
+            <h3></h3>
 
-        <button type="button" class="btn btn-addVisualization">Add Visualization</button>
-        <p></p>
-        <button type="button" class="btn btn-generateMap">GENERATE MAP!</button>
-        <h3></h3>
-
-    </form>
+        </form>
 
         <script>
             new Tether({
