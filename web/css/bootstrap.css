@@ -12,8 +12,7 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-#uploadFile,
-#submitFile{
+input{
   display:none;
 }
 
@@ -68,6 +67,12 @@ h1 {
   color: #9275d8;
   font-size: 2em;
   margin: 0.67em 0;
+}
+
+h3 {
+  color: #E8953E;
+  font-size: 1.05em;
+  margin: 0.25em 0;
 }
 
 figcaption,
@@ -234,6 +239,7 @@ legend {
 progress {
   display: inline-block;
   vertical-align: baseline;
+  width: 20pts;
 }
 
 textarea {
@@ -338,6 +344,7 @@ template {
   }
   .navbar {
     display: none;
+    width: 20pts;
   }
   .badge {
     border: 1px solid #000;
@@ -390,8 +397,8 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin-top: 0;
-  margin-bottom: .5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
 p {
@@ -588,28 +595,57 @@ h1, h2, h3, h4, h5, h6,
   line-height: 1.1;
 }
 
-h1, .h1 {
-  font-size: 2.5rem;
+div.legend {
+  font-size: 13px;
+  width: 300px;
+  position: absolute;
+  top: 37px;
+  right: 10px;
+  z-index: 1000000;
+  border: 1px solid #f0f0f0;
+  border-bottom: 2px solid #ccc;
+  background-color: rgba(250, 250, 250, 0.9);
+  box-shadow: 5px 5px 5px #aaaaaa;
+  color: #666;
+  padding: 5px;
 }
 
-h2, .h2 {
-  font-size: 2rem;
+div.legend h1 {
+  color: #9275d8;
+  font-size: 1.5em;
+  margin: 0.25em 0;
 }
 
-h3, .h3 {
-  font-size: 1.75rem;
+div.legend p {
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
-
-h4, .h4 {
-  font-size: 1.5rem;
+.legend .spectrum {
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  text-align: center;
+  width: 100%;
 }
-
-h5, .h5 {
-  font-size: 1.25rem;
+.legend .spectrum > * {
+  font-family: "Verdana", "Geneva", "sans-serif";
+  font-size: 13px;
 }
-
-h6, .h6 {
-  font-size: 1rem;
+.spectrum .label {
+  display: inline-block;
+  margin-bottom: 5px;
+}
+.spectrum .left-label, .spectrum .right-label {
+  font-weight: 700;
+  color: black;
+  width: 25%;
+}
+.spectrum .center-label { width: 50%; }
+.spectrum .grad-5 {
+  width: 20%;
+  height: 10px;
+  display: inline-block;
+  outline: solid 1px #aaa;
 }
 
 .lead {
@@ -5154,12 +5190,20 @@ a.badge:focus, a.badge:hover {
   text-align: center;
   background-color: #eceeef;
   border-radius: 0.25rem;
+  width:400px;
+  height:20px;
+}
+
+.bar { background-color: #F0F7FF;
+    width:0%;
+    height:20px;
+    border-radius: 0.25rem;
 }
 
 .progress-bar {
   height: 1rem;
-  color: #fff;
-  background-color: #0275d8;
+  color: #F0F7FF;
+  color: #F0F7FF;
 }
 
 .progress-bar-striped {

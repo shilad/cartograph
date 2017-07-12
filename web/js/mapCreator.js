@@ -3,20 +3,41 @@
  */
 
 $(document).ready(function(){
-    $("#uploadFile").click(function(){
-        $("h2").append("<p>File being processed...</p>");
+    var bar = $('.bar');
+    var percent = $('.percent');
+    var status = $('#status');
+    $('#myForm').ajaxForm({
+        beforeSend: function() {
+            status.empty();
+            var percentVal = '0%';
+            bar.width(percentVal);
+            percent.html(percentVal);
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
+            var percentVal = percentComplete + '%';
+            bar.width(percentVal);
+            percent.html(percentVal);
+        },
+        complete: function(xhr) {
+            status.html(xhr.responseText);
+        }
+    });
+
+    $('input[type="file"]').change(function(e){
+            var fileName = e.target.files[0].name;
+            $("h2").append("<p>" + fileName + "</p>");
     });
     $("#submitFile").click(function(){
-        $("h2").append("<p>File being processed...</p>");
+        $("h2").append("<h3>File being processed...</h3>");
     });
     $(".btn-addVisualization").click(function(){
         appendVisualizationRequirements();
     });
     $(".btn-generateMap").click(function(){
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
+        createMapDescription();
     });
 });
-
 
 var fullColorDiv = [
     '<div id="scheme1" style="width: 100px;">',
@@ -77,6 +98,21 @@ var newReqs = [
 
 function appendVisualizationRequirements(){
     $("#newRequirements").append(newReqs);
+}
+
+var description = [
+    '<div class="legend" id="legend-cluster">',
+          '<h1>',
+          "Map Description",
+          '</h1>',
+          '<p>',
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          '</p>',
+    '</div>'
+].join("\n");
+
+function createMapDescription(){
+   $("h3").append(description);
 }
 
 
