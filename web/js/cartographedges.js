@@ -137,7 +137,7 @@ function drawCurves(linkPairArray){
 
                         newCurve.on('mouseover', function(e){
                         e.target.setStyle(edgeHoverStyle);
-                        newCurve.openPopup(e.latlng);
+                        newCurve.openPopup();
                         });
                         newCurve.on('mouseout', function(e){
                         e.target.setStyle(edgeNeutralStyle);

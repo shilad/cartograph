@@ -1,8 +1,11 @@
-import csv
 import os
+import re
 
 from cartograph import Config
 from cartograph.server.MapService import MapService
+
+
+METACONF_FLAG = '######'  # TODO: Find a better home for this constant
 
 
 class ParentService:
@@ -17,10 +20,11 @@ class ParentService:
     """
     def __init__(self, map_services, service_name):
         """
-        :param map_services: a dict mapping names of maps (as strings) to MapService's
+        :param map_services: a dict mapping names of maps (as strings) to MapService's; this should point to *one* copy
+                             of map_services shared across the whole server.
         :param service_name: the name (as a string) of the service that this ParentService should provide
         """
-        self.map_services = map_services
+        self.map_services = map_services  # Points to singleton instance of a dictionary of names to MapServices;
         self.service_name = service_name
 
     def service_for_map(self, map_name):
@@ -35,29 +39,34 @@ class ParentService:
         :return:
         """
         with open(meta_config, 'r') as configs:
-            for map_config in configs:
-                map_config_path = map_config.strip('\r\n')
+            assert configs.readline().strip('\r\n') == METACONF_FLAG  # Check/skip the multi-map flag
+            for map_config in re.split('[\\r\\n]+', configs.read()):
+
+                # If it's a blank line, ignore it
+                if map_config == '':
+                    continue
 
                 # If the name of a map isn't in map_services, initialize it
-                config = Config.initConf(map_config_path)
+                config = Config.initConf(map_config)
                 config_name = config.get('DEFAULT', 'dataset')
                 if config_name not in self.map_services.keys():
-                    map_service = MapService(map_config_path)
+                    map_service = MapService(map_config)
                     self.map_services[map_service.name] = map_service
 
         # indicate that map_services has been updated
-        self.map_services['_last_update'] = os.stat(meta_config)
+        self.map_services['_last_update'] = os.path.getmtime(meta_config)
 
     def __getattr__(self, item):
         # Item is the method name
 
         def func(*args, **kwargs):  # = on_<method>()
 
-            # Housekeeping: check if the meta-config has been updated; if so, update map_services
+            # Housekeeping: check if the meta-config has been updated; if so, update (server-wide dict) map_services
             meta_config = self.map_services['_meta_config']
-            if os.stat(meta_config) != self.map_services['_last_update']:
+            if self.map_services['_multi_map'] and os.path.getmtime(meta_config) != self.map_services['_last_update']:
                 self.update_maps(meta_config)
 
+            # Now, process the request:
             # Extract map name from request
             map_name = kwargs['map_name']
             del kwargs['map_name']

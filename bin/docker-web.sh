@@ -23,18 +23,6 @@ function die() {
 # performance after version 17.04 is released.
 docker pull shilad/cartograph-base:latest || die "Docker pull failed."
 
-#docker run \
-#    -e PYTHONPATH=.:./cartograph/server \
-#    -e CARTOGRAPH_CONFIGS="$conf" \
-#    -v "$(pwd)":/cartograph \
-#    -w /cartograph \
-#    -p 4000:4000 \
-#    shilad/cartograph-base:latest \
-#    python2.7 ./cartograph/server/app2.py
-
-# TODO: Switch to multi-process gunicorn, but adding maps dynamically
-# will require cross-process coordination.
-#
 
 docker run \
     -e PYTHONPATH=.:./cartograph/server \

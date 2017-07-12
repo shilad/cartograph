@@ -21,7 +21,6 @@ class SearchService:
         self.titles = []
         keys = []
         values = []
-
         for i, p in enumerate(points.getAllPoints()):
                 lowertitle = unicode(p['name'].lower(), 'utf-8')
 
