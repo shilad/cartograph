@@ -1,7 +1,6 @@
-from cartograph.metrics.BivariateCountMetric import BivariateCountMetric
-from cartograph.metrics.BivariateScaleMetric import BivariateScaleMetric
-from cartograph.metrics.BivariateNominalMetric import BivariateNominalMetric
-from cartograph.metrics.TrivariateCountMetric import TrivariateCountMetric
+from cartograph.metrics.DivergingMetric import DivergingMetric
+from cartograph.metrics.SequentialMetric import SequentialMetric
+from cartograph.metrics.QualitativeMetric import QualitativeMetric
 
 
 def getMetric(js):
@@ -10,13 +9,11 @@ def getMetric(js):
     del args['path']
 
     mType = js['type']
-    if mType == 'trivariate-count':
-        return TrivariateCountMetric(**args)
-    elif mType == 'bivariate-count':
-        return BivariateCountMetric(**args)
-    elif mType == 'bivariate-scale':
-        return BivariateScaleMetric(**args)
-    elif mType == 'bivariate-nominal':
-        return BivariateNominalMetric(**args)
+    if mType == 'sequential':
+        return SequentialMetric(**args)
+    elif mType == 'diverging':
+        return DivergingMetric(**args)
+    elif mType == 'qualitative':
+        return QualitativeMetric(**args)
     else:
         raise Exception, 'unknown type %s' % `mType`
