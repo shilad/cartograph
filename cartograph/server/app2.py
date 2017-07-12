@@ -21,8 +21,10 @@ configs = {}
 
 logging.info('configuring falcon')
 
+from falcon_multipart.middleware import MultipartMiddleware
+
 # falcon.API instances are callable WSGI apps
-app = falcon.API()
+app = falcon.API(middleware=[MultipartMiddleware()])
 
 
 # Determine whether the input file is a multi-config (i.e. paths to multiple files) or a single config file
