@@ -20,6 +20,7 @@
 
     </head>
     <body>
+    <form method="POST" enctype="multipart/form-data">
         <div id="header">
             <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
             <h1>Welcome to Cartograph MapCreator!</h1>
@@ -27,25 +28,26 @@
 
             <p>
                 <label>Map Name</label>
-                <textarea id = "Map Name",
+                <textarea name = "Map Name",
+                          id = "Map Name",
                           rows = "1",
                           cols = "40">What do you want to call this map?</textarea>
             </p>
 
             <span>
+                <label>Upload a file or copy-paste your data in!</label>
                 <label class="btn btn-secondary">
-                    <input type="file" id="uploadFile">
+                    <input type="file" name="articles" id="uploadFile">
                     upload file
-                </label>
+                </label><br/>
+                <textarea name="articles_text" id="articles_text">Copy-paste</textarea><br/>
                 <label class="btn btn-secondary">
                     <input type="submit"  id="submitFile">
-                    Process
+                    Go!
                 </label>
             </span>
+
         </div>
-
-
-        <h2></h2>
 
         <hr>
         <p></p>
@@ -55,6 +57,8 @@
         <p></p>
         <button type="button" class="btn btn-generateMap">GENERATE MAP!</button>
         <h3></h3>
+
+    </form>
 
         <script>
             new Tether({
