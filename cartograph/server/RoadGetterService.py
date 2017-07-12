@@ -70,56 +70,38 @@ class RoadGetterService:
     def on_get(self, req, resp):
         #print("hehe ecks dee")
         edges = self.getPathsInViewPort(float(req.params['xmin']), float(req.params['xmax']),
-                                                      float(req.params['ymin']), float(req.params['ymax']), int(req.params['num_paths']))
+                                        float(req.params['ymin']), float(req.params['ymax']),
+                                        int(req.params['num_paths']))
         pathIds = []
         for edge in edges:
             if len(edge) == 2:
                 pathIds.append(edge[1])
         paths = []
+        pathsCovered = []
+        bothWays = []
         for pathId in pathIds:
             [src, dest] = self.edgeIDPath[pathId]
-            srcCord = self.originalVertices[src] #both of the Cord vals are arrays [y,x]
+            pathsCovered.append([src, dest])
+            if ([dest, src] in pathsCovered):
+
+                bothWays.append((src,dest))
+
+                continue
+            srcCord = self.originalVertices[src]  # both of the Cord vals are arrays [y,x]
             dstCord = self.originalVertices[dest]
             srcCord = [srcCord[1], srcCord[0]]
             dstCord = [dstCord[1], dstCord[0]]
             paths.append([src, self.names[src][:-1], srcCord])
             paths.append([dest, self.names[dest][:-1], dstCord])
-        print(paths)
+        jsonDict  = {"paths":  paths, "bothWays": bothWays}
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
-        resp.body = json.dumps(paths)
-#test comment fir slack
-    def formWeightedJSONPaths(self, paths):
-        jsonPaths = {}
-        print(paths)
-        for path in paths:
-            coordList = []
-            print('path', path)
-            if len(path) == 0: continue
-            for i in range(0, len(path)-1):
-                src = path[i]
-                dest = path[i+1]
-                entry = []
-                if src in self.originalVertices:
-                    entry.append(self.originalVertices[src])
-                else:
-                    entry.append(self.bundledVertices[src])
-                if dest in self.originalVertices:
-                    entry.append(self.originalVertices[dest])
-                else:
-                    entry.append(self.bundledVertices[dest])
-                if (src, dest) in self.bundledEdges:
-                    weight = float(self.bundledEdges[(src, dest)])
-                else:
-                    weight = 1
-                entry.append([weight])
-                coordList.append(entry)
-                #print(coordList)
-            if path[0] in jsonPaths:
-                jsonPaths[path[0]].append(coordList)
-            else:
-                jsonPaths[path[0]] = [coordList]
-        return jsonPaths
+        #print(json.dumps(jsonDict))
+        #print("len", len(json.dumps(jsonDict)))
+        resp.body = json.dumps(jsonDict)
+
+
+
 
     def getPath(self, childEdgeId, edgeDict, frontStack=[], backStack=[]):
         if(edgeDict[childEdgeId][0] != edgeDict[childEdgeId][1]):
@@ -161,6 +143,7 @@ class RoadGetterService:
             if xmax > float(self.originalVertices[point][0]) > xmin and ymin < float(self.originalVertices[point][1]) < ymax:
                 pointsinPort.append(point)  # points in port is an array of pointIDs which are strings.
         topPaths = PrioritySet(max_size=num_paths)
+
         for point in pointsinPort:
             if point in self.origEdges:
                 for pair in self.origEdges[point]:

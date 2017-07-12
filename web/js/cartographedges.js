@@ -53,19 +53,41 @@ function drawCurves(linkPairArray){
                 json = [];
 
                 var storedcurves = [];
+                if(linkPairArray['bothWays']){
 
-                for (var i=0; i<linkPairArray.length-1; i+=2){
+                        var bothWays = {}
+                        for(var i = 0; i < linkPairArray.bothWays.length; i++){
+                            bothWays[linkPairArray.bothWays[i]] = true
+                        }
+
+                        console.log('bothways')
+                        console.log(bothWays)
+                        linkPairArray = linkPairArray['paths']
+                }
+
+                for (var i=0; i<linkPairArray.length-1; i+=2) {
+                    var name = "";
                     var pointA = linkPairArray[i][2]; //source x,y
-                    var pointB = linkPairArray[i+1][2]; //dest x,y
+                    var pointB = linkPairArray[i + 1][2]; //dest x,y
+                    var name = linkPairArray[i][1] + " -> " + linkPairArray[i+1][1]; //source + dest name
+                    if(bothWays){
+
+                        if(linkPairArray[i][0]+',' + linkPairArray[i+1][0] in bothWays || linkPairArray[i+1][0]+',' + linkPairArray[i][0] in bothWays){
+                            name = linkPairArray[i][1] + " <-> " + linkPairArray[i+1][1]
+                            console.log(name)
+                        }
+
+                    }
                     json.push({
                     "id": linkPairArray[i][0] + " " + linkPairArray[i+1][0], //source + dest id
-                    "name": linkPairArray[i][1] + " -> " + linkPairArray[i+1][1], //source + dest name
+                    "name": name,
                     "data": {
                         "coords": [
                             pointA[0], pointA[1], pointB[0], pointB[1]
                                   ]
                             }
                     });
+
 
                 }
 

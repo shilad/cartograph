@@ -183,7 +183,10 @@ CG.init = function(layer) {
 
 
         $.get(url, function (response) {
-            console.log(response)
+
+            console.log(response);
+            console.log(response['paths']);
+
             allLayers.push(drawCurves(response))
 
 
