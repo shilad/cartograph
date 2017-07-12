@@ -159,6 +159,20 @@ class AddMapService:
         resp.content_type = 'text/html'
 
     def on_post(self, req, resp):
+        # Marie's old code
+        # def on_post(self, req, resp):
+        #     resp.body = ''
+        #
+        #     map_name = req.get_param('Map Name')
+        #     articles_file = req.get_param('articles')
+        #     articles_text = req.get_param('articles_text')
+        #     if articles_file != "" and not isinstance(articles_file, type(None)):
+        #         articles = articles_file.file.read().split('\n')
+        #     elif articles_text:
+        #         articles = articles_text.split('\r\n')
+        #     else:
+        #         print "No input! How am I supposed to make a map?"  # Change this to an actual error shown on the next page
+
         # Make sure the server is in multi-map mode
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
