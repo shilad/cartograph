@@ -2,19 +2,19 @@ import falcon
 import logging
 import os
 import sys
-import csv
 
-from cartograph.server.ParentService import ParentService
+from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.NewMapService import AddMapService
 from cartograph.server.MapService import MapService
+
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 if __name__ == '__main__' and len(sys.argv) > 1:
-    meta_config = sys.argv[1]
+    meta_config_path = sys.argv[1]
 else:
-    meta_config = os.getenv('CARTOGRAPH_CONFIGS')
-    if not meta_config:
+    meta_config_path = os.getenv('CARTOGRAPH_CONFIGS')
+    if not meta_config_path:
         raise Exception, 'CARTOGRAPH_CONFIGS environment variable not set!'
 
 configs = {}
@@ -25,22 +25,31 @@ logging.info('configuring falcon')
 app = falcon.API()
 
 
+# Determine whether the input file is a multi-config (i.e. paths to multiple files) or a single config file
+with open(meta_config_path, 'r') as meta_config:
+    first_line = meta_config.readline().strip('\r\n')
+    if first_line != METACONF_FLAG:
+        conf_files = [meta_config_path]
+        map_services = {'_multi_map': False}
+    else:
+        conf_files = meta_config.read().split('\n')  # Note that the .readline() above means we skip the first line
+        map_services = {'_multi_map': True}
+
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
-map_services = {}
-with open(meta_config, 'r') as conf_files:
-    for path in conf_files:
-        map_service = MapService(path.strip('\r\n'))
-        map_services[map_service.name] = map_service
-map_services['_meta_config'] = meta_config
-map_services['_last_update'] = os.stat(meta_config)
+for path in conf_files:
+    map_service = MapService(path.strip('\r\n'))
+    map_services[map_service.name] = map_service
+map_services['_meta_config'] = meta_config_path
+map_services['_last_update'] = os.path.getmtime(meta_config_path)
 
 
 # Start a ParentService for each service; a ParentService represents a given service for every map in <map_services>
-app.add_route('/{map_name}/search.json',                         ParentService(map_services, 'search_service'))
+app.add_route('/{map_name}/search.json', ParentService(map_services, 'search_service'))
 app.add_route('/{map_name}/vector/{layer}/{z}/{x}/{y}.topojson', ParentService(map_services, 'tile_service'))
-app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png',      ParentService(map_services, 'mapnik_service'))
-app.add_route('/{map_name}/template/{file}',                     ParentService(map_services, 'template_service'))
-app.add_route('/{map_name}/log',                                 ParentService(map_services, 'logging_service'))
+app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_services, 'mapnik_service'))
+app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
+app.add_route('/{map_name}/point.json', ParentService(map_services, 'related_points_service'))
+app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 

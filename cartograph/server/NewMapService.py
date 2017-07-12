@@ -1,5 +1,9 @@
 import csv
+import re
+
+import falcon
 import os
+import subprocess
 import string
 import codecs
 import pipes
@@ -8,7 +12,7 @@ from cartograph.server.MapService import MapService
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
-ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase
+ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):
@@ -56,15 +60,12 @@ def gen_config(map_name):
     :param map_name: name of new map
     :return: path to the newly-generated config file
     """
-    # Prevent map names with special characters (for security/prevents shell injection)
-    for c in map_name:
-        assert c in ACCEPTABLE_MAP_NAME_CHARS
 
     if not os.path.exists(USER_CONF_DIR):
         os.makedirs(USER_CONF_DIR)
 
     # Generate a new conf file
-    with open('./data/conf_template.txt', 'r') as conf_template_file:
+    with open('data/conf/TEMPLATE.txt', 'r') as conf_template_file:
         conf_template = string.Template(conf_template_file.read())
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
@@ -75,10 +76,11 @@ def gen_config(map_name):
     return config_path
 
 
-def gen_data(map_name, articles):
-    """Generate the data files (i.e. "TSV" files) for a map named <map_name> and a string of articles <articles>.
+def gen_data(target_path, articles):
+    """Generate the data files (i.e. "TSV" files) for a map with a string of articles <articles>
+    in the directory at target_path.
 
-    :param map_name: name of new map
+    :param target_path: path to directory (that will be created) to be filled with data files
     :param articles: list of exact titles of articles for new map
     :return: list of article titles for which there was no exact match in the existing dataset
     """
@@ -102,7 +104,6 @@ def gen_data(map_name, articles):
             bad_articles += [term]
 
     # Create the destination directory (if it doesn't exist already)
-    target_path = os.path.join(BASE_PATH, 'user/', map_name)
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
@@ -111,6 +112,41 @@ def gen_data(map_name, articles):
         filter_tsv(SOURCE_DIR, target_path, ids, filename)
 
     return bad_articles
+
+
+def check_map_name(map_name, map_services):
+    """Check that map_name is not already in map_services, that all of its characters are in
+    the list of acceptable characters, and that there is no existing directory named map_name in
+    data/ext/user (i.e. the place where data for user maps is stored). If any of these conditions
+    is not met, this will raise a ValueError with an appropriate message.
+
+    :param map_name: Name of the map to check
+    :param map_services: (pointer to) dictionary whose keys are names of currently active maps
+    """
+    # FIXME: This does not check if a non-user-generated non-active map with the same name \
+    # FIXME: already exists. I can't think of an easy way to fix that.
+
+    # Prevent map names with special characters (for security/prevents shell injection)
+    bad_chars = set()
+    for c in map_name:
+        if c not in ACCEPTABLE_MAP_NAME_CHARS:
+            bad_chars.add(c)
+    if bad_chars:
+        bad_char_string = ', '.join(['"%s"' % (c,) for c in bad_chars])
+        good_char_string = ', '.join(['"%s"' % (c,) for c in ACCEPTABLE_MAP_NAME_CHARS])
+        raise ValueError('Map name "%s" contains unacceptable characters: [%s]\n'
+                         'Accepted characters are: [%s]' % (map_name, bad_char_string, good_char_string))
+
+    # Prevent adding a map with the same name as a currently-served map
+    # This will prevent adding user-generated maps with the same names as
+    # active non-user-generated maps, e.g. "simple" or "en"
+    if map_name in map_services.keys():
+        raise ValueError('Map name "%s" already in use for an active map!' % (map_name,))
+
+    # Prevent adding a map for which there is already a user-generated map
+    # of the same name
+    if map_name in os.listdir(os.path.join(BASE_PATH, 'user')):
+        raise ValueError('Map name "%s" already taken by a user-generated map' % (map_name,))
 
 
 class AddMapService:
@@ -123,28 +159,32 @@ class AddMapService:
         resp.content_type = 'text/html'
 
     def on_post(self, req, resp):
+        # Make sure the server is in multi-map mode
+        # FIXME: This should be a better error
+        assert self.map_services['_multi_map']
+
+        post_data = falcon.uri.parse_query_string(req.stream.read())
         resp.body = ''
 
-        map_name = req.get_param('Map Name')
-        articles_file = req.get_param('articles')
-        articles_text = req.get_param('articles_text')
-        if articles_file != "" and not isinstance(articles_file, type(None)):
-            articles = articles_file.file.read().split('\n')
-        elif articles_text:
-            articles = articles_text.split('\r\n')
-        else:
-            print "No input! How am I supposed to make a map?"  # Change this to an actual error shown on the next page
+        map_name = post_data['name']
+        articles = re.split('[\\r\\n]+', post_data['articles'])
 
-        # Prevent adding a map with the same name as a currently-served map
-        # This will prevent adding user-generated maps with the same names as
-        # active non-user-generated maps, e.g. "simple" or "en"
-        assert map_name not in self.map_services.keys()
+        check_map_name(map_name, self.map_services)
 
-        bad_articles = gen_data(map_name, articles)
+        target_path = os.path.join(BASE_PATH, 'user/', map_name)
+        bad_articles = gen_data(target_path, articles)
         config_path = gen_config(map_name)
 
         # Build from the new config file
-        os.system("CARTOGRAPH_CONF=""%s"" PYTHONPATH=$PYTHONPATH:.:./cartograph luigi --module cartograph ParentTask --local-scheduler" % config_path)
+        python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
+        working_dir = os.getcwd()
+        exec_path = os.getenv('PATH')
+        subprocess.call(
+            ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
+            env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
+            stdout=open(os.path.join(target_path, 'build.log'), 'w'),
+            stderr=open(os.path.join(target_path, 'build.err'), 'w')
+        )
 
         # Add urls to new map
         map_service = MapService(config_path)
