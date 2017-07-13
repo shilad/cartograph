@@ -12,6 +12,7 @@ from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService
 from cartograph.server.TileService import TileService
+from cartograph.server.UploadService import UploadService
 
 
 class MapService:
@@ -42,3 +43,4 @@ class MapService:
         self.related_points_service = RelatedPointsService(conf, self.point_service)
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
+        self.upload_service = UploadService(conf)
