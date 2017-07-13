@@ -37,6 +37,7 @@ class UploadService:
             })
             return
 
+        # If file exists remove it
         dest = self.upload_dir + '/' + map_name + '.tsv'
         if os.path.isfile(dest):
             os.unlink(dest)
@@ -76,7 +77,7 @@ class UploadService:
                     raise ValueError('unknown type: ' + str(dt))
 
             # Explicitly set first column
-            cols[0] = 'Title'
+            cols[0] = 'title'
             types[0] = 'string'
 
             resp.body = json.dumps({
