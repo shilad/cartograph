@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <!--
+
+        Shilad's notes on fixing this up:
+        1. It doesn't use bootstrap layout. We should use standard bootstrap HTML structure.
+        2. Move the JS into mapmaker.js.
+        3. bootstrap.css should be the "official" bootstrap.css (unchanged by us).
+        3. Move our css in mapmaker.css
+
+        -->
         <meta charset="UTF-8">
         <title>mapCreator</title>
         <meta name="description" content="">
@@ -9,10 +18,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <script src="js/jquery.min.js"></script>
-        <script src="tether-1.3.3/dist/js/tether.js"></script>
         <script src="tether-1.3.3/dist/js/tether.min.js"></script>
         <script src="js/mapCreator.js"></script>
         <script src="js/jquery.form.js"></script>
+        <script src="js/jquery-fileupload.min.js"></script>
 
         <!-- Bootstrap core -->
         <link href="css/bootstrap.css" rel="stylesheet">
@@ -20,51 +29,72 @@
 
     </head>
     <body>
-        <form method="POST" enctype="multipart/form-data">
-            <div id="header">
-                <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
-                <h1>Welcome to Cartograph MapCreator!</h1>
-                <p>You can upload a csv file and generate awesome visualizations here!</p>
+    <div id="header">
+        <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
+        <h1>Welcome to Cartograph MapCreator!</h1>
+        <p>You can upload a csv file and generate awesome visualizations here!</p>
 
-                <p>
-                    <label>Map Name</label>
-                    <textarea name = "Map Name",
-                              id = "Map Name",
-                              rows = "1",
-                              cols = "40">What do you want to call this map?</textarea>
-                </p>
+        <form method="POST" enctype="multipart/form-data" action="../upload" id="uploadForm">
+        <p>
+            <label>Map Name</label>
+            <input type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
+        </p>
 
-                <label>Upload a file or copy-paste your data in!</label>
-                <label class="btn btn-secondary">
-                    <input type="file" name="articles" id="uploadFile">
-                    upload file
-                </label><br/>
-                <textarea name="articles_text" id="articles_text" cols="40" rows="3">Copy-paste</textarea><br/>
-                <label class="btn btn-secondary">
-                    <input type="submit"  id="submitFile">
-                    Process File
-                </label>
-                <h2></h2>
-            </div>
-
-            <hr>
-            <p></p>
-            <p id="newRequirements"></p>
-
-            <button type="button" class="btn btn-addVisualization">Add Visualization</button>
-            <p></p>
-            <button type="button" class="btn btn-generateMap">GENERATE MAP!</button>
-            <h3></h3>
-
+        <label>Upload a file or copy-paste your data in!</label>
+        <label class="btn btn-secondary">
+            <input type="file" name="file" id="uploadFile">
+            upload file
+        </label><br/>
+        <textarea name="articles_text" id="file_text" cols="40" rows="3">Copy-paste</textarea><br/>
+        <label class="btn btn-secondary">
+            <input type="submit"  id="submitFile">
+            Process File
+        </label>
+        <h2></h2>
         </form>
 
+    </div>
+
+    <hr>
+    <p></p>
+    <p id="newRequirements"></p>
+
+    <button type="button" class="btn btn-addVisualization">Add Visualization</button>
+    <p></p>
+    <button type="button" class="btn btn-generateMap">GENERATE MAP!</button>
+    <h3></h3>
+
+
         <script>
-            new Tether({
-                element: '.element',
-                target: '.content-box',
-                attachment: 'middle center',
-                targetAttachment: 'middle center',
-                targetModifier: 'visible'
+            var uploadForm = $("#uploadForm");
+            // TODO: Move this into mapmaker.js
+            uploadForm.on('submit', function(event) {
+
+                event.stopPropagation(); // Stop stuff happening
+                event.preventDefault(); // Totally stop stuff happening
+
+
+                // Declare a form data object
+                var data = new FormData();
+                data.append('map_name', $("#map_name").val());
+                var file = uploadForm.find('input[type=file]')[0].files[0];
+                data.append('file', file);
+
+                // Perform Ajax call
+                $.ajax($.extend({}, {
+                    url: uploadForm.attr('action'),
+                    type: 'POST',
+                    data: data,
+                    cache: false,
+                    processData: false, // Don't process the files, we're using FormData
+                    contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+                    success: function(data, textStatus, jqXHR){
+                        // TODO: This should move the form forward
+                        console.log(event, data);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){ console.log(jqXHR, textStatus, errorThrown); }
+                }, {}));
+
             });
         </script>
 

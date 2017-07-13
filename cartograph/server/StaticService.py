@@ -6,7 +6,7 @@ from cartograph.server.ServerUtils import getMimeType
 
 
 class StaticService:
-    def __init__(self, config):
+    def __init__(self, config=None):
         self.config = config
         self.staticDir = './web'
 

@@ -6,7 +6,8 @@ import sys
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.NewMapService import AddMapService
 from cartograph.server.MapService import MapService
-
+from cartograph.server.StaticService import StaticService
+from cartograph.server.UploadService import UploadService
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
@@ -51,14 +52,16 @@ app.add_route('/{map_name}/vector/{layer}/{z}/{x}/{y}.topojson', ParentService(m
 app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_services, 'mapnik_service'))
 app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
 app.add_route('/{map_name}/point.json', ParentService(map_services, 'related_points_service'))
-app.add_route('/{map_name}/upload', ParentService(map_services, 'upload_service'))
 app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
-app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 
 # Add a hook for adding new maps, passing it a reference to the map_services dict, so it can add new maps to it
+app.add_route('/upload', UploadService(map_services, 'tmp/upload'))
 add_map_service = AddMapService(map_services)
-app.add_route('/add_map.html', add_map_service)
+app.add_route('/addMap', add_map_service)
+
+app.add_sink(StaticService().on_get, '/static')
+app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You

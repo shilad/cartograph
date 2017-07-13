@@ -12,9 +12,9 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-input{
-  display:none;
-}
+/*input{*/
+  /*display:none;*/
+/*}*/
 
 body {
   margin: 1em 1em 1em 1em ;
