@@ -30,14 +30,65 @@ $(document).ready(function(){
     $("#submitFile").click(function(){
         $("h2").append("<h3>File being processed...</h3>");
     });
-    $(".btn-addVisualization").click(function(){
-        appendVisualizationRequirements();
-    });
+    // $(".btn-addVisualization").click(function(){
+    //     appendVisualizationRequirements();
+    //     createSelectFields(data['columns']);
+    //
+    // });
     $(".btn-generateMap").click(function(){
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
         createMapDescription();
     });
+
+    var uploadForm = $("#uploadForm");
+    uploadForm.on('submit', function(event) {
+
+        event.stopPropagation(); // Stop stuff happening
+        event.preventDefault(); // Totally stop stuff happening
+
+        // Declare a form data object
+        var data = new FormData();
+        data.append('map_name', $("#map_name").val());
+        var file = uploadForm.find('input[type=file]')[0].files[0];
+        data.append('file', file);
+
+        // Perform Ajax call
+        $.ajax($.extend({}, {
+            url: uploadForm.attr('action'),
+            type: 'POST',
+            data: data,
+            cache: false,
+            processData: false, // Don't process the files, we're using FormData
+            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+            success: function(data, textStatus, jqXHR){
+                CG.uploadData = data;
+                $("#mapConfig").show();
+                $(".btn-addVisualization").click(function(){
+                    appendVisualizationRequirements();
+                    var dataCol = data.columns;
+                    dataCol[0] = 'Fields';
+                    createSelectFields(dataCol);
+                });
+            },
+            error: function(jqXHR, textStatus, errorThrown){ console.log(jqXHR, textStatus, errorThrown); }
+        }, {}))
+
+    });
+
 });
+
+function createSelectFields(dataCol){
+    var fields = document.getElementById("fields"), // get the select
+        df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
+    for (var i = 0; i < dataCol.length; i++) { // loop, i like 42.
+        var option = document.createElement('option'); // create the option element
+        option.value = dataCol[i]; // set the value property
+        option.appendChild(document.createTextNode(dataCol[i])); // set the textContent in a safe way.
+        df.appendChild(option); // append the option to the document fragment
+    }
+    fields.appendChild(df); // append the document fragment to the DOM
+}
+
 
 var fullColorDiv = [
     '<div id="scheme1" style="width: 100px;">',
@@ -69,9 +120,7 @@ var fullColorDiv = [
 
 var newReqs = [
     '<div>',
-    '<select>',
-        '<option value="Field">Field</option>',
-    '</select>',
+    '<select class="selectpicker" id="fields"></select>',
     '<p></p>',
     '<select>',
         '<option value="Type">Type</option>',
