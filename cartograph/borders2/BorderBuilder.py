@@ -95,6 +95,11 @@ class BorderBuilder:
         return borders
 
     def createDictOfPoints(self, borders):
+        '''
+        This is a messy method, will add more comments/possibly refactor later
+        :param borders:
+        :return:
+        '''
         tempDictOfPoints = {} # key = (x,y) value = pointId
         finalDictOfPoints = {} #key = pointId value = (x,y)
 
