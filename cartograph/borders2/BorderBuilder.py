@@ -97,6 +97,8 @@ class BorderBuilder:
     def createDictOfPoints(self, borders):
         '''
         This is a messy method, will add more comments/possibly refactor later
+        There seems to have a bug when adding lines that are part of new ring
+        check lineId 300 and 301
         :param borders:
         :return:
         '''
@@ -137,9 +139,9 @@ class BorderBuilder:
                     currentLineId = tempDictOfLines[(scrId, destId)]
                     finalDictOfRings[ringId].append(currentLineId)
                 ringId += 1
-        print "points:", finalDictOfPoints
+        #print "points:", finalDictOfPoints
         print "lines:", finalDictOfLines
-        print "rings:", finalDictOfRings
+        #print "rings:", finalDictOfRings
         return finalDictOfPoints, finalDictOfLines,finalDictOfRings
 
 
