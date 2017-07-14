@@ -23,37 +23,6 @@ body {
   align-content: left;
 }
 
-#ramps {
-  padding: 0 5px;
-}
-
-#singlehue { display: none; max-width: 78px; }
-
-#scheme1 {
-  float: left;
-  margin-right: 5px;
-  overflow: hidden;
-}
-
-.ramp {
-  float: left;
-  padding: 5px 5px 0 5px;
-  cursor: pointer;
-}
-
-.ramp:hover {
-  background-color: #ccc;
-}
-
-.ramp.selected {
-  background-color: #999;
-}
-
-.ramp rect, #color-chips rect {
-  stroke: #333;
-  stroke-width: .5px;
-}
-
 article,
 aside,
 footer,
