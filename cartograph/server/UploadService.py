@@ -7,6 +7,7 @@ import shutil
 
 from NewMapService import check_map_name
 
+
 class UploadService:
     def __init__(self, map_services, upload_dir):
         """
@@ -30,10 +31,10 @@ class UploadService:
             check_map_name(map_name, self.map_services)
         except ValueError as e:
             resp.body = json.dumps({
-                'success' : False,
-                'map_name' : map_name,
-                'error' : str(e),
-                'stacktrace' : repr(e),
+                'success': False,
+                'map_name': map_name,
+                'error': str(e),
+                'stacktrace': repr(e),
             })
             return
 
@@ -64,45 +65,68 @@ class UploadService:
             df = pd.read_csv(dest, sep='\t')
             nrows, ncols = df.shape
             cols = df.columns.tolist()
-            assert(len(cols) == ncols)
-            types = []
-            for dt in list(df.dtypes):
-                if dt in (np.str, np.object):
-                    types.append('string')
-                elif dt == np.int64:
-                    types.append('int')
-                elif dt == np.float64:
-                    types.append('float')
-                else:
-                    raise ValueError('unknown type: ' + str(dt))
+            assert (len(cols) == ncols)
+
+            # # Detect types of data
+            # types = []
+            # for dt in list(df.dtypes):
+            #     if dt in (np.str, np.object):
+            #         types.append('string')
+            #     elif dt == np.int64:
+            #         types.append('int')
+            #     elif dt == np.float64:
+            #         types.append('float')
+            #     else:
+            #         raise ValueError('unknown type: ' + str(dt))
 
             # Explicitly set first column
             cols[0] = 'title'
-            types[0] = 'string'
+            # types[0] = 'string'
+            types = ['string']
+            types.extend(self.detectDataTypes(df))  # Not set types for first column
 
             resp.body = json.dumps({
-                'success' : True,
-                'map_name' : map_name,
-                'columns' : cols,
-                'types' : types,
-                'num_rows' : nrows
+                'success': True,
+                'map_name': map_name,
+                'columns': cols,
+                'types': types,
+                'num_rows': nrows
             })
         except ValueError as e1:
             resp.body = json.dumps({
-                'success' : False,
-                'map_name' : map_name,
-                'error' : str(e1),
-                'stacktrace' : repr(e1),
+                'success': False,
+                'map_name': map_name,
+                'error': str(e1),
+                'stacktrace': repr(e1),
             })
 
         except TypeError as e2:
             resp.body = json.dumps({
-                'success' : False,
-                'map_name' : map_name,
-                'error' : str(e2),
-                'stacktrace' : repr(e2),
+                'success': False,
+                'map_name': map_name,
+                'error': str(e2),
+                'stacktrace': repr(e2),
             })
 
+    def detectDataTypes(self, df):
+        types = []
+        for col in df.columns[1:]:
+            dt = df[col].dtype
+            type = {'sequential': False, 'diverging': False, 'qualitative': False}
+            if dt in (np.str, np.object):
+                numUnique = len(df[col].unique())
+                if numUnique <= 9:
+                    type['qualitative'] = True
+                    types.append(type)
+                else:
+                    raise ValueError('too many classes for qualitative data: ' + str(numUnique))
+            elif dt in (np.int64, np.float64):
+                type['sequential'] = True
+                type['diverging'] = True
+                if len(df[col].unique()) <= 9:
+                    type['qualitative'] = True
+                types.append(type)
+            else:
+                raise ValueError('unknown type: ' + str(dt))
 
-
-
+        return types

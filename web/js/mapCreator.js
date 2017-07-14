@@ -61,13 +61,15 @@ $(document).ready(function(){
             processData: false, // Don't process the files, we're using FormData
             contentType: false, // Set content type to false as jQuery will tell the server its a query string request
             success: function(data, textStatus, jqXHR){
+                console.log(data);
                 CG.uploadData = data;
                 $("#mapConfig").show();
                 $(".btn-addVisualization").click(function(){
                     appendVisualizationRequirements();
-                    var dataCol = data.columns;
-                    dataCol[0] = 'Fields';
-                    createSelectFields(dataCol);
+                    CG.data = data;
+                    // Automatically chosen a field and corresponding data type.
+                    createSelectFields(data.columns);
+                    createSelectTypes(document.getElementById("fields"));
                 });
             },
             error: function(jqXHR, textStatus, errorThrown){ console.log(jqXHR, textStatus, errorThrown); }
@@ -78,17 +80,42 @@ $(document).ready(function(){
 });
 
 function createSelectFields(dataCol){
+    // Create a drop down list of fields
     var fields = document.getElementById("fields"), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
-    for (var i = 0; i < dataCol.length; i++) { // loop, i like 42.
+    // dataCol[0] = 'Fields'
+    for (var i = 1; i < dataCol.length; i++) {
         var option = document.createElement('option'); // create the option element
         option.value = dataCol[i]; // set the value property
+        // if (i == 0){
+        //     option.disabled = 'disabled';
+        //     option.selected = 'true';
+        // }
         option.appendChild(document.createTextNode(dataCol[i])); // set the textContent in a safe way.
         df.appendChild(option); // append the option to the document fragment
     }
     fields.appendChild(df); // append the document fragment to the DOM
 }
 
+function createSelectTypes(typesSelect){
+    // Create a drop down list of types
+    var col = typesSelect.selectedIndex;
+    var types = document.getElementById("types"), // get the select
+        df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
+    // Remove child nodes of types from previously selected fields.
+    while (types.firstChild) {
+        types.removeChild(types.firstChild);
+    }
+    for (var key in CG.uploadData.types[col]) {
+        if (CG.uploadData.types[col][key]){
+            var option = document.createElement('option');
+            option.value = key;
+            option.appendChild(document.createTextNode(key)); // set the textContent in a safe way.
+            df.appendChild(option); // append the option to the document fragment
+        }
+    }
+    types.appendChild(df); // append the document fragment to the DOM
+}
 
 var fullColorDiv = [
     '<div id="scheme1" style="width: 100px;">',
@@ -120,14 +147,9 @@ var fullColorDiv = [
 
 var newReqs = [
     '<div>',
-    '<select class="selectpicker" id="fields"></select>',
+    '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
     '<p></p>',
-    '<select>',
-        '<option value="Type">Type</option>',
-        '<option value="Quantitative">Quantitative</option>',
-        '<option value="Divergent">Divergent</option>',
-        '<option value="Qualitative">Qualitative</option>',
-    '</select>',
+    '<p> Pick a type <select id="types"></select> </p>',
     '<p></p>',
     '<label>Pick a Color Scheme:</label>',
     fullColorDiv,
@@ -144,6 +166,35 @@ var newReqs = [
     '<hr>',
     '</div>'
     ].join("\n");
+
+// var newReqs = [
+//      '<div>',
+//      '<select>',
+//          '<option value="Field">Field</option>',
+//      '</select>',
+//      '<p></p>',
+//      '<select>',
+//          '<option value="Type">Type</option>',
+//          '<option value="Quantitative">Quantitative</option>',
+//          '<option value="Divergent">Divergent</option>',
+//          '<option value="Qualitative">Qualitative</option>',
+//      '</select>',
+//      '<p></p>',
+//      '<label>Pick a Color Scheme:</label>',
+//      fullColorDiv,
+//      '<br>',
+//      '<p></p>',
+//      '<p>',
+//          '<label>Title:</label>',
+//          '<textarea id = "Title"rows = "1"cols = "40">What do you want to call this visualization?</textarea>',
+//      '</p>',
+//      '<p>',
+//          '<label>Description:</label>',
+//          '<textarea id = "Description"rows = "3"cols = "40">This shows...</textarea>',
+//      '</p>',
+//      '<hr>',
+//      '</div>'
+//      ].join("\n");
 
 function appendVisualizationRequirements(){
     $("#newRequirements").append(newReqs);
