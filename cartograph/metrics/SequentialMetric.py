@@ -1,7 +1,8 @@
 import colour
 from collections import defaultdict
 import palettable.colorbrewer.sequential as sq
-import palettable
+
+from cartograph.metrics.Utils import color_from_code
 
 
 class SequentialMetric:
@@ -11,8 +12,9 @@ class SequentialMetric:
         # assert (len(fields) == 1)
         self.fields = fields
         self.field = fields[0]
-        self.color = colorCode.colors
-        self.numColors = colorCode.number
+        self.palette = getattr(sq, colorCode)
+        self.color = self.palette.colors
+        self.numColors = self.palette.number
         self.neutralColor = colour.Color(neutralColor).rgb
         self.maxValue = maxValue
         self.percentile = percentile
@@ -55,7 +57,7 @@ class SequentialMetric:
         
         # Discrete mode
         if self.mode == 'd':
-            return tuple(self.color[value]) + (alpha,)
+            return color_from_code(self.color[int(value)-1]) + (alpha,)
         
         # Continuous mode (pending)
         if self.mode == 'c':
