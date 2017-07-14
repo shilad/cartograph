@@ -20,6 +20,7 @@ class QualitativeMetric:
         assert(len(fields) == 1)  # FIXME: should be a more informative error
         color_palette = getattr(q, colorCode)
         assert(color_palette.number == len(scale))  # FIXME: should be more informative error
+        self.fields = fields
         self.field = fields[0]
         self.scale = scale
         self.sqrt = sqrt  # FIXME: Does this do anything? If not, remove.
