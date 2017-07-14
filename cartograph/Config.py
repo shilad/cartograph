@@ -64,12 +64,15 @@ def initConf(confFile=None):
 
     if confFile is None:
         confFile = os.environ.get('CARTOGRAPH_CONF', 'conf.txt')
+
     logger.info('using configuration file %s' % (`confFile`))
 
     if os.path.isfile(confFile):
         with open(confFile, "r") as updateFile:
             conf.readfp(updateFile)
+
     else:
+
         logger.warn('configuration file %s does not exist' % (`confFile`))
 
     def confSample(target, section, key, n=None):

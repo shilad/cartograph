@@ -6,7 +6,7 @@ from VoronoiWrapper import VoronoiWrapper
 from cartograph import Utils
 
 logger = logging.getLogger('luigi-interface')
-
+from cartograph import Config
 
 class BorderBuilder:
     def __init__(self, config):
@@ -14,10 +14,13 @@ class BorderBuilder:
         self.minNumInCluster = config.getint("PreprocessingConstants", "min_num_in_cluster")
         self.blurRadius = config.getint("PreprocessingConstants", "blur_radius")
         self.minBorderNoiseLength = config.getfloat("PreprocessingConstants", "min_border_noise_length")
+
         self._initialize(config)
 
     def _initialize(self, config):
+
         if config.sampleBorders():
+
             featureDict = Utils.read_features(config.getSample("GeneratedFiles", "coordinates_with_water"),
                                               config.getSample("GeneratedFiles", "clusters_with_water"),
                                               config.getSample("GeneratedFiles", "denoised_with_id"))
@@ -33,6 +36,7 @@ class BorderBuilder:
                 self.clusterLabels.append(int(featureDict[article]["cluster"]))
 
     def build(self):
+
         borders = defaultdict(list)
         waterLabel = max(self.clusterLabels)
         logger.info("Starting Voronoi tessellation.")
@@ -75,6 +79,7 @@ class BorderBuilder:
         #make a set of all points
         #create a dictionary where the id is point id, value is x,y (ids are created through enumerating)
         #maybe play around with collapsing/creating holes
+        print(borders)
         BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
         # remove water points
         del borders[waterLabel]
@@ -87,3 +92,8 @@ class BorderBuilder:
                     continent[i] = (vertex.x, vertex.y)
 
         return borders
+
+Config.initConf("./data/conf/summer2017_simple.txt")
+
+bb = BorderBuilder(Config.get())
+bb.build()
