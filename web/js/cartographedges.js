@@ -74,7 +74,6 @@ function drawCurves(linkPairArray){
 
                         if(linkPairArray[i][0]+',' + linkPairArray[i+1][0] in bothWays || linkPairArray[i+1][0]+',' + linkPairArray[i][0] in bothWays){
                             name = linkPairArray[i][1] + " <-> " + linkPairArray[i+1][1]
-                            console.log(name)
                         }
 
                     }
