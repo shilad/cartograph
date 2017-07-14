@@ -79,7 +79,8 @@ class BorderBuilder:
         #make a set of all points
         #create a dictionary where the id is point id, value is x,y (ids are created through enumerating)
         #maybe play around with collapsing/creating holes
-        print(borders)
+        #print(borders)
+        points, lines, rings = self.createDictOfPoints(borders)
         BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
         # remove water points
         del borders[waterLabel]
@@ -92,6 +93,51 @@ class BorderBuilder:
                     continent[i] = (vertex.x, vertex.y)
 
         return borders
+
+    def createDictOfPoints(self, borders):
+        tempDictOfPoints = {} # key = (x,y) value = pointId
+        finalDictOfPoints = {} #key = pointId value = (x,y)
+
+        tempDictOfLines = {} # key = (pointId, pointId) value = lineId
+        finalDictOfLines = {} #key = lineId value = (pointId, pointId)
+
+        finalDictOfRings = defaultdict(list) # key = ringId value = list of linesID that make that ring
+        pointId = 0
+        lineId = 0
+        ringId = 0
+        for key in borders.keys():
+            listOfVertices = borders[key]
+            for ring in listOfVertices:
+                previousVertex = None
+                pair = 0 #there is an edge between every 2 points (i.g between point 1 and 2, and then between 2 and 3.
+                        # So will create a line between points only when pair is  odd
+                for vertex in ring:
+                    xy = (vertex.x, vertex.y)
+                    if(xy not in tempDictOfPoints):
+                        tempDictOfPoints[xy] = pointId
+                        finalDictOfPoints[pointId] = xy
+                        pointId += 1
+                    if not previousVertex or pair % 2 == 0:
+                        previousVertex = xy
+                        pair += 1
+                        continue
+                    scrId = tempDictOfPoints[previousVertex]
+                    destId = tempDictOfPoints[xy]
+                    if((scrId, destId) not in tempDictOfLines):
+                        tempDictOfLines[(scrId, destId)] = lineId
+                        finalDictOfLines[lineId] = (scrId, destId)
+                        lineId += 1
+                    previousVertex = xy
+                    pair += 1
+                    currentLineId = tempDictOfLines[(scrId, destId)]
+                    finalDictOfRings[ringId].append(currentLineId)
+                ringId += 1
+        print "points:", finalDictOfPoints
+        print "lines:", finalDictOfLines
+        print "rings:", finalDictOfRings
+        return finalDictOfPoints, finalDictOfLines,finalDictOfRings
+
+
 
 Config.initConf("./data/conf/summer2017_simple.txt")
 
