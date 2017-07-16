@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 from collections import defaultdict
 
 from BorderProcessor import BorderProcessor
@@ -80,7 +81,7 @@ class BorderBuilder:
         #create a dictionary where the id is point id, value is x,y (ids are created through enumerating)
         #maybe play around with collapsing/creating holes
         #print(borders)
-        points, lines, rings = self.createDictOfPoints(borders)
+        points, lines, rings, regions = self.createDictOfPoints(borders)
         BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
         # remove water points
         del borders[waterLabel]
@@ -91,58 +92,77 @@ class BorderBuilder:
             for continent in borders[label]:
                 for i, vertex in enumerate(continent):
                     continent[i] = (vertex.x, vertex.y)
-
+        #dictionaries = self.createDictOfPoints(borders)
+        #return dictionaries
         return borders
 
     def createDictOfPoints(self, borders):
-        '''
-        This is a messy method, will add more comments/possibly refactor later
-        There seems to have a bug when adding lines that are part of new ring
-        check lineId 300 and 301
-        :param borders:
-        :return:
-        '''
-        tempDictOfPoints = {} # key = (x,y) value = pointId
-        finalDictOfPoints = {} #key = pointId value = (x,y)
-
-        tempDictOfLines = {} # key = (pointId, pointId) value = lineId
-        finalDictOfLines = {} #key = lineId value = (pointId, pointId)
-
-        finalDictOfRings = defaultdict(list) # key = ringId value = list of linesID that make that ring
+        tempDictOfPoints = {}  # key = (x,y) value = pointId
+        finalDictOfPoints = {}  # key = pointId value = (x,y)
         pointId = 0
-        lineId = 0
-        ringId = 0
-        for key in borders.keys():
-            listOfVertices = borders[key]
-            for ring in listOfVertices:
-                previousVertex = None
-                pair = 0 #there is an edge between every 2 points (i.g between point 1 and 2, and then between 2 and 3.
-                        # So will create a line between points only when pair is  odd
-                for vertex in ring:
+        for clusterLabels in borders.keys():
+            for regions in borders[clusterLabels]:
+                for vertex in regions:
                     xy = (vertex.x, vertex.y)
-                    if(xy not in tempDictOfPoints):
+                    if (xy not in tempDictOfPoints):
                         tempDictOfPoints[xy] = pointId
                         finalDictOfPoints[pointId] = xy
                         pointId += 1
-                    if not previousVertex or pair % 2 == 0:
-                        previousVertex = xy
-                        pair += 1
-                        continue
-                    scrId = tempDictOfPoints[previousVertex]
-                    destId = tempDictOfPoints[xy]
-                    if((scrId, destId) not in tempDictOfLines):
-                        tempDictOfLines[(scrId, destId)] = lineId
-                        finalDictOfLines[lineId] = (scrId, destId)
+
+        tempDictOfLines = {}  # key = (pointId, pointId) value = lineId
+        finalDictOfLines = {}  # key = lineId value = (pointId, pointId)
+        lineId = 0
+        for clusterLabels in borders.keys():
+            for regions in borders[clusterLabels]:
+                previousVertex = None
+                for x in range(len(regions) + 1):
+                    if previousVertex is not None:
+                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y)],
+                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y)])
+                        tempDictOfLines[pointidPair] = lineId
+                        finalDictOfLines[lineId] = pointidPair
                         lineId += 1
-                    previousVertex = xy
-                    pair += 1
-                    currentLineId = tempDictOfLines[(scrId, destId)]
-                    finalDictOfRings[ringId].append(currentLineId)
+                    previousVertex = regions[x % len(regions)]
+
+        tempDictOfRings = {} # key = (lineId, lineId... lineId) value =  ringId
+        finalDictOfRings = defaultdict(tuple)  # key = ringId value = (lineId, lineId... lineId)
+        ringId = 0
+        for clusterLabels in borders.keys():
+            for regions in borders[clusterLabels]:
+                previousVertex = None
+                for x in range(len(regions) + 1):
+                    if previousVertex is not None:
+                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y)],
+                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y)])
+                        lineId = tempDictOfLines[pointidPair]
+                        finalDictOfRings[ringId] += (lineId,)
+                    if x == len(regions):
+                        lineIds = finalDictOfRings[ringId]
+                        tempDictOfRings[lineIds] = ringId
+                    previousVertex = regions[x % len(regions)]
                 ringId += 1
-        #print "points:", finalDictOfPoints
+
+        tempDictOfRegions = {} #key = (ringId, ringId... ringId), value = clusterId
+        finalDictOfRegions = defaultdict(tuple)  # key = clusterId value = (ringId, ringId... ringId)
+        for clusterLabels in borders.keys():
+            for regions in borders[clusterLabels]:
+                lineIds = tuple()
+                previousVertex = None
+                for x in range(len(regions) + 1):
+                    if previousVertex is not None:
+                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y)],
+                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y)])
+                        lineId = tempDictOfLines[pointidPair]
+                        lineIds += (lineId,)
+                    if x == len(regions):
+                        finalDictOfRegions[clusterLabels] += (tempDictOfRings[lineIds],)
+                        tempDictOfRegions[(tempDictOfRings[lineIds],)] = clusterLabels
+                    previousVertex = regions[x % len(regions)]
+        print "points:", finalDictOfPoints
         print "lines:", finalDictOfLines
-        #print "rings:", finalDictOfRings
-        return finalDictOfPoints, finalDictOfLines,finalDictOfRings
+        print "rings:", finalDictOfRings
+        print "regions:", finalDictOfRegions
+        return finalDictOfPoints, finalDictOfLines, finalDictOfRings, finalDictOfRegions
 
 
 
