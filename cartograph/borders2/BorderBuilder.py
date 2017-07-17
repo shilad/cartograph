@@ -81,9 +81,12 @@ class BorderBuilder:
         #create a dictionary where the id is point id, value is x,y (ids are created through enumerating)
         #maybe play around with collapsing/creating holes
         #print(borders)
-        points, lines, rings, regions = self.createDictOfPoints(borders)
-        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel, points, lines, rings,
-                        regions).process()
+        temppoints, finalpoints = self.createDictOfPoints(borders)
+        templines, finallines = self.createDictOfLines(borders, temppoints)
+        temprings, finalrings = self.createDictOfRings(borders, temppoints, templines)
+        tempregions, finalregions = self.createDictOfRegions(borders, temppoints, templines, temprings)
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel, finalpoints, finallines,
+                        finalrings, finalregions).process()
         # remove water points
         del borders[waterLabel]
         # make a big point list
@@ -108,7 +111,9 @@ class BorderBuilder:
                         tempDictOfPoints[info] = pointId
                         finalDictOfPoints[pointId] = info
                         pointId += 1
+        return tempDictOfPoints, finalDictOfPoints
 
+    def createDictOfLines(self, borders, tempDictOfPoints):
         tempDictOfLines = {}  # key = (pointId, pointId) value = lineId
         finalDictOfLines = {}  # key = lineId value = (pointId, pointId)
         lineId = 0
@@ -126,7 +131,9 @@ class BorderBuilder:
                         finalDictOfLines[lineId] = pointidPair
                         lineId += 1
                     previousVertex = regions[x % len(regions)]
+        return tempDictOfLines, finalDictOfLines
 
+    def createDictOfRings(self, borders, tempDictOfPoints, tempDictOfLines):
         tempDictOfRings = {} # key = (lineId, lineId... lineId) value =  ringId
         finalDictOfRings = defaultdict(tuple)  # key = ringId value = (lineId, lineId... lineId)
         ringId = 0
@@ -147,7 +154,9 @@ class BorderBuilder:
                         tempDictOfRings[lineIds] = ringId
                     previousVertex = regions[x % len(regions)]
                 ringId += 1
+        return tempDictOfRings, finalDictOfRings
 
+    def createDictOfRegions(self, borders, tempDictOfPoints, tempDictOfLines, tempDictOfRings):
         tempDictOfRegions = {} #key = (ringId, ringId... ringId), value = clusterId
         finalDictOfRegions = defaultdict(tuple)  # key = clusterId value = (ringId, ringId... ringId)
         for clusterLabels in borders.keys():
@@ -167,13 +176,7 @@ class BorderBuilder:
                         finalDictOfRegions[clusterLabels] += (tempDictOfRings[lineIds],)
                         tempDictOfRegions[(tempDictOfRings[lineIds],)] = clusterLabels
                     previousVertex = regions[x % len(regions)]
-        print "points:", finalDictOfPoints
-        print "lines:", finalDictOfLines
-        print "rings:", finalDictOfRings
-        print "regions:", finalDictOfRegions
-        return finalDictOfPoints, finalDictOfLines, finalDictOfRings, finalDictOfRegions
-
-
+        return tempDictOfRegions, finalDictOfRegions
 
 Config.initConf("./data/conf/summer2017_simple.txt")
 
