@@ -192,7 +192,7 @@ class BorderProcessor:
                 processedVertices = np.roll(processedVertices, -i - 1, axis=0)
                 index = startStop[1] + 1
                 break
-        # now that everything is in order, find the section with the smallest start value and move to to the front
+        # now that everything is in order, find the section with the smallest start value and move to the front
         # this will only be necessary if there were no regions overlapping 0
         smallestStartValIndex = np.argmin(regionStartStopList, axis=0)[0]
         regionStartStopList = np.roll(regionStartStopList, -smallestStartValIndex, axis=0)
@@ -207,6 +207,39 @@ class BorderProcessor:
                 processedRegion.append(region[index])
                 index += 1
         return processedRegion
+
+    def makeNewRegionFromProcessed_new(self, ring, processedVertices, ringStartStopList, reverse=False):
+        assert len(processedVertices) == len(ringStartStopList)
+        if reverse:
+            # reverse both startStopList and processed vertices (both inner and outer lists)
+            ringStartStopList = [list(reversed(startStop)) for startStop in reversed(ringStartStopList)]
+            processedVertices = [list(reversed(contiguous)) for contiguous in reversed(processedVertices)]
+        processedRing = []
+        index = 0
+        startStopListIndex = 0
+        # find the section that overlaps 0 (if any) and move it to the back of the list
+        # also move the start index to 1 more than the end of the overlapping region
+        for i, startStop in enumerate(ringStartStopList):
+            if startStop[0] > startStop[1]:
+                ringStartStopList = np.roll(ringStartStopList, -i - 1, axis=0)
+                processedVertices = np.roll(processedVertices, -i - 1, axis=0)
+                index = startStop[1] + 1
+                break
+        # now that everything is in order, find the section with the smallest start value and move to the front
+        # this will only be necessary if there were no regions overlapping 0
+        smallestStartValIndex = np.argmin(ringStartStopList, axis=0)[0]
+        ringStartStopList = np.roll(ringStartStopList, -smallestStartValIndex, axis=0)
+        processedVertices = np.roll(processedVertices, -smallestStartValIndex, axis=0)
+        while index < len(ring):
+            if startStopListIndex < len(ringStartStopList) and index == ringStartStopList[startStopListIndex][0]:
+                processedRing.extend(processedVertices[startStopListIndex])
+                start, stop = ringStartStopList[startStopListIndex]
+                index += len(self.wrapRange(start, stop, len(ring)))
+                startStopListIndex += 1
+            else:
+                processedRing.append(ring[index])
+                index += 1
+        return processedRing
 
     def makeNewRegions(self, region1, region2):
         """
@@ -264,6 +297,7 @@ class BorderProcessor:
         self.processVertices_new(commonPoints, circular)
         #print 'commonPoints', commonPoints
         pass
+
     def processVertices_new(self, commonPoints, circular):
         if len(commonPoints) < 2:
             return commonPoints
@@ -277,15 +311,21 @@ class BorderProcessor:
             x = self.blur(x, circular, self.blurRadius)
             y = self.blur(y, circular, self.blurRadius)
             for i, pointId in enumerate(commonPoints):
-
                 self.points[pointId] = (x[i], y[i])
-
-
         pass
 
     def getCoordinatesOfPointId(self, pointId):
-        coordinates = self.points[pointId]
+        coordinates = self.points[pointId][0], self.points[pointId][1]
         return coordinates
+
+    def getIsOnCoastOfPointId(self, pointId):
+        IsOnCoast = self.points[pointId][2]
+        return IsOnCoast
+
+    def getRegionPointsOfPointId(self, pointId):
+        regionPoints = self.points[pointId][3]
+        return regionPoints
+
     def process(self):
         """
         Returns:
