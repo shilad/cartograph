@@ -3,12 +3,16 @@ from Noiser import NoisyEdgesMaker
 
 
 class BorderProcessor:
-    def __init__(self, borders, blurRadius, minBorderNoiseLength, waterLabel):
+    def __init__(self, borders, blurRadius, minBorderNoiseLength, waterLabel, points = {}, lines = {}, rings = {}, regions = {}):
         self.borders = borders
         self.blurRadius = blurRadius
         self.minBorderNoiseLength = minBorderNoiseLength
         self.waterLabel = waterLabel
         self.noise = False
+        self.points = points
+        self.lines = lines
+        self.rings = rings
+        self.regions = regions
 
     @staticmethod
     def wrapRange(start, stop, length, reverse=False):
@@ -171,6 +175,7 @@ class BorderProcessor:
         return [], False, False
 
     def makeNewRegionFromProcessed(self, region, processedVertices, regionStartStopList, reverse=False):
+        '''What is this doing??? '''
         assert len(processedVertices) == len(regionStartStopList)
         if reverse:
             # reverse both startStopList and processed vertices (both inner and outer lists)
@@ -214,30 +219,73 @@ class BorderProcessor:
         # print('a lens are ', len(region1), 'to', len(region2))
         points1 = [(vertex.x, vertex.y) for vertex in region1]
         points2 = [(vertex.x, vertex.y) for vertex in region2]
-        consensusLists, circular, reverse2 = self.getIntersectingBorders(points1, points2)
+        consensusLists, circular, reverse2 = self.getIntersectingBorders(points1, points2) #What reverse means?
+
         if len(consensusLists) == 0:
             return region1, region2
 
         region1StartStopList = []
         region2StartStopList = []
         processed = []
+       # print(circular)
         for contiguous in consensusLists:
             # sanity check
+            #print('contiguous', contiguous)
             for indices in contiguous:
+
                 assert points1[indices[0]] == points2[indices[1]]
             indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
+           # print(indices)
             region1StartStopList.append((indices[0][0], indices[0][-1]))
             region2StartStopList.append((indices[1][0], indices[1][-1]))
             processed.append(
                 self.processVertices([region1[i] for i in indices[0]], circular)
             )
-
+       # print 'processed', processed
         processedRegion1 = self.makeNewRegionFromProcessed(region1, processed, region1StartStopList)
         processedRegion2 = self.makeNewRegionFromProcessed(region2, processed, region2StartStopList, reverse2)
         # print('b, from', len(region1), 'to', len(processedRegion1))
         # print('c, from', len(region2), 'to', len(processedRegion2))
         return processedRegion1, processedRegion2
 
+    def makeNewRegion_new(self, ring1, ring2):
+        commonPoints = []
+        for pointId in ring1:
+            for pointId2 in ring2:
+                if(pointId == pointId2):
+                    commonPoints.append(pointId)
+        if(len(commonPoints) == 0):
+            return ring1, ring2
+
+        if(commonPoints[0] == commonPoints[-1]):
+            circular = True
+        else:
+            circular = False
+        self.processVertices_new(commonPoints, circular)
+        #print 'commonPoints', commonPoints
+        pass
+    def processVertices_new(self, commonPoints, circular):
+        if len(commonPoints) < 2:
+            return commonPoints
+        if self.noise:
+            pass
+        else:
+            coordinates = []
+            for pointId in commonPoints:
+                coordinates.append(self.getCoordinatesOfPointId(pointId))
+            x, y = zip(*coordinates)
+            x = self.blur(x, circular, self.blurRadius)
+            y = self.blur(y, circular, self.blurRadius)
+            for i, pointId in enumerate(commonPoints):
+
+                self.points[pointId] = (x[i], y[i])
+
+
+        pass
+
+    def getCoordinatesOfPointId(self, pointId):
+        coordinates = self.points[pointId]
+        return coordinates
     def process(self):
         """
         Returns:
@@ -246,12 +294,45 @@ class BorderProcessor:
         regionIds = []
         for group in self.borders:
             regionIds.extend((group, i) for i in range(len(self.borders[group])))
-
+        print('regions', regionIds)
+        print 'borders', self.borders
         for (group1, i) in regionIds:
             for (group2, j) in regionIds:
                 if group1 < group2:
                         self.noise = group2 == self.waterLabel
                         self.borders[group1][i], self.borders[group2][j] = \
                             self.makeNewRegions(self.borders[group1][i], self.borders[group2][j])
+        self.process_new()
+
 
         return self.borders
+
+    def process_new(self):
+        regionIds = []
+        for key in self.regions: #key = clusterId
+            regionIds.extend((key, i) for i in range(len(self.regions[key])))
+        print 'regions2', regionIds
+        for (cluster1, i) in regionIds:
+            for (cluster2, j) in regionIds:
+                if cluster1 < cluster2:
+                    self.noise = cluster2 == self.waterLabel
+
+                    ring1 = self.getPointIDForRing(self.regions[cluster1][i])
+                    ring2 = self.getPointIDForRing(self.regions[cluster2][j])
+
+                    #print 'ring1', ring1
+                    #print 'ring2', ring2
+                    self.makeNewRegion_new(ring1, ring2)
+
+        return regionIds
+
+    def getPointIDForRing(self, ringId):
+        lines = self.rings[ringId]
+        pointsID = []
+        for lineID in lines:
+            points = self.lines[lineID]
+            pointsID.extend(points)
+        return pointsID
+
+
+

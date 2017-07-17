@@ -82,7 +82,7 @@ class BorderBuilder:
         #maybe play around with collapsing/creating holes
         #print(borders)
         points, lines, rings, regions = self.createDictOfPoints(borders)
-        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel).process()
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel, points, lines, rings, regions).process()
         # remove water points
         del borders[waterLabel]
         # make a big point list
@@ -92,8 +92,7 @@ class BorderBuilder:
             for continent in borders[label]:
                 for i, vertex in enumerate(continent):
                     continent[i] = (vertex.x, vertex.y)
-        #dictionaries = self.createDictOfPoints(borders)
-        #return dictionaries
+
         return borders
 
     def createDictOfPoints(self, borders):

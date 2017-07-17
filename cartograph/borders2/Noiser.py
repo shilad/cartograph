@@ -14,6 +14,7 @@ class NoisyEdgesMaker:
         self.minBorderNoiseLength = minBorderNoiseLength
         self.edge = []
 
+
     @staticmethod
     def perpendicular(v):
         p = np.empty_like(v)
@@ -123,7 +124,9 @@ class NoisyEdgesMaker:
             vertex0 = self.vertices[i]
             vertex1 = self.vertices[i + 1]
             points = [np.array(point) for point in vertex0.regionPoints & vertex1.regionPoints]
+
             assert len(points) == 2
+
             self._makeNoisyEdge(np.array((vertex0.x, vertex0.y)), points[0],
                                 np.array((vertex1.x, vertex1.y)), points[1])
             for j in range(1, len(self.edge) - 1):
@@ -132,3 +135,14 @@ class NoisyEdgesMaker:
         if circular:
             noisedVertices.pop()
         return noisedVertices
+
+    def makeNoisyEdges_new(self, circular, commonPoints, pointsDict):
+        noisedPoints = [commonPoints[0]]
+        for i in range(len(commonPoints)-1):
+            self.edge = []
+            vertex0 = pointsDict[commonPoints[i]]
+            vertex1 = pointsDict[commonPoints[i+1]]
+            #what to do about region points?
+
+
+        pass
