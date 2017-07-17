@@ -155,13 +155,15 @@ function createSelectPalettes(typeSelected, numColorSelected){
         scheme[schemeNames[type][i]] = colorbrewer[schemeNames[type][i]][numColor];
     }
     d3.select("body").selectAll(".palette").remove();  // Remove previously shown palette.
-    d3.select('body')
+    d3.select('body').select('.container').select("#newRequirements")
         .selectAll(".palette")
             .data(d3.entries(scheme))
             .enter().append("span")
             .attr("class", "palette")
             .attr("title", function(d) { return d;})
-            .on("click", function(d) { console.log(d3.values(d).map(JSON.stringify).join("\n")); })
+            .on("click", function(d) {
+                console.log(d3.values(d).map(JSON.stringify).join("\n"));
+            })
             .selectAll(".swatch")
                 .data(function(d) {return d.value;})
                 .enter().append("span")
@@ -199,14 +201,6 @@ var fullColorDiv = [
 
 var newReqs = [
     '<div>',
-    '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
-    '<p></p>',
-    '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
-    '<p></p>',
-    '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
-    '<p></p>',
-    '<br>',
-    '<p></p>',
     '<p>',
         '<label>Title:</label>',
         '<textarea id = "Title" rows = "1" cols = "40">What do you want to call this visualization?</textarea>',
@@ -215,6 +209,13 @@ var newReqs = [
         '<label>Description:</label>',
         '<textarea id = "Description" rows = "3" cols = "40">This shows...</textarea>',
     '</p>',
+    '<hr>',
+    '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
+    '<p></p>',
+    '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
+    '<p></p>',
+    '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
+    '<p></p>',
     '<hr>',
     '</div>'
     ].join("\n");
