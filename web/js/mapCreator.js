@@ -2,32 +2,32 @@
  * Created by sen on 6/29/17.
  */
 
-$(document).ready(function(){
+$(document).ready(function() {
     var bar = $('.bar');
     var percent = $('.percent');
     var status = $('#status');
     $('#myForm').ajaxForm({
-        beforeSend: function() {
+        beforeSend: function () {
             status.empty();
             var percentVal = '0%';
             bar.width(percentVal);
             percent.html(percentVal);
         },
-        uploadProgress: function(event, position, total, percentComplete) {
+        uploadProgress: function (event, position, total, percentComplete) {
             var percentVal = percentComplete + '%';
             bar.width(percentVal);
             percent.html(percentVal);
         },
-        complete: function(xhr) {
+        complete: function (xhr) {
             status.html(xhr.responseText);
         }
     });
 
-    $('input[type="file"]').change(function(e){
-            var fileName = e.target.files[0].name;
-            $("h2").append("<p>" + fileName + "</p>");
+    $('input[type="file"]').change(function (e) {
+        var fileName = e.target.files[0].name;
+        $("h2").append("<p>" + fileName + "</p>");
     });
-    $("#submitFile").click(function(){
+    $("#submitFile").click(function () {
         $("h2").append("<h3>File being processed...</h3>");
     });
     // $(".btn-addVisualization").click(function(){
@@ -35,13 +35,13 @@ $(document).ready(function(){
     //     createSelectFields(data['columns']);
     //
     // });
-    $(".btn-generateMap").click(function(){
+    $(".btn-generateMap").click(function () {
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
         createMapDescription();
     });
 
     var uploadForm = $("#uploadForm");
-    uploadForm.on('submit', function(event) {
+    uploadForm.on('submit', function (event) {
 
         event.stopPropagation(); // Stop stuff happening
         event.preventDefault(); // Totally stop stuff happening
@@ -60,23 +60,27 @@ $(document).ready(function(){
             cache: false,
             processData: false, // Don't process the files, we're using FormData
             contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-            success: function(data, textStatus, jqXHR){
+            success: function (data, textStatus, jqXHR) {
                 console.log(data);
                 CG.uploadData = data;
                 $("#mapConfig").show();
-                $(".btn-addVisualization").click(function(){
+                $(".btn-addVisualization").click(function () {
                     appendVisualizationRequirements();
                     CG.data = data;
+                    console.log(data);
                     // Automatically chosen a field and corresponding data type.
                     createSelectFields(data.columns);
                     createSelectTypes(document.getElementById("fields"));
+                    createNumClasses(document.getElementById("fields"), document.getElementById("types"));
+                    createSelectPalettes(document.getElementById("types"), document.getElementById("number-classes"));
                 });
             },
-            error: function(jqXHR, textStatus, errorThrown){ console.log(jqXHR, textStatus, errorThrown); }
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, textStatus, errorThrown);
+            }
         }, {}))
 
     });
-
 });
 
 function createSelectFields(dataCol){
@@ -87,19 +91,15 @@ function createSelectFields(dataCol){
     for (var i = 1; i < dataCol.length; i++) {
         var option = document.createElement('option'); // create the option element
         option.value = dataCol[i]; // set the value property
-        // if (i == 0){
-        //     option.disabled = 'disabled';
-        //     option.selected = 'true';
-        // }
         option.appendChild(document.createTextNode(dataCol[i])); // set the textContent in a safe way.
         df.appendChild(option); // append the option to the document fragment
     }
     fields.appendChild(df); // append the document fragment to the DOM
 }
 
-function createSelectTypes(typesSelect){
+function createSelectTypes(fieldSelected){
     // Create a drop down list of types
-    var col = typesSelect.selectedIndex;
+    var col = fieldSelected.selectedIndex + 1; // Start from index 1
     var types = document.getElementById("types"), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // Remove child nodes of types from previously selected fields.
@@ -115,6 +115,58 @@ function createSelectTypes(typesSelect){
         }
     }
     types.appendChild(df); // append the document fragment to the DOM
+}
+
+function createNumClasses(fieldSelected, typeSelected){
+    var type = typeSelected.options[typeSelected.selectedIndex].value;
+    var col = fieldSelected.selectedIndex;
+    var numClasses = document.getElementById("number-classes"), // get the select
+        df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
+    // Remove child nodes of types from previously selected fields.
+    while (numClasses.firstChild) {
+        numClasses.removeChild(numClasses.firstChild);
+    }
+    if (type === 'qualitative'){
+        var option = document.createElement('option');
+        option.value = CG.uploadData.num_classes[col];
+        option.appendChild(document.createTextNode(option.value)); // set the textContent in a safe way.
+        df.appendChild(option);
+    } else {
+        if (type === 'sequential') {
+            var i = [3, 9];
+        } else if (type === 'diverging') {
+            var i = [3, 11];
+        }
+        for (var j = i[0]; j <= i[1]; j++){
+            var option = document.createElement('option');
+            option.value = j;
+            option.appendChild(document.createTextNode(j)); // set the textContent in a safe way.
+            df.appendChild(option);
+        }
+    }
+    numClasses.appendChild(df); // append the document fragment to the DOM
+}
+
+function createSelectPalettes(typeSelected, numColorSelected){
+    var type = typeSelected.options[typeSelected.selectedIndex].value;
+    var numColor = numColorSelected.options[numColorSelected.selectedIndex].value;
+    var scheme = {};
+    for (var i = 0; i < schemeNames[type].length; i++) {
+        scheme[schemeNames[type][i]] = colorbrewer[schemeNames[type][i]][numColor];
+    }
+    d3.select("body").selectAll(".palette").remove();  // Remove previously shown palette.
+    d3.select('body')
+        .selectAll(".palette")
+            .data(d3.entries(scheme))
+            .enter().append("span")
+            .attr("class", "palette")
+            .attr("title", function(d) { return d;})
+            .on("click", function(d) { console.log(d3.values(d).map(JSON.stringify).join("\n")); })
+            .selectAll(".swatch")
+                .data(function(d) {return d.value;})
+                .enter().append("span")
+                .attr("class", "swatch")
+                .style("background-color", function(d) { return d; });
 }
 
 var fullColorDiv = [
@@ -149,19 +201,19 @@ var newReqs = [
     '<div>',
     '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
     '<p></p>',
-    '<p> Pick a type <select id="types"></select> </p>',
+    '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
     '<p></p>',
-    '<label>Pick a Color Scheme:</label>',
-    fullColorDiv,
+    '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
+    '<p></p>',
     '<br>',
     '<p></p>',
     '<p>',
         '<label>Title:</label>',
-        '<textarea id = "Title"rows = "1"cols = "40">What do you want to call this visualization?</textarea>',
+        '<textarea id = "Title" rows = "1" cols = "40">What do you want to call this visualization?</textarea>',
     '</p>',
     '<p>',
         '<label>Description:</label>',
-        '<textarea id = "Description"rows = "3"cols = "40">This shows...</textarea>',
+        '<textarea id = "Description" rows = "3" cols = "40">This shows...</textarea>',
     '</p>',
     '<hr>',
     '</div>'
@@ -196,6 +248,12 @@ var newReqs = [
 //      '</div>'
 //      ].join("\n");
 
+var schemeNames = {sequential: ["BuGn","BuPu","GnBu","OrRd","PuBu","PuBuGn","PuRd","RdPu","YlGn","YlGnBu","YlOrBr","YlOrRd"],
+					singlehue:["Blues","Greens","Greys","Oranges","Purples","Reds"],
+					diverging: ["BrBG","PiYG","PRGn","PuOr","RdBu","RdGy","RdYlBu","RdYlGn","Spectral"],
+					qualitative: ["Accent","Dark2","Paired","Pastel1","Pastel2","Set1","Set2","Set3"] };
+
+
 function appendVisualizationRequirements(){
     $("#newRequirements").append(newReqs);
 }
@@ -214,7 +272,3 @@ var description = [
 function createMapDescription(){
    $("h3").append(description);
 }
-
-
-
-
