@@ -82,7 +82,8 @@ class BorderBuilder:
         #maybe play around with collapsing/creating holes
         #print(borders)
         points, lines, rings, regions = self.createDictOfPoints(borders)
-        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel, points, lines, rings, regions).process()
+        BorderProcessor(borders, self.blurRadius, self.minBorderNoiseLength, waterLabel, points, lines, rings,
+                        regions).process()
         # remove water points
         del borders[waterLabel]
         # make a big point list
@@ -96,16 +97,16 @@ class BorderBuilder:
         return borders
 
     def createDictOfPoints(self, borders):
-        tempDictOfPoints = {}  # key = (x,y) value = pointId
-        finalDictOfPoints = {}  # key = pointId value = (x,y)
+        tempDictOfPoints = {}  # key = (x,y, isOnCoast, regionPoints) value = pointId
+        finalDictOfPoints = {}  # key = pointId value = (x,y, isOnCoast, regionPoints)
         pointId = 0
         for clusterLabels in borders.keys():
             for regions in borders[clusterLabels]:
                 for vertex in regions:
-                    xy = (vertex.x, vertex.y)
-                    if (xy not in tempDictOfPoints):
-                        tempDictOfPoints[xy] = pointId
-                        finalDictOfPoints[pointId] = xy
+                    info = (vertex.x, vertex.y, vertex.isOnCoast, tuple(sorted(vertex.regionPoints)))
+                    if (info not in tempDictOfPoints.keys()):
+                        tempDictOfPoints[info] = pointId
+                        finalDictOfPoints[pointId] = info
                         pointId += 1
 
         tempDictOfLines = {}  # key = (pointId, pointId) value = lineId
@@ -116,8 +117,11 @@ class BorderBuilder:
                 previousVertex = None
                 for x in range(len(regions) + 1):
                     if previousVertex is not None:
-                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y)],
-                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y)])
+                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y, previousVertex.isOnCoast,
+                                                         tuple(sorted(previousVertex.regionPoints)))],
+                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y,
+                                                         regions[x % len(regions)].isOnCoast,
+                                                         tuple(sorted(regions[x % len(regions)].regionPoints)))])
                         tempDictOfLines[pointidPair] = lineId
                         finalDictOfLines[lineId] = pointidPair
                         lineId += 1
@@ -131,8 +135,11 @@ class BorderBuilder:
                 previousVertex = None
                 for x in range(len(regions) + 1):
                     if previousVertex is not None:
-                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y)],
-                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y)])
+                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y, previousVertex.isOnCoast,
+                                                         tuple(sorted(previousVertex.regionPoints)))],
+                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y,
+                                                         regions[x % len(regions)].isOnCoast,
+                                                         tuple(sorted(regions[x % len(regions)].regionPoints)))])
                         lineId = tempDictOfLines[pointidPair]
                         finalDictOfRings[ringId] += (lineId,)
                     if x == len(regions):
@@ -149,8 +156,11 @@ class BorderBuilder:
                 previousVertex = None
                 for x in range(len(regions) + 1):
                     if previousVertex is not None:
-                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y)],
-                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y)])
+                        pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y, previousVertex.isOnCoast,
+                                                         tuple(sorted(previousVertex.regionPoints)))],
+                                       tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y,
+                                                         regions[x % len(regions)].isOnCoast,
+                                                         tuple(sorted(regions[x % len(regions)].regionPoints)))])
                         lineId = tempDictOfLines[pointidPair]
                         lineIds += (lineId,)
                     if x == len(regions):
