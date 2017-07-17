@@ -67,11 +67,19 @@ class AddMetricService:
             'maxValue': 1.0  # FIXME: Figure out what this does
         }
 
-        # Write metric configuration to file
+        # Load map config file
         config = SafeConfigParser()
         config.read(self.conf_path)
-        config.set('Metrics', 'active', metric_name)
+
+        # Combine new metric with previously active metrics
+        active_metrics = config.get('Metrics', 'active').split(' ')
+        active_metrics.append(metric_name)
+
+        # Add new metric to active metrics list
+        config.set('Metrics', 'active', ' '.join(active_metrics))
         config.set('Metrics', metric_name, json.dumps(metric_settings))
+
+        # Save changes to file
         config.write(open(self.conf_path, 'w'))
 
         # Rebuild the map from the newly-written config file
