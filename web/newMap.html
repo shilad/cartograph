@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!--
+
+        Shilad's notes on fixing this up:
+        1. It doesn't use bootstrap layout. We should use standard bootstrap HTML structure.
+        2. Move the JS into mapmaker.js.
+        3. bootstrap.css should be the "official" bootstrap.css (unchanged by us).
+        3. Move our css in mapmaker.css
+
+        -->
+        <meta charset="UTF-8">
+        <title>mapCreator</title>
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../../favicon.ico">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap core -->
+        <link href="css/bootstrap.css" rel="stylesheet">
+        <link href="css/mapCreator.css" rel="stylesheet">
+
+        <script src="js/jquery.min.js"></script>
+        <script src="tether-1.3.3/dist/js/tether.min.js"></script>
+        <script src="js/jquery.form.js"></script>
+        <script src="js/jquery-fileupload.min.js"></script>
+
+        <script src="js/bootstrap.js"></script>
+        <script src="js/mapCreator.js"></script>
+        <script src="js/cartograph.js"></script>
+        <script src="js/colorbrewer.js"></script>
+        <script src="js/d3.min.js"></script>
+
+
+
+    </head>
+    <body>
+    <div class="container">
+        <div id="header">
+            <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
+            <h1>Welcome to Cartograph MapCreator!</h1>
+            <p>You can upload a csv file and generate awesome visualizations here!</p>
+
+            <form method="POST" enctype="multipart/form-data" action="../upload" id="uploadForm">
+            <p>
+                <label>Map Name</label>
+                <input type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
+            </p>
+
+            <label>Upload a file or copy-paste your data in!</label>
+            <label class="btn btn-secondary">
+                <input type="file" name="file" id="uploadFile">
+                upload file
+            </label><br/>
+            <textarea name="articles_text" id="file_text" cols="40" rows="3">Copy-paste</textarea><br/>
+            <label class="btn btn-secondary">
+                <input type="submit"  id="submitFile">
+                Process File
+            </label>
+            <h2></h2>
+            </form>
+
+        </div>
+
+        <hr>
+        <p></p>
+        <p id="newRequirements"></p>
+
+        <div id="mapConfig">
+            <button type="button" class="btn btn-addVisualization">Add Visualization</button>
+            <p></p>
+            <button type="button" class="btn btn-generateMap">GENERATE MAP!</button>
+            <h3></h3>
+        </div>
+    </div>
+
+    </body>
+</html>
