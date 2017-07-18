@@ -8,7 +8,7 @@ from ConfigParser import SafeConfigParser
 import falcon
 import pandas
 
-from cartograph.Utils import read_vectors, build_map
+from cartograph.Utils import read_vectors, build_map, read_tsv
 from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
@@ -88,6 +88,16 @@ def gen_data(target_path, articles):
             # which is inconsistent with the members of the <ids> set (each of which is an int).
             source_data = read_vectors(source_file_path)
             source_data.index = source_data.index.map(int)
+        elif filename == 'links.tsv':
+            # Links.tsv is *also* improperly formatted but not even read_vectors() can read it! >:(
+            # Why would anyone so needlessly break standard file formatting (and by extension, many useful tools)?
+            with open(source_file_path, 'r') as link_file:
+                header = link_file.readline().split('\t')
+                source_data = pandas.DataFrame(columns=header)
+                for line in link_file:
+                    row = line.split('\t', 1)  # Split each row by the first tab
+                    row[0] = int(row[0])  # The index needs to be an int in order for join to work
+                    source_data.append(row)
         else:
             source_data = pandas.read_csv(source_file_path, sep='\t', index_col='id')
 
@@ -107,7 +117,7 @@ def gen_data(target_path, articles):
 
         # Write the dataframe to the target file
         target_file_path = os.path.join(target_path, filename)
-        if filename == 'vectors.tsv':
+        if filename in {'vectors.tsv', 'links.tsv'}:
             # Treat vectors.tsv as a special case because it is *not* a true TSV (for some reason)
             write_vectors(filtered_data, target_file_path)
         else:
@@ -121,6 +131,7 @@ def gen_data(target_path, articles):
 
 def write_vectors(vectors_data, target_file_path):
     """Special function to write a vectors file, because vectors.tsv is *not* a true TSV >:(
+    Apparently, this can also be used to write our weirdly-formatted links.tsv files as well.
 
     :param vectors_data: a Pandas dataframe with ids as the index and vectors (with tab separators) as the second column
     :param target_file_path: path of file to write. Intermediate directories must exist. File at path will be
@@ -130,6 +141,7 @@ def write_vectors(vectors_data, target_file_path):
     with open(target_file_path, 'w') as target_file:
         # Write the header
         target_file.write('\t'.join([vectors_data.index.name] + list(vectors_data)) + '\n')
+
         for index, row in vectors_data.iterrows():
             # str of the vector, each component separated by tabs
             # FIXME: components should be in scientific notation
