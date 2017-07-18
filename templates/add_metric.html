@@ -7,36 +7,7 @@
 <body>
 
 <form action="" method="POST">
-    <h2>Adding Metric to Map ${map_name}</h2>
-    <table>
-        <tr>
-            <td><p>Metric name: </p></td>
-            <td><input type="text" name="metric_name"></td>
-        </tr>
-        <tr>
-            <td><p>Metric type: </p></td>
-            <td><select name="metric_type">
-                <option value="BIVARIATE">Bivariate-scale</option>
-                <option value="COUNT">Count</option>
-            </select></td>
-        </tr>
-        <tr>
-            <td><p>Column(s): </p></td>
-            <td>${columns}</td>
-        </tr>
-        <tr>
-            <td><p>Color range: </p></td>
-            <td><input type="text" name="color_one"></td>
-            <td><input type="text" name="color_two"></td>
-        </tr>
-        <tr>
-            <td><p>Neutral color: </p></td>
-            <td><input type="text" name="neutral_color"></td>
-        </tr>
-        <tr>
-            <td><input type="submit" value="Submit"></td>
-        </tr>
-    </table>
+    ${metric_form}
 </form>
 
 </body>

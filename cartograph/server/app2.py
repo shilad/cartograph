@@ -55,7 +55,7 @@ app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_se
 app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
 app.add_route('/{map_name}/point.json', ParentService(map_services, 'related_points_service'))
 app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
-app.add_route('/{map_name}/add_metric', ParentService(map_services, 'add_metric_service'))
+app.add_route('/{map_name}/add_metric/{metric_type}', ParentService(map_services, 'add_metric_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 

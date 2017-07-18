@@ -1,11 +1,12 @@
-import csv
-import os
 import json
+import os
 from ConfigParser import SafeConfigParser
 import string
 import falcon
+import pandas
 
 from cartograph.Utils import build_map
+
 
 TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
 COL_PREFIX = 'column_'  # Prefix appended to checkbox form field for a given column
@@ -20,30 +21,39 @@ class AddMetricService:
         self.conf_path = conf_path
         self.map_service = map_service
 
-    def on_get(self, req, resp):
+    def on_get(self, req, resp, metric_type):
+
+        assert metric_type in {'diverging', 'qualitative', 'sequential'}
+
         config = SafeConfigParser()
         config.read(self.conf_path)
-
-        template = string.Template(open('templates/add_metric.html', 'r').read())
-
         all_columns = json.loads(config.get('DEFAULT', 'columns'))
         columns_input = ''.join(['<input type="checkbox" name="%s" value="%s"> %s' %
-                                (COL_PREFIX+column, column, column) for column in all_columns])
+                                 (COL_PREFIX + column, column, column) for column in all_columns])
 
-        resp.body = template.substitute(
-            columns=columns_input,
-            map_name=config.get('DEFAULT', 'dataset')
+        metric_form_template = string.Template(open(os.path.join('templates', '%s_form.html' % metric_type), 'r').read())
+        metric_form = metric_form_template.substitute(map_name=self.map_service.name, columns=columns_input)
+
+        page_template = string.Template(open('templates/add_metric.html', 'r').read())
+        resp.body = page_template.substitute(
+            map_name=self.map_service.name,
+            metric_form=metric_form
         )
         resp.content_type = 'text/html'
 
-    def on_post(self, req, resp):
+    def on_post(self, req, resp, metric_type):
 
         # Get POST data from request
         post_data = falcon.uri.parse_query_string(req.stream.read())
 
+        assert metric_type in {'diverging', 'qualitative', 'sequential'}
+
+        # Load map config file
+        config = SafeConfigParser()
+        config.read(self.conf_path)
+
         # WARNING: this config format normalizes to lowercase in some places but is case-sensitive in others
         metric_name = string.lower(post_data['metric_name'])
-        metric_type = TYPE_NAME[post_data['metric_type']]
 
         # Extract selected columns from the form
         columns = []
@@ -52,31 +62,43 @@ class AddMetricService:
                 columns.append(kw[len(COL_PREFIX):])
 
         # Extract colors from request
-        color_one = post_data['color_one']
-        color_two = post_data['color_two']
-        neutral_color = post_data['neutral_color']
+        palette_name = post_data['color_palette']
 
-        # Configure settings for one metric
+        # Configure settings for a metric
         metric_settings = {
             'type': metric_type,
             'path': '%(externalDir)s/metric.tsv',
             'fields': columns,
-            'colors': [color_one, color_two],
-            'percentile': True,  # FIXME: Should the user be able to change this?
-            'neutralColor': neutral_color,
-            'maxValue': 1.0  # FIXME: Figure out what this does
+            'colorCode': palette_name
         }
 
-        # Load map config file
-        config = SafeConfigParser()
-        config.read(self.conf_path)
+        # Add neutral color if client has provided one
+        if post_data.has_key('neutral_color'):
+            metric_settings['neutralColor'] = post_data['neutral_color']
+
+        # Load user data to mine for appropriate values
+        data = pandas.read_csv(os.path.join(config.get('DEFAULT', 'externalDir'), 'metric.tsv'), sep='\t')
+        # Add more info to metric settings depending on type
+        if metric_type == 'diverging':
+            metric_settings.update({
+                'maxVal': data[columns[0]].max(),
+                'minVal': data[columns[0]].min()
+            })
+        elif metric_type == 'qualitative':
+            metric_settings.update({
+                'scale': list(data[columns[0]].unique())
+            })
+        elif metric_type == 'sequential':
+            metric_settings.update({
+                'maxValue': data[columns[0]].max()
+            })
 
         # Combine new metric with previously active metrics
         active_metrics = config.get('Metrics', 'active').split(' ')
         active_metrics.append(metric_name)
-
-        # Add new metric to active metrics list
         config.set('Metrics', 'active', ' '.join(active_metrics))
+
+        # Define new metric in config file
         config.set('Metrics', metric_name, json.dumps(metric_settings))
 
         # Save changes to file
