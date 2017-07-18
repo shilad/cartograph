@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import shutil
 
-from NewMapService import check_map_name
+from AddMapService import check_map_name
 
 
 class UploadService:

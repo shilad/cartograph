@@ -170,16 +170,7 @@ class AddMapService:
         map_name = req.get_param('mapname')
         check_map_name(map_name, self.map_services)
 
-        articles_file = req.get_param('articles')
-        articles_text = req.get_param('articles_text')
-        if articles_file != "" and not isinstance(articles_file, type(None)):
-            articles_blob = articles_file.file.read()
-        elif articles_text:
-            articles_blob = articles_text
-        else:
-            raise Exception, "No input! How am I supposed to make a map?"  # Change this to an actual error shown on the next page
 
-        articles = re.split('[\\r\\n]+', articles_blob)
 
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
         bad_articles = gen_data(target_path, articles)

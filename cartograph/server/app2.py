@@ -4,7 +4,7 @@ import os
 import sys
 
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
-from cartograph.server.NewMapService import AddMapService
+from cartograph.server.AddMapService import AddMapService
 from cartograph.server.MapService import MapService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.UploadService import UploadService
