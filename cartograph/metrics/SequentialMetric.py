@@ -6,6 +6,7 @@ from cartograph.metrics.Utils import color_from_code
 
 
 class SequentialMetric:
+    # TODO: Document this
     def __init__(self, fields, colorCode, maxValue, mode='d', percentile=False, neutralColor='#777'):
         # Mode: Continuous or discrete
         # assert (len(colors) == 2)
