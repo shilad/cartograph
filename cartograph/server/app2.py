@@ -59,9 +59,10 @@ app.add_route('/{map_name}/add_metric', ParentService(map_services, 'add_metric_
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
 
-# Add a hook for adding new maps, passing it a reference to the map_services dict, so it can add new maps to it
-add_map_service = AddMapService(map_services)
-app.add_route('/add_map', add_map_service)
+# If the server is in multi-map mode, provide a hook for adding new maps
+if map_services['_multi_map']:
+    add_map_service = AddMapService(map_services)
+    app.add_route('/add_map', add_map_service)
 
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
