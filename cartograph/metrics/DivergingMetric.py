@@ -48,9 +48,13 @@ class DivergingMetric:
         if self.field not in point:
             return self.neutralColor + (alpha,)
 
-        # Map point to a color in the palette based on percentile
-        # FIXME: Edge case failure; if the value in the metric column is actually == maxVal, palette_index will = self.numColors
-        palette_index = (float(point[self.field]) - self.minVal) * self.numColors / (self.maxVal - self.minVal)
+        # Map point to a color in the palette
+        if point[self.field] == self.maxVal:
+            # Special case: assign points with the maximum value to the highest
+            palette_index = self.numColors-1
+        else:
+            # Otherwise, assign colors based on which percentile the points value is in
+            palette_index = (float(point[self.field]) - self.minVal) * self.numColors / (self.maxVal - self.minVal)
 
         return color_from_code(self.colors[int(palette_index)]) + (alpha,)
 
