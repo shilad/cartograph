@@ -49,8 +49,7 @@ class DivergingMetric:
             return self.neutralColor + (alpha,)
 
         # Map point to a color in the palette based on percentile
-        # FIXME: Off-by-one error; if the value in the metric column is actually == maxVal, palette_index will = self.numColors
-        # FIXME: Simply subtracting one causes the index to be negative when the metric column == minVal
+        # FIXME: Edge case failure; if the value in the metric column is actually == maxVal, palette_index will = self.numColors
         palette_index = (float(point[self.field]) - self.minVal) * self.numColors / (self.maxVal - self.minVal)
 
         return color_from_code(self.colors[int(palette_index)]) + (alpha,)
