@@ -168,7 +168,11 @@ def check_map_name(map_name, map_services):
 
     # Prevent adding a map for which there is already a user-generated map
     # of the same name
-    if map_name in os.listdir(os.path.join(BASE_PATH, 'user')):
+
+    user_map_path = os.path.join(BASE_PATH, 'user')
+    if not os.path.exists(user_map_path):
+        os.makedirs(user_map_path)
+    if map_name in os.listdir(user_map_path):
         raise ValueError('Map name "%s" already taken by a user-generated map' % (map_name,))
 
 

@@ -1,0 +1,60 @@
+#mapConfig {
+    display:none;
+}
+
+#ramps {
+  padding: 0 5px;
+}
+
+#singlehue { display: none; max-width: 78px; }
+
+#scheme1 {
+  float: left;
+  margin-right: 5px;
+  overflow: hidden;
+}
+
+.ramp {
+  float: left;
+  padding: 5px 5px 0 5px;
+  cursor: pointer;
+}
+
+.ramp:hover {
+  background-color: #ccc;
+}
+
+.ramp.selected {
+  background-color: #999;
+}
+
+.ramp rect, #color-chips rect {
+  stroke: #333;
+  stroke-width: .5px;
+}
+
+#addingMetrics{
+  display: none;
+}
+
+/* Color metrics */
+.palette {
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: bottom;
+  margin: 4px 0 4px 6px;
+  padding: 4px;
+  background: #fff;
+  border: solid 1px #aaa;
+}
+
+.palette:hover {
+  background-color: #999999;
+}
+
+.swatch {
+  display: block;
+  vertical-align: middle;
+  width: 37px;
+  height: 22px;
+}

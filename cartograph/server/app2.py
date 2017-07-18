@@ -8,7 +8,7 @@ import sys
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.AddMapService import AddMapService
 from cartograph.server.MapService import MapService
-
+from cartograph.server.StaticService import StaticService
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
@@ -58,6 +58,7 @@ app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
 app.add_route('/{map_name}/add_metric/{metric_type}', ParentService(map_services, 'add_metric_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
 
+app.add_sink(StaticService().on_get, '/static')
 
 # If the server is in multi-map mode, provide a hook for adding new maps
 if map_services['_multi_map']:
