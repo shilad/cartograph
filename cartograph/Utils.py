@@ -1,3 +1,6 @@
+import os
+import subprocess
+from ConfigParser import SafeConfigParser
 from collections import defaultdict
 import codecs
 import numpy as np
@@ -6,6 +9,7 @@ import sys
 
 
 def read_vectors(path):
+    # FIXME: Needs documentation
     featureDict = pd.read_table(path, skiprows=1, skip_blank_lines=True, header=None)
     featureDict['vectorTemp'] = featureDict.iloc[:, 1:].apply(lambda x: tuple(x),
                                                               axis=1)  # join all vector columns into same column
@@ -19,6 +23,7 @@ def read_vectors(path):
 
 
 def read_tsv(filename):
+    # FIXME: Needs documentation
     with codecs.open(filename, "r", encoding="utf-8") as f:
         headers = f.readline().rstrip("\n").split("\t")
         data = {header: [] for header in headers}
@@ -80,6 +85,7 @@ def read_features(*files, **kwargs):
 
 
 def write_tsv(filename, header, indexList, *data):
+    # FIXME: Desperately needs documentation!
     for index, dataList in enumerate(data):
         if len(dataList) != len(data[0]):
             raise InputError(index, "Lists must match to map together")
@@ -165,7 +171,31 @@ def calc_area(points):
 def zoomMeters(zoom):
     return 156543.03 / (2 ** zoom)
 
+
+def build_map(config_path):
+    """Build the map config file at config_path and output the build log/errors to files in its baseDir
+    :param config_path: full path to the config file of the map to be built
+    """
+
+    # Extract the location of the base dir from the config file
+    config = SafeConfigParser()
+    config.read(config_path)
+    output_path = config.get('DEFAULT', 'externalDir')
+
+    # Set up the environment variables
+    python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
+    working_dir = os.getcwd()
+    exec_path = os.getenv('PATH')
+
+    # Build it!
+    subprocess.call(
+        ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
+        env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
+        stdout=open(os.path.join(output_path, 'build.log'), 'w'),
+        stderr=open(os.path.join(output_path, 'build.err'), 'w')
+    )
+
+
 if __name__=='__main__':
 
     sort_by_percentile(4)
-
