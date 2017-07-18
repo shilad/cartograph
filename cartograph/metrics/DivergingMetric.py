@@ -7,11 +7,8 @@ from cartograph.metrics.Utils import color_from_code
 class DivergingMetric:
     def __init__(self, fields, colorCode, minVal, maxVal, neutralColor='#888'):
         """Initialize a DivergingMetric. A DivergingMetric's main purpose is embodied by its .getColor() method, which
-        provides the color information for a given point at a particular zoom level. A DivergingMetric colors each by
-        the numeric value in one of its columns.
-
-        FIXME: Because of the way data-files (i.e. TSVs) are currently loaded, it seems like this metric can't be used
-        for a column containing purely numeric data.
+        provides the color information for a given point at a particular zoom level. A DivergingMetric colors each point
+        by the quantitative value in one of its columns.
 
         :param fields: list of 1 string of name of the column to be used as a qualitative variable e.g. ["name"]
         :param scale: a list of strings, each of which is the name of a category
@@ -35,9 +32,14 @@ class DivergingMetric:
         and the alpha (i.e. opacity) level. The rgb components are determined by a combination of the color palette for
         this instance of DivergingMetric (i.e. self.colors).
 
-        :param point: a point FIXME: what class should this be?
+        The specific color for a column value is determined by of palette.number even percentiles it falls in, between
+        self.minVal and self.maxVal. E.g. if a palette has 4 colors (palette.number = 5), self.minVal = 0.0, self.maxVal
+        = 5.0, points where 0 <= point[self.field] < 1.25 will return the 1st (0th) color in the palette, points where
+        1.25 <= point[self.field] < 2.5 will return the 2nd (1st) color in the palette, etc.
+
+        :param point: a point FIXME: what class should this be? requires: self.minVal <= point[field] <= self.maxVal
         :param zoom: the zoom level of the viewer as an int. Higher zoom means the viewer is further zoomed out
-        :return: a tuple whose components [r, g, b, a] represent red, green, blue, and alpha of point at zoom level
+        :return: a tuple whose components (r, g, b, a) represent red, green, blue, and alpha of point at zoom level
         """
         # final alpha is related to the zoom
         depth = max(0.0, point['zpop'] - zoom)
