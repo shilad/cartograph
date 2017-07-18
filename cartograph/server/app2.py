@@ -1,8 +1,9 @@
+import re
 import falcon
 import logging
 import os
 import sys
-
+from falcon_multipart.middleware import MultipartMiddleware
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.AddMapService import AddMapService
 from cartograph.server.MapService import MapService
@@ -22,7 +23,6 @@ configs = {}
 
 logging.info('configuring falcon')
 
-from falcon_multipart.middleware import MultipartMiddleware
 
 # falcon.API instances are callable WSGI apps
 app = falcon.API(middleware=[MultipartMiddleware()])
@@ -35,12 +35,15 @@ with open(meta_config_path, 'r') as meta_config:
         conf_files = [meta_config_path]
         map_services = {'_multi_map': False}
     else:
-        conf_files = meta_config.read().split('\n')  # Note that the .readline() above means we skip the first line
+        conf_files = re.split('[\\r\\n]+', meta_config.read())  # Note that the .readline() above means we skip the first line
         map_services = {'_multi_map': True}
+
 
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
 for path in conf_files:
-    map_service = MapService(path.strip('\r\n'))
+    if path == '':
+        continue  # Skip blank lines
+    map_service = MapService(path)
     map_services[map_service.name] = map_service
 map_services['_meta_config'] = meta_config_path
 map_services['_last_update'] = os.path.getmtime(meta_config_path)
@@ -53,15 +56,16 @@ app.add_route('/{map_name}/raster/{layer}/{z}/{x}/{y}.png', ParentService(map_se
 app.add_route('/{map_name}/template/{file}', ParentService(map_services, 'template_service'))
 app.add_route('/{map_name}/point.json', ParentService(map_services, 'related_points_service'))
 app.add_route('/{map_name}/log', ParentService(map_services, 'logging_service'))
-
-
-# Add a hook for adding new maps, passing it a reference to the map_services dict, so it can add new maps to it
-app.add_route('/upload', UploadService(map_services, 'tmp/upload'))
-add_map_service = AddMapService(map_services)
-app.add_route('/addMap', add_map_service)
-
-app.add_sink(StaticService().on_get, '/static')
+app.add_route('/{map_name}/add_metric/{metric_type}', ParentService(map_services, 'add_metric_service'))
 app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_name>.+)/static')
+
+
+# If the server is in multi-map mode, provide hooks for adding new maps
+app.add_route('/upload', UploadService(map_services, 'tmp/upload'))
+app.add_route('/add_map', AddMapService(map_services))
+
+# Add way to get static files generally (i.e. without knowing the name of any active map)
+app.add_sink(StaticService().on_get, '/static')
 
 
 # Useful for debugging problems in your API; works with pdb.set_trace(). You
