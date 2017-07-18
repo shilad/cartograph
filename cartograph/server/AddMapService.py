@@ -1,7 +1,4 @@
 import csv
-import re
-
-import falcon
 import os
 import subprocess
 import string
@@ -13,45 +10,6 @@ USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
-
-
-def filter_tsv(source_dir, target_dir, ids, filename):
-    """Pare down the contents of <source_dir>/<filename> to only rows that start with an id in <ids>, and output them to
-    <target_dir>/<filename>. <target_dir> must already exist. Also transfers over the first line of the file, which is
-    assumed to be the header.
-
-    e.g.
-    filter_tsv(source_dir='/some/path/', dest_dir='/another/path', ids=['1', '3', '5'], filename='file.tsv')
-
-    /some/path/file.tsv (before function call):
-    id  name
-    1   hello
-    2   world
-    3   foo
-    4   bar
-    5   spam
-
-    /another/path/file.tsv (after function call):
-    id  name
-    1   hello
-    3   foo
-    5   spam
-
-    :param source_dir:
-    :param target_dir:
-    :param ids: an iterable of the ids
-    :param filename: the name of the file in <source_dir> to be filtered into a file of the same name in <target_dir>
-    :return:
-    """
-
-    with codecs.open(os.path.join(source_dir, filename), 'r') as read_file, \
-            codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
-        popularities_reader = csv.reader(read_file, delimiter='\t')
-        popularities_writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
-        popularities_writer.writerow(popularities_reader.next())  # Transfer the header
-        for row in popularities_reader:
-            if row[0] in ids:
-                popularities_writer.writerow(row)
 
 
 def gen_config(map_name):
