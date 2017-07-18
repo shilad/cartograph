@@ -1,8 +1,8 @@
 import logging
 import os
 import shutil
-
 from cartograph import Config
+from cartograph.server.AddMetricService import AddMetricService
 from cartograph.server.CountryService import CountryService
 from cartograph.server.LoggingService import LoggingService
 from cartograph.server.PointService import PointService
