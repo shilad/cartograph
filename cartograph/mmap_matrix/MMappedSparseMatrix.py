@@ -110,6 +110,7 @@ class MMappedSparseMatrix():
             edgeValDict[self.colMap[i]] = self.valMap[i]
         return edgeValDict
 
+    #seems to work sort of... the 4 test vals for edgeId 1 seem to clear.
     def get_row_as_csc(self, index=-1, edgeId = -1):
         print("STEK")
         if edgeId != -1:
@@ -117,10 +118,15 @@ class MMappedSparseMatrix():
         else:
             if edgeId == -1 and index == -1:
                 print("Error, please specify index or edgeId value")
-        startIndex = self.rowMap[index]
-        endIndex = self.rowMap[index+1]
-        print("uhhh")
 
+        startIndex = self.rowMap[index]
+        endpoint = self.rowMap[index+1]
+        rowVals = [0] * self.colMap.size
+        for i in range(startIndex, endpoint):
+            rowVals[self.colMap[i]] = self.valMap[i]
+        rowNp = np.asarray(rowVals)
+
+        return csc_matrix((rowNp))
 
     def as_csr(self):
         print("LINDEN")
@@ -132,16 +138,11 @@ class MMappedSparseMatrix():
         for i in range(self.rowMap[-1], self.colMap.size):
             rowVals.append(self.rowMap.size+1)
         rowNp = np.asarray(rowVals)
-        print(rowNp.size)
-        print(self.colMap.size)
-        print(self.valMap.size)
         return csc_matrix((self.valMap, (rowNp, self.colMap)), shape=(rowNp.size, self.colMap.size))
 
 outputdir = "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles"
 sequence = createSequence(origEdgesPath)
 startTime = time.time()
-peter = MMappedSparseMatrix(outputdir)
-matrix = (peter.as_csr())
 endTime = time.time()
 timepassed = endTime - startTime
 print("Time elapsed: " + str(timepassed))
