@@ -1,6 +1,6 @@
 import numpy as np
 from Noiser import NoisyEdgesMaker
-
+from collections import defaultdict
 
 class BorderProcessor:
     def __init__(self, borders, blurRadius, minBorderNoiseLength, waterLabel, points = {}, lines = {}, rings = {}, regions = {}):
@@ -13,6 +13,8 @@ class BorderProcessor:
         self.lines = lines
         self.rings = rings
         self.regions = regions
+        self.idGenerator = NewIDGenerator()
+        self.processedLines = defaultdict(list)
 
     @staticmethod
     def wrapRange(start, stop, length, reverse=False):
@@ -78,13 +80,14 @@ class BorderProcessor:
                 vertex.y = y[i]
         return vertices
 
-    def processVertices_new(self, commonPoints, circular):
-        if len(commonPoints) < 2:
-            return commonPoints
+    def processVertices_new(self, commonLines, circular):
+        if len(commonLines) <= 1:
+            return commonLines
         if self.noise:
-            NoisyEdgesMaker(commonPoints, self.minBorderNoiseLength).makeNoisyEdges_new(commonPoints, self.points,
-                                                                                        circular)
+            commonLines, self.points = NoisyEdgesMaker(commonLines, self.minBorderNoiseLength).makeNoisyEdges_new(commonLines, self.points,
+                                                                                        circular, self.idGenerator, self.lines, self.processedLines)
         else:
+            return []
             coordinates = []
             idOrder = []
             for pointId in commonPoints:
@@ -95,7 +98,8 @@ class BorderProcessor:
             y = self.blur(y, circular, self.blurRadius)
             for i, pointId in enumerate(idOrder):
                 self.points[pointId] = (x[i], y[i]) + self.points[pointId][2:]
-        pass
+        return commonLines
+
     @staticmethod
     def getConsensusBorderIntersection(indices1, indices2, len1, len2, reverse2):
         """
@@ -214,6 +218,7 @@ class BorderProcessor:
         # this will only be necessary if there were no regions overlapping 0
         smallestStartValIndex = np.argmin(regionStartStopList, axis=0)[0]
         regionStartStopList = np.roll(regionStartStopList, -smallestStartValIndex, axis=0)
+
         processedVertices = np.roll(processedVertices, -smallestStartValIndex, axis=0)
         while index < len(region):
             if startStopListIndex < len(regionStartStopList) and index == regionStartStopList[startStopListIndex][0]:
@@ -225,39 +230,6 @@ class BorderProcessor:
                 processedRegion.append(region[index])
                 index += 1
         return processedRegion
-
-    def makeNewRegionFromProcessed_new(self, ring, processedVertices, ringStartStopList, reverse=False):
-        assert len(processedVertices) == len(ringStartStopList)
-        if reverse:
-            # reverse both startStopList and processed vertices (both inner and outer lists)
-            ringStartStopList = [list(reversed(startStop)) for startStop in reversed(ringStartStopList)]
-            processedVertices = [list(reversed(contiguous)) for contiguous in reversed(processedVertices)]
-        processedRing = []
-        index = 0
-        startStopListIndex = 0
-        # find the section that overlaps 0 (if any) and move it to the back of the list
-        # also move the start index to 1 more than the end of the overlapping region
-        for i, startStop in enumerate(ringStartStopList):
-            if startStop[0] > startStop[1]:
-                ringStartStopList = np.roll(ringStartStopList, -i - 1, axis=0)
-                processedVertices = np.roll(processedVertices, -i - 1, axis=0)
-                index = startStop[1] + 1
-                break
-        # now that everything is in order, find the section with the smallest start value and move to the front
-        # this will only be necessary if there were no regions overlapping 0
-        smallestStartValIndex = np.argmin(ringStartStopList, axis=0)[0]
-        ringStartStopList = np.roll(ringStartStopList, -smallestStartValIndex, axis=0)
-        processedVertices = np.roll(processedVertices, -smallestStartValIndex, axis=0)
-        while index < len(ring):
-            if startStopListIndex < len(ringStartStopList) and index == ringStartStopList[startStopListIndex][0]:
-                processedRing.extend(processedVertices[startStopListIndex])
-                start, stop = ringStartStopList[startStopListIndex]
-                index += len(self.wrapRange(start, stop, len(ring)))
-                startStopListIndex += 1
-            else:
-                processedRing.append(ring[index])
-                index += 1
-        return processedRing
 
     def makeNewRegions(self, region1, region2):
         """
@@ -297,6 +269,7 @@ class BorderProcessor:
         processedRegion2 = self.makeNewRegionFromProcessed(region2, processed, region2StartStopList, reverse2)
         # print('b, from', len(region1), 'to', len(processedRegion1))
         # print('c, from', len(region2), 'to', len(processedRegion2))
+
         return processedRegion1, processedRegion2
 
     def makeNewRegion_new(self, ring1, ring2):
@@ -305,6 +278,9 @@ class BorderProcessor:
         if len(consensusLists) == 0:
             return ring1, ring2
         processed = []
+        region1StartStopList = []
+        region2StartStopList = []
+
         for contiguous in consensusLists:
             # sanity check
             #print('contiguous', contiguous)
@@ -313,14 +289,38 @@ class BorderProcessor:
                 assert ring1[indices[0]] == ring2[indices[1]]
             indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
             ringsId= [ring1[i] for i in indices[0]]
+            print 'ringsId', ringsId
             pointsID = []
             for id in ringsId:
                 #pass
                pointsID.extend(self.lines[id])
+            region1StartStopList.append((indices[0][0], indices[0][-1]))
+            region2StartStopList.append((indices[1][0], indices[1][-1]))
             processed.append(
-                self.processVertices_new(pointsID, circular)
+                self.processVertices_new(ringsId, circular)
             )
+        print 'processed',processed
+       # processedRing1 = self.makeNewRegionFromProcessed(ring1, processed, region1StartStopList)
+        #processedRing2 = self.makeNewRegionFromProcessed(ring2, processed, region2StartStopList, reverse2)
 
+#        ring1 = self.makeLineDictOutOFNewPointDict(processedRing1, self.idGenerator)
+ #       ring2 = self.makeLineDictOutOFNewPointDict(processedRing2, self.idGenerator)
+
+        return ring1, ring2
+
+    def makeLineDictOutOFNewPointDict(self, newPointIdList, idGenerator):
+        previous = None
+        pair = 0
+        lineId = idGenerator.getNextID()
+        newLinesID = []
+        for newPointId in newPointIdList:
+            if previous != None and pair % 2 != 0:
+                self.lines['n' + str(lineId)] = (previous, newPointId)
+                newLinesID.append('n' + str(lineId))
+                lineId = idGenerator.getNextID()
+            previous = newPointId
+            pair += 1
+        return newLinesID
 
 
     def getCoordinatesOfPointId(self, pointId):
@@ -371,9 +371,20 @@ class BorderProcessor:
 
                     #print 'ring1', ring1
                     #print 'ring2', ring2
-                    self.makeNewRegion_new(ring1, ring2)
+                    ring1 , ring2 = self.makeNewRegion_new(ring1, ring2)
+                    ring1ID = 'n' + str(self.idGenerator.getNextID())
+                    self.rings[ring1ID] = ring1
+                    ring2Id = 'n' + str(self.idGenerator.getNextID())
+                    self.rings[ring2Id] = ring2
 
-        return regionIds
+
+                    self.regions[cluster1][i] = ring1ID
+                    self.regions[cluster2][j] = ring2Id
+
+
+
+
+        return self.points, self.lines, self.rings, self.regions
 
     def getPointIDForRing(self, ringId):
         lines = self.rings[ringId]
@@ -385,5 +396,13 @@ class BorderProcessor:
 
 
 
+class NewIDGenerator():
 
+    def __init__(self):
+        self.lastID = 0
+
+    def getNextID(self):
+
+        self.lastID += 1
+        return self.lastID
 

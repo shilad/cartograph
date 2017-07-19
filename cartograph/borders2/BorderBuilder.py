@@ -162,7 +162,7 @@ class BorderBuilder:
 
     def createDictOfRegions(self, borders, tempDictOfPoints, tempDictOfLines, tempDictOfRings):
         tempDictOfRegions = {} #key = (ringId, ringId... ringId), value = clusterId
-        finalDictOfRegions = defaultdict(tuple)  # key = clusterId value = (ringId, ringId... ringId)
+        finalDictOfRegions = defaultdict(list)  # key = clusterId value = (ringId, ringId... ringId)
         for clusterLabels in borders.keys():
             for regions in borders[clusterLabels]:
                 lineIds = tuple()
@@ -181,6 +181,7 @@ class BorderBuilder:
                         finalDictOfRegions[clusterLabels] += (tempDictOfRings[lineIds],)
                         tempDictOfRegions[(tempDictOfRings[lineIds],)] = clusterLabels
                     previousVertex = regions[x % len(regions)]
+                    pair +=1
         return tempDictOfRegions, finalDictOfRegions
 
 Config.initConf("./data/conf/summer2017_simple.txt")
