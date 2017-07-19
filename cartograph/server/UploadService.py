@@ -84,13 +84,15 @@ class UploadService:
             # types[0] = 'string'
             types = ['string']
             types.extend(self.detectDataTypes(df))  # Not set types for first column
+            numClasses = self.qualitativeNumClasses(df)  # Number of data classes for qualitative columns
 
             resp.body = json.dumps({
                 'success': True,
                 'map_name': map_name,
                 'columns': cols,
                 'types': types,
-                'num_rows': nrows
+                'num_rows': nrows,
+                'num_classes': numClasses,
             })
         except ValueError as e1:
             resp.body = json.dumps({
@@ -109,6 +111,7 @@ class UploadService:
             })
 
     def detectDataTypes(self, df):
+        # TODO: Make valid columns available, hide invalid columns
         types = []
         for col in df.columns[1:]:
             dt = df[col].dtype
@@ -119,14 +122,22 @@ class UploadService:
                     type['qualitative'] = True
                     types.append(type)
                 else:
+                    # types.append(None)
                     raise ValueError('too many classes for qualitative data: ' + str(numUnique))
             elif dt in (np.int64, np.float64):
                 type['sequential'] = True
                 type['diverging'] = True
-                if len(df[col].unique()) <= 9:
+                if len(df[col].unique()) <= 12:
                     type['qualitative'] = True
                 types.append(type)
             else:
                 raise ValueError('unknown type: ' + str(dt))
 
         return types
+
+    def qualitativeNumClasses(self, df):
+        # Find number of data classes for qualitative columns. Return None for sequential and diverging ones.
+        numClasses = []
+        for col in df.columns[1:]:
+            numClasses.append(len(df[col].unique()) if len(df[col].unique()) <= 12 else None)
+        return numClasses

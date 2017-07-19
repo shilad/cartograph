@@ -30,11 +30,7 @@ $(document).ready(function() {
     $("#submitFile").click(function () {
         $("h2").append("<h3>File being processed...</h3>");
     });
-    // $(".btn-addVisualization").click(function(){
-    //     appendVisualizationRequirements();
-    //     createSelectFields(data['columns']);
-    //
-    // });
+
     $(".btn-generateMap").click(function () {
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
         createMapDescription();
@@ -67,8 +63,7 @@ $(document).ready(function() {
                 $(".btn-addVisualization").click(function () {
                     appendVisualizationRequirements();
                     CG.data = data;
-                    console.log(data);
-                    // Automatically chosen a field and corresponding data type.
+                    // Automatically choose a field and corresponding data type.
                     createSelectFields(data.columns);
                     createSelectTypes(document.getElementById("fields"));
                     createNumClasses(document.getElementById("fields"), document.getElementById("types"));
@@ -162,7 +157,8 @@ function createSelectPalettes(typeSelected, numColorSelected){
             .attr("class", "palette")
             .attr("title", function(d) { return d;})
             .on("click", function(d) {
-                console.log(d3.values(d).map(JSON.stringify).join("\n"));
+                // console.log(d3.values(d).map(JSON.stringify).join("\n"));
+                console.log(d3.values(d)[0]);
             })
             .selectAll(".swatch")
                 .data(function(d) {return d.value;})
@@ -201,24 +197,25 @@ var fullColorDiv = [
 
 var newReqs = [
     '<div>',
-    '<p>',
-        '<label>Title:</label>',
-        '<textarea id = "Title" rows = "1" cols = "40">What do you want to call this visualization?</textarea>',
-    '</p>',
-    '<p>',
-        '<label>Description:</label>',
-        '<textarea id = "Description" rows = "3" cols = "40">This shows...</textarea>',
-    '</p>',
-    '<hr>',
-    '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
-    '<p></p>',
-    '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
-    '<p></p>',
-    '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
-    '<p></p>',
-    '<hr>',
+        '<p>',
+            '<label>Title:</label>',
+            '<textarea id = "Title" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>',
+        '</p>',
+        '<p>',
+            '<label>Description:</label>',
+            '<textarea id = "Description" rows = "3" cols = "40" placeholder="This shows..."></textarea>',
+        '</p>',
+        '<hr>',
+        '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);createNumClasses(this,document.getElementById(\'types\'));" ></select> </p>',
+        '<p></p>',
+        '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
+        '<p></p>',
+        '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
+        '<p></p>',
+        '<hr>',
     '</div>'
     ].join("\n");
+
 
 // var newReqs = [
 //      '<div>',
