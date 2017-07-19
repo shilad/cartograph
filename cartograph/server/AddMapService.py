@@ -1,4 +1,3 @@
-import StringIO
 import json
 import os
 import pipes
@@ -13,7 +12,6 @@ from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
-SOURCE_DIR = os.path.join(BASE_PATH, 'simple/')  # Path to source data (which will be pared down for the user)
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
@@ -46,12 +44,12 @@ def gen_config(map_name, column_headers):
     return config_path
 
 
-def gen_data(target_path, articles):
+def gen_data(source_dir, target_path, articles):
     """Generate the data files (i.e. "TSV" files) for a map with a string of articles <articles>
     in the directory at target_path.
 
     :param target_path: path to directory (that will be created) to be filled with data files
-    :param articles: list of exact titles of articles for new map
+    :param articles: file object of user data
     :return: list of article titles for which there was no exact match in the existing dataset
     """
 
@@ -61,7 +59,7 @@ def gen_data(target_path, articles):
     user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
 
     # Generate dataframe of names to IDs
-    names_file_path = os.path.join(SOURCE_DIR, 'names.tsv')
+    names_file_path = os.path.join(source_dir, 'names.tsv')
     names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name')
 
     # Append internal ids with the user data; set the index to 'id';
@@ -82,7 +80,7 @@ def gen_data(target_path, articles):
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
 
         # Read the file into a dataframe (source_data)
-        source_file_path = os.path.join(SOURCE_DIR, filename)
+        source_file_path = os.path.join(source_dir, filename)
         if filename == 'vectors.tsv':
             # There's a special function for reading vectors.tsv, but it leaves the index as a Series of str's,
             # which is inconsistent with the members of the <ids> set (each of which is an int).
@@ -91,13 +89,14 @@ def gen_data(target_path, articles):
         elif filename == 'links.tsv':
             # Links.tsv is *also* improperly formatted but not even read_vectors() can read it! >:(
             # Why would anyone so needlessly break standard file formatting (and by extension, many useful tools)?
-            with open(source_file_path, 'r') as link_file:
-                header = link_file.readline().split('\t')
-                source_data = pandas.DataFrame(columns=header)
-                for line in link_file:
-                    row = line.split('\t', 1)  # Split each row by the first tab
-                    row[0] = int(row[0])  # The index needs to be an int in order for join to work
-                    source_data.append(row)
+
+            # Make a temporary CSV file, so it can actually be read by Pandas
+            tmp_file_path = os.path.join(source_dir, '.links.csv')
+            os.system('sed "s/\t/,/1" %s > %s' % (source_file_path, tmp_file_path))  # FIXME: Double check security
+
+            # Read the file and then delete it
+            source_data = pandas.read_csv(tmp_file_path, index_col='id')
+            os.remove(tmp_file_path)
         else:
             source_data = pandas.read_csv(source_file_path, sep='\t', index_col='id')
 
@@ -185,31 +184,48 @@ def check_map_name(map_name, map_services):
 
 
 class AddMapService:
+    """A service to allow clients to build maps from already-uploaded data files. When POSTed to, this service will
+    attempt to filter the appropriate (TSV) data files from a parent map, which is currently hard-coded as 'simple'.
+    It will then create a config file and launch the build process from that config file. Once built, it will add the
+    path of that config file to the active multi-config file and the list of active maps in self.map_services.
+    """
 
-    def __init__(self, map_services):
+    def __init__(self, map_services, upload_dir):
+        """Initialize an AddMapService, a service to allow the client to build maps from already uploaded data files.
+        :param map_services:
+        :param upload_dir:
+        """
         self.map_services = map_services
+        self.upload_dir = upload_dir
 
-    def on_get(self, req, resp):
+    def on_get(self, req, resp, map_name):
+        map_file_name = map_name + '.tsv'
+        if map_file_name not in os.listdir(self.upload_dir):
+            raise falcon.HTTPNotFound
+
         resp.stream = open('templates/add_map.html', 'rb')
         resp.content_type = 'text/html'
 
-    def on_post(self, req, resp):
+    def on_post(self, req, resp, map_name):
+        # 404 if map data file not in the upload directory
+        map_file_name = map_name + '.tsv'
+        if map_file_name not in os.listdir(self.upload_dir):
+            raise falcon.HTTPNotFound
+
         # Make sure the server is in multi-map mode
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
-        post_data = falcon.uri.parse_query_string(req.stream.read())
-        resp.body = ''
+        data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
 
-        map_name = post_data['name']
-        # FIXME: non-ASCII compatible?
-        articles_file = StringIO.StringIO(post_data['articles'])
 
+        # TODO: Move this to UploadService
         check_map_name(map_name, self.map_services)
 
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
         # TODO: Figure out what to do with <bad_articles>
-        bad_articles, data_columns = gen_data(target_path, articles_file)
+        # FIXME: Change 'simple' to a map name selected by the user
+        bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, 'simple'), target_path, data_file)
         config_path = gen_config(map_name, data_columns)
 
         # Build from the new config file
@@ -222,3 +238,9 @@ class AddMapService:
         # Add map config path to meta-config
         with open(self.map_services['_meta_config'], 'a') as meta_config:
             meta_config.write('\n'+config_path)
+
+        resp.body = json.dumps({
+            'map_name': map_name,
+            'bad_articles': list(bad_articles),
+            'data_columns': data_columns
+        })
