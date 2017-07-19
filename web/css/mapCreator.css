@@ -2,6 +2,14 @@
     display:none;
 }
 
+#newRequirements{
+  display: none;
+}
+
+#color-scheme{
+  display: none
+}
+
 #ramps {
   padding: 0 5px;
 }

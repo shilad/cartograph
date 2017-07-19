@@ -59,9 +59,12 @@ $(document).ready(function() {
             success: function (data, textStatus, jqXHR) {
                 console.log(data);
                 CG.uploadData = data;
+
                 $("#mapConfig").show();
+                $("#map_name").prop('disabled', true);
+
                 $(".btn-addVisualization").click(function () {
-                    appendVisualizationRequirements();
+                    $("#newRequirements").show();
                     CG.data = data;
                     // Automatically choose a field and corresponding data type.
                     createSelectFields(data.columns);
@@ -69,6 +72,39 @@ $(document).ready(function() {
                     createNumClasses(document.getElementById("fields"), document.getElementById("types"));
                     createSelectPalettes(document.getElementById("types"), document.getElementById("number-classes"));
                 });
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, textStatus, errorThrown);
+            }
+        }, {}))
+
+    });
+    // $.post('add_map/'+ $("#map_name").val());
+
+    var metricsForm = $("#metricsForm");
+    metricsForm.on('submit', function (event) {
+        event.stopPropagation(); // Stop stuff happening
+        event.preventDefault(); // Totally stop stuff happening
+
+        // Declare a form data object
+        var metricData = new FormData();
+        metricData.append('map_name', $("#map_name").val());
+        metricData.append('title', metricsForm.find("textarea[name='title']").val());
+        metricData.append('description', metricsForm.find("textarea[name='description']").val());
+        metricData.append('field', metricsForm.find("select[name='field']").val());
+        metricData.append('type', metricsForm.find("select[name='type']").val());
+        metricData.append('color_scheme', metricsForm.find("input[name='color_scheme']").val() + "_" + metricsForm.find("select[name='num_classes']").val());
+
+        // Perform Ajax call
+        $.ajax($.extend({}, {
+            url: metricsForm.attr('action'),
+            type: 'POST',
+            data: metricData,
+            cache: false,
+            processData: false, // Don't process the files, we're using FormData
+            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+            success: function (data, textStatus, jqXHR) {
+                console.log(data);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
@@ -159,6 +195,7 @@ function createSelectPalettes(typeSelected, numColorSelected){
             .on("click", function(d) {
                 // console.log(d3.values(d).map(JSON.stringify).join("\n"));
                 console.log(d3.values(d)[0]);
+                $("#color-scheme").val(d3.values(d)[0]);
             })
             .selectAll(".swatch")
                 .data(function(d) {return d.value;})
@@ -167,94 +204,10 @@ function createSelectPalettes(typeSelected, numColorSelected){
                 .style("background-color", function(d) { return d; });
 }
 
-var fullColorDiv = [
-    '<div id="scheme1" style="width: 100px;">',
-    '<div id="ramps">',
-    '<div class="ramp BuGn"><svg width="15" height="75">',
-    '<rect fill="rgb(237,248,251)" width="15" height="15" y="0"></rect>',
-    '<rect fill="rgb(178,226,226)" width="15" height="15" y="15"></rect>',
-    '<rect fill="rgb(102,194,164)" width="15" height="15" y="30"></rect>',
-    '<rect fill="rgb(44,162,95)" width="15" height="15" y="45"></rect>',
-    '<rect fill="rgb(0,109,44)" width="15" height="15" y="60"></rect>',
-    '</svg></div>',
-    '<div class="ramp BuPu"><svg width="15" height="75">',
-    '<rect fill="rgb(237,248,251)" width="15" height="15" y="0"></rect>',
-    '<rect fill="rgb(179,205,227)" width="15" height="15" y="15"></rect>',
-    '<rect fill="rgb(140,150,198)" width="15" height="15" y="30"></rect>',
-    '<rect fill="rgb(136,86,167)" width="15" height="15" y="45"></rect>',
-    '<rect fill="rgb(129,15,124)" width="15" height="15" y="60"></rect>',
-    '</svg></div>',
-    '<div class="ramp GnBu"><svg width="15" height="75">',
-    '<rect fill="rgb(240,249,232)" width="15" height="15" y="0"></rect>',
-    '<rect fill="rgb(186,228,188)" width="15" height="15" y="15"></rect>',
-    '<rect fill="rgb(123,204,196)" width="15" height="15" y="30"></rect>',
-    '<rect fill="rgb(67,162,202)" width="15" height="15" y="45"></rect>',
-    '<rect fill="rgb(8,104,172)" width="15" height="15" y="60"></rect>',
-    '</svg></div>',
-    '</div>',
-    '</div>'
-    ].join("\n");
-
-var newReqs = [
-    '<div>',
-        '<p>',
-            '<label>Title:</label>',
-            '<textarea id = "Title" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>',
-        '</p>',
-        '<p>',
-            '<label>Description:</label>',
-            '<textarea id = "Description" rows = "3" cols = "40" placeholder="This shows..."></textarea>',
-        '</p>',
-        '<hr>',
-        '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);createNumClasses(this,document.getElementById(\'types\'));" ></select> </p>',
-        '<p></p>',
-        '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
-        '<p></p>',
-        '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
-        '<p></p>',
-        '<hr>',
-    '</div>'
-    ].join("\n");
-
-
-// var newReqs = [
-//      '<div>',
-//      '<select>',
-//          '<option value="Field">Field</option>',
-//      '</select>',
-//      '<p></p>',
-//      '<select>',
-//          '<option value="Type">Type</option>',
-//          '<option value="Quantitative">Quantitative</option>',
-//          '<option value="Divergent">Divergent</option>',
-//          '<option value="Qualitative">Qualitative</option>',
-//      '</select>',
-//      '<p></p>',
-//      '<label>Pick a Color Scheme:</label>',
-//      fullColorDiv,
-//      '<br>',
-//      '<p></p>',
-//      '<p>',
-//          '<label>Title:</label>',
-//          '<textarea id = "Title"rows = "1"cols = "40">What do you want to call this visualization?</textarea>',
-//      '</p>',
-//      '<p>',
-//          '<label>Description:</label>',
-//          '<textarea id = "Description"rows = "3"cols = "40">This shows...</textarea>',
-//      '</p>',
-//      '<hr>',
-//      '</div>'
-//      ].join("\n");
-
 var schemeNames = {sequential: ["BuGn","BuPu","GnBu","OrRd","PuBu","PuBuGn","PuRd","RdPu","YlGn","YlGnBu","YlOrBr","YlOrRd"],
 					singlehue:["Blues","Greens","Greys","Oranges","Purples","Reds"],
 					diverging: ["BrBG","PiYG","PRGn","PuOr","RdBu","RdGy","RdYlBu","RdYlGn","Spectral"],
 					qualitative: ["Accent","Dark2","Paired","Pastel1","Pastel2","Set1","Set2","Set3"] };
-
-
-function appendVisualizationRequirements(){
-    $("#newRequirements").append(newReqs);
-}
 
 var description = [
     '<div class="legend" id="legend-cluster">',
