@@ -61,6 +61,7 @@ class NoisyEdgesMaker:
         self.edge.append(h)
         self._subdivide(h, self.interpolate(f, c, rand2), c, self.interpolate(i, d, rand3))
 
+
     def _makeNoisyEdge(self, pt0, pt1, pt2, pt3, processed=False):
         """
         Make a noisy edge from two Voronoi vertices (pt0 and pt2) and two region points (pt1 and pt3)
@@ -123,25 +124,49 @@ class NoisyEdgesMaker:
             self.edge = []
             vertex0 = self.vertices[i]
             vertex1 = self.vertices[i + 1]
-            points = [np.array(point) for point in vertex0.regionPoints & vertex1.regionPoints]
 
+            if(vertex0.regionPoints is  None and vertex1.regionPoints is  None ):print False
+           # if (vertex1.regionPoints is not None): print False
+
+            points = [np.array(point) for point in vertex0.regionPoints & vertex1.regionPoints]
+          #  if (vertex0.regionPoints is not None and vertex1.regionPoints is not None): print points
             assert len(points) == 2
+
 
             self._makeNoisyEdge(np.array((vertex0.x, vertex0.y)), points[0],
                                 np.array((vertex1.x, vertex1.y)), points[1])
+
             for j in range(1, len(self.edge) - 1):
+
                 noisedVertices.append(Vertex(None, self.edge[j], True))
             noisedVertices.append(vertex1)
         if circular:
             noisedVertices.pop()
         return noisedVertices
 
-    def makeNoisyEdges_new(self, circular, commonPoints, pointsDict):
+    def makeNoisyEdges_new(self, commonPoints, pointsDict, circular):
+        #if circular:
+        #    self.vertices.append(self.vertices[0]) #does not work when I do this, i think cause
+        #already account for circular before
         noisedPoints = [commonPoints[0]]
         for i in range(len(commonPoints)-1):
             self.edge = []
             vertex0 = pointsDict[commonPoints[i]]
             vertex1 = pointsDict[commonPoints[i+1]]
+            #print len(vertex0)
+            #print 'vertex', vertex0[-1]
+            assert len(set(vertex0[-1])) == 3
+            assert len(set(vertex1[-1])) == 3
+
+            points  = [np.array(point) for point in set(vertex0[-1]) & set(vertex1[-1])]
+            #if len(points) != 2: print points
+            assert len(points) == 2
+                #why not always 2 len == 2???
+           # print points
+            self._makeNoisyEdge(np.array((vertex0[0], vertex0[1])), points[0],
+                                np.array((vertex1[0], vertex1[1])), points[1])
+            newDictOfPoints = {}
+            #print points
             #what to do about region points?
 
 

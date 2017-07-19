@@ -120,8 +120,9 @@ class BorderBuilder:
         for clusterLabels in borders.keys():
             for regions in borders[clusterLabels]:
                 previousVertex = None
+                pair = 0
                 for x in range(len(regions) + 1):
-                    if previousVertex is not None:
+                    if previousVertex is not None and pair % 2 != 0:
                         pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y, previousVertex.isOnCoast,
                                                          tuple(sorted(previousVertex.regionPoints)))],
                                        tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y,
@@ -131,6 +132,7 @@ class BorderBuilder:
                         finalDictOfLines[lineId] = pointidPair
                         lineId += 1
                     previousVertex = regions[x % len(regions)]
+                    pair += 1
         return tempDictOfLines, finalDictOfLines
 
     def createDictOfRings(self, borders, tempDictOfPoints, tempDictOfLines):
@@ -140,8 +142,9 @@ class BorderBuilder:
         for clusterLabels in borders.keys():
             for regions in borders[clusterLabels]:
                 previousVertex = None
-                for x in range(len(regions) + 1):
-                    if previousVertex is not None:
+                pair = 0
+                for x in range(len(regions) + 1) :
+                    if previousVertex is not None and pair % 2 != 0:
                         pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y, previousVertex.isOnCoast,
                                                          tuple(sorted(previousVertex.regionPoints)))],
                                        tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y,
@@ -153,6 +156,7 @@ class BorderBuilder:
                         lineIds = finalDictOfRings[ringId]
                         tempDictOfRings[lineIds] = ringId
                     previousVertex = regions[x % len(regions)]
+                    pair +=1
                 ringId += 1
         return tempDictOfRings, finalDictOfRings
 
@@ -163,8 +167,9 @@ class BorderBuilder:
             for regions in borders[clusterLabels]:
                 lineIds = tuple()
                 previousVertex = None
+                pair = 0
                 for x in range(len(regions) + 1):
-                    if previousVertex is not None:
+                    if previousVertex is not None and pair % 2 != 0:
                         pointidPair = (tempDictOfPoints[(previousVertex.x, previousVertex.y, previousVertex.isOnCoast,
                                                          tuple(sorted(previousVertex.regionPoints)))],
                                        tempDictOfPoints[(regions[x % len(regions)].x, regions[x % len(regions)].y,

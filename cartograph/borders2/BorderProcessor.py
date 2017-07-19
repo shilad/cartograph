@@ -78,6 +78,24 @@ class BorderProcessor:
                 vertex.y = y[i]
         return vertices
 
+    def processVertices_new(self, commonPoints, circular):
+        if len(commonPoints) < 2:
+            return commonPoints
+        if self.noise:
+            NoisyEdgesMaker(commonPoints, self.minBorderNoiseLength).makeNoisyEdges_new(commonPoints, self.points,
+                                                                                        circular)
+        else:
+            coordinates = []
+            idOrder = []
+            for pointId in commonPoints:
+                idOrder.append(pointId)
+                coordinates.append(self.getCoordinatesOfPointId(pointId))
+            x, y = zip(*coordinates)
+            x = self.blur(x, circular, self.blurRadius)
+            y = self.blur(y, circular, self.blurRadius)
+            for i, pointId in enumerate(idOrder):
+                self.points[pointId] = (x[i], y[i]) + self.points[pointId][2:]
+        pass
     @staticmethod
     def getConsensusBorderIntersection(indices1, indices2, len1, len2, reverse2):
         """
@@ -192,7 +210,7 @@ class BorderProcessor:
                 processedVertices = np.roll(processedVertices, -i - 1, axis=0)
                 index = startStop[1] + 1
                 break
-        # now that everything is in order, find the section with the smallest start value and move to the front
+        # now that everything is in order, find the section with the smallest start value and move to to the front
         # this will only be necessary if there were no regions overlapping 0
         smallestStartValIndex = np.argmin(regionStartStopList, axis=0)[0]
         regionStartStopList = np.roll(regionStartStopList, -smallestStartValIndex, axis=0)
@@ -282,40 +300,31 @@ class BorderProcessor:
         return processedRegion1, processedRegion2
 
     def makeNewRegion_new(self, ring1, ring2):
-        commonPoints = []
-        for pointId in ring1:
-            for pointId2 in ring2:
-                if(pointId == pointId2):
-                    commonPoints.append(pointId)
-        if(len(commonPoints) == 0):
+        consensusLists, circular, reverse2 =self.getIntersectingBorders(ring1, ring2)
+
+        if len(consensusLists) == 0:
             return ring1, ring2
+        processed = []
+        for contiguous in consensusLists:
+            # sanity check
+            #print('contiguous', contiguous)
+            for indices in contiguous:
 
-        if(commonPoints[0] == commonPoints[-1]):
-            circular = True
-        else:
-            circular = False
-        self.processVertices_new(commonPoints, circular)
-        #print 'commonPoints', commonPoints
-        pass
+                assert ring1[indices[0]] == ring2[indices[1]]
+            indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
+            ringsId= [ring1[i] for i in indices[0]]
+            pointsID = []
+            for id in ringsId:
+                #pass
+               pointsID.extend(self.lines[id])
+            processed.append(
+                self.processVertices_new(pointsID, circular)
+            )
 
-    def processVertices_new(self, commonPoints, circular):
-        if len(commonPoints) < 2:
-            return commonPoints
-        if self.noise:
-            pass
-        else:
-            coordinates = []
-            for pointId in commonPoints:
-                coordinates.append(self.getCoordinatesOfPointId(pointId))
-            x, y = zip(*coordinates)
-            x = self.blur(x, circular, self.blurRadius)
-            y = self.blur(y, circular, self.blurRadius)
-            for i, pointId in enumerate(commonPoints):
-                self.points[pointId] = (x[i], y[i])
-        pass
+
 
     def getCoordinatesOfPointId(self, pointId):
-        coordinates = self.points[pointId][0], self.points[pointId][1]
+        coordinates = self.points[pointId][:2]
         return coordinates
 
     def getIsOnCoastOfPointId(self, pointId):
@@ -357,8 +366,8 @@ class BorderProcessor:
                 if cluster1 < cluster2:
                     self.noise = cluster2 == self.waterLabel
 
-                    ring1 = self.getPointIDForRing(self.regions[cluster1][i])
-                    ring2 = self.getPointIDForRing(self.regions[cluster2][j])
+                    ring1 =  self.rings[self.regions[cluster1][i]] #self.getPointIDForRing(self.regions[cluster1][i])
+                    ring2 = self.rings[self.regions[cluster2][j]] #self.getPointIDForRing(self.regions[cluster2][j]) #
 
                     #print 'ring1', ring1
                     #print 'ring2', ring2
@@ -373,6 +382,8 @@ class BorderProcessor:
             points = self.lines[lineID]
             pointsID.extend(points)
         return pointsID
+
+
 
 
 
