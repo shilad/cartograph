@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from scipy.sparse import csc_matrix
 import time
 origEdgesPath = "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalEdges.txt"
 
@@ -22,7 +23,8 @@ def createSequence(origEdgesPath):
 
 def writeSparseMatrix(sequence, outputdir):
     print("ayy jek")
-    count = -1
+    #I can't seem to get the logic right, it's either one or two off each time. Partly because the line numbers in Original Edges are off but...
+    count = 0
     rows = []
     cols = []
     vals = []
@@ -31,8 +33,9 @@ def writeSparseMatrix(sequence, outputdir):
         for dest in sorted(roadDict):
             cols.append(dest)
             vals.append(roadDict[dest])
-        rows.append(count+1)
-        count+=len(roadDict)
+        rows.append(count)
+        count += len(roadDict)
+    print(rows)
 
     #rows memmap conversion
     rowNp = np.asarray(rows)
@@ -61,38 +64,84 @@ def writeSparseMatrix(sequence, outputdir):
     shapesFile.close()
 
 class MMappedSparseMatrix():
-    # def __init__(self, outputdir, origEdgesPath):
-    #     #testSparseMatrix = pd.read_csv(origEdgesPath, sep=" ", skiprows=[0], header=None, names=edgeList,)
-    #     testMatrix = pd.read_csv(origEdgesPath, sep=" ", header=None, skiprows=[0], names=["Src", "Dst"], dtype=[("Src", "int32"), ("Dst", "int32")])
-    #     colList = testMatrix["Dst"].tolist()
-    #     #colList is a list where for any given index i which stands for a row, colList gives the Dst associated with that given row
-    #     rowVals = testMatrix["Src"].tolist()
-    #     rowList = []
-    #     prevRowID = None
-    #     for i in range(0,len(rowVals)):
-    #         if rowVals[i] != prevRowID:
-    #             rowList.append(i)
-    #             prevRowID = rowVals[i]
-    #     rowMemShape = np.asarray(rowList).shape
-    #     colMemShape = np.asarray(colList).shape
-    #     savePathRow=outputdir+"/row_indexes.mmap"
-    #     savePathCol=outputdir+"/columns.mmap"
-    #     rowMap = np.memmap(savePathRow, dtype='int32', mode="w+", shape=rowMemShape)
-    #     rowMap[:] = np.asarray(rowList)
-    #     colMap = np.memmap(savePathCol, dtype='int32', mode="w+", shape=colMemShape)
-    #     colMap[:] = np.asarray(colList)
-    #     print(rowMap)
-    #     print(colMap.dtype)
 
-    def __init__(self, outpudDir):
+    def __init__(self, outputDir):
         print("jek you bonobo!")
+        colAddress = outputdir+"/columns.mmap"
+        rowAddress = outputdir+"/row_indexes.mmap"
+        valAddress = outputdir+"/values.mmap"
+        shapesAddress = outputdir+"/shape.txt"
+        self.rowMap = np.memmap(rowAddress, dtype="int32", mode="r+")
+        self.colMap = np.memmap(colAddress, dtype="int32", mode="r+")
+        self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
 
+    #Seems to work. Still need to sort out index assignment. YOU MUST SPECIFY IF INDEX OR EDGEID BASED
+    def get_row_as_np(self, index=-1, edgeId = -1):
+        print("JEK")
+        #catch if want edgeId val instead of index
+        if edgeId != -1:
+            index = edgeId-1
+        else:
+            if edgeId == -1 and index == -1:
+                print("Error, please specify index or edgeId value")
+
+        startIndex = self.rowMap[index]
+        endpoint = self.rowMap[index+1]
+        print(str(startIndex) + " " + str(endpoint))
+        rowVals = [0] * self.colMap.size
+        for i in range(startIndex, endpoint):
+            rowVals[self.colMap[i]] = self.valMap[i]
+        rowNp = np.asarray(rowVals)
+        return rowNp
+
+    def get_row_as_dict(self, index=-1, edgeId = -1):
+        print("TEH")
+        if edgeId != -1:
+            index = edgeId -1
+        else:
+            if edgeId == -1 and index == -1:
+                print("Error, please specify index or edgeId value")
+
+        startIndex = self.rowMap[index]
+        endIndex = self.rowMap[index+1]
+
+        edgeValDict = {}
+        for i in range(startIndex, endIndex):
+            edgeValDict[self.colMap[i]] = self.valMap[i]
+        return edgeValDict
+
+    def get_row_as_csc(self, index=-1, edgeId = -1):
+        print("STEK")
+        if edgeId != -1:
+            index = edgeId -1
+        else:
+            if edgeId == -1 and index == -1:
+                print("Error, please specify index or edgeId value")
+        startIndex = self.rowMap[index]
+        endIndex = self.rowMap[index+1]
+        print("uhhh")
+
+
+    def as_csr(self):
+        print("LINDEN")
+        #rowMap needs to be size of colmap
+        rowVals = []
+        for i in range(0, self.rowMap.size-1):
+            for z in range(self.rowMap[i], self.rowMap[i+1]):
+                rowVals.append(i+1)
+        for i in range(self.rowMap[-1], self.colMap.size):
+            rowVals.append(self.rowMap.size+1)
+        rowNp = np.asarray(rowVals)
+        print(rowNp.size)
+        print(self.colMap.size)
+        print(self.valMap.size)
+        return csc_matrix((self.valMap, (rowNp, self.colMap)), shape=(rowNp.size, self.colMap.size))
 
 outputdir = "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles"
 sequence = createSequence(origEdgesPath)
 startTime = time.time()
-writeSparseMatrix(sequence, outputdir)
-#peter = MMappedSparseMatrix(outputdir, origEdgesPath)
+peter = MMappedSparseMatrix(outputdir)
+matrix = (peter.as_csr())
 endTime = time.time()
 timepassed = endTime - startTime
 print("Time elapsed: " + str(timepassed))
