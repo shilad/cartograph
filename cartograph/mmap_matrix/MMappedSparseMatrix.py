@@ -19,6 +19,9 @@ def createSequence(origEdgesPath):
     sequenceList = []
     for key in sorted(sequenceDict): #sorting here preserves order, uhh yeah.
         sequenceList.append((key, sequenceDict[key]))
+    # for i in range(0,5):
+    #     key, val = sequenceList[i]
+    #     print(len(val))
     return sequenceList #This should be hopefully the set of tuples, (row, vals) where val is a dictionary with weight vals
 
 def writeSparseMatrix(sequence, outputdir):
@@ -35,8 +38,6 @@ def writeSparseMatrix(sequence, outputdir):
             vals.append(roadDict[dest])
         rows.append(count)
         count += len(roadDict)
-    print(rows)
-
     #rows memmap conversion
     rowNp = np.asarray(rows)
     rowShape = rowNp.shape
@@ -143,6 +144,8 @@ class MMappedSparseMatrix():
 outputdir = "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles"
 sequence = createSequence(origEdgesPath)
 startTime = time.time()
+peter = MMappedSparseMatrix(outputdir)
+print(peter.get_row_as_dict(index=0))
 endTime = time.time()
 timepassed = endTime - startTime
 print("Time elapsed: " + str(timepassed))
