@@ -95,12 +95,13 @@ class MMappedSparseMatrix():
         rowNp = np.asarray(rowVals)
         return rowNp
 
-    def get_row_as_dict(self, index=-1, edgeId = -1):
+    #returns a dictionary object for a given pointID, the keys are all the destination pointIDs, with vals being the Zpop
+    def get_row_as_dict(self, index=-1, pointID = -1):
         print("TEH")
-        if edgeId != -1:
-            index = edgeId -1
+        if pointID != -1:
+            index = pointID - 1
         else:
-            if edgeId == -1 and index == -1:
+            if pointID == -1 and index == -1:
                 print("Error, please specify index or edgeId value")
 
         startIndex = self.rowMap[index]
