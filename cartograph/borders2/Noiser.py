@@ -144,75 +144,42 @@ class NoisyEdgesMaker:
             noisedVertices.pop()
         return noisedVertices
 
-    def makeNoisyEdges_new(self, commonLines, pointsDict, circular, idGenerator, linesDict, processedLines):
-        '''
-        case 1: both lines i and i+1 have been processed
-        case 2: just line 1 has been processed
-        case 3: just line i+1 has been processed
-        case 4: none of the lines have been processed
-        :param commonLines:
-        :param pointsDict:
-        :param circular:
-        :param idGenerator:
-        :param linesDict:
-        :param processedLines:
-        :return:
-        '''
-        noised = []
-        print 'here'
-        for i in range(len(commonLines)-1):
-            if commonLines[i] in processedLines:
-                processedLines1 = processedLines[commonLines[i]]
-            if commonLines[i+1] in processedLines:
-                processedLines2 = processedLines[commonLines[i+1]]
-
-            commonPoints = linesDict[commonLines[i]] + linesDict[commonLines[i + 1]]
-
-            print commonPoints
-            noisedPoints = [commonPoints[0]]
-            for k in range(len(commonPoints)-1):
-                self.edge = []
+    def makeNoisyEdges_new(self, commonPoints, pointsDict, circular, idGenerator):
+        #if circular:
+        #    self.vertices.append(self.vertices[0]) #does not work when I do this, i think cause
+        #already account for circular before
+        noisedPoints = [commonPoints[0]]
+        for i in range(len(commonPoints)-1):
+            self.edge = []
 
 
-                vertex0 = pointsDict[commonPoints[k]]
-                vertex1 = pointsDict[commonPoints[k+1]]
-                #print len(vertex0)
-                #print 'vertex', vertex0[-1]
-                assert len(set(vertex0[-1])) == 3
-                assert len(set(vertex1[-1])) == 3
+            vertex0 = pointsDict[commonPoints[i]]
+            vertex1 = pointsDict[commonPoints[i+1]]
+            #print len(vertex0)
+            #print 'vertex', vertex0[-1]
+            assert len(set(vertex0[-1])) == 3
+            assert len(set(vertex1[-1])) == 3
 
-                points  = [np.array(point) for point in set(vertex0[-1]) & set(vertex1[-1])]
-                #if len(points) != 2: print points
-                assert len(points) == 2
-                    #why not always 2 len == 2???
-               # print points
-                self._makeNoisyEdge(np.array((vertex0[0], vertex0[1])), points[0],
-                                    np.array((vertex1[0], vertex1[1])), points[1])
+            points  = [np.array(point) for point in set(vertex0[-1]) & set(vertex1[-1])]
+            #if len(points) != 2: print points
+            assert len(points) == 2
+                #why not always 2 len == 2???
+           # print points
+            self._makeNoisyEdge(np.array((vertex0[0], vertex0[1])), points[0],
+                                np.array((vertex1[0], vertex1[1])), points[1])
 
+            id = idGenerator.getNextID()
 
+            for j in range(1, len(self.edge) - 1):
+                pointsDict['n' + str(id)] = self.edge[j][0], self.edge[j][1]
+
+                noisedPoints.append('n' + str(id))
                 id = idGenerator.getNextID()
+            noisedPoints.append(commonPoints[i+1])
+            if circular:
+                noisedPoints.pop()
 
-                for j in range(1, len(self.edge) - 1):
-                    pointsDict['n' + str(id)] = self.edge[j][0], self.edge[j][1]
-                    noisedPoints.append('n' + str(id))
-                    id = idGenerator.getNextID()
-                    noisedPoints.append(commonPoints[k+1])
+            return noisedPoints, pointsDict
 
-                    if circular:
-                        noisedPoints.pop()
-                    noised.extend(noisedPoints)
-        return noised, pointsDict
 
-        def makeLineDictOutOFNewPointDict(self, newPointIdList, idGenerator):
-            previous = None
-            pair = 0
-            lineId = idGenerator.getNextID()
-            newLinesID = []
-            for newPointId in newPointIdList:
-                if previous != None and pair % 2 != 0:
-                    self.lines['n' + str(lineId)] = (previous, newPointId)
-                    newLinesID.append('n' + str(lineId))
-                    lineId = idGenerator.getNextID()
-                previous = newPointId
-                pair += 1
-            return newLinesID
+

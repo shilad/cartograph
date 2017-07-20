@@ -80,14 +80,13 @@ class BorderProcessor:
                 vertex.y = y[i]
         return vertices
 
-    def processVertices_new(self, commonLines, circular):
-        if len(commonLines) <= 1:
-            return commonLines
+    def processVertices_new(self, commonPoints, circular):
+        if len(commonPoints) < 2:
+            return commonPoints
         if self.noise:
-            commonLines, self.points = NoisyEdgesMaker(commonLines, self.minBorderNoiseLength).makeNoisyEdges_new(commonLines, self.points,
-                                                                                        circular, self.idGenerator, self.lines, self.processedLines)
+            commonPoints, self.points = NoisyEdgesMaker(commonPoints, self.minBorderNoiseLength).makeNoisyEdges_new(commonPoints, self.points,
+                                                                                        circular, self.idGenerator)
         else:
-            return []
             coordinates = []
             idOrder = []
             for pointId in commonPoints:
@@ -98,7 +97,7 @@ class BorderProcessor:
             y = self.blur(y, circular, self.blurRadius)
             for i, pointId in enumerate(idOrder):
                 self.points[pointId] = (x[i], y[i]) + self.points[pointId][2:]
-        return commonLines
+        return commonPoints
 
     @staticmethod
     def getConsensusBorderIntersection(indices1, indices2, len1, len2, reverse2):
@@ -196,7 +195,7 @@ class BorderProcessor:
             )
         return [], False, False
 
-    def makeNewRegionFromProcessed(self, region, processedVertices, regionStartStopList, reverse=False):
+    def makeNewRegionFromProcessed(self, region, processedVertices, regionStartStopList, reverse=False, new = False):
         '''What is this doing??? '''
         assert len(processedVertices) == len(regionStartStopList)
         if reverse:
@@ -222,13 +221,23 @@ class BorderProcessor:
         processedVertices = np.roll(processedVertices, -smallestStartValIndex, axis=0)
         while index < len(region):
             if startStopListIndex < len(regionStartStopList) and index == regionStartStopList[startStopListIndex][0]:
+                if new:
+                    processedVertices[startStopListIndex][0] = int(processedVertices[startStopListIndex][0])
+                    try:
+
+                        processedVertices[startStopListIndex][-1] = int(processedVertices[startStopListIndex][-1])
+                    except ValueError:
+                        pass
                 processedRegion.extend(processedVertices[startStopListIndex])
+              #  print 'procvert', type(processedVertices[startStopListIndex][0])
                 start, stop = regionStartStopList[startStopListIndex]
                 index += len(self.wrapRange(start, stop, len(region)))
                 startStopListIndex += 1
             else:
                 processedRegion.append(region[index])
+              #  print 'reg', region[index]
                 index += 1
+
         return processedRegion
 
     def makeNewRegions(self, region1, region2):
@@ -289,23 +298,27 @@ class BorderProcessor:
                 assert ring1[indices[0]] == ring2[indices[1]]
             indices = zip(*contiguous)  # make separate lists for region1 and region2 coordinates
             ringsId= [ring1[i] for i in indices[0]]
-            print 'ringsId', ringsId
-            pointsID = []
+            ring1pointsID = []
             for id in ringsId:
                 #pass
-               pointsID.extend(self.lines[id])
+               ring1pointsID.extend(self.lines[id])
             region1StartStopList.append((indices[0][0], indices[0][-1]))
             region2StartStopList.append((indices[1][0], indices[1][-1]))
             processed.append(
-                self.processVertices_new(ringsId, circular)
+                self.processVertices_new(ring1pointsID, circular)
             )
-        print 'processed',processed
-       # processedRing1 = self.makeNewRegionFromProcessed(ring1, processed, region1StartStopList)
-        #processedRing2 = self.makeNewRegionFromProcessed(ring2, processed, region2StartStopList, reverse2)
+        ringsId2 = [ring2[i] for i in indices[1]]
+        ring2pointsID = []
+        for id in ringsId2:
+            # pass
+            ring2pointsID.extend(self.lines[id])
+        processedRing1 = self.makeNewRegionFromProcessed(ring1pointsID, processed, region1StartStopList, new = True)
+        processedRing2 = self.makeNewRegionFromProcessed(ring2pointsID, processed, region2StartStopList, reverse2, new = True)
 
-#        ring1 = self.makeLineDictOutOFNewPointDict(processedRing1, self.idGenerator)
- #       ring2 = self.makeLineDictOutOFNewPointDict(processedRing2, self.idGenerator)
-
+        ring1 = self.makeLineDictOutOFNewPointDict(processedRing1, self.idGenerator)
+        ring2 = self.makeLineDictOutOFNewPointDict(processedRing2, self.idGenerator)
+      #  print 'p1', processedRing1
+      #  print 'p2', processedRing2
         return ring1, ring2
 
     def makeLineDictOutOFNewPointDict(self, newPointIdList, idGenerator):
@@ -318,6 +331,7 @@ class BorderProcessor:
                 self.lines['n' + str(lineId)] = (previous, newPointId)
                 newLinesID.append('n' + str(lineId))
                 lineId = idGenerator.getNextID()
+                #print (previous, newPointId)
             previous = newPointId
             pair += 1
         return newLinesID
@@ -381,6 +395,7 @@ class BorderProcessor:
                     self.regions[cluster1][i] = ring1ID
                     self.regions[cluster2][j] = ring2Id
 
+        self.checkThings()
 
 
 
@@ -394,6 +409,20 @@ class BorderProcessor:
             pointsID.extend(points)
         return pointsID
 
+    def checkThings(self):
+        for regionId in self.regions:
+            for ringId in self.regions[regionId]:
+                #print 'ring', ringId, self.rings[ringId]
+                for lineId in self.rings[ringId]:
+                    #print 'line', lineId, self.lines[lineId]
+                    for pointID in self.lines[lineId]:
+                        if pointID in self.points:
+                          pass
+                          #  print 'point', pointID, self.points[pointID]
+                           # print type(pointID)
+                        else:
+
+                            print 'no', pointID, type(pointID)
 
 
 class NewIDGenerator():
