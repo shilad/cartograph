@@ -221,13 +221,7 @@ class BorderProcessor:
         processedVertices = np.roll(processedVertices, -smallestStartValIndex, axis=0)
         while index < len(region):
             if startStopListIndex < len(regionStartStopList) and index == regionStartStopList[startStopListIndex][0]:
-                if new:
-                    processedVertices[startStopListIndex][0] = int(processedVertices[startStopListIndex][0])
-                    try:
 
-                        processedVertices[startStopListIndex][-1] = int(processedVertices[startStopListIndex][-1])
-                    except ValueError:
-                        pass
                 processedRegion.extend(processedVertices[startStopListIndex])
               #  print 'procvert', type(processedVertices[startStopListIndex][0])
                 start, stop = regionStartStopList[startStopListIndex]
@@ -235,8 +229,14 @@ class BorderProcessor:
                 startStopListIndex += 1
             else:
                 processedRegion.append(region[index])
-              #  print 'reg', region[index]
+
                 index += 1
+        if new: #I dont know why but some of the oiriginal point ids were cast to string at some point and need to be cast
+            #back to int
+            for i in range(len(processedRegion)):
+                vertex = processedRegion[i]
+                if type(vertex) == np.string_ and vertex[0] != 'n':
+                    processedRegion[i] = int(vertex)
 
         return processedRegion
 
@@ -395,7 +395,7 @@ class BorderProcessor:
                     self.regions[cluster1][i] = ring1ID
                     self.regions[cluster2][j] = ring2Id
 
-        self.checkThings()
+       #self.checkThings()
 
 
 
@@ -410,20 +410,17 @@ class BorderProcessor:
         return pointsID
 
     def checkThings(self):
+
         for regionId in self.regions:
             for ringId in self.regions[regionId]:
-                #print 'ring', ringId, self.rings[ringId]
+                print 'ring', ringId, self.rings[ringId]
                 for lineId in self.rings[ringId]:
-                    #print 'line', lineId, self.lines[lineId]
+                    print 'line', lineId, self.lines[lineId]
                     for pointID in self.lines[lineId]:
                         if pointID in self.points:
-                          pass
-                          #  print 'point', pointID, self.points[pointID]
-                           # print type(pointID)
-                        else:
 
-                            print 'no', pointID, type(pointID)
-
+                         print 'point', pointID, self.points[pointID]
+                         pass
 
 class NewIDGenerator():
 
