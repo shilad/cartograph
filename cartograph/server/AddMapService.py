@@ -218,6 +218,10 @@ class AddMapService:
         with open(self.map_services['_meta_config'], 'a') as meta_config:
             meta_config.write('\n'+config_path)
 
+        # Clean up: delete the temporary file
+        os.remove(os.path.join(self.upload_dir, map_file_name))
+
+        # Return helpful information to client
         resp.body = json.dumps({
             'map_name': map_name,
             'bad_articles': list(bad_articles),
