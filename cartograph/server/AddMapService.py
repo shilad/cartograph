@@ -115,6 +115,11 @@ def gen_data(source_dir, target_path, articles):
     # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         filter_tsv(source_dir, target_path, ids, filename)
+        if filename == 'ids.tsv':
+            external_ids = pandas.read_csv(os.path.join(target_path, filename), sep='\t', index_col='id')
+            user_data_with_external_ids = user_data_with_internal_ids.join(external_ids)
+            user_data_with_external_ids.set_index('externalId', inplace=True)
+            user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
 
     data_columns = list(user_data)
 

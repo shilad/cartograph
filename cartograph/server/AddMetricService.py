@@ -28,11 +28,11 @@ class AddMetricService:
         config = SafeConfigParser()
         config.read(self.conf_path)
         all_columns = json.loads(config.get('DEFAULT', 'columns'))
-        columns_input = ''.join(['<input type="checkbox" name="%s" value="%s"> %s' %
-                                 (COL_PREFIX + column, column, column) for column in all_columns])
+        column_input = ''.join(['<option value="%s" >%s</option>' %
+                                 (column, column) for column in all_columns])
 
         metric_form_template = string.Template(open(os.path.join('templates', '%s_form.html' % metric_type), 'r').read())
-        metric_form = metric_form_template.substitute(map_name=self.map_service.name, columns=columns_input)
+        metric_form = metric_form_template.substitute(map_name=self.map_service.name, columns=column_input)
 
         page_template = string.Template(open('templates/add_metric.html', 'r').read())
         resp.body = page_template.substitute(
@@ -55,20 +55,15 @@ class AddMetricService:
         # WARNING: this config format normalizes to lowercase in some places but is case-sensitive in others
         metric_name = string.lower(post_data['metric_name'])
 
-        # Extract selected columns from the form
-        columns = []
-        for kw in post_data.keys():
-            if kw.startswith(COL_PREFIX):
-                columns.append(kw[len(COL_PREFIX):])
-
-        # Extract colors from request
+        # Extract colors and column name from request
         palette_name = post_data['color_palette']
+        column = post_data['column']
 
         # Configure settings for a metric
         metric_settings = {
             'type': metric_type,
             'path': '%(externalDir)s/metric.tsv',
-            'fields': columns,
+            'fields': [column],
             'colorCode': palette_name
         }
 
@@ -81,16 +76,16 @@ class AddMetricService:
         # Add more info to metric settings depending on type
         if metric_type == 'diverging':
             metric_settings.update({
-                'maxVal': data[columns[0]].max(),
-                'minVal': data[columns[0]].min()
+                'maxVal': data[column].max(),
+                'minVal': data[column].min()
             })
         elif metric_type == 'qualitative':
             metric_settings.update({
-                'scale': list(data[columns[0]].unique())
+                'scale': list(data[column].unique())
             })
         elif metric_type == 'sequential':
             metric_settings.update({
-                'maxValue': data[columns[0]].max()
+                'maxValue': data[column].max()
             })
 
         # Combine new metric with previously active metrics
