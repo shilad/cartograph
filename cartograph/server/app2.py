@@ -9,7 +9,6 @@ from cartograph.server.AddMapService import AddMapService
 from cartograph.server.MapService import MapService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.UploadService import UploadService
-from cartograph.server.MetricService import MetricService
 
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
@@ -67,7 +66,6 @@ if map_services['_multi_map']:
     UPLOAD_DIR = 'tmp/upload'
     app.add_route('/upload', UploadService(map_services, UPLOAD_DIR))
     app.add_route('/add_map/{map_name}', AddMapService(map_services, UPLOAD_DIR))
-    app.add_route('/add_metrics', MetricService(map_services))
 
 
 # Add way to get static files generally (i.e. without knowing the name of any active map)

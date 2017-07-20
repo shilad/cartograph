@@ -1,3 +1,5 @@
+import codecs
+import csv
 import json
 import os
 import pipes
@@ -13,6 +15,40 @@ from cartograph.server.MapService import MapService
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
+
+
+def filter_tsv(source_dir, target_dir, ids, filename):
+    """Pare down the contents of <source_dir>/<filename> to only rows that start with an id in <ids>, and output them to
+    <target_dir>/<filename>. <target_dir> must already exist. Also transfers over the first line of the file, which is
+    assumed to be the header.
+    e.g.
+    filter_tsv(source_dir='/some/path/', dest_dir='/another/path', ids=['1', '3', '5'], filename='file.tsv')
+    /some/path/file.tsv (before function call):
+    id  name
+    1   hello
+    2   world
+    3   foo
+    4   bar
+    5   spam
+    /another/path/file.tsv (after function call):
+    id  name
+    1   hello
+    3   foo
+    5   spam
+    :param source_dir:
+    :param target_dir:
+    :param ids: an iterable of the ids (each of which should be an int)
+    :param filename: the name of the file in <source_dir> to be filtered into a file of the same name in <target_dir>
+    :return:
+    """
+    with codecs.open(os.path.join(source_dir, filename), 'r') as read_file, \
+            codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
+        reader = csv.reader(read_file, delimiter='\t')
+        writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
+        writer.writerow(reader.next())  # Transfer the header
+        for row in reader:
+            if int(row[0]) in ids:
+                writer.writerow(row)
 
 
 def gen_config(map_name, column_headers):
@@ -78,74 +114,12 @@ def gen_data(source_dir, target_path, articles):
 
     # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
+        filter_tsv(source_dir, target_path, ids, filename)
 
-        # Read the file into a dataframe (source_data)
-        source_file_path = os.path.join(source_dir, filename)
-        if filename == 'vectors.tsv':
-            # There's a special function for reading vectors.tsv, but it leaves the index as a Series of str's,
-            # which is inconsistent with the members of the <ids> set (each of which is an int).
-            source_data = read_vectors(source_file_path)
-            source_data.index = source_data.index.map(int)
-        elif filename == 'links.tsv':
-            # Links.tsv is *also* improperly formatted but not even read_vectors() can read it! >:(
-            # Why would anyone so needlessly break standard file formatting (and by extension, many useful tools)?
-
-            # Make a temporary CSV file, so it can actually be read by Pandas
-            tmp_file_path = os.path.join(source_dir, '.links.csv')
-            os.system('sed "s/\t/,/1" %s > %s' % (source_file_path, tmp_file_path))  # FIXME: Double check security
-
-            # Read the file and then delete it
-            source_data = pandas.read_csv(tmp_file_path, index_col='id')
-            os.remove(tmp_file_path)
-        else:
-            source_data = pandas.read_csv(source_file_path, sep='\t', index_col='id')
-
-        # Filter the dataframe
-        filtered_data = source_data[source_data.index.isin(ids)]
-
-        # Use ids.tsv for replacing internal ids with external ids, then write the output to file
-        # FIXME: What happens when there's no match for an article? This needs to be determined upstream
-        if filename == 'ids.tsv':
-            # Make a new dataframe, replacing [internal] id with corresponding external id
-            user_data_with_external_ids = user_data_with_internal_ids.join(filtered_data)
-            user_data_with_external_ids.set_index('externalId', inplace=True)
-
-            # Write to file
-            metric_file_path = os.path.join(target_path, 'metric.tsv')
-            user_data_with_external_ids.to_csv(metric_file_path, sep='\t')
-
-        # Write the dataframe to the target file
-        target_file_path = os.path.join(target_path, filename)
-        if filename in {'vectors.tsv', 'links.tsv'}:
-            # Treat vectors.tsv as a special case because it is *not* a true TSV (for some reason)
-            write_vectors(filtered_data, target_file_path)
-        else:
-            # For all other TSVs, just write them normally
-            filtered_data.to_csv(target_file_path, sep='\t')
-
-    data_columns = list(user_data_with_external_ids)
+    data_columns = list(user_data)
 
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
-
-def write_vectors(vectors_data, target_file_path):
-    """Special function to write a vectors file, because vectors.tsv is *not* a true TSV >:(
-    Apparently, this can also be used to write our weirdly-formatted links.tsv files as well.
-
-    :param vectors_data: a Pandas dataframe with ids as the index and vectors (with tab separators) as the second column
-    :param target_file_path: path of file to write. Intermediate directories must exist. File at path will be
-    overwritten if it already exists.
-    """
-    vectors_data.index.name = 'id'  # FIXME: w/o this line, it comes out as 'index' (just in vectors.tsv)
-    with open(target_file_path, 'w') as target_file:
-        # Write the header
-        target_file.write('\t'.join([vectors_data.index.name] + list(vectors_data)) + '\n')
-
-        for index, row in vectors_data.iterrows():
-            # str of the vector, each component separated by tabs
-            # FIXME: components should be in scientific notation
-            vector = '\t'.join([str(component) for component in row[0]])
-            target_file.write(str(index) + '\t' + vector + '\n')
 
 
 def check_map_name(map_name, map_services):
