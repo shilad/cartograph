@@ -70,31 +70,31 @@
             <form action="../add_metrics" method="POST" enctype="multipart/form-data" id="metricsForm">
                 <p>
                     <label>Title:</label>
-                    <textarea name="title" id = "Title" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>
+                    <textarea required name="title" id = "title" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>
                 </p>
                 <p>
                     <label>Description:</label>
-                    <textarea name="description" id = "Description" rows = "3" cols = "40" placeholder="This shows..."></textarea>
+                    <textarea name="description" id = "description" rows = "3" cols = "40" placeholder="This shows..."></textarea>
                 </p>
                 <hr>
                 <p> Pick a field
-                    <select name="field" id="fields" onchange="createSelectTypes(this);
+                    <select required name="field" id="fields" onchange="createSelectTypes(this);
                         createNumClasses(this, document.getElementById('types'));
                         createSelectPalettes(document.getElementById('types'),  document.getElementById('number-classes'));" >
                     </select>
                 </p>
                 <p></p>
                 <p> Pick a type
-                    <select name="type" id="types" onchange="createNumClasses(document.getElementById('fields'), this);
+                    <select required name="type" id="types" onchange="createNumClasses(document.getElementById('fields'), this);
                         createSelectPalettes(this, document.getElementById('number-classes'));">
                     </select>
                 </p>
                 <p></p>
                 <p> Pick a number of data classes
-                    <select name="num_classes" id="number-classes" onchange="createSelectPalettes(document.getElementById('types'), this);">
+                    <select required name="num_classes" id="number-classes" onchange="createSelectPalettes(document.getElementById('types'), this);">
                     </select>
                 </p>
-                <input type="text" name="color_scheme" maxlength="20" placeholder="Color Scheme" id="color-scheme"/>
+                <input required type="text" name="color_scheme" maxlength="20" placeholder="Color Scheme" id="color-scheme"/>
                 <p></p>
                 <hr>
             </form>

@@ -27,16 +27,18 @@ $(document).ready(function() {
         var fileName = e.target.files[0].name;
         $("h2").append("<p>" + fileName + "</p>");
     });
+
     $("#submitFile").click(function () {
         $("h2").append("<h3>File being processed...</h3>");
     });
 
     $(".btn-generateMap").click(function () {
-        $.post('/add_map/' + $("#map_name").val());
+        // $.post('/add_map/' + $("#map_name").val());
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
         createMapDescription();
     });
 
+    // Process the upload form after hitting "Submit" button
     var uploadForm = $("#uploadForm");
     uploadForm.on('submit', function (event) {
 
@@ -49,7 +51,7 @@ $(document).ready(function() {
         var file = uploadForm.find('input[type=file]')[0].files[0];
         data.append('file', file);
 
-        // Perform Ajax call
+        // Perform Ajax call to show add visualization part
         $.ajax($.extend({}, {
             url: uploadForm.attr('action'),
             type: 'POST',
@@ -64,6 +66,7 @@ $(document).ready(function() {
                 $("#mapConfig").show();
                 $("#map_name").prop('disabled', true);
 
+                // Show metric options after hitting addVisualization button.
                 $(".btn-addVisualization").click(function () {
                     $("#newRequirements").show();
                     CG.data = data;
@@ -79,46 +82,50 @@ $(document).ready(function() {
             }
         }, {}))
 
+        // Perform Ajax call to generate the map
         $.ajax({
             url: '../add_map/' + $("#map_name").val(),
             type: 'POST',
             success: function (textStatus, jqXHR) {
-                console.log('Done');
+                console.log('Successfully generated a map!');
             },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, textStatus, errorThrown);
+            }
+
         },)
 
     });
 
+    // Process the metric form after hitting Generate Map button
     var metricsForm = $("#metricsForm");
     metricsForm.on('submit', function (event) {
         event.stopPropagation(); // Stop stuff happening
         event.preventDefault(); // Totally stop stuff happening
 
-        // Declare a form data object
-        var metricData = new FormData();
-        metricData.append('map_name', $("#map_name").val());
-        metricData.append('title', metricsForm.find("textarea[name='title']").val());
-        metricData.append('description', metricsForm.find("textarea[name='description']").val());
-        metricData.append('field', metricsForm.find("select[name='field']").val());
-        metricData.append('type', metricsForm.find("select[name='type']").val());
-        metricData.append('color_scheme', metricsForm.find("input[name='color_scheme']").val() + "_" + metricsForm.find("select[name='num_classes']").val());
+        // Perform Ajax call to apply metric
+        var metricData = {
+            metric_name: $("#title").val(),
+            column: $("#fields").val(),
+            color_palette: $("#color-scheme").val() + "_" + $("#number-classes").val(),
+            description: $("#description").val()
+        }
 
-        // Perform Ajax call
-        $.ajax($.extend({}, {
-            url: metricsForm.attr('action'),
+        $.ajax({
+            url: '../' + $("#map_name").val() + '/add_metric/' + $("#types").val(),
             type: 'POST',
             data: metricData,
+            dataType: 'json',
             cache: false,
-            processData: false, // Don't process the files, we're using FormData
+            processData: true,
             contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-            success: function (data, textStatus, jqXHR) {
-                console.log(data);
+            success: function (textStatus, jqXHR) {
+                console.log("Successfully added metric to the map!");
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
             }
-        }, {}))
-
+        })
     });
 });
 
