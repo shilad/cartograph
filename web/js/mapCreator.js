@@ -32,6 +32,7 @@ $(document).ready(function() {
     });
 
     $(".btn-generateMap").click(function () {
+        $.post('/add_map/' + $("#map_name").val());
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
         createMapDescription();
     });
@@ -63,9 +64,6 @@ $(document).ready(function() {
                 $("#mapConfig").show();
                 $("#map_name").prop('disabled', true);
 
-                // console.log($("#map_name").val());
-                // $.post('add_map/'+ $("#map_name").val());
-
                 $(".btn-addVisualization").click(function () {
                     $("#newRequirements").show();
                     CG.data = data;
@@ -80,6 +78,14 @@ $(document).ready(function() {
                 console.log(jqXHR, textStatus, errorThrown);
             }
         }, {}))
+
+        $.ajax({
+            url: '../add_map/' + $("#map_name").val(),
+            type: 'POST',
+            success: function (textStatus, jqXHR) {
+                console.log('Done');
+            },
+        },)
 
     });
 
