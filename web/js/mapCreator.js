@@ -32,6 +32,7 @@ $(document).ready(function() {
     });
 
     $(".btn-generateMap").click(function () {
+        $.post('/add_map/' + $("#map_name").val());
         $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
         createMapDescription();
     });
