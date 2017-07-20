@@ -65,6 +65,8 @@ app.add_sink(ParentService(map_services, 'static_service').on_get, '/(?P<map_nam
 # If the server is in multi-map mode, provide hooks for adding new maps
 if map_services['_multi_map']:
     UPLOAD_DIR = 'tmp/upload'
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
     app.add_route('/upload', UploadService(map_services, UPLOAD_DIR))
     app.add_route('/add_map/{map_name}', AddMapService(map_services, UPLOAD_DIR))
     app.add_route('/add_metrics', MetricService(map_services))

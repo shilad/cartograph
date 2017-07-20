@@ -78,11 +78,16 @@
                 </p>
                 <hr>
                 <p> Pick a field
-                    <select name="field" id="fields" onchange="createSelectTypes(this);createNumClasses(this, document.getElementById('types'));" ></select>
+                    <select name="field" id="fields" onchange="createSelectTypes(this);
+                        createNumClasses(this, document.getElementById('types'));
+                        createSelectPalettes(document.getElementById('types'),  document.getElementById('number-classes'));" >
+                    </select>
                 </p>
                 <p></p>
                 <p> Pick a type
-                    <select name="type" id="types" onchange="createNumClasses(document.getElementById('fields'), this);createSelectPalettes(this, document.getElementById('number-classes'));"></select>
+                    <select name="type" id="types" onchange="createNumClasses(document.getElementById('fields'), this);
+                        createSelectPalettes(this, document.getElementById('number-classes'));">
+                    </select>
                 </p>
                 <p></p>
                 <p> Pick a number of data classes
