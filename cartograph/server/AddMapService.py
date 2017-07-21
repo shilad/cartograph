@@ -9,7 +9,7 @@ from ConfigParser import SafeConfigParser
 import falcon
 import pandas
 
-from cartograph.Utils import read_vectors, build_map, read_tsv
+from cartograph.Utils import build_map
 from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
@@ -45,7 +45,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
             codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
         reader = csv.reader(read_file, delimiter='\t')
         writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
-        writer.writerow(reader.next())  # Transfer the header
+        writer.writerow(reader.readline())  # Transfer the header
         for row in reader:
             if int(row[0]) in ids:
                 writer.writerow(row)
@@ -126,42 +126,6 @@ def gen_data(source_dir, target_path, articles):
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
 
-
-def check_map_name(map_name, map_services):
-    """Check that map_name is not already in map_services, that all of its characters are in
-    the list of acceptable characters, and that there is no existing directory named map_name in
-    data/ext/user (i.e. the place where data for user maps is stored). If any of these conditions
-    is not met, this will raise a ValueError with an appropriate message.
-
-    :param map_name: Name of the map to check
-    :param map_services: (pointer to) dictionary whose keys are names of currently active maps
-    """
-    # FIXME: This does not check if a non-user-generated non-active map with the same name \
-    # FIXME: already exists. I can't think of an easy way to fix that.
-
-    # Prevent map names with special characters (for security/prevents shell injection)
-    bad_chars = set()
-    for c in map_name:
-        if c not in ACCEPTABLE_MAP_NAME_CHARS:
-            bad_chars.add(c)
-    if bad_chars:
-        bad_char_string = ', '.join(['"%s"' % (c,) for c in bad_chars])
-        good_char_string = ', '.join(['"%s"' % (c,) for c in ACCEPTABLE_MAP_NAME_CHARS])
-        raise ValueError('Map name "%s" contains unacceptable characters: [%s]\n'
-                         'Accepted characters are: [%s]' % (map_name, bad_char_string, good_char_string))
-
-    # Prevent adding a map with the same name as a currently-served map
-    # This will prevent adding user-generated maps with the same names as
-    # active non-user-generated maps, e.g. "simple" or "en"
-    if map_name in map_services.keys():
-        raise ValueError('Map name "%s" already in use for an active map!' % (map_name,))
-
-    # Prevent adding a map for which there is already a user-generated map
-    # of the same name
-    if map_name in os.listdir(os.path.join(BASE_PATH, 'user')):
-        raise ValueError('Map name "%s" already taken by a user-generated map' % (map_name,))
-
-
 class AddMapService:
     """A service to allow clients to build maps from already-uploaded data files. When POSTed to, this service will
     attempt to filter the appropriate (TSV) data files from a parent map, which is currently hard-coded as 'simple'.
@@ -181,23 +145,18 @@ class AddMapService:
         self.upload_dir = upload_dir
 
     def on_post(self, req, resp, map_name):
-        # 404 if map data file not in the upload directory
+        # Try to open map data file, raise 404 if not found in upload directory
         map_file_name = map_name + '.tsv'
         if map_file_name not in os.listdir(self.upload_dir):
             raise falcon.HTTPNotFound
+        data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
 
         # Make sure the server is in multi-map mode
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
-        data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
-
-
-        # TODO: Move this to UploadService
-        check_map_name(map_name, self.map_services)
-
+        # TODO: Replace 'user/' with metaconf specific directories?
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
-        # TODO: Figure out what to do with <bad_articles>
         # FIXME: Change 'simple' to a map name selected by the user
         bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, 'simple'), target_path, data_file)
         config_path = gen_config(map_name, data_columns)
@@ -205,15 +164,15 @@ class AddMapService:
         # Build from the new config file
         build_map(config_path)
 
-        # Add urls to new map
+        # Add urls to server that point to new map
         map_service = MapService(config_path)
         self.map_services[map_service.name] = map_service
 
-        # Add map config path to meta-config
+        # Add map config path to meta-config file
         with open(self.map_services['_meta_config'], 'a') as meta_config:
             meta_config.write('\n'+config_path)
 
-        # Clean up: delete the temporary file
+        # Clean up: delete the uploaded map data file
         os.remove(os.path.join(self.upload_dir, map_file_name))
 
         # Return helpful information to client

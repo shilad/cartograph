@@ -21,26 +21,6 @@ class AddMetricService:
         self.conf_path = conf_path
         self.map_service = map_service
 
-    def on_get(self, req, resp, metric_type):
-
-        assert metric_type in {'diverging', 'qualitative', 'sequential'}
-
-        config = SafeConfigParser()
-        config.read(self.conf_path)
-        all_columns = json.loads(config.get('DEFAULT', 'columns'))
-        column_input = ''.join(['<option value="%s" >%s</option>' %
-                                 (column, column) for column in all_columns])
-
-        metric_form_template = string.Template(open(os.path.join('templates', '%s_form.html' % metric_type), 'r').read())
-        metric_form = metric_form_template.substitute(map_name=self.map_service.name, columns=column_input)
-
-        page_template = string.Template(open('templates/add_metric.html', 'r').read())
-        resp.body = page_template.substitute(
-            map_name=self.map_service.name,
-            metric_form=metric_form
-        )
-        resp.content_type = 'text/html'
-
     def on_post(self, req, resp, metric_type):
 
         # Get POST data from request
