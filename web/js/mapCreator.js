@@ -32,12 +32,16 @@ $(document).ready(function() {
     });
 
     $(".btn-generateMap").click(function () {
+        // Perform Ajax call to generate the map
         $.ajax({
             url: '../add_map/' + $("#map_name").val(),
             type: 'POST',
             success: function (textStatus, jqXHR) {
-                console.log('Done');
+                console.log('Successfully generated a map!');
             },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, textStatus, errorThrown);
+            }
         },)
         $("h3").append("<p>Please wait while we create your map...</p>");
         window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
@@ -89,17 +93,6 @@ $(document).ready(function() {
             }
         }, {}));
 
-        // Perform Ajax call to generate the map
-        $.ajax({
-            url: '../add_map/' + $("#map_name").val(),
-            type: 'POST',
-            success: function (textStatus, jqXHR) {
-                console.log('Successfully generated a map!');
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR, textStatus, errorThrown);
-            }
-        },)
     });
 
     // Process the metric form after hitting Generate Map button
@@ -169,6 +162,7 @@ function createSelectTypes(fieldSelected){
 }
 
 function createNumClasses(fieldSelected, typeSelected){
+    // Create a drop down list to select the number of data classes
     var type = typeSelected.options[typeSelected.selectedIndex].value;
     var col = fieldSelected.selectedIndex;
     var numClasses = document.getElementById("number-classes"), // get the select
@@ -184,9 +178,9 @@ function createNumClasses(fieldSelected, typeSelected){
         df.appendChild(option);
     } else {
         if (type === 'sequential') {
-            var i = [3, 9];
+            var i = [3, 9]; // Range of colorbrewer's palettes
         } else if (type === 'diverging') {
-            var i = [3, 11];
+            var i = [3, 11]; // Range of colorbrewer's palettes
         }
         for (var j = i[0]; j <= i[1]; j++){
             var option = document.createElement('option');
@@ -199,6 +193,7 @@ function createNumClasses(fieldSelected, typeSelected){
 }
 
 function createSelectPalettes(typeSelected, numColorSelected){
+    // Display color palettes
     var type = typeSelected.options[typeSelected.selectedIndex].value;
     var numColor = numColorSelected.options[numColorSelected.selectedIndex].value;
     var scheme = {};
@@ -213,9 +208,11 @@ function createSelectPalettes(typeSelected, numColorSelected){
             .attr("class", "palette")
             .attr("title", function(d) { return d;})
             .on("click", function(d) {
-                // console.log(d3.values(d).map(JSON.stringify).join("\n"));
                 console.log(d3.values(d)[0]);
                 $("#color-scheme").val(d3.values(d)[0]);
+                // Change background color of selected palette
+                d3.select(this.parentNode).selectAll(".palette").style("background-color", "#fff");
+                d3.select(this).style("background-color", "Indigo");
             })
             .selectAll(".swatch")
                 .data(function(d) {return d.value;})
@@ -245,48 +242,11 @@ function createDataSample(fileName){
     $("#uploadInformation").append(dataSample);
 }
 
-var newReqs = [
-    '<div>',
-    '<p>',
-        '<label>Title:</label>',
-        '<textarea id = "Title" rows = "1" cols = "40">What do you want to call this visualization?</textarea>',
-    '</p>',
-    '<p>',
-        '<label>Description:</label>',
-        '<textarea id = "Description" rows = "3" cols = "40">This shows...</textarea>',
-    '</p>',
-    '<hr>',
-    '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
-    '<p></p>',
-    '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
-    '<p></p>',
-    '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
-    '<p></p>',
-    '<hr>',
-    '</div>'
-    ].join("\n");
 
 var schemeNames = {sequential: ["BuGn","BuPu","GnBu","OrRd","PuBu","PuBuGn","PuRd","RdPu","YlGn","YlGnBu","YlOrBr","YlOrRd"],
 					singlehue:["Blues","Greens","Greys","Oranges","Purples","Reds"],
 					diverging: ["BrBG","PiYG","PRGn","PuOr","RdBu","RdGy","RdYlBu","RdYlGn","Spectral"],
 					qualitative: ["Accent","Dark2","Paired","Pastel1","Pastel2","Set1","Set2","Set3"] };
-
-/*
-function appendVisualizationRequirements(){
-    $("#newRequirements").append(newReqs);
-}
-
-var description = [
-    '<div class="legend" id="legend-cluster">',
-          '<h1>',
-          "Map Description",
-          '</h1>',
-          '<p>',
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-          '</p>',
-    '</div>'
-].join("\n");
-*/
 
 function createMapDescription(){
    $("h3").append(description);
