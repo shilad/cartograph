@@ -6,7 +6,7 @@
         Shilad's notes on fixing this up:
         1. It doesn't use bootstrap layout. We should use standard bootstrap HTML structure.
         2. Move the JS into mapmaker.js.
-        3. bootstrap.css should be the "official" bootstrap.css (unchanged by us).
+       bootstrapFallenVersion.css.css should be the "officibootstrapFallenVersion.css.css (unchanged by us).
         3. Move our css in mapmaker.css
 
         -->
@@ -19,6 +19,7 @@
 
         <!-- Bootstrap core -->
         <link href="css/bootstrap.css" rel="stylesheet">
+        <link href="css/bootstrap-theme.css" rel="stylesheet">
         <link href="css/mapCreator.css" rel="stylesheet">
 
         <script src="js/jquery.min.js"></script>
@@ -38,29 +39,29 @@
     <body>
     <div class="container">
         <div id="header">
-            <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360">
+            <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360" position="absolute">
             <h1>Welcome to Cartograph MapCreator!</h1>
             <p>You can upload a csv file and generate awesome visualizations here!</p>
 
-            <form method="POST" enctype="multipart/form-data" action="../upload" id="uploadForm">
-            <p>
+            <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
+
+                <p></p>
                 <label>Map Name</label>
                 <input required type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
-            </p>
 
-            <label>Upload a file or copy-paste your data in!</label>
-            <label class="btn btn-secondary">
-                <input required type="file" name="file" id="uploadFile">
-                upload file
-            </label><br/>
-            <textarea name="articles_text" id="file_text" cols="40" rows="3" placeholder="Copy-paste"></textarea><br/>
-            <label class="btn btn-secondary">
-                <input type="submit"  id="submitFile">
-                Process File
-            </label>
-            <h2></h2>
+                <p></p>
+                <label>Upload a file or copy-paste your data in!</label>
+                <label class="btn btn-secondary">
+                    <input required type="file" name="file" id="uploadFile">
+                    upload file
+                </label><br/>
+                <textarea name="articles_text" id="file_text" cols="40" rows="3" placeholder="Copy-paste"></textarea><br/>
+                <label class="btn btn-secondary">
+                    <input type="submit"  id="submitFile">
+                    Process File
+                </label>
+                <div id="uploadInformation"></div>
             </form>
-
         </div>
 
         <hr>
