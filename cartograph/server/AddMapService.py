@@ -171,19 +171,14 @@ class AddMapService:
 
     def __init__(self, map_services, upload_dir):
         """Initialize an AddMapService, a service to allow the client to build maps from already uploaded data files.
-        :param map_services:
-        :param upload_dir:
+        When the client posts to this service, if there is a file in the upload directory of the matching name (i.e.
+        map_name.tsv), this service will build a map with that name from that file.
+
+        :param map_services: (dict) a reference to dictionary whose keys are map names and values are active MapServices
+        :param upload_dir: (str) path to directory containing uploaded map data files
         """
         self.map_services = map_services
         self.upload_dir = upload_dir
-
-    def on_get(self, req, resp, map_name):
-        map_file_name = map_name + '.tsv'
-        if map_file_name not in os.listdir(self.upload_dir):
-            raise falcon.HTTPNotFound
-
-        resp.stream = open('templates/add_map.html', 'rb')
-        resp.content_type = 'text/html'
 
     def on_post(self, req, resp, map_name):
         # 404 if map data file not in the upload directory
