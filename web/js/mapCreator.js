@@ -28,9 +28,6 @@ $(document).ready(function() {
         createDataSample(fileName);
     });
 
-    $("#submitFile").click(function () {
-    });
-
     $(".btn-generateMap").click(function () {
         // Perform Ajax call to generate the map
         $.ajax({
