@@ -1,22 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add a New Map</title>
-</head>
-<body>
-<form method="POST">
-<table>
-    <tr><td>
-        <input type="text" name="name">
-    </td></tr>
-    <tr><td>
-        <textarea name="articles"></textarea>
-    </td></tr>
-    <tr><td>
-        <input type="submit" value="Submit">
-    </td></tr>
-</table>
-</form>
-</body>
+    <head>
+        <!--
+
+        Shilad's notes on fixing this up:
+        1. It doesn't use bootstrap layout. We should use standard bootstrap HTML structure.
+        2. Move the JS into mapmaker.js.
+       bootstrapFallenVersion.css.css should be the "officibootstrapFallenVersion.css.css (unchanged by us).
+        3. Move our css in mapmaker.css
+
+        -->
+        <meta charset="UTF-8">
+        <title>mapCreator</title>
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../../favicon.ico">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap core -->
+        <link href="css/bootstrap.css" rel="stylesheet">
+        <link href="css/bootstrap-theme.css" rel="stylesheet">
+        <link href="css/mapCreator.css" rel="stylesheet">
+
+        <script src="js/jquery.min.js"></script>
+        <script src="tether-1.3.3/dist/js/tether.min.js"></script>
+        <script src="js/jquery.form.js"></script>
+        <script src="js/jquery-fileupload.min.js"></script>
+
+        <script src="js/bootstrap.js"></script>
+        <script src="js/mapCreator.js"></script>
+        <script src="js/cartograph.js"></script>
+        <script src="js/colorbrewer.js"></script>
+        <script src="js/d3.min.js"></script>
+
+
+
+    </head>
+    <body>
+    <div class="container">
+        <div id="header">
+            <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360" position="absolute">
+            <h1>Welcome to Cartograph MapCreator!</h1>
+            <p>You can upload a csv file and generate awesome visualizations here!</p>
+
+            <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
+
+                <p></p>
+                <label>Map Name</label>
+                <input required type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
+
+                <p></p>
+                <label>Upload a file or copy-paste your data in!</label>
+                <label class="btn btn-secondary">
+                    <input required type="file" name="file" id="uploadFile">
+                    upload file
+                </label><br/>
+                <textarea name="articles_text" id="file_text" cols="40" rows="3" placeholder="Copy-paste"></textarea><br/>
+                <label class="btn btn-secondary">
+                    <input type="submit"  id="submitFile">
+                    Process File
+                </label>
+                <div id="uploadInformation"></div>
+            </form>
+        </div>
+
+        <hr>
+        <p></p>
+
+        <div id="newRequirements">
+            <form action="../add_metrics" method="POST" enctype="multipart/form-data" id="metricsForm">
+                <p>
+                    <label>Title:</label>
+                    <textarea required name="title" id = "title" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>
+                </p>
+                <p>
+                    <label>Description:</label>
+                    <textarea name="description" id = "description" rows = "3" cols = "40" placeholder="This shows..."></textarea>
+                </p>
+                <hr>
+                <p> Pick a field
+                    <select required name="field" id="fields" onchange="createSelectTypes(this);
+                        createNumClasses(this, document.getElementById('types'));
+                        createSelectPalettes(document.getElementById('types'),  document.getElementById('number-classes'));" >
+                    </select>
+                </p>
+                <p></p>
+                <p> Pick a type
+                    <select required name="type" id="types" onchange="createNumClasses(document.getElementById('fields'), this);
+                        createSelectPalettes(this, document.getElementById('number-classes'));">
+                    </select>
+                </p>
+                <p></p>
+                <p> Pick a number of data classes
+                    <select required name="num_classes" id="number-classes" onchange="createSelectPalettes(document.getElementById('types'), this);">
+                    </select>
+                </p>
+                <input required type="text" name="color_scheme" maxlength="20" placeholder="Color Scheme" id="color-scheme"/>
+                <p></p>
+                <hr>
+            </form>
+        </div>
+
+        <div id="mapConfig">
+            <button type="button" class="btn btn-addVisualization">Add Visualization</button>
+            <p></p>
+            <button type="submit" class="btn btn-generateMap" form="metricsForm" value="GenerateMap">
+                GENERATE MAP!
+            </button>
+            <h3></h3>
+        </div>
+
+    </div>
+
+
+    </body>
 </html>

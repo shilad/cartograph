@@ -6,6 +6,7 @@ from cartograph import Config
 
 
 class ClusterMetric:
+    # TODO: Document this
     def __init__(self, conf):
         self.fields = []
 
