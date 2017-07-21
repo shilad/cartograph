@@ -115,6 +115,11 @@ def gen_data(source_dir, target_path, articles):
     # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         filter_tsv(source_dir, target_path, ids, filename)
+        if filename == 'ids.tsv':
+            external_ids = pandas.read_csv(os.path.join(target_path, filename), sep='\t', index_col='id')
+            user_data_with_external_ids = user_data_with_internal_ids.join(external_ids)
+            user_data_with_external_ids.set_index('externalId', inplace=True)
+            user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
 
     data_columns = list(user_data)
 
@@ -166,19 +171,14 @@ class AddMapService:
 
     def __init__(self, map_services, upload_dir):
         """Initialize an AddMapService, a service to allow the client to build maps from already uploaded data files.
-        :param map_services:
-        :param upload_dir:
+        When the client posts to this service, if there is a file in the upload directory of the matching name (i.e.
+        map_name.tsv), this service will build a map with that name from that file.
+
+        :param map_services: (dict) a reference to dictionary whose keys are map names and values are active MapServices
+        :param upload_dir: (str) path to directory containing uploaded map data files
         """
         self.map_services = map_services
         self.upload_dir = upload_dir
-
-    def on_get(self, req, resp, map_name):
-        map_file_name = map_name + '.tsv'
-        if map_file_name not in os.listdir(self.upload_dir):
-            raise falcon.HTTPNotFound
-
-        resp.stream = open('templates/add_map.html', 'rb')
-        resp.content_type = 'text/html'
 
     def on_post(self, req, resp, map_name):
         # 404 if map data file not in the upload directory
@@ -213,6 +213,10 @@ class AddMapService:
         with open(self.map_services['_meta_config'], 'a') as meta_config:
             meta_config.write('\n'+config_path)
 
+        # Clean up: delete the temporary file
+        os.remove(os.path.join(self.upload_dir, map_file_name))
+
+        # Return helpful information to client
         resp.body = json.dumps({
             'map_name': map_name,
             'bad_articles': list(bad_articles),
