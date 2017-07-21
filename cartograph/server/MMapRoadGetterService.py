@@ -5,6 +5,7 @@ from tables import*
 import pandas as pd
 import numpy as np
 import math
+from collections import defaultdict
 class PrioritySet(object):
     def __init__(self, max_size = 10):
         self.heap = []
@@ -126,22 +127,29 @@ class RoadGetterService:
                 pointsinPort.append(point)  # points in port is an array of pointIDs which are strings.
         topPaths = PrioritySet(max_size=num_paths)
         #This part above shouldn't conflict with anything from the sparse matrix. The part below should.
-
+        good = []
+        bad = []
         for src in pointsinPort:
+
             if src < len(self.rowMap):
                 destDict = self.get_row_as_dict(pointID=src)
                 for dest in destDict:
                     if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
                         edgeVal = self.articlesZpop[src] * self.articlesZpop[dest]
                         secondVal = destDict[dest]
-                        print edgeVal, secondVal
-                        if edgeVal == secondVal:
-                            print("JAMAICA")
+                        if edgeVal != secondVal:
+                            bad.append(1)
+                           # print edgeVal, secondVal
+                        else:
+                            good.append(1)
+
+
                         topPaths.add(-secondVal, (src, dest))
+        print 'good', len(good), 'bad', len(bad)
         return topPaths.heap
 
 def createSequence(origEdgesPath, zpop):
-    sequenceDict = {} #yeah I know this isn't efficient but I just need something to test
+    sequenceDict = defaultdict(dict) #yeah I know this isn't efficient but I just need something to test
     with open(origEdgesPath, 'r') as ptbe:
         for line in ptbe:
             lst = line.split()
@@ -149,10 +157,9 @@ def createSequence(origEdgesPath, zpop):
             src = int(lst[0])
             dst = int(lst[1])
             if src == dst: continue
-            if src in sequenceDict:
-                sequenceDict[src][dst] = zpop[src] * zpop[dst]
-            else:
-                sequenceDict[src] = {dst: zpop[src] * zpop[dst]}
+
+            sequenceDict[src][dst] = zpop[src] * zpop[dst]
+
     sequenceList = []
     for key in sorted(sequenceDict): #sorting here preserves order, uhh yeah.
         sequenceList.append((key, sequenceDict[key]))
