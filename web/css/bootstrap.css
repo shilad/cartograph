@@ -6,21 +6,14 @@
  */
 /*! normalize.css v5.0.0 | MIT License | github.com/necolas/normalize.css */
 html {
-  font-family:"Helvetica Neue";
+  font-family: sans-serif;
   line-height: 1.15;
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
-/*input{*/
-  /*display:none;*/
-/*}*/
-
 body {
-  margin: 1em 1em 1em 1em ;
-  text-align: left;
-  align-items: left;
-  align-content: left;
+  margin: 0;
 }
 
 article,
@@ -33,15 +26,8 @@ section {
 }
 
 h1 {
-  color: #9275d8;
   font-size: 2em;
   margin: 0.67em 0;
-}
-
-h3 {
-  color: #E8953E;
-  font-size: 1.05em;
-  margin: 0.25em 0;
 }
 
 figcaption,
@@ -151,7 +137,7 @@ input,
 optgroup,
 select,
 textarea {
-  font-family: Verdana;
+  font-family: sans-serif;
   font-size: 100%;
   line-height: 1.15;
   margin: 0;
@@ -208,7 +194,6 @@ legend {
 progress {
   display: inline-block;
   vertical-align: baseline;
-  width: 20pts;
 }
 
 textarea {
@@ -313,7 +298,6 @@ template {
   }
   .navbar {
     display: none;
-    width: 20pts;
   }
   .badge {
     border: 1px solid #000;
@@ -353,12 +337,12 @@ html {
 }
 
 body {
-  font-family: Verdana;
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 1rem;
   font-weight: normal;
   line-height: 1.5;
   color: #292b2c;
-  background-color: #F0F7FF;
+  background-color: #fff;
 }
 
 [tabindex="-1"]:focus {
@@ -366,22 +350,13 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
+  margin-top: 0;
+  margin-bottom: .5rem;
 }
 
 p {
-  font-size: 1rem;
   margin-top: 0;
   margin-bottom: 1rem;
-  color: #000000;
-  clear:left;
-}
-
-#p1 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #5cb85c;
 }
 
 abbr[title],
@@ -495,9 +470,8 @@ th {
 }
 
 label {
-  display: block;
-  margin-bottom: 0.05cm;
-  font-size: 1.1em;
+  display: inline-block;
+  margin-bottom: .5rem;
 }
 
 button:focus {
@@ -559,62 +533,34 @@ output {
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
   margin-bottom: 0.5rem;
-  font-family: Verdana;
+  font-family: inherit;
   font-weight: 500;
   line-height: 1.1;
+  color: inherit;
 }
 
-div.legend {
-  font-size: 13px;
-  width: 300px;
-  position: absolute;
-  top: 37px;
-  right: 10px;
-  z-index: 1000000;
-  border: 1px solid #f0f0f0;
-  border-bottom: 2px solid #ccc;
-  background-color: rgba(250, 250, 250, 0.9);
-  box-shadow: 5px 5px 5px #aaaaaa;
-  color: #666;
-  padding: 5px;
+h1, .h1 {
+  font-size: 2.5rem;
 }
 
-div.legend h1 {
-  color: #9275d8;
-  font-size: 1.5em;
-  margin: 0.25em 0;
+h2, .h2 {
+  font-size: 2rem;
 }
 
-div.legend p {
-  margin-top: 8px;
-  margin-bottom: 8px;
+h3, .h3 {
+  font-size: 1.75rem;
 }
-.legend .spectrum {
-  margin: 0;
-  padding: 0;
-  font-size: 0;
-  text-align: center;
-  width: 100%;
+
+h4, .h4 {
+  font-size: 1.5rem;
 }
-.legend .spectrum > * {
-  font-family: "Verdana", "Geneva", "sans-serif";
-  font-size: 13px;
+
+h5, .h5 {
+  font-size: 1.25rem;
 }
-.spectrum .label {
-  display: inline-block;
-  margin-bottom: 5px;
-}
-.spectrum .left-label, .spectrum .right-label {
-  font-weight: 700;
-  color: black;
-  width: 25%;
-}
-.spectrum .center-label { width: 50%; }
-.spectrum .grad-5 {
-  width: 20%;
-  height: 10px;
-  display: inline-block;
-  outline: solid 1px #aaa;
+
+h6, .h6 {
+  font-size: 1rem;
 }
 
 .lead {
@@ -756,7 +702,7 @@ code,
 kbd,
 pre,
 samp {
-  font-family: Verdana
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 code {
@@ -2729,46 +2675,6 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
 a.btn.disabled,
 fieldset[disabled] a.btn {
   pointer-events: none;
-}
-
-.btn-generateMap {
-  color: #fff;
-  background-color: #FFB350;
-  border-color: #FFB350;
-}
-
-.btn-generateMap:hover {
-  color: #fff;
-  background-color: #E8953E;
-  border-color: #FF9A44;
-}
-
-.btn-generateMap:active, .btn-generateMap.active,
-.show > .btn-generateMap.dropdown-toggle {
-  color: #fff;
-  background-color: #E8953E;
-  background-image: none;
-  border-color: #FF9A44;
-}
-
-.btn-addVisualization {
-  color: #fff;
-  background-color: #9275d8;
-  border-color: #9275d8;
-}
-
-.btn-addVisualization:hover {
-  color: #fff;
-  background-color: #925aa5;
-  border-color: #91549b;
-}
-
-.btn-addVisualization:active, .btn-addVisualization.active,
-.show > .btn-addVisualization.dropdown-toggle {
-  color: #fff;
-  background-color: #925aa5;
-  background-image: none;
-  border-color: #91549b;
 }
 
 .btn-primary {
@@ -5159,20 +5065,12 @@ a.badge:focus, a.badge:hover {
   text-align: center;
   background-color: #eceeef;
   border-radius: 0.25rem;
-  width:400px;
-  height:20px;
-}
-
-.bar { background-color: #F0F7FF;
-    width:0%;
-    height:20px;
-    border-radius: 0.25rem;
 }
 
 .progress-bar {
   height: 1rem;
-  color: #F0F7FF;
-  color: #F0F7FF;
+  color: #fff;
+  background-color: #0275d8;
 }
 
 .progress-bar-striped {

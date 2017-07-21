@@ -25,11 +25,10 @@ $(document).ready(function() {
 
     $('input[type="file"]').change(function (e) {
         var fileName = e.target.files[0].name;
-        $("h2").append("<p>" + fileName + "</p>");
+        createDataSample(fileName);
     });
 
     $("#submitFile").click(function () {
-        $("h2").append("<h2>File being processed...</h2>");
     });
 
     $(".btn-generateMap").click(function () {
@@ -56,6 +55,8 @@ $(document).ready(function() {
         data.append('map_name', $("#map_name").val());
         var file = uploadForm.find('input[type=file]')[0].files[0];
         data.append('file', file);
+        console.log(file);
+        console.log(data);
 
         // Perform Ajax call to show add visualization part
         $.ajax($.extend({}, {
@@ -88,6 +89,17 @@ $(document).ready(function() {
             }
         }, {}));
 
+        // Perform Ajax call to generate the map
+        $.ajax({
+            url: '../add_map/' + $("#map_name").val(),
+            type: 'POST',
+            success: function (textStatus, jqXHR) {
+                console.log('Successfully generated a map!');
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, textStatus, errorThrown);
+            }
+        },)
     });
 
     // Process the metric form after hitting Generate Map button
@@ -212,10 +224,57 @@ function createSelectPalettes(typeSelected, numColorSelected){
                 .style("background-color", function(d) { return d; });
 }
 
+function createDataSample(fileName){
+
+    var dataSample = [
+    '<div class="panel panel-data">',
+            '<div class="panel-heading">',
+              '<h2 class="panel-title">',
+              fileName,
+              '</h2>',
+            '</div>',
+            '<div class="panel-body">',
+              '<p>Number of Columns:</p>',
+              '<p>Number of Rows:</p>',
+              '<p>Types of Data:</p>',
+              '<p>Errors that need repair:</p>',
+            '</div>',
+    '</div>',
+    ].join("\n");
+
+    $("#uploadInformation").append(dataSample);
+}
+
+var newReqs = [
+    '<div>',
+    '<p>',
+        '<label>Title:</label>',
+        '<textarea id = "Title" rows = "1" cols = "40">What do you want to call this visualization?</textarea>',
+    '</p>',
+    '<p>',
+        '<label>Description:</label>',
+        '<textarea id = "Description" rows = "3" cols = "40">This shows...</textarea>',
+    '</p>',
+    '<hr>',
+    '<p> Pick a field <select class="selectpicker" id="fields" onchange="createSelectTypes(this);" ></select> </p>',
+    '<p></p>',
+    '<p> Pick a type <select id="types" onchange="createNumClasses(document.getElementById(\'fields\'), this);createSelectPalettes(this,document.getElementById(\'number-classes\'));"></select></p>',
+    '<p></p>',
+    '<p> Pick a number of data classes <select id="number-classes" onchange="createSelectPalettes(document.getElementById(\'types\'), this);"></select></p>',
+    '<p></p>',
+    '<hr>',
+    '</div>'
+    ].join("\n");
+
 var schemeNames = {sequential: ["BuGn","BuPu","GnBu","OrRd","PuBu","PuBuGn","PuRd","RdPu","YlGn","YlGnBu","YlOrBr","YlOrRd"],
 					singlehue:["Blues","Greens","Greys","Oranges","Purples","Reds"],
 					diverging: ["BrBG","PiYG","PRGn","PuOr","RdBu","RdGy","RdYlBu","RdYlGn","Spectral"],
 					qualitative: ["Accent","Dark2","Paired","Pastel1","Pastel2","Set1","Set2","Set3"] };
+
+/*
+function appendVisualizationRequirements(){
+    $("#newRequirements").append(newReqs);
+}
 
 var description = [
     '<div class="legend" id="legend-cluster">',
@@ -227,6 +286,7 @@ var description = [
           '</p>',
     '</div>'
 ].join("\n");
+*/
 
 function createMapDescription(){
    $("h3").append(description);
