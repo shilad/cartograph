@@ -45,7 +45,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
             codecs.open(os.path.join(target_dir, filename), 'w') as write_file:
         reader = csv.reader(read_file, delimiter='\t')
         writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
-        writer.writerow(reader.readline())  # Transfer the header
+        write_file.write(read_file.readline())  # Transfer the header
         for row in reader:
             if int(row[0]) in ids:
                 writer.writerow(row)
@@ -127,10 +127,11 @@ def gen_data(source_dir, target_path, articles):
 
 
 class AddMapService:
-    """A service to allow clients to build maps from already-uploaded data files. When POSTed to, this service will
-    attempt to filter the appropriate (TSV) data files from a parent map, which is currently hard-coded as 'simple'.
-    It will then create a config file and launch the build process from that config file. Once built, it will add the
-    path of that config file to the active multi-config file and the list of active maps in self.map_services.
+    """A service to allow clients to build maps from already-uploaded data files (see UploadService). When POSTed to,
+    this service will attempt to filter the appropriate (TSV) data files from a parent map, which is currently
+    hard-coded as 'simple'. It will then create a config file and launch the build process from that config file. Once
+    built, it will add the path of that config file to the active multi-config file and the list of active maps in
+    self.map_services.
     """
 
     def __init__(self, map_services, upload_dir):
