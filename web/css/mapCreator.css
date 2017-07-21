@@ -137,9 +137,9 @@ label {
 .btn-generateMap:active, .btn-generateMap.active,
 .show > .btn-generateMap.dropdown-toggle {
   color: #fff;
-  background-color: #E8953E;
+  background-color: #E2E1D9;
   background-image: none;
-  border-color: #FF9A44;
+  border-color: #E2E1D9;
 }
 
 .btn-addVisualization {
@@ -158,9 +158,9 @@ label {
 .btn-addVisualization:active, .btn-addVisualization.active,
 .show > .btn-addVisualization.dropdown-toggle {
   color: #fff;
-  background-color: #925aa5;
+  background-color: #E2E1D9;
   background-image: none;
-  border-color: #91549b;
+  border-color: #E2E1D9;
 }
 
 .panel-data > .panel-heading {
