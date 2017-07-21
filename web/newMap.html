@@ -39,31 +39,51 @@
     <body>
     <div class="container">
         <div id="header">
-            <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360" position="absolute">
-            <h1>Welcome to Cartograph MapCreator!</h1>
-
-            <p>You can upload a csv file and generate awesome visualizations here!</p>
-
-            <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
-
-                <p></p>
-                <label>Map Name</label>
-                <input required type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
-
-                <p></p>
-                <label>Upload a file or copy-paste your data in!</label>
-                <label class="btn btn-secondary">
-                    <input required type="file" name="file" id="uploadFile">
-                    Choose File
-                </label><br/>
-                <textarea name="articles_text" id="file_text" cols="40" rows="3" placeholder="Copy-paste"></textarea><br/>
-                <label class="btn btn-secondary">
-                    <input type="submit"  id="submitFile">
-                    Upload
-                </label>
-                <div id="uploadInformation"></div>
-            </form>
+            <div class="welcome-header">
+                <div class="container">
+                    <h1 id="website-title" align="center">Welcome to the World of Cartograph</h1>
+                </div>
+            </div>
+            <nav class="navbar navbar-inverse header-nav">
+                <div class="container-fluid">
+                  <div class="navbar-header">
+                      <span class="icon-bar">
+                          <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#explore"><font color="#E2E1D9">Explore</font></a></li>
+                      </span>
+                      <span class="icon-bar">
+                          <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#about"><font color="#E2E1D9">About</font></a></li>
+                      </span>
+                      <span class="icon-bar">
+                          <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#algorithms"><font color="#E2E1D9">Algorithms</font></a></li>
+                      </span>
+                  </div>
+                </div>
+            </nav>
         </div>
+
+        <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360" position="absolute">
+        <h1>MapCreator</h1>
+        <p>You can upload a csv file and generate awesome visualizations here!</p>
+
+        <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
+
+            <p></p>
+            <label>Map Name</label>
+            <input required type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
+
+            <p></p>
+            <label>Upload a file or copy-paste your data in!</label>
+            <label class="btn btn-secondary">
+                <input required type="file" name="file" id="uploadFile">
+                upload file
+            </label><br/>
+            <textarea name="articles_text" id="file_text" cols="40" rows="3" placeholder="Copy-paste"></textarea><br/>
+            <label class="btn btn-secondary">
+                <input type="submit"  id="submitFile">
+                Process File
+            </label>
+            <div id="uploadInformation"></div>
+        </form>
 
         <hr>
         <p></p>

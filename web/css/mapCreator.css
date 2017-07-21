@@ -45,6 +45,50 @@
   display: none;
 }
 
+.header-nav {
+  border-radius:0;
+  -webkit-border-radius:0;
+  -moz-border-radius:0;
+  margin-bottom: 0;
+  font-size:20px;
+}
+
+ul.nav {
+  width:100%;
+  margin:0 auto;
+  padding:0;
+  list-style:none;
+  text-align:center;
+}
+
+.nav li{
+  display: inline-block;
+  width: 33%;
+  margin: 0;
+  padding: 0;
+}
+
+.nav li a{
+  text-align: center;
+  font-size: 30;
+  margin: 0;
+  display: block;
+}
+
+.navbar-inverse .navbar-nav li a{
+  color: #E2E1D9;
+}
+
+.navbar-inverse .navbar-nav li a:hover{
+  color: white;
+}
+
+#website-title {
+  font-size: 70;
+  font-size: 4vw;
+  text-align: center;
+}
+
 /* Color metrics */
 .palette {
   cursor: pointer;
@@ -71,9 +115,15 @@ h1 {
   color: #9275d8;
 }
 
+h2 {
+  font-size: 45;
+  font-size: 2.8vw;
+}
+
 h3 {
   color: #E8953E;
-  font-size: 1.05em;
+  font-size: 33;
+  font-size: 2.5vw;
   margin: 0.25em 0;
 }
 
@@ -107,12 +157,9 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.25rem;
 }
 
-p {
-  font-size: 1rem;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #000000;
-  clear:left;
+font {
+    margin-left: 4rem;
+    margin-right: 4rem;
 }
 
 label {
@@ -164,11 +211,10 @@ label {
 }
 
 .panel-data > .panel-heading {
-
-  background-image: -webkit-linear-gradient(top, #CEC2EE 0%, #DFD6F4 100%);
-  background-image:      -o-linear-gradient(top, #CEC2EE 0%, #DFD6F4 100%);
-  background-image: -webkit-gradient(linear, left top, left bottom, from(#CEC2EE), to(#DFD6F4 ));
-  background-image:         linear-gradient(to bottom, #CEC2EE 0%, #DFD6F4  100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff2dede', endColorstr='#ffebcccc', GradientType=0);
+  background-image: -webkit-linear-gradient(top, #666666 0%, #7f7f7f 100%);
+  background-image:      -o-linear-gradient(top, #666666 0%, #7f7f7f 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#CEC2EE), to(#7f7f7f ));
+  background-image:         linear-gradient(to bottom, #666666 0%, #7f7f7f  100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#666666', endColorstr='#7f7f7f', GradientType=0);
   background-repeat: repeat-x;
 }
