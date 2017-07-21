@@ -192,10 +192,6 @@ class AddMapService:
 
         data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
 
-
-        # TODO: Move this to UploadService
-        check_map_name(map_name, self.map_services)
-
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
         # TODO: Figure out what to do with <bad_articles>
         # FIXME: Change 'simple' to a map name selected by the user
