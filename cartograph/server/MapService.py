@@ -12,8 +12,7 @@ from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService
 from cartograph.server.TileService import TileService
-from cartograph.server.RoadGetterService import RoadGetterService
-
+from cartograph.server.MMapRoadGetterService import RoadGetterService
 class MapService:
     """A set of services for a particular map    
     """
@@ -46,4 +45,4 @@ class MapService:
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalEdges.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalVertices.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv",
-                                               "/Users/sen/PycharmProjects/cartograph/data/ext/simple/names.tsv")
+                                               "/Users/sen/PycharmProjects/cartograph/data/ext/simple/names.tsv", "/Users/sen/PycharmProjects/cartograph/data/ext/simple/")

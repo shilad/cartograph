@@ -33,7 +33,15 @@ class PrioritySet(object):
         return str(self.heap)
 class RoadGetterService:
     def __init__(self, origEdgesPath, origVertsPath, pathToZPop, pathToNames, outputdir):
-        sequence = createSequence(origEdgesPath)
+        self.articlesZpop = {}  # here articlesZpop key is article ID, and val is a float zpop val
+        with open(pathToZPop, "r") as zpop:
+            for line in zpop:
+                lst = line.split()
+                if lst[0] == "index":
+                    continue
+                self.articlesZpop[int(lst[0])] = float(lst[1]) + 1.0
+
+        sequence = createSequence(origEdgesPath, self.articlesZpop)
         writeSparseMatrix(sequence, outputdir)
         colAddress = outputdir + "/columns.mmap"
         rowAddress = outputdir + "/row_indexes.mmap"
@@ -44,13 +52,7 @@ class RoadGetterService:
         self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
 
         #This sets up all the variables we need for any work done.
-        self.articlesZpop = {} #here articlesZpop key is article ID, and val is a float zpop val
-        with open(pathToZPop, "r") as zpop:
-            for line in zpop:
-                lst = line.split()
-                if lst[0] == "index":
-                    continue
-                self.articlesZpop[int(lst[0])] = float(lst[1]) + 1.0
+
         self.names = {}
         with open(pathToNames, "r") as namesFile:
             for line in namesFile:
@@ -79,18 +81,22 @@ class RoadGetterService:
         pathsCovered = []
         bothWays = []
         for pair in pathpairs:
-
+            src = int(pair[0])
+            dest = int(pair[1])
             pathsCovered.append(pair)
-            if ([pair[1], pair[0]] in pathsCovered):
-                bothWays.append(pair)
+            if ((dest, src) in pathsCovered):
+                bothWays.append((src,dest))
                 continue
-            srcCord = self.originalVertices[pair[0]]  # both of the Cord vals are arrays [y,x]
-            dstCord = self.originalVertices[pair[0]]
+            srcCord = self.originalVertices[src]  # both of the Cord vals are arrays [y,x]
+            dstCord = self.originalVertices[dest]
             srcCord = [srcCord[1], srcCord[0]]
             dstCord = [dstCord[1], dstCord[0]]
-            paths.append([pair[0], self.names[pair[0]][:-1], srcCord])
-            paths.append([pair[1], self.names[pair[1]][:-1], dstCord])
+            paths.append([int(src), self.names[src][:-1], srcCord])
+            paths.append([int(dest), self.names[dest][:-1], dstCord])
+
         jsonDict  = {"paths":  paths, "bothWays": bothWays}
+
+        print('len bw', bothWays)
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
         #print(json.dumps(jsonDict))
@@ -122,15 +128,18 @@ class RoadGetterService:
         #This part above shouldn't conflict with anything from the sparse matrix. The part below should.
 
         for src in pointsinPort:
-            destDict = self.get_row_as_dict(pointID=src)
-            for dest in destDict:
-                if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
-                    if dest in self.articlesZpop:
+            if src < len(self.rowMap):
+                destDict = self.get_row_as_dict(pointID=src)
+                for dest in destDict:
+                    if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
                         edgeVal = self.articlesZpop[src] * self.articlesZpop[dest]
-                        topPaths.add(-edgeVal, (src, dest))
+                        secondVal = destDict[dest]
+                        if edgeVal == secondVal:
+                            print("JAMAICA")
+                        topPaths.add(-secondVal, (src, dest))
         return topPaths.heap
 
-def createSequence(origEdgesPath):
+def createSequence(origEdgesPath, zpop):
     sequenceDict = {} #yeah I know this isn't efficient but I just need something to test
     with open(origEdgesPath, 'r') as ptbe:
         for line in ptbe:
@@ -138,10 +147,11 @@ def createSequence(origEdgesPath):
             if len(lst) == 1: continue
             src = int(lst[0])
             dst = int(lst[1])
+            if src == dst: continue
             if src in sequenceDict:
-                sequenceDict[src][dst] = 1
+                sequenceDict[src][dst] = zpop[src] * zpop[dst]
             else:
-                sequenceDict[src] = {dst:1}
+                sequenceDict[src] = {dst: zpop[src] * zpop[dst]}
     sequenceList = []
     for key in sorted(sequenceDict): #sorting here preserves order, uhh yeah.
         sequenceList.append((key, sequenceDict[key]))
@@ -161,7 +171,6 @@ def writeSparseMatrix(sequence, outputdir):
             vals.append(roadDict[dest])
         rows.append(count)
         count += len(roadDict)
-    print(rows[106569])
     #rows memmap conversion
     rowNp = np.asarray(rows)
     rowShape = rowNp.shape
