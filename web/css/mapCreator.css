@@ -82,20 +82,27 @@ h3 {
     display: none;
 }
 
+@font-face{
+  font-family: "GeosansLight";
+  src: url(../fonts/GeosansLight.ttf) format("truetype");
+}
+
 button,
 input,
 optgroup,
 select,
 textarea,
 body {
-  font-family: Verdana;
+  font-family: "GeosansLight";
+  font-weight: bolder;
 }
 
 body {
-  background-color: #F0F7FF;
+  background-color: #E2E1D9;
 }
 
 h1, h2, h3, h4, h5, h6 {
+  color: #000000;
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
@@ -115,15 +122,16 @@ label {
 }
 
 .btn-generateMap {
-  color: #fff;
-  background-color: #FFB350;
-  border-color: #FFB350;
+  background-opacity: .75;
+  color: #eee;
+  background-color: rgba(34, 34, 34, .75);
+  border-color: rgba(12, 12, 12, .75);
 }
 
 .btn-generateMap:hover {
-  color: #fff;
-  background-color: #E8953E;
-  border-color: #FF9A44;
+  color: #eee;
+  background-color: rgba(78, 78, 78, .75);
+  border-color: rgba(56, 56, 56, .75);
 }
 
 .btn-generateMap:active, .btn-generateMap.active,
@@ -135,15 +143,16 @@ label {
 }
 
 .btn-addVisualization {
-  color: #fff;
-  background-color: #9275d8;
-  border-color: #9275d8;
+  background-opacity: .75;
+  color: #eee;
+  background-color: rgba(34, 34, 34, .75);
+  border-color: rgba(12, 12, 12, .75);
 }
 
 .btn-addVisualization:hover {
-  color: #fff;
-  background-color: #925aa5;
-  border-color: #91549b;
+  color: #eee;
+  background-color: rgba(78, 78, 78, .75);
+  border-color: rgba(56, 56, 56, .75);
 }
 
 .btn-addVisualization:active, .btn-addVisualization.active,
