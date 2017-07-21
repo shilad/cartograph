@@ -1,5 +1,6 @@
 import json
 
+import falcon
 import numpy as np
 import os
 import pandas as pd
@@ -36,6 +37,7 @@ class UploadService:
                 'error': str(e),
                 'stacktrace': repr(e),
             })
+            resp.status = falcon.HTTP_400
             return
 
         # If file exists remove it
