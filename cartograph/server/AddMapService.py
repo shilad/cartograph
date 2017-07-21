@@ -181,19 +181,18 @@ class AddMapService:
         self.upload_dir = upload_dir
 
     def on_post(self, req, resp, map_name):
-        # 404 if map data file not in the upload directory
+        # Try to open map data file, raise 404 if not found in upload directory
         map_file_name = map_name + '.tsv'
         if map_file_name not in os.listdir(self.upload_dir):
             raise falcon.HTTPNotFound
+        data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
 
         # Make sure the server is in multi-map mode
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
-        data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
-
+        # TODO: Replace 'user/' with metaconf specific directories?
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
-        # TODO: Figure out what to do with <bad_articles>
         # FIXME: Change 'simple' to a map name selected by the user
         bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, 'simple'), target_path, data_file)
         config_path = gen_config(map_name, data_columns)
@@ -201,15 +200,15 @@ class AddMapService:
         # Build from the new config file
         build_map(config_path)
 
-        # Add urls to new map
+        # Add urls to server that point to new map
         map_service = MapService(config_path)
         self.map_services[map_service.name] = map_service
 
-        # Add map config path to meta-config
+        # Add map config path to meta-config file
         with open(self.map_services['_meta_config'], 'a') as meta_config:
             meta_config.write('\n'+config_path)
 
-        # Clean up: delete the temporary file
+        # Clean up: delete the uploaded map data file
         os.remove(os.path.join(self.upload_dir, map_file_name))
 
         # Return helpful information to client
