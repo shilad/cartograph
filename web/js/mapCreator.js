@@ -80,7 +80,7 @@ $(document).ready(function() {
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
             }
-        }, {}))
+        }, {}));
 
         // Perform Ajax call to generate the map
         $.ajax({
@@ -93,7 +93,7 @@ $(document).ready(function() {
                 console.log(jqXHR, textStatus, errorThrown);
             }
 
-        },)
+        })
 
     });
 
@@ -109,7 +109,7 @@ $(document).ready(function() {
             column: $("#fields").val(),
             color_palette: $("#color-scheme").val() + "_" + $("#number-classes").val(),
             description: $("#description").val()
-        }
+        };
 
         $.ajax({
             url: '../' + $("#map_name").val() + '/add_metric/' + $("#types").val(),
