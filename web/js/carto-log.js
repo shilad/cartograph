@@ -64,7 +64,8 @@ CG.logMany = function(messages) {
         console.log(params);
     } else {
        //if user moved the map far enough, or zoomed in or out far enough it will send a call to the server to recalculate paths and redraw them to the screen
-        if(!isRoadLocked()){
+        roadLocked =  true//isRoadLocked()
+        if(!roadLocked()){
             var threshold = 60/params.zoom;
             //console.log('zoom');
             //console.log(params.zoom);

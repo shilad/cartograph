@@ -4,7 +4,7 @@ import json
 from tables import*
 import pandas as pd
 import numpy as np
-
+import math
 class PrioritySet(object):
     def __init__(self, max_size = 10):
         self.heap = []
@@ -39,7 +39,7 @@ class RoadGetterService:
                 lst = line.split()
                 if lst[0] == "index":
                     continue
-                self.articlesZpop[int(lst[0])] = float(lst[1]) + 1.0
+                self.articlesZpop[int(lst[0])] = math.ceil(float(lst[1]))+ 1
 
         sequence = createSequence(origEdgesPath, self.articlesZpop)
         writeSparseMatrix(sequence, outputdir)
@@ -134,6 +134,7 @@ class RoadGetterService:
                     if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
                         edgeVal = self.articlesZpop[src] * self.articlesZpop[dest]
                         secondVal = destDict[dest]
+                        print edgeVal, secondVal
                         if edgeVal == secondVal:
                             print("JAMAICA")
                         topPaths.add(-secondVal, (src, dest))
@@ -158,7 +159,7 @@ def createSequence(origEdgesPath, zpop):
     return sequenceList #This should be hopefully the set of tuples, (row, vals) where val is a dictionary with weight vals
 
 def writeSparseMatrix(sequence, outputdir):
-    print("ayy jek")
+
     #I can't seem to get the logic right, it's either one or two off each time. Partly because the line numbers in Original Edges are off but...
     count = 0
     rows = []
