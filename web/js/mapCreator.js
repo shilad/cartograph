@@ -28,13 +28,19 @@ $(document).ready(function() {
         $("h2").append("<p>" + fileName + "</p>");
     });
     $("#submitFile").click(function () {
-        $("h2").append("<h3>File being processed...</h3>");
+        $("h2").append("<h2>File being processed...</h2>");
     });
 
     $(".btn-generateMap").click(function () {
-        $.post('/add_map/' + $("#map_name").val());
-        $("h3").append("<p>Let's pretend this is a new page with a map...</p>");
-        createMapDescription();
+        $.ajax({
+            url: '../add_map/' + $("#map_name").val(),
+            type: 'POST',
+            success: function (textStatus, jqXHR) {
+                console.log('Done');
+            },
+        },)
+        $("h3").append("<p>Please wait while we create your map...</p>");
+        window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
     });
 
     var uploadForm = $("#uploadForm");
@@ -78,14 +84,6 @@ $(document).ready(function() {
                 console.log(jqXHR, textStatus, errorThrown);
             }
         }, {}))
-
-        $.ajax({
-            url: '../add_map/' + $("#map_name").val(),
-            type: 'POST',
-            success: function (textStatus, jqXHR) {
-                console.log('Done');
-            },
-        },)
 
     });
 
