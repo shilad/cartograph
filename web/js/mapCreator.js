@@ -42,7 +42,7 @@ $(document).ready(function() {
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
             }
-        },)
+        });
         $("h3").append("<p>Please wait while we create your map...</p>");
         window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
     });
