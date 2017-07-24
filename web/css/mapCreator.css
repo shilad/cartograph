@@ -137,6 +137,11 @@ h3 {
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
+img {
+    border: 5px solid black;
+
+}
+
 button,
 input,
 optgroup,
