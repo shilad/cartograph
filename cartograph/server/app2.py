@@ -20,6 +20,7 @@ else:
     if not meta_config_path:
         raise Exception, 'CARTOGRAPH_CONFIGS environment variable not set!'
 
+# TODO: Can this line be deleted?
 configs = {}
 
 logging.info('configuring falcon')
@@ -31,23 +32,28 @@ app = falcon.API(middleware=[MultipartMiddleware()])
 
 # Determine whether the input file is a multi-config (i.e. paths to multiple files) or a single config file
 with open(meta_config_path, 'r') as meta_config:
-    first_line = meta_config.readline().strip('\r\n')
-    if first_line != METACONF_FLAG:
-        conf_files = [meta_config_path]
+    first_line = meta_config.readline().strip('\r\n').split(' ')
+    if METACONF_FLAG not in first_line:
         map_services = {'_multi_map': False}
+        conf_files = [meta_config_path]
     else:
-        conf_files = re.split('[\\r\\n]+', meta_config.read())  # Note that the .readline() above means we skip the first line
-        map_services = {'_multi_map': True}
+        # Get a list of config_paths as separated by newlines and filter out the blank ones
+        # (note that the .readline() above means we skip the first line)
+        conf_files = filter(bool, re.split('[\\r\\n]+', meta_config.read()))
 
+        assert len(first_line) == 2, "First line of meta-conf must be of format '###### server_name' where " \
+                                     "'server_name' is a server namespace"
+        map_services = {
+            '_multi_map': True,
+            '_server_alias': first_line[1],
+            '_meta_config': meta_config_path,
+            '_last_update': os.path.getmtime(meta_config_path)
+        }
 
 # Start up a set of services (i.e. a MapService) for each map (as specified by its config file)
 for path in conf_files:
-    if path == '':
-        continue  # Skip blank lines
     map_service = MapService(path)
     map_services[map_service.name] = map_service
-map_services['_meta_config'] = meta_config_path
-map_services['_last_update'] = os.path.getmtime(meta_config_path)
 
 
 # Start a ParentService for each service; a ParentService represents a given service for every map in <map_services>

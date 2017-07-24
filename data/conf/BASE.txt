@@ -1,6 +1,6 @@
 [DEFAULT]
-baseDir: ./data/user/%(dataset)s
-externalDir: ./data/ext/user/%(dataset)s
+baseDir: ./data/%(serverAlias)s/%(dataset)s
+externalDir: ./data/ext/%(serverAlias)s/%(dataset)s
 
 [PreprocessingConstants]
 sample_size: 50000

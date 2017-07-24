@@ -39,7 +39,7 @@ class ParentService:
         :return:
         """
         with open(meta_config, 'r') as configs:
-            assert configs.readline().strip('\r\n') == METACONF_FLAG  # Check/skip the multi-map flag
+            assert METACONF_FLAG in configs.readline()  # Check/skip the multi-map flag
             for map_config in re.split('[\\r\\n]+', configs.read()):
 
                 # If it's a blank line, ignore it

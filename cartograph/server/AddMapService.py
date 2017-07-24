@@ -12,8 +12,8 @@ import pandas
 from cartograph.Utils import build_map
 from cartograph.server.MapService import MapService
 
-USER_CONF_DIR = 'data/conf/user/'
-BASE_PATH = './data/ext/'
+CONFIG_BASE_PATH = 'data/conf'
+DATA_BASE_PATH = 'data/ext'
 ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
@@ -51,31 +51,34 @@ def filter_tsv(source_dir, target_dir, ids, filename):
                 writer.writerow(row)
 
 
-def gen_config(map_name, column_headers):
+def gen_config(map_name, column_headers, server_alias):
     """Generate the config file for a user-generated map named <map_name> and return a path to it
 
     :param map_name: name of new map
     :param column_headers: list of headers for non-index columns
+    :param server_alias: alias/namespace of currently-running server
     :return: path to the newly-generated config file
     """
 
-    if not os.path.exists(USER_CONF_DIR):
-        os.makedirs(USER_CONF_DIR)
+    user_conf_dir = os.path.join(CONFIG_BASE_PATH, server_alias)
+    if not os.path.exists(user_conf_dir):
+        os.makedirs(user_conf_dir)
 
     # Generate a new config file
     # Start with base values from template
     config = SafeConfigParser()
     config.read('data/conf/BASE.txt')
 
-    # Set name of dataset
+    # Set name of dataset and external directory
     config.set('DEFAULT', 'dataset', map_name)
+    config.set('DEFAULT', 'serverAlias', server_alias)
 
     # Record list of column names in JSON format
     config.set('DEFAULT', 'columns', json.dumps(column_headers))
 
     # Write newly-generated config to file
     config_filename = '%s.txt' % pipes.quote(map_name)
-    config_path = os.path.join(USER_CONF_DIR, config_filename)
+    config_path = os.path.join(user_conf_dir, config_filename)
     config.write(open(config_path, 'w'))
     return config_path
 
@@ -156,11 +159,10 @@ class AddMapService:
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
-        # TODO: Replace 'user/' with metaconf specific directories?
-        target_path = os.path.join(BASE_PATH, 'user/', map_name)
+        target_path = os.path.join(DATA_BASE_PATH, self.map_services['_server_alias'], map_name)
         # FIXME: Change 'simple' to a map name selected by the user
-        bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, 'simple'), target_path, data_file)
-        config_path = gen_config(map_name, data_columns)
+        bad_articles, data_columns = gen_data(os.path.join(DATA_BASE_PATH, 'simple'), target_path, data_file)
+        config_path = gen_config(map_name, data_columns, self.map_services['_server_alias'])
 
         # Build from the new config file
         build_map(config_path)
@@ -182,3 +184,4 @@ class AddMapService:
             'bad_articles': list(bad_articles),
             'data_columns': data_columns
         })
+        resp.content_type = 'application/json'
