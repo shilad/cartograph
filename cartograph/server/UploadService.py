@@ -35,7 +35,6 @@ class UploadService:
                 'error': str(e),
                 'stacktrace': repr(e),
             })
-            resp.status = falcon.HTTP_400
             return
 
         # If file exists remove it
