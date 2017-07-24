@@ -1,6 +1,9 @@
 import falcon
 import heapq
 import json
+from tables import*
+import pandas as pd
+import numpy as np
 
 class PrioritySet(object):
     def __init__(self, max_size = 10):
@@ -80,6 +83,7 @@ class RoadGetterService:
         pathsCovered = []
         bothWays = []
         for pathId in pathIds:
+            #SOMETIMES SCR AND DEST ARE THE SAME, IS THAT CORRECT?
             [src, dest] = self.edgeIDPath[pathId]
             pathsCovered.append([src, dest])
             if ([dest, src] in pathsCovered):
@@ -96,12 +100,10 @@ class RoadGetterService:
         jsonDict  = {"paths":  paths, "bothWays": bothWays}
         resp.status = falcon.HTTP_200
         resp.content_type = "application/json"  #getMimeType(file)
-        #print(json.dumps(jsonDict))
-        #print("len", len(json.dumps(jsonDict)))
+        print(type(jsonDict))
+        print(type(paths))
+        print(type(bothWays))
         resp.body = json.dumps(jsonDict)
-
-
-
 
     def getPath(self, childEdgeId, edgeDict, frontStack=[], backStack=[]):
         if(edgeDict[childEdgeId][0] != edgeDict[childEdgeId][1]):
@@ -137,6 +139,10 @@ class RoadGetterService:
                             outboundPaths[elements[1]] = {elements[2]: [elements[0], elements[4], elements[3]]}
         return edgeDictionary, outboundPaths
 
+    def createPyTables(self, edgeDict):
+        h5file = open_file("AdjMatrix.h5", mode="w", title="Sparse Adjecency Matrix")
+        edgeMatrix = h5file.create_group("/", 'edges', 'edges from row ID to collumn ID')
+
     def getPathsInViewPort(self, xmin, xmax, ymin, ymax, num_paths):
         pointsinPort = []
         for point in self.originalVertices:
@@ -154,4 +160,3 @@ class RoadGetterService:
                             edgeVal = self.articlesZpop[point]*self.articlesZpop[dest]
                             topPaths.add(-edgeVal, edgeID)
         return topPaths.heap
-

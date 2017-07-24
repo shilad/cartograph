@@ -5,7 +5,9 @@ from tables import*
 import pandas as pd
 import numpy as np
 import math
+import pytest
 from collections import defaultdict
+
 class PrioritySet(object):
     def __init__(self, max_size = 10):
         self.heap = []
@@ -32,26 +34,36 @@ class PrioritySet(object):
 
     def __str__(self):
         return str(self.heap)
+
+
 class RoadGetterService:
-    def __init__(self, origEdgesPath, origVertsPath, pathToZPop, pathToNames, outputdir):
+    def __init__(self, links, origVertsPath, pathToZPop, pathToNames, outputdir):
         self.articlesZpop = {}  # here articlesZpop key is article ID, and val is a float zpop val
         with open(pathToZPop, "r") as zpop:
             for line in zpop:
                 lst = line.split()
                 if lst[0] == "index":
                     continue
+                if lst[0] == "3019":
+                    self.articlesZpop[int(lst[0])] = 12
+                    continue
                 self.articlesZpop[int(lst[0])] = math.ceil(float(lst[1]))+ 1
 
-        sequence = createSequence(origEdgesPath, self.articlesZpop)
+        sequence = createSequence(links, self.articlesZpop)
         writeSparseMatrix(sequence, outputdir)
         colAddress = outputdir + "/columns.mmap"
         rowAddress = outputdir + "/row_indexes.mmap"
         valAddress = outputdir + "/values.mmap"
-        shapesAddress = outputdir + "/shape.txt"
         self.rowMap = np.memmap(rowAddress, dtype="int32", mode="r+")
         self.colMap = np.memmap(colAddress, dtype="int32", mode="r+")
         self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
 
+        print(self.valMap)
+        print(self.colMap)
+        print(self.rowMap)
+        pairs = [(4, 1247), (4, 39262), (5, 185), (5, 127), (7, 3), (7,635), (8, 2557), (8,39078), (10, 498), (10, 16736), (10, 75164), (2295, 35), (2295, 92) ]
+        for src, dest in pairs:
+            assert self.articlesZpop[src] * self.articlesZpop[dest] == self.get_row_as_dict(pointID=src)[dest]
         #This sets up all the variables we need for any work done.
 
         self.names = {}
@@ -129,36 +141,26 @@ class RoadGetterService:
         #This part above shouldn't conflict with anything from the sparse matrix. The part below should.
         good = []
         bad = []
+        diff=[]
         for src in pointsinPort:
-
             if src < len(self.rowMap):
                 destDict = self.get_row_as_dict(pointID=src)
                 for dest in destDict:
                     if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
-                        edgeVal = self.articlesZpop[src] * self.articlesZpop[dest]
                         secondVal = destDict[dest]
-                        if edgeVal != secondVal:
-                            bad.append(1)
-                           # print edgeVal, secondVal
-                        else:
-                            good.append(1)
-
-
                         topPaths.add(-secondVal, (src, dest))
-        print 'good', len(good), 'bad', len(bad)
         return topPaths.heap
 
-def createSequence(origEdgesPath, zpop):
+def createSequence(links, zpop):
     sequenceDict = defaultdict(dict) #yeah I know this isn't efficient but I just need something to test
-    with open(origEdgesPath, 'r') as ptbe:
+    with open(links, 'r') as ptbe:
         for line in ptbe:
             lst = line.split()
-            if len(lst) == 1: continue
+            if lst[0] == "id": continue
             src = int(lst[0])
-            dst = int(lst[1])
-            if src == dst: continue
-
-            sequenceDict[src][dst] = zpop[src] * zpop[dst]
+            sequenceDict[src] = {}
+            for dest in lst[1:]:
+                sequenceDict[src][int(dest)] = zpop[src]*zpop[int(dest)]
 
     sequenceList = []
     for key in sorted(sequenceDict): #sorting here preserves order, uhh yeah.
@@ -166,8 +168,6 @@ def createSequence(origEdgesPath, zpop):
     return sequenceList #This should be hopefully the set of tuples, (row, vals) where val is a dictionary with weight vals
 
 def writeSparseMatrix(sequence, outputdir):
-
-    #I can't seem to get the logic right, it's either one or two off each time. Partly because the line numbers in Original Edges are off but...
     count = 0
     rows = []
     cols = []
@@ -179,21 +179,22 @@ def writeSparseMatrix(sequence, outputdir):
             vals.append(roadDict[dest])
         rows.append(count)
         count += len(roadDict)
-    #rows memmap conversion
+    #rows memmap conversion here rows are set so pointID is the index (to get the row value of point 12, go to row[12]
+    #from there the value yielded is the row's start and end lines in our text file. for example point1 is from 0 to point2's start
     rowNp = np.asarray(rows)
     rowShape = rowNp.shape
     rowMap = np.memmap(outputdir+"/row_indexes.mmap", dtype='int32', mode="w+", shape=rowShape)
     rowMap[:] = rowNp
     rowMap.flush()
 
-    #cols mmap conversion
+    #cols mmap conversion. Cols stores the given pointID at an index value. for example, if at index 12, we had an edge between 1 and 54, cols[12] = 54
     colNp = np.asarray(cols)
     colShape = colNp.shape
     colMap = np.memmap(outputdir+"/columns.mmap", dtype='int32', mode="w+", shape=colShape)
     colMap[:] = colNp
     colMap.flush()
 
-    #vals mmap conversion
+    #vals mmap conversion this stores the weight for a given index.
     valNp = np.asarray(vals)
     valShape = valNp.shape
     valMap = np.memmap(outputdir+"/values.mmap", dtype="int32", mode="w+", shape=valShape)
