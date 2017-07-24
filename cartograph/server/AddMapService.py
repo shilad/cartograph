@@ -82,7 +82,7 @@ def gen_data(source_dir, target_path, articles):
     in the directory at target_path.
 
     :param target_path: path to directory (that will be created) to be filled with data files
-    :param articles: file object of user data
+    :param articles: file object of user data; must be TSV w/ headers on first row; 1st column must be article titles
     :return: list of article titles for which there was no exact match in the existing dataset
     """
 
@@ -133,7 +133,7 @@ class AddMapService:
 
     def __init__(self, map_services, upload_dir):
         """Initialize an AddMapService, a service to allow the client to build maps from already uploaded data files.
-        When the client posts to this service, if there is a file in the upload directory of the matching name (i.e.
+        When the client POSTs to this service, if there is a file in the upload directory of the matching name (i.e.
         map_name.tsv), this service will build a map with that name from that file.
 
         :param map_services: (dict) a reference to dictionary whose keys are map names and values are active MapServices
@@ -143,6 +143,11 @@ class AddMapService:
         self.upload_dir = upload_dir
 
     def on_post(self, req, resp, map_name):
+        """Making a POST request to this URL will cause the server to attempt to build a map from a file in the
+        upload_dir by the name of <map_name>.tsv. If no such file exists, this service will respond with a 404.
+
+        :param map_name: name of map that client wants built. Should be name of already-uploaded file.
+        """
         # Try to open map data file, raise 404 if not found in upload directory
         map_file_name = map_name + '.tsv'
         if map_file_name not in os.listdir(self.upload_dir):
