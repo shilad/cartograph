@@ -1,10 +1,12 @@
 import json
 import string
-import falcon
 import numpy as np
 import os
 import pandas as pd
 import shutil
+
+
+ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
 class UploadService:
@@ -143,10 +145,9 @@ class UploadService:
 
 
 def check_map_name(map_name, map_services):
-    """Check that map_name is not already in map_services, that all of its characters are in
-    the list of acceptable characters, and that there is no existing directory named map_name in
-    data/ext/user (i.e. the place where data for user maps is stored). If any of these conditions
-    is not met, this will raise a ValueError with an appropriate message.
+    """Check that map_name is not already in map_services and that all of its characters are in
+    the list of acceptable characters. If any of these conditions is not met, this will raise a
+    ValueError with an appropriate message.
 
     :param map_name: Name of the map to check
     :param map_services: (pointer to) dictionary whose keys are names of currently active maps
@@ -170,6 +171,3 @@ def check_map_name(map_name, map_services):
     # active non-user-generated maps, e.g. "simple" or "en"
     if map_name in map_services.keys():
         raise ValueError('Map name "%s" already in use for an active map!' % (map_name,))
-
-
-ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
