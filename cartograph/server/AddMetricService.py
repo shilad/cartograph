@@ -9,7 +9,6 @@ from cartograph.Utils import build_map
 
 
 TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
-COL_PREFIX = 'column_'  # Prefix appended to checkbox form field for a given column
 
 
 class AddMetricService:
