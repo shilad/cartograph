@@ -9,6 +9,7 @@ import pandas
 from cartograph.Utils import build_map
 from cartograph.server.MapService import MapService
 
+BASE_LANGUAGE = 'simple'
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 
@@ -152,10 +153,9 @@ class AddMapService:
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
-        # TODO: Replace 'user/' with metaconf specific directories?
         target_path = os.path.join(BASE_PATH, 'user/', map_name)
         # FIXME: Change 'simple' to a map name selected by the user
-        bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, 'simple'), target_path, data_file)
+        bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, BASE_LANGUAGE), target_path, data_file)
         config_path = gen_config(map_name, data_columns)
 
         # Build from the new config file
