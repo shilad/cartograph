@@ -3,18 +3,14 @@ import csv
 import json
 import os
 import pipes
-import string
 from ConfigParser import SafeConfigParser
-
 import falcon
 import pandas
-
 from cartograph.Utils import build_map
 from cartograph.server.MapService import MapService
 
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
-ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
 
 
 def filter_tsv(source_dir, target_dir, ids, filename):

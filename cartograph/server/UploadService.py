@@ -1,12 +1,10 @@
 import json
-
+import string
 import falcon
 import numpy as np
 import os
 import pandas as pd
 import shutil
-
-from cartograph.server.AddMapService import ACCEPTABLE_MAP_NAME_CHARS, BASE_PATH
 
 
 class UploadService:
@@ -174,7 +172,5 @@ def check_map_name(map_name, map_services):
     if map_name in map_services.keys():
         raise ValueError('Map name "%s" already in use for an active map!' % (map_name,))
 
-    # Prevent adding a map for which there is already a user-generated map
-    # of the same name
-    if map_name in os.listdir(os.path.join(BASE_PATH, 'user')):
-        raise ValueError('Map name "%s" already taken by a user-generated map' % (map_name,))
+
+ACCEPTABLE_MAP_NAME_CHARS = string.uppercase + string.lowercase + '_' + string.digits
