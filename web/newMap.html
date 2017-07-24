@@ -89,45 +89,12 @@
         <p></p>
 
         <div id="newRequirements">
-            <form action="../add_metrics" method="POST" enctype="multipart/form-data" id="metricsForm">
-                <p>
-                    <label>Title:</label>
-                    <textarea required name="title" id = "title" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>
-                </p>
-                <p>
-                    <label>Description:</label>
-                    <textarea name="description" id = "description" rows = "3" cols = "40" placeholder="This shows..."></textarea>
-                </p>
-                <hr>
-                <p> Pick a field
-                    <select required name="field" id="fields" onchange="createSelectTypes(this);
-                        createNumClasses(this, document.getElementById('types'));
-                        createSelectPalettes(document.getElementById('types'),  document.getElementById('number-classes'));" >
-                    </select>
-                </p>
-                <p></p>
-                <p> Pick a type
-                    <select required name="type" id="types" onchange="createNumClasses(document.getElementById('fields'), this);
-                        createSelectPalettes(this, document.getElementById('number-classes'));">
-                    </select>
-                </p>
-                <p></p>
-                <p> Pick a number of data classes
-                    <select required name="num_classes" id="number-classes" onchange="createSelectPalettes(document.getElementById('types'), this);">
-                    </select>
-                </p>
-                <input required type="text" name="color_scheme" maxlength="20" placeholder="Color Scheme" id="color-scheme"/>
-                <p></p>
-                <hr>
-            </form>
+            <!--This part is initialized in mapCreator.js-->
         </div>
 
         <div id="mapConfig">
             <button type="button" class="btn btn-addVisualization">Add Visualization</button>
             <p></p>
-            <button type="submit" class="btn btn-generateMap" form="metricsForm" value="GenerateMap">
-                GENERATE MAP!
-            </button>
             <h3></h3>
         </div>
 

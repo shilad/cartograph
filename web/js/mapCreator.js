@@ -28,22 +28,6 @@ $(document).ready(function() {
         createDataSample(fileName);
     });
 
-    $(".btn-generateMap").click(function () {
-        // Perform Ajax call to generate the map
-        $.ajax({
-            url: '../add_map/' + $("#map_name").val(),
-            type: 'POST',
-            success: function (textStatus, jqXHR) {
-                console.log('Successfully generated a map!');
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR, textStatus, errorThrown);
-            }
-        });
-        $("h3").append("<p>Please wait while we create your map...</p>");
-        window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
-    });
-
     // Process the upload form after hitting "Submit" button
     var uploadForm = $("#uploadForm");
     uploadForm.on('submit', function (event) {
@@ -56,8 +40,6 @@ $(document).ready(function() {
         data.append('map_name', $("#map_name").val());
         var file = uploadForm.find('input[type=file]')[0].files[0];
         data.append('file', file);
-        console.log(file);
-        console.log(data);
 
         // Perform Ajax call to show add visualization part
         $.ajax($.extend({}, {
@@ -70,63 +52,96 @@ $(document).ready(function() {
             success: function (data, textStatus, jqXHR) {
                 console.log(data);
                 CG.uploadData = data;
+                CG.metricCounter = 0; // A counter of input metrics.
+
+                // Display Generate Map button that submits all metric forms
+                $("#mapConfig").append( `<button type="submit" class="btn btn-generateMap" form="metricsForm${CG.metricCounter}" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
+                $(`#submitButton`).click(function(){
+                    $('form').each(function(){
+                        if ($(this).attr("id") !== "uploadForm") {
+                            $(this).submit();
+                        }
+                    });
+                    // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
+                });
 
                 $("#mapConfig").show();
                 $("#map_name").prop('disabled', true);
 
+                // Build the map
+                ajax_buildMap();
+
                 // Show metric options after hitting addVisualization button.
                 $(".btn-addVisualization").click(function () {
-                    $("#newRequirements").show();
+                    CG.metricCounter += 1;
                     CG.data = data;
-                    // Automatically choose a field and corresponding data type.
+                    $("#newRequirements").show();
+                    appendVisualizationRequirements(CG.metricCounter);
+
+                    // Automatically fill in metric input fields.
                     createSelectFields(data.columns);
-                    createSelectTypes(document.getElementById("fields"));
-                    createNumClasses(document.getElementById("fields"), document.getElementById("types"));
-                    createSelectPalettes(document.getElementById("types"), document.getElementById("number-classes"));
-                });
+                    createSelectTypes(document.getElementById("fields"+ CG.metricCounter));
+                    createNumClasses(document.getElementById("fields"+ CG.metricCounter), document.getElementById("types" + CG.metricCounter));
+                    createSelectPalettes(document.getElementById("types"+ CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter));
+                })
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
             }
         }, {}));
-
-    });
-
-    // Process the metric form after hitting Generate Map button
-    var metricsForm = $("#metricsForm");
-    metricsForm.on('submit', function (event) {
-        event.stopPropagation(); // Stop stuff happening
-        event.preventDefault(); // Totally stop stuff happening
-
-        // Perform Ajax call to apply metric
-        var metricData = {
-            metric_name: $("#title").val(),
-            column: $("#fields").val(),
-            color_palette: $("#color-scheme").val() + "_" + $("#number-classes").val(),
-            description: $("#description").val()
-        };
-
-        $.ajax({
-            url: '../' + $("#map_name").val() + '/add_metric/' + $("#types").val(),
-            type: 'POST',
-            data: metricData,
-            dataType: 'json',
-            cache: false,
-            processData: true,
-            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-            success: function (textStatus, jqXHR) {
-                console.log("Successfully added metric to the map!");
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR, textStatus, errorThrown);
-            }
-        })
     });
 });
 
+function ajax_buildMap(){
+    // Ajax call to build the map
+    $.ajax({
+        url: '../add_map/' + $("#map_name").val(),
+        type: 'POST',
+        success: function (textStatus, jqXHR) {
+            console.log('Successfully generated a map!');
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR, textStatus, errorThrown);
+        }
+    });
+    $("h3").append("<p>Please wait while we create your map...</p>");
+}
+
+function ajax_metrics(i){
+    // Ajax call to add the ith metric
+
+    var metricsForm = $(`#metricsForm${i}`);
+    event.stopPropagation(); // Stop stuff happening
+    event.preventDefault(); // Totally stop stuff happening
+
+    // Perform Ajax call to apply metric
+    var metricData = {
+        metric_name: $(`#title${i}`).val(),
+        column: $(`#fields${i}`).val(),
+        color_palette: $(`#color-scheme${i}`).val() + "_" + $(`#number-classes${i}`).val(),
+        description: $(`#description${i}`).val()
+    };
+
+    $.ajax({
+        url: '../' + $("#map_name").val() + '/add_metric/' + $(`#types${i}`).val(),
+        type: 'POST',
+        data: metricData,
+        dataType: 'json',
+        cache: false,
+        processData: true,
+        contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+        success: function (textStatus, jqXHR) {
+            console.log("Successfully added metric to the map!");
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR, textStatus, errorThrown);
+        }
+    })
+}
+
 function createSelectFields(dataCol){
     // Create a drop down list of fields
-    var fields = document.getElementById("fields"), // get the select
+    var fields = document.getElementById("fields" + CG.metricCounter), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // dataCol[0] = 'Fields'
     for (var i = 1; i < dataCol.length; i++) {
@@ -141,7 +156,7 @@ function createSelectFields(dataCol){
 function createSelectTypes(fieldSelected){
     // Create a drop down list of types
     var col = fieldSelected.selectedIndex + 1; // Start from index 1
-    var types = document.getElementById("types"), // get the select
+    var types = document.getElementById("types"+ CG.metricCounter), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // Remove child nodes of types from previously selected fields.
     while (types.firstChild) {
@@ -162,7 +177,7 @@ function createNumClasses(fieldSelected, typeSelected){
     // Create a drop down list to select the number of data classes
     var type = typeSelected.options[typeSelected.selectedIndex].value;
     var col = fieldSelected.selectedIndex;
-    var numClasses = document.getElementById("number-classes"), // get the select
+    var numClasses = document.getElementById("number-classes"+ CG.metricCounter), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // Remove child nodes of types from previously selected fields.
     while (numClasses.firstChild) {
@@ -197,8 +212,11 @@ function createSelectPalettes(typeSelected, numColorSelected){
     for (var i = 0; i < schemeNames[type].length; i++) {
         scheme[schemeNames[type][i]] = colorbrewer[schemeNames[type][i]][numColor];
     }
-    d3.select("body").selectAll(".palette").remove();  // Remove previously shown palette.
-    d3.select('body').select('.container').select("#newRequirements")
+
+    d3.select("body").select('.container').select("#newRequirements")
+        .select("#newMetric" + CG.metricCounter).selectAll(".palette").remove();  // Remove previously shown palette.
+
+    d3.select('body').select('.container').select("#newRequirements").select("#newMetric" + CG.metricCounter)
         .selectAll(".palette")
             .data(d3.entries(scheme))
             .enter().append("span")
@@ -206,7 +224,7 @@ function createSelectPalettes(typeSelected, numColorSelected){
             .attr("title", function(d) { return d;})
             .on("click", function(d) {
                 console.log(d3.values(d)[0]);
-                $("#color-scheme").val(d3.values(d)[0]);
+                $("#color-scheme" + CG.metricCounter).val(d3.values(d)[0]);
                 // Change background color of selected palette
                 d3.select(this.parentNode).selectAll(".palette").style("background-color", "#fff");
                 d3.select(this).style("background-color", "Indigo");
@@ -237,6 +255,33 @@ function createDataSample(fileName){
     ].join("\n");
 
     $("#uploadInformation").append(dataSample);
+}
+
+function appendVisualizationRequirements(count){
+    var newReqs = $([
+        `<div id="newMetric${count}">`,
+            `<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">`,
+                '<p>',
+                     '<label>Title:</label>',
+                     `<textarea required name="title${count}" id = "title${count}" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>`,
+                '</p>',
+                '<p>',
+                     '<label>Description:</label>',
+                     `<textarea name="description${count}" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
+                '</p>',
+                '<hr>',
+                `<p> Pick a field <select required name="field${count}" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>`,
+                '<p></p>',
+                `<p> Pick a type <select required name="type${count}" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'));"> </select></p>`,
+                '<p></p>',
+                `<p> Pick a number of data classes <select required name="num_classes${count}" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this);"> </select></p>`,
+                '<p></p>',
+                `<input required type="text" name="color_scheme${count}" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
+                '<hr>',
+            '</form>',
+        '</div>'
+    ].join("\n"));
+    $("#newRequirements").append(newReqs);
 }
 
 
