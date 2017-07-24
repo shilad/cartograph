@@ -56,7 +56,10 @@ $(document).ready(function() {
 
                 // Display Generate Map button that submits all metric forms
                 $("#mapConfig").append( `<button type="submit" class="btn btn-generateMap" form="metricsForm${CG.metricCounter}" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
+                
                 $(`#submitButton`).click(function(){
+                    // Build the map
+                    ajax_buildMap();
                     $('form').each(function(){
                         if ($(this).attr("id") !== "uploadForm") {
                             $(this).submit();
@@ -67,9 +70,7 @@ $(document).ready(function() {
 
                 $("#mapConfig").show();
                 $("#map_name").prop('disabled', true);
-
-                // Build the map
-                ajax_buildMap();
+                $("#uploadFile").prop('disabled', true);
 
                 // Show metric options after hitting addVisualization button.
                 $(".btn-addVisualization").click(function () {
@@ -263,20 +264,20 @@ function appendVisualizationRequirements(count){
             `<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">`,
                 '<p>',
                      '<label>Title:</label>',
-                     `<textarea required name="title${count}" id = "title${count}" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>`,
+                     `<textarea required name="title" id = "title${count}" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>`,
                 '</p>',
                 '<p>',
                      '<label>Description:</label>',
-                     `<textarea name="description${count}" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
+                     `<textarea name="description" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
                 '</p>',
                 '<hr>',
-                `<p> Pick a field <select required name="field${count}" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>`,
+                `<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>`,
                 '<p></p>',
-                `<p> Pick a type <select required name="type${count}" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'));"> </select></p>`,
+                `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'));"> </select></p>`,
                 '<p></p>',
-                `<p> Pick a number of data classes <select required name="num_classes${count}" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this);"> </select></p>`,
+                `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this);"> </select></p>`,
                 '<p></p>',
-                `<input required type="text" name="color_scheme${count}" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
+                `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
                 '<hr>',
             '</form>',
         '</div>'
