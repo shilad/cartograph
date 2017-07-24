@@ -39,6 +39,13 @@ class AddMetricService:
         palette_name = post_data['color_palette']
         column = post_data['column']
 
+        # Combine new metric with previously active metrics
+        active_metrics = config.get('Metrics', 'active').split(' ')
+        if metric_name in active_metrics:
+            raise falcon.HTTPBadRequest  # Bug out if the client tries to add a metric w/ existing name
+        active_metrics.append(metric_name)
+        config.set('Metrics', 'active', ' '.join(active_metrics))
+
         # Configure settings for a metric
         metric_settings = {
             'type': metric_type,
@@ -67,11 +74,6 @@ class AddMetricService:
             metric_settings.update({
                 'maxValue': data[column].max()
             })
-
-        # Combine new metric with previously active metrics
-        active_metrics = config.get('Metrics', 'active').split(' ')
-        active_metrics.append(metric_name)
-        config.set('Metrics', 'active', ' '.join(active_metrics))
 
         # Define new metric in config file
         config.set('Metrics', metric_name, json.dumps(metric_settings))
