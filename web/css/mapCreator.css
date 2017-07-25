@@ -10,6 +10,11 @@
   display: none
 }
 
+metricErrors.error{
+  color: red;
+  padding: 5px;
+}
+
 #ramps {
   padding: 0 5px;
 }
@@ -137,11 +142,6 @@ h3 {
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-img {
-    border: 5px solid black;
-
-}
-
 button,
 input,
 optgroup,
@@ -162,7 +162,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0.25rem;
 }
 
-font {
+.navButtons {
     margin-left: 4rem;
     margin-right: 4rem;
 }
@@ -215,11 +215,14 @@ label {
   border-color: #E2E1D9;
 }
 
+.panel-data {
+  background-opacity: .75;
+  border-color: rgba(12, 12, 12, .75);
+}
+
 .panel-data > .panel-heading {
-  background-image: -webkit-linear-gradient(top, #666666 0%, #7f7f7f 100%);
-  background-image:      -o-linear-gradient(top, #666666 0%, #7f7f7f 100%);
-  background-image: -webkit-gradient(linear, left top, left bottom, from(#CEC2EE), to(#7f7f7f ));
-  background-image:         linear-gradient(to bottom, #666666 0%, #7f7f7f  100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#666666', endColorstr='#7f7f7f', GradientType=0);
-  background-repeat: repeat-x;
+  background-opacity: .75;
+  background-color: rgba(34, 34, 34, .75);
+  border-color: rgba(12, 12, 12, .75);
+  color: #FFFFFF;
 }
