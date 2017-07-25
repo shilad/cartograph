@@ -58,12 +58,12 @@ $(document).ready(function () {
                 createDataSample(data, fileName);
 
                 // Display Generate Map button that submits all metric forms
-                $("#mapConfig").append('<button type="submit" class="btn btn-generateMap" form="metricsForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>')
+                $("#mapConfig").append(`<button type="submit" class="btn btn-generateMap" form="metricsForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
 
                 CG.mapBuilt = false;  // A boolean indicating whether the map has been built to avoid building it again when hitting GenerateMap
-                $('#submitButton').click(function () {
+                $(`#submitButton`).click(function () {
                     // Build the map
-                    if (!CG.mapBuilt) {
+                    if (! CG.mapBuilt) {
                         ajax_buildMap();
                         CG.mapBuilt = true;
                     }
@@ -128,20 +128,20 @@ function ajax_buildMap() {
 function ajax_metrics(i) {
     // Ajax call to add the ith metric
 
-    var metricsForm = $('#metricsForm${i}');
+    var metricsForm = $(`#metricsForm${i}`);
     event.stopPropagation(); // Stop stuff happening
     event.preventDefault(); // Totally stop stuff happening
 
     // Perform Ajax call to apply metric
     var metricData = {
-        metric_name: $('#title${i}').val(),
-        column: $('#fields${i}').val(),
-        color_palette: $('#color-scheme${i}').val() + "_" + $('#number-classes${i}').val(),
-        description: $('#description${i}').val()
+        metric_name: $(`#title${i}`).val(),
+        column: $(`#fields${i}`).val(),
+        color_palette: $(`#color-scheme${i}`).val() + "_" + $(`#number-classes${i}`).val(),
+        description: $(`#description${i}`).val()
     };
 
     $.ajax({
-        url: '../' + $("#map_name").val() + '/add_metric/' + $('#types${i}').val(),
+        url: '../' + $("#map_name").val() + '/add_metric/' + $(`#types${i}`).val(),
         type: 'POST',
         data: metricData,
         dataType: 'json',
@@ -335,26 +335,26 @@ function createDataSample(dataObject, fileName){
 
 function appendVisualizationRequirements(count) {
     var newReqs = $([
-        '<div id="newMetric${count}">',
-            '<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">',
-                '<p>',
-                     '<label>Title:</label>',
-                     '<textarea required name="title" id = "title${count}" rows = "1" cols = "60" placeholder="What do you want to call this visualization?"></textarea>',
-                '</p>',
-                '<p>',
-                     '<label>Description:</label>',
-                     '<textarea name="description" id = "description${count}" rows = "3" cols = "60" placeholder="This shows..."></textarea>',
-                '</p>',
-                '<hr>',
-                '<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>',
-                '<p></p>',
-                '<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'));"> </select></p>',
-                '<p></p>',
-                '<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this);"> </select></p>',
-                '<p></p>',
-                '<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>',
-                '<hr>',
-            '</form>',
+        `<div id="newMetric${count}">`,
+        `<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">`,
+        '<p>',
+        '<label>Title:</label>',
+        `<textarea required name="title" id = "title${count}" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>`,
+        '</p>',
+        '<p>',
+        '<label>Description:</label>',
+        `<textarea name="description" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
+        '</p>',
+        '<hr>',
+        `<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this, ${count}); createNumClasses(this, document.getElementById(\'types${count}\'), ${count}); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'), ${count});" > </select> </p>`,
+        '<p></p>',
+        `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this, ${count}); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'), ${count});"> </select></p>`,
+        '<p></p>',
+        `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
+        '<p></p>',
+        `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
+        '<hr>',
+        '</form>',
         '</div>'
     ].join("\n"));
     $("#newRequirements").append(newReqs);
