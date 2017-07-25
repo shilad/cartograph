@@ -58,12 +58,6 @@ class RoadGetterService:
         self.colMap = np.memmap(colAddress, dtype="int32", mode="r+")
         self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
 
-        print(self.valMap)
-        print(self.colMap)
-        print(self.rowMap)
-        pairs = [(4, 1247), (4, 39262), (5, 185), (5, 127), (7, 3), (7,635), (8, 2557), (8,39078), (10, 498), (10, 16736), (10, 75164), (2295, 35), (2295, 92) ]
-        for src, dest in pairs:
-            assert self.articlesZpop[src] * self.articlesZpop[dest] == self.get_row_as_dict(pointID=src)[dest]
         #This sets up all the variables we need for any work done.
 
         self.names = {}
@@ -151,6 +145,18 @@ class RoadGetterService:
                         topPaths.add(-secondVal, (src, dest))
         return topPaths.heap
 
+    def test_memmaps(self):
+        pairs = [(4, 1247), (4, 39262), (5, 185), (5, 127), (7, 3), (7, 635), (8, 2557), (8, 39078), (10, 498), (10, 16736),
+                 (10, 75164), (2295, 35), (2295, 92)]
+        for src, dest in pairs:
+            assert self.articlesZpop[src] * self.articlesZpop[dest] == self.get_row_as_dict(pointID=src)[dest]
+        assert 1 in self.get_row_as_dict(index=1)
+        pairs = [(2317, 8926), (2317, 1641), (2322, 273), (2324, 8125), (14980, 97), (14980, 38212), (14984, 25144),
+                 (14984, 5190), (15171, 5), (15171, 322), (97017, 1475)]
+        for src, dst in pairs:
+            print(src, dst)
+            assert dst in self.get_row_as_dict(pointID=src)
+
 def createSequence(links, zpop):
     sequenceDict = defaultdict(dict) #yeah I know this isn't efficient but I just need something to test
     with open(links, 'r') as ptbe:
@@ -205,3 +211,4 @@ def writeSparseMatrix(sequence, outputdir):
     shapesFile = open(outputdir+"shape.txt", "w")
     shapesFile.write(str(len(rows))+" "+str(len(rows)))
     shapesFile.close()
+

@@ -11,7 +11,7 @@ import PreReqs
 import Coordinates
 from cartograph import borders
 import matplotlib.path as mplPath
-from cartograph.borders.new import BorderBuilder
+from cartograph.borders import BorderBuilder
 from Denoiser import Denoise
 from Regions import MakeRegions
 from geojson import Feature, FeatureCollection
@@ -21,7 +21,7 @@ from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 
 class BorderFactoryCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
-        return (TimestampedLocalTarget(cartograph.borders.ori.BorderBuilder.__file__),
+        return (TimestampedLocalTarget(borders.BorderBuilder.__file__),
                 TimestampedLocalTarget(borders.BorderProcessor.__file__),
                 TimestampedLocalTarget(borders.Noiser.__file__),
                 TimestampedLocalTarget(borders.Vertex.__file__),
