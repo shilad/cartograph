@@ -2,7 +2,7 @@
  * Created by sen on 6/29/17.
  */
 
-$(document).ready(function() {
+$(document).ready(function () {
     var bar = $('.bar');
     var percent = $('.percent');
     var status = $('#status');
@@ -58,14 +58,28 @@ $(document).ready(function() {
                 createDataSample(data, fileName);
 
                 // Display Generate Map button that submits all metric forms
-                $("#mapConfig").append( `<button type="submit" class="btn btn-generateMap" form="metricsForm${CG.metricCounter}" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
-                
-                $(`#submitButton`).click(function(){
+                $("#mapConfig").append('<button type="submit" class="btn btn-generateMap" form="metricsForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>')
+
+                CG.mapBuilt = false;  // A boolean indicating whether the map has been built to avoid building it again when hitting GenerateMap
+                $('#submitButton').click(function () {
                     // Build the map
-                    ajax_buildMap();
-                    $('form').each(function(){
+                    if (!CG.mapBuilt) {
+                        ajax_buildMap();
+                        CG.mapBuilt = true;
+                    }
+                    $('form').each(function () {
                         if ($(this).attr("id") !== "uploadForm") {
-                            $(this).submit();
+                            $(this).validate({errorElement: 'metricErrors',});  // Validate the form
+                            if ($(this).valid() && !$(this).hasClass('submitted')) {
+                                $(this).submit();
+                                // Add a class 'submitted' to this form and disable all its elements.
+                                $(this).addClass('submitted');
+                                var form = document.getElementById($(this).attr("id"));
+                                var elements = form.elements;
+                                for (var i = 0; i < elements.length; ++i) {
+                                    elements[i].disabled = true;
+                                }
+                            }
                         }
                     });
                     // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
@@ -83,10 +97,10 @@ $(document).ready(function() {
                     appendVisualizationRequirements(CG.metricCounter);
 
                     // Automatically fill in metric input fields.
-                    createSelectFields(data.columns);
-                    createSelectTypes(document.getElementById("fields"+ CG.metricCounter));
-                    createNumClasses(document.getElementById("fields"+ CG.metricCounter), document.getElementById("types" + CG.metricCounter));
-                    createSelectPalettes(document.getElementById("types"+ CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter));
+                    createSelectFields(data.columns, CG.metricCounter);
+                    createSelectTypes(document.getElementById("fields" + CG.metricCounter), CG.metricCounter);
+                    createNumClasses(document.getElementById("fields" + CG.metricCounter), document.getElementById("types" + CG.metricCounter), CG.metricCounter);
+                    createSelectPalettes(document.getElementById("types" + CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter), CG.metricCounter);
                 })
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -96,7 +110,7 @@ $(document).ready(function() {
     });
 });
 
-function ajax_buildMap(){
+function ajax_buildMap() {
     // Ajax call to build the map
     $.ajax({
         url: '../add_map/' + $("#map_name").val(),
@@ -111,23 +125,23 @@ function ajax_buildMap(){
     $("h3").append("<p>Please wait while we create your map...</p>");
 }
 
-function ajax_metrics(i){
+function ajax_metrics(i) {
     // Ajax call to add the ith metric
 
-    var metricsForm = $(`#metricsForm${i}`);
+    var metricsForm = $('#metricsForm${i}');
     event.stopPropagation(); // Stop stuff happening
     event.preventDefault(); // Totally stop stuff happening
 
     // Perform Ajax call to apply metric
     var metricData = {
-        metric_name: $(`#title${i}`).val(),
-        column: $(`#fields${i}`).val(),
-        color_palette: $(`#color-scheme${i}`).val() + "_" + $(`#number-classes${i}`).val(),
-        description: $(`#description${i}`).val()
+        metric_name: $('#title${i}').val(),
+        column: $('#fields${i}').val(),
+        color_palette: $('#color-scheme${i}').val() + "_" + $('#number-classes${i}').val(),
+        description: $('#description${i}').val()
     };
 
     $.ajax({
-        url: '../' + $("#map_name").val() + '/add_metric/' + $(`#types${i}`).val(),
+        url: '../' + $("#map_name").val() + '/add_metric/' + $('#types${i}').val(),
         type: 'POST',
         data: metricData,
         dataType: 'json',
@@ -143,9 +157,9 @@ function ajax_metrics(i){
     })
 }
 
-function createSelectFields(dataCol){
+function createSelectFields(dataCol, count) {
     // Create a drop down list of fields
-    var fields = document.getElementById("fields" + CG.metricCounter), // get the select
+    var fields = document.getElementById("fields" + count), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // dataCol[0] = 'Fields'
     for (var i = 1; i < dataCol.length; i++) {
@@ -157,17 +171,17 @@ function createSelectFields(dataCol){
     fields.appendChild(df); // append the document fragment to the DOM
 }
 
-function createSelectTypes(fieldSelected){
+function createSelectTypes(fieldSelected, count) {
     // Create a drop down list of types
     var col = fieldSelected.selectedIndex + 1; // Start from index 1
-    var types = document.getElementById("types"+ CG.metricCounter), // get the select
+    var types = document.getElementById("types" + count), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // Remove child nodes of types from previously selected fields.
     while (types.firstChild) {
         types.removeChild(types.firstChild);
     }
     for (var key in CG.uploadData.types[col]) {
-        if (CG.uploadData.types[col][key]){
+        if (CG.uploadData.types[col][key]) {
             var option = document.createElement('option');
             option.value = key;
             option.appendChild(document.createTextNode(key)); // set the textContent in a safe way.
@@ -177,17 +191,17 @@ function createSelectTypes(fieldSelected){
     types.appendChild(df); // append the document fragment to the DOM
 }
 
-function createNumClasses(fieldSelected, typeSelected){
+function createNumClasses(fieldSelected, typeSelected, count) {
     // Create a drop down list to select the number of data classes
     var type = typeSelected.options[typeSelected.selectedIndex].value;
     var col = fieldSelected.selectedIndex;
-    var numClasses = document.getElementById("number-classes"+ CG.metricCounter), // get the select
+    var numClasses = document.getElementById("number-classes" + count), // get the select
         df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
     // Remove child nodes of types from previously selected fields.
     while (numClasses.firstChild) {
         numClasses.removeChild(numClasses.firstChild);
     }
-    if (type === 'qualitative'){
+    if (type === 'qualitative') {
         var option = document.createElement('option');
         option.value = CG.uploadData.num_classes[col];
         option.appendChild(document.createTextNode(option.value)); // set the textContent in a safe way.
@@ -198,7 +212,7 @@ function createNumClasses(fieldSelected, typeSelected){
         } else if (type === 'diverging') {
             var i = [3, 11]; // Range of colorbrewer's palettes
         }
-        for (var j = i[0]; j <= i[1]; j++){
+        for (var j = i[0]; j <= i[1]; j++) {
             var option = document.createElement('option');
             option.value = j;
             option.appendChild(document.createTextNode(j)); // set the textContent in a safe way.
@@ -208,7 +222,7 @@ function createNumClasses(fieldSelected, typeSelected){
     numClasses.appendChild(df); // append the document fragment to the DOM
 }
 
-function createSelectPalettes(typeSelected, numColorSelected){
+function createSelectPalettes(typeSelected, numColorSelected, count) {
     // Display color palettes
     var type = typeSelected.options[typeSelected.selectedIndex].value;
     var numColor = numColorSelected.options[numColorSelected.selectedIndex].value;
@@ -218,26 +232,35 @@ function createSelectPalettes(typeSelected, numColorSelected){
     }
 
     d3.select("body").select('.container').select("#newRequirements")
-        .select("#newMetric" + CG.metricCounter).selectAll(".palette").remove();  // Remove previously shown palette.
+        .select("#newMetric" + count).selectAll(".palette").remove();  // Remove previously shown palette.
 
-    d3.select('body').select('.container').select("#newRequirements").select("#newMetric" + CG.metricCounter)
+    d3.select('body').select('.container').select("#newRequirements").select("#newMetric" + count)
         .selectAll(".palette")
-            .data(d3.entries(scheme))
-            .enter().append("span")
-            .attr("class", "palette")
-            .attr("title", function(d) { return d;})
-            .on("click", function(d) {
-                console.log(d3.values(d)[0]);
-                $("#color-scheme" + CG.metricCounter).val(d3.values(d)[0]);
+        .data(d3.entries(scheme))
+        .enter().append("span")
+        .attr("class", "palette")
+        .attr("title", function (d) {
+            return d;
+        })
+        .on("click", function (d) {
+            console.log(d3.values(d)[0]);
+            // Proceed if the color scheme is not disabled
+            if (!$("#color-scheme" + count).prop("disabled")) {
+                $("#color-scheme" + count).val(d3.values(d)[0]);
                 // Change background color of selected palette
                 d3.select(this.parentNode).selectAll(".palette").style("background-color", "#fff");
                 d3.select(this).style("background-color", "Indigo");
-            })
-            .selectAll(".swatch")
-                .data(function(d) {return d.value;})
-                .enter().append("span")
-                .attr("class", "swatch")
-                .style("background-color", function(d) { return d; });
+            }
+        })
+        .selectAll(".swatch")
+        .data(function (d) {
+            return d.value;
+        })
+        .enter().append("span")
+        .attr("class", "swatch")
+        .style("background-color", function (d) {
+            return d;
+        });
 }
 
 function createDataSample(dataObject, fileName){
@@ -310,26 +333,26 @@ function createDataSample(dataObject, fileName){
     $("#uploadInformation").append(dataSample);
 }
 
-function appendVisualizationRequirements(count){
+function appendVisualizationRequirements(count) {
     var newReqs = $([
-        `<div id="newMetric${count}">`,
-            `<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">`,
+        '<div id="newMetric${count}">',
+            '<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">',
                 '<p>',
                      '<label>Title:</label>',
-                     `<textarea required name="title" id = "title${count}" rows = "1" cols = "60" placeholder="What do you want to call this visualization?"></textarea>`,
+                     '<textarea required name="title" id = "title${count}" rows = "1" cols = "60" placeholder="What do you want to call this visualization?"></textarea>',
                 '</p>',
                 '<p>',
                      '<label>Description:</label>',
-                     `<textarea name="description" id = "description${count}" rows = "3" cols = "60" placeholder="This shows..."></textarea>`,
+                     '<textarea name="description" id = "description${count}" rows = "3" cols = "60" placeholder="This shows..."></textarea>',
                 '</p>',
                 '<hr>',
-                `<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>`,
+                '<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>',
                 '<p></p>',
-                `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'));"> </select></p>`,
+                '<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'));"> </select></p>',
                 '<p></p>',
-                `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this);"> </select></p>`,
+                '<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this);"> </select></p>',
                 '<p></p>',
-                `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
+                '<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>',
                 '<hr>',
             '</form>',
         '</div>'
@@ -338,11 +361,13 @@ function appendVisualizationRequirements(count){
 }
 
 
-var schemeNames = {sequential: ["BuGn","BuPu","GnBu","OrRd","PuBu","PuBuGn","PuRd","RdPu","YlGn","YlGnBu","YlOrBr","YlOrRd"],
-					singlehue:["Blues","Greens","Greys","Oranges","Purples","Reds"],
-					diverging: ["BrBG","PiYG","PRGn","PuOr","RdBu","RdGy","RdYlBu","RdYlGn","Spectral"],
-					qualitative: ["Accent","Dark2","Paired","Pastel1","Pastel2","Set1","Set2","Set3"] };
+var schemeNames = {
+    sequential: ["BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"],
+    singlehue: ["Blues", "Greens", "Greys", "Oranges", "Purples", "Reds"],
+    diverging: ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
+    qualitative: ["Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"]
+};
 
-function createMapDescription(){
-   $("h3").append(description);
+function createMapDescription() {
+    $("h3").append(description);
 }

@@ -10,6 +10,11 @@
   display: none
 }
 
+metricErrors.error{
+  color: red;
+  padding: 5px;
+}
+
 #ramps {
   padding: 0 5px;
 }
