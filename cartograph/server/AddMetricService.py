@@ -32,7 +32,8 @@ class AddMetricService:
         # Get POST data from request
         post_data = falcon.uri.parse_query_string(req.stream.read())
 
-        assert metric_type in {'diverging', 'qualitative', 'sequential'}
+        if metric_type not in {'diverging', 'qualitative', 'sequential'}:
+            raise falcon.HTTPNotFound()
 
         # Load map config file
         config = SafeConfigParser()
