@@ -49,7 +49,11 @@ class AddMetricService:
         # Combine new metric with previously active metrics
         active_metrics = config.get('Metrics', 'active').split(' ')
         if metric_name in active_metrics:
-            raise falcon.HTTPBadRequest  # Bug out if the client tries to add a metric w/ existing name
+            resp.body = json.dumps({
+                'success': False,
+                'map_name': self.map_service.name,
+                'error': 'Metric with name "%s" already in map "%s"' % (metric_name, self.map_service.name)
+            })
         active_metrics.append(metric_name)
         config.set('Metrics', 'active', ' '.join(active_metrics))
 
