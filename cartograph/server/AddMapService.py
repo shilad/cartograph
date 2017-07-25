@@ -7,7 +7,7 @@ from ConfigParser import SafeConfigParser
 import falcon
 import pandas
 from cartograph.Utils import build_map
-from cartograph.server.MapService import MapService
+from cartograph.server.Map import Map
 
 BASE_LANGUAGE = 'simple'
 USER_CONF_DIR = 'data/conf/user/'
@@ -167,7 +167,7 @@ class AddMapService:
         build_map(config_path)
 
         # Add urls to server that point to new map
-        map_service = MapService(config_path)
+        map_service = Map(config_path)
         self.map_services[map_service.name] = map_service
 
         # Add map config path to meta-config file

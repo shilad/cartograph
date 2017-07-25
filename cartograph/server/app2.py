@@ -6,7 +6,7 @@ import sys
 from falcon_multipart.middleware import MultipartMiddleware
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
 from cartograph.server.AddMapService import AddMapService
-from cartograph.server.MapService import MapService
+from cartograph.server.Map import Map
 from cartograph.server.StaticService import StaticService
 from cartograph.server.UploadService import UploadService
 
@@ -44,7 +44,7 @@ with open(meta_config_path, 'r') as meta_config:
 for path in conf_files:
     if path == '':
         continue  # Skip blank lines
-    map_service = MapService(path)
+    map_service = Map(path)
     map_services[map_service.name] = map_service
 map_services['_meta_config'] = meta_config_path
 map_services['_last_update'] = os.path.getmtime(meta_config_path)

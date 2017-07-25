@@ -2,7 +2,7 @@ import os
 import re
 
 from cartograph import Config
-from cartograph.server.MapService import MapService
+from cartograph.server.Map import Map
 
 
 METACONF_FLAG = '######'  # TODO: Find a better home for this constant
@@ -50,12 +50,12 @@ class ParentService:
 
                 # If the name of a map isn't in map_services, initialize it
                 if map_name not in self.map_services.keys():
-                    map_service = MapService(map_config)
+                    map_service = Map(map_config)
                     self.map_services[map_service.name] = map_service
 
                 # If the config file has been updated, start a new MapService for it
                 if os.path.getmtime(map_config) != self.map_services[map_name].last_update:
-                    self.map_services[map_name] = MapService(map_config)
+                    self.map_services[map_name] = Map(map_config)
 
         # indicate that map_services has been updated
         self.map_services['_last_update'] = os.path.getmtime(meta_config)

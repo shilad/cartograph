@@ -14,7 +14,7 @@ from cartograph.server.TemplateService import TemplateService
 from cartograph.server.TileService import TileService
 
 
-class MapService:
+class Map:
     """A set of services for a particular map    
     """
     def __init__(self, conf_path):
