@@ -24,8 +24,8 @@ $(document).ready(function() {
     });
 
     $('input[type="file"]').change(function (e) {
-        var fileName = e.target.files[0].name;
-        createDataSample(fileName);
+
+
     });
 
     // Process the upload form after hitting "Submit" button
@@ -39,6 +39,8 @@ $(document).ready(function() {
         var data = new FormData();
         data.append('map_name', $("#map_name").val());
         var file = uploadForm.find('input[type=file]')[0].files[0];
+        console.log(file);
+        var fileName = file.name;
         data.append('file', file);
 
         // Perform Ajax call to show add visualization part
@@ -53,6 +55,7 @@ $(document).ready(function() {
                 console.log(data);
                 CG.uploadData = data;
                 CG.metricCounter = 0; // A counter of input metrics.
+                createDataSample(data, fileName);
 
                 // Display Generate Map button that submits all metric forms
                 $("#mapConfig").append( `<button type="submit" class="btn btn-generateMap" form="metricsForm${CG.metricCounter}" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
@@ -237,24 +240,73 @@ function createSelectPalettes(typeSelected, numColorSelected){
                 .style("background-color", function(d) { return d; });
 }
 
-function createDataSample(fileName){
+function createDataSample(dataObject, fileName){
+
+    var dataTitle = [
+    '<div class="panel panel-data">',
+        '<div class="panel-heading">',
+          '<h2 class="panel-title">',
+          '<font color="#E2E1D9">',
+          fileName,
+          '</font>',
+          '</h2>',
+        '</div>',
+    '</div>'].join("\n");
+
+    var dataTable = "";
+
+    for (var i = 0; i < dataObject.columns.length; i++){
+        dataTable = dataTable + '<span>' + dataObject.columns[i] + "    " + '</span>';
+    }
+
+    var result = "<table border=1 width=100%>";
+    result += "<tr>";
+    for(var i=0; i<dataObject.columns.length; i++) {
+        result += "<td>";
+        result += dataObject.columns[i] + " ";
+        result += "</td>";
+    }
+    result += "</tr><tr>";
+
+    result += "<td>";
+    result += dataObject.types[0];
+    result += "</td>";
+    for(var i=1; i<dataObject.types.length; i++) {
+        result += "<td>";
+
+        if (dataObject.types[i].diverging){
+            result += "diverging: " + dataObject.types[i].diverging.toString();
+            result += "<br/>";
+        }
+        if (dataObject.types[i].sequential){
+            result += "sequential: " + dataObject.types[i].sequential.toString();
+            result += "<br/>";
+        }
+        if (dataObject.types[i].qualitative){
+            result += "qualitative: " + dataObject.types[i].qualitative.toString();
+            result += "<br/>";
+        }
+
+        result += "</td>";
+    }
+    result += "</tr>";
+    result += "</table>";
+
 
     var dataSample = [
     '<div class="panel panel-data">',
-            '<div class="panel-heading">',
-              '<h2 class="panel-title">',
-              fileName,
-              '</h2>',
-            '</div>',
-            '<div class="panel-body">',
-              '<p>Number of Columns:</p>',
-              '<p>Number of Rows:</p>',
-              '<p>Types of Data:</p>',
-              '<p>Errors that need repair:</p>',
-            '</div>',
+        '<div class="panel-body">',
+          '<p></p>',
+          '<p>Number of Rows:',
+          dataObject.num_rows,
+          '</p>',
+          '<p>Errors that need repair:</p>',
+        '</div>',
     '</div>',
     ].join("\n");
 
+    $("#uploadInformation").append(dataTitle);
+    $("#uploadInformation").append(result);
     $("#uploadInformation").append(dataSample);
 }
 
@@ -264,11 +316,11 @@ function appendVisualizationRequirements(count){
             `<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">`,
                 '<p>',
                      '<label>Title:</label>',
-                     `<textarea required name="title" id = "title${count}" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>`,
+                     `<textarea required name="title" id = "title${count}" rows = "1" cols = "60" placeholder="What do you want to call this visualization?"></textarea>`,
                 '</p>',
                 '<p>',
                      '<label>Description:</label>',
-                     `<textarea name="description" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
+                     `<textarea name="description" id = "description${count}" rows = "3" cols = "60" placeholder="This shows..."></textarea>`,
                 '</p>',
                 '<hr>',
                 `<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this); createNumClasses(this, document.getElementById(\'types${count}\')); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'));" > </select> </p>`,
