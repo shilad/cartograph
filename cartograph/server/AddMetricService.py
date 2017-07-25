@@ -21,6 +21,13 @@ class AddMetricService:
         self.map_service = map_service
 
     def on_post(self, req, resp, metric_type):
+        """Add a metric of type <metric_type> to the map stored in self.map_service.
+
+        The POST request should have the follow parameters:
+            metric_name: the name for the metric. If there is already such a
+        :param metric_type: str of type of metric (diverging, qualitative, sequential) to be added to map
+        :return:
+        """
 
         # Get POST data from request
         post_data = falcon.uri.parse_query_string(req.stream.read())
