@@ -10,7 +10,7 @@ import scipy.sparse as sp
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
 
-from cartograph import MakeRegions
+from Regions import MakeRegions
 
 
 class AugmentLabel(MTimeMixin, luigi.Task):
