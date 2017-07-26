@@ -84,10 +84,13 @@ class SampleCreator(MTimeMixin, luigi.Task):
 
     def requires(self):
         # TODO: Require augmented matrix
+        from AugmentMatrix import AugmentCluster, AugmentLabel
         return (
             WikiBrainNumbering(),
             ArticlePopularity(),
-            EnsureDirectoriesExist()
+            EnsureDirectoriesExist(),
+            AugmentCluster(),
+            AugmentLabel()
         )
 
     def samplePath(self):
