@@ -4,6 +4,7 @@ import shutil
 from cartograph import Config
 from cartograph.server.AddMetricService import AddMetricService
 from cartograph.server.CountryService import CountryService
+from cartograph.server.InfoService import InfoService
 from cartograph.server.LoggingService import LoggingService
 from cartograph.server.PointService import PointService
 from cartograph.server.RasterService import RasterService
@@ -44,6 +45,7 @@ class Map:
         self.point_service = PointService(conf)
         self.country_service = CountryService(conf)
         self.tile_service = TileService(conf, self.point_service, self.country_service)
+        self.info_service = InfoService(conf)
         self.mapnik_service = RasterService(conf, self.point_service, self.country_service)
         self.template_service = TemplateService(conf)
         self.related_points_service = RelatedPointsService(conf, self.point_service)
