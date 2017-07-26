@@ -1,31 +1,8 @@
 import pandas as pd
 import numpy as np
 from scipy.sparse import csc_matrix
-import time
-origEdgesPath = "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalEdges.txt"
-
-def createSequence(origEdgesPath):
-    sequenceDict = {} #yeah I know this isn't efficient but I just need something to test
-    with open(origEdgesPath, 'r') as ptbe:
-        for line in ptbe:
-            lst = line.split()
-            if len(lst) == 1: continue
-            src = int(lst[0])
-            dst = int(lst[1])
-            if src in sequenceDict:
-                sequenceDict[src][dst] = 1
-            else:
-                sequenceDict[src] = {dst:1}
-    sequenceList = []
-    for key in sorted(sequenceDict): #sorting here preserves order, uhh yeah.
-        sequenceList.append((key, sequenceDict[key]))
-    # for i in range(0,5):
-    #     key, val = sequenceList[i]
-    #     print(len(val))
-    return sequenceList #This should be hopefully the set of tuples, (row, vals) where val is a dictionary with weight vals
 
 def writeSparseMatrix(sequence, outputdir):
-    print("ayy jek")
     #I can't seem to get the logic right, it's either one or two off each time. Partly because the line numbers in Original Edges are off but...
     count = 0
     rows = []
@@ -67,18 +44,16 @@ def writeSparseMatrix(sequence, outputdir):
 class MMappedSparseMatrix():
 
     def __init__(self, outputDir):
-        print("jek you bonobo!")
-        colAddress = outputdir+"/columns.mmap"
-        rowAddress = outputdir+"/row_indexes.mmap"
-        valAddress = outputdir+"/values.mmap"
-        shapesAddress = outputdir+"/shape.txt"
+        colAddress = outputDir+"/columns.mmap"
+        rowAddress = outputDir+"/row_indexes.mmap"
+        valAddress = outputDir+"/values.mmap"
+        shapesAddress = outputDir+"/shape.txt"
         self.rowMap = np.memmap(rowAddress, dtype="int32", mode="r+")
         self.colMap = np.memmap(colAddress, dtype="int32", mode="r+")
         self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
 
     #Seems to work. Still need to sort out index assignment. YOU MUST SPECIFY IF INDEX OR EDGEID BASED
     def get_row_as_np(self, index=-1, edgeId = -1):
-        print("JEK")
         #catch if want edgeId val instead of index
         if edgeId != -1:
             index = edgeId-1
@@ -97,7 +72,6 @@ class MMappedSparseMatrix():
 
     #returns a dictionary object for a given pointID, the keys are all the destination pointIDs, with vals being the Zpop
     def get_row_as_dict(self, index=-1, pointID = -1):
-        print("TEH")
         if pointID != -1:
             index = pointID - 1
         else:
@@ -114,7 +88,6 @@ class MMappedSparseMatrix():
 
     #seems to work sort of... the 4 test vals for edgeId 1 seem to clear.
     def get_row_as_csc(self, index=-1, edgeId = -1):
-        print("STEK")
         if edgeId != -1:
             index = edgeId -1
         else:
@@ -131,7 +104,6 @@ class MMappedSparseMatrix():
         return csc_matrix((rowNp))
 
     def as_csr(self):
-        print("LINDEN")
         #rowMap needs to be size of colmap
         rowVals = []
         for i in range(0, self.rowMap.size-1):
@@ -142,11 +114,15 @@ class MMappedSparseMatrix():
         rowNp = np.asarray(rowVals)
         return csc_matrix((self.valMap, (rowNp, self.colMap)), shape=(rowNp.size, self.colMap.size))
 
-outputdir = "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles"
-sequence = createSequence(origEdgesPath)
-startTime = time.time()
-peter = MMappedSparseMatrix(outputdir)
-print(peter.get_row_as_dict(index=0))
-endTime = time.time()
-timepassed = endTime - startTime
-print("Time elapsed: " + str(timepassed))
+
+def test_memmaps(self):
+    # pairs = [(4, 1247), (4, 39262), (5, 185), (5, 127), (7, 3), (7, 635), (8, 2557), (8, 39078), (10, 498), (10, 16736),
+    #          (10, 75164), (2295, 35), (2295, 92)]
+    # for src, dest in pairs:
+    #     assert self.articlesZpop[src] * self.articlesZpop[dest] == self.get_row_as_dict(pointID=src)[dest]
+    # assert 1 in self.get_row_as_dict(index=1)
+    pairs = [(2317, 8926), (2317, 1641), (2322, 273), (2324, 8125), (14980, 97), (14980, 38212), (14984, 25144),
+             (14984, 5190), (15171, 5), (15171, 322), (97017, 1475)]
+    for src, dst in pairs:
+        print(src, dst)
+        assert dst in self.get_row_as_dict(pointID=src)

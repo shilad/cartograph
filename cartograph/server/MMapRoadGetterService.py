@@ -1,13 +1,9 @@
 import falcon
 import heapq
 import json
-from tables import*
-import pandas as pd
-import numpy as np
 import math
-import pytest
 from collections import defaultdict
-
+from cartograph.mmap_matrix import MMappedSparseMatrix as mmap
 class PrioritySet(object):
     def __init__(self, max_size = 10):
         self.heap = []
@@ -35,7 +31,6 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.heap)
 
-
 class RoadGetterService:
     def __init__(self, links, origVertsPath, pathToZPop, pathToNames, outputdir):
         self.articlesZpop = {}  # here articlesZpop key is article ID, and val is a float zpop val
@@ -50,14 +45,8 @@ class RoadGetterService:
                 self.articlesZpop[int(lst[0])] = math.ceil(float(lst[1]))+ 1
 
         sequence = createSequence(links, self.articlesZpop)
-        writeSparseMatrix(sequence, outputdir)
-        colAddress = outputdir + "/columns.mmap"
-        rowAddress = outputdir + "/row_indexes.mmap"
-        valAddress = outputdir + "/values.mmap"
-        self.rowMap = np.memmap(rowAddress, dtype="int32", mode="r+")
-        self.colMap = np.memmap(colAddress, dtype="int32", mode="r+")
-        self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
-
+        mmap.writeSparseMatrix(sequence, outputdir)
+        self.sparsematrix = mmap.MMappedSparseMatrix(outputdir)
         #This sets up all the variables we need for any work done.
 
         self.names = {}
@@ -110,21 +99,6 @@ class RoadGetterService:
         #print("len", len(json.dumps(jsonDict)))
         resp.body = json.dumps(jsonDict)
 
-    def get_row_as_dict(self, index=-1, pointID = -1):
-        if pointID != -1:
-            index = pointID - 1
-        else:
-            if pointID == -1 and index == -1:
-                print("Error, please specify index or edgeId value")
-
-        startIndex = self.rowMap[index]
-        endIndex = self.rowMap[index+1]
-
-        edgeValDict = {}
-        for i in range(startIndex, endIndex):
-            edgeValDict[self.colMap[i]] = self.valMap[i]
-        return edgeValDict
-
     #hopefully properly implemented
     def getPathsInViewPort(self, xmin, xmax, ymin, ymax, num_paths):
         pointsinPort = []
@@ -137,25 +111,14 @@ class RoadGetterService:
         bad = []
         diff=[]
         for src in pointsinPort:
-            if src < len(self.rowMap):
-                destDict = self.get_row_as_dict(pointID=src)
-                for dest in destDict:
-                    if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
-                        secondVal = destDict[dest]
-                        topPaths.add(-secondVal, (src, dest))
+            #if src < len(self.rowMap):
+            destDict = self.sparsematrix.get_row_as_dict(pointID=src)
+            for dest in destDict:
+                if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
+                    secondVal = destDict[dest]
+                    topPaths.add(-secondVal, (src, dest))
         return topPaths.heap
 
-    def test_memmaps(self):
-        pairs = [(4, 1247), (4, 39262), (5, 185), (5, 127), (7, 3), (7, 635), (8, 2557), (8, 39078), (10, 498), (10, 16736),
-                 (10, 75164), (2295, 35), (2295, 92)]
-        for src, dest in pairs:
-            assert self.articlesZpop[src] * self.articlesZpop[dest] == self.get_row_as_dict(pointID=src)[dest]
-        assert 1 in self.get_row_as_dict(index=1)
-        pairs = [(2317, 8926), (2317, 1641), (2322, 273), (2324, 8125), (14980, 97), (14980, 38212), (14984, 25144),
-                 (14984, 5190), (15171, 5), (15171, 322), (97017, 1475)]
-        for src, dst in pairs:
-            print(src, dst)
-            assert dst in self.get_row_as_dict(pointID=src)
 
 def createSequence(links, zpop):
     sequenceDict = defaultdict(dict) #yeah I know this isn't efficient but I just need something to test
@@ -172,43 +135,3 @@ def createSequence(links, zpop):
     for key in sorted(sequenceDict): #sorting here preserves order, uhh yeah.
         sequenceList.append((key, sequenceDict[key]))
     return sequenceList #This should be hopefully the set of tuples, (row, vals) where val is a dictionary with weight vals
-
-def writeSparseMatrix(sequence, outputdir):
-    count = 0
-    rows = []
-    cols = []
-    vals = []
-    for pairing in (sequence):
-        src, roadDict = pairing
-        for dest in sorted(roadDict):
-            cols.append(dest)
-            vals.append(roadDict[dest])
-        rows.append(count)
-        count += len(roadDict)
-    #rows memmap conversion here rows are set so pointID is the index (to get the row value of point 12, go to row[12]
-    #from there the value yielded is the row's start and end lines in our text file. for example point1 is from 0 to point2's start
-    rowNp = np.asarray(rows)
-    rowShape = rowNp.shape
-    rowMap = np.memmap(outputdir+"/row_indexes.mmap", dtype='int32', mode="w+", shape=rowShape)
-    rowMap[:] = rowNp
-    rowMap.flush()
-
-    #cols mmap conversion. Cols stores the given pointID at an index value. for example, if at index 12, we had an edge between 1 and 54, cols[12] = 54
-    colNp = np.asarray(cols)
-    colShape = colNp.shape
-    colMap = np.memmap(outputdir+"/columns.mmap", dtype='int32', mode="w+", shape=colShape)
-    colMap[:] = colNp
-    colMap.flush()
-
-    #vals mmap conversion this stores the weight for a given index.
-    valNp = np.asarray(vals)
-    valShape = valNp.shape
-    valMap = np.memmap(outputdir+"/values.mmap", dtype="int32", mode="w+", shape=valShape)
-    valMap[:] = valNp
-    valMap.flush()
-
-    #draw Shapes!
-    shapesFile = open(outputdir+"shape.txt", "w")
-    shapesFile.write(str(len(rows))+" "+str(len(rows)))
-    shapesFile.close()
-
