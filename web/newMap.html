@@ -1,27 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <!--
-
-        Shilad's notes on fixing this up:
-        1. It doesn't use bootstrap layout. We should use standard bootstrap HTML structure.
-        2. Move the JS into mapmaker.js.
-       bootstrapFallenVersion.css.css should be the "officibootstrapFallenVersion.css.css (unchanged by us).
-        3. Move our css in mapmaker.css
-
-        -->
+        <!---->
         <meta charset="UTF-8">
-        <title>mapCreator</title>
+        <title>MapMaker</title>
         <meta name="description" content="">
         <meta name="author" content="">
-        <link rel="icon" href="../../favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="images/cartographIcon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <!-- Bootstrap core -->
+        <!-- styleSheet -->
         <link href="css/bootstrap.css" rel="stylesheet">
         <link href="css/bootstrap-theme.css" rel="stylesheet">
         <link href="css/mapCreator.css" rel="stylesheet">
 
+        <!--javaScripts-->
         <script src="js/jquery.min.js"></script>
         <script src="tether-1.3.3/dist/js/tether.min.js"></script>
         <script src="js/jquery.form.js"></script>
@@ -35,73 +28,62 @@
         <script src="js/jquery.validate.js"></script>
 
 
-
-
     </head>
     <body>
-    <div class="container">
-        <div id="header">
-            <div class="welcome-header">
-                <div class="container">
-                    <h1 id="website-title" align="center">Welcome to the World of Cartograph</h1>
-                </div>
+        <div class="header containter-fluid">
+          <div class="container-fluid">
+            <ul class="nav" role="navigation">
+              <li>
+                <img src="images/cartographC.png" height="50px" width="50px">
+              </li>
+              <li>
+                <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#explore">Explore</a>
+              </li>
+              <li>
+                <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#about">About</a>
+              </li>
+              <li>
+                <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#algorithms">Algorithms</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mapMaker-body">
+            <h1>MapMaker</h1>
+            <p>You can upload a csv file and generate awesome visualizations here!</p>
+
+            <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
+
+                <p></p>
+                <label>Map Name</label>
+                <input required type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
+
+                <p></p>
+                <label>Upload your data file here!</label>
+                <label class="btn btn-secondary">
+                    <input required type="file" name="file" id="uploadFile">
+                    Select file
+                </label><br/>
+                <!-- <textarea name="articles_text" id="file_text" cols="60" rows="3" placeholder="Copy-paste"></textarea>-->
+                <label class="btn btn-secondary">
+                    <input type="submit"  id="submitFile">
+                    Upload
+                </label>
+                <div id="uploadInformation"></div>
+            </form>
+
+            <hr>
+            <p></p>
+            <div id="newRequirements">
+                <!--This part is initialized in mapCreator.js-->
             </div>
-            <nav class="navbar navbar-inverse header-nav">
-                <div class="container-fluid">
-                  <div class="navbar-header">
-                      <span class="icon-bar">
-                          <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#explore"><font class="navButtons" color="#E2E1D9">Explore</font></a></li>
-                      </span>
-                      <span class="icon-bar">
-                          <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#about"><font class="navButtons" color="#E2E1D9">About</font></a></li>
-                      </span>
-                      <span class="icon-bar">
-                          <a href="http://nokomis.macalester.edu/wmf_en/static/index.html#algorithms"><font class="navButtons" color="#E2E1D9" >Algorithms</font></a></li>
-                      </span>
-                  </div>
-                </div>
-            </nav>
+
+            <div id="mapConfig">
+                <button type="button" class="btn btn-addVisualization">Add Visualization</button>
+                <p></p>
+                <h3></h3>
+            </div>
         </div>
-
-        <img src="images/webPageMap.png" alt="exampleWikipediaMap" align='right' width="360" height="360" position="absolute">
-        <h1>MapCreator</h1>
-        <p>You can upload a csv file and generate awesome visualizations here!</p>
-
-        <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
-
-            <p></p>
-            <label>Map Name</label>
-            <input required type="text" name="map_name" maxlength="60" placeholder="Map Name" id="map_name"/>
-
-            <p></p>
-            <label>Upload a file or copy-paste your data in!</label>
-            <label class="btn btn-secondary">
-                <input required type="file" name="file" id="uploadFile">
-                Select file
-            </label><br/>
-            <textarea name="articles_text" id="file_text" cols="60" rows="3" placeholder="Copy-paste"></textarea><br/>
-            <label class="btn btn-secondary">
-                <input type="submit"  id="submitFile">
-                Upload
-            </label>
-            <div id="uploadInformation"></div>
-        </form>
-
-        <hr>
-        <p></p>
-
-        <div id="newRequirements">
-            <!--This part is initialized in mapCreator.js-->
-        </div>
-
-        <div id="mapConfig">
-            <button type="button" class="btn btn-addVisualization">Add Visualization</button>
-            <p></p>
-            <h3></h3>
-        </div>
-
-    </div>
-
-
     </body>
 </html>

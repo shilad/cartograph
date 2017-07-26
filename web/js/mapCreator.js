@@ -25,7 +25,6 @@ $(document).ready(function () {
 
     $('input[type="file"]').change(function (e) {
 
-
     });
 
     // Process the upload form after hitting "Submit" button
@@ -55,7 +54,7 @@ $(document).ready(function () {
                 console.log(data);
                 CG.uploadData = data;
                 CG.metricCounter = 0; // A counter of input metrics.
-                createDataSample(data, fileName);
+                createDataInfo(data, fileName);
 
                 // Display Generate Map button that submits all metric forms
                 $("#mapConfig").append(`<button type="submit" class="btn btn-generateMap" form="metricsForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
@@ -123,6 +122,8 @@ function ajax_buildMap() {
         }
     });
     $("h3").append("<p>Please wait while we create your map...</p>");
+    createMapDescription(vizName, vizDescription);
+
 }
 
 function ajax_metrics(i) {
@@ -263,7 +264,7 @@ function createSelectPalettes(typeSelected, numColorSelected, count) {
         });
 }
 
-function createDataSample(dataObject, fileName){
+function createDataInfo(dataObject, fileName){
 
     var dataTitle = [
     '<div class="panel panel-data">',
@@ -278,45 +279,36 @@ function createDataSample(dataObject, fileName){
 
     var dataTable = "";
 
-    for (var i = 0; i < dataObject.columns.length; i++){
-        dataTable = dataTable + '<span>' + dataObject.columns[i] + "    " + '</span>';
-    }
-
-    var result = "<table border=1 width=100%>";
-    result += "<tr>";
+    var dataTypes = "<table border=1 width=100%>";
+    dataTypes += "<tr>";
     for(var i=0; i<dataObject.columns.length; i++) {
-        result += "<td>";
-        result += dataObject.columns[i] + " ";
-        result += "</td>";
+        dataTypes += "<td>";
+        dataTypes += dataObject.columns[i] + " ";
+        dataTypes += "</td>";
     }
-    result += "</tr><tr>";
-
-    result += "<td>";
-    result += dataObject.types[0];
-    result += "</td>";
+    
+    dataTypes += "</tr><tr>";
+    dataTypes += "<td>";
+    dataTypes += dataObject.types[0];
+    dataTypes += "</td>";
+    
     for(var i=1; i<dataObject.types.length; i++) {
-        result += "<td>";
-
+        dataTypes += "<td>";
         if (dataObject.types[i].diverging){
-            result += "diverging: " + dataObject.types[i].diverging.toString();
-            result += "<br/>";
+            dataTypes += "diverging: " + dataObject.types[i].diverging.toString() + "<br/>";
         }
         if (dataObject.types[i].sequential){
-            result += "sequential: " + dataObject.types[i].sequential.toString();
-            result += "<br/>";
+            dataTypes += "sequential: " + dataObject.types[i].sequential.toString() + "<br/>";
         }
         if (dataObject.types[i].qualitative){
-            result += "qualitative: " + dataObject.types[i].qualitative.toString();
-            result += "<br/>";
+            dataTypes += "qualitative: " + dataObject.types[i].qualitative.toString() + "<br/>";
         }
-
-        result += "</td>";
+        dataTypes += "</td>";
     }
-    result += "</tr>";
-    result += "</table>";
+    dataTypes += "</tr>";
+    dataTypes += "</table>";
 
-
-    var dataSample = [
+    var dataInfo = [
     '<div class="panel panel-data">',
         '<div class="panel-body">',
           '<p></p>',
@@ -329,8 +321,8 @@ function createDataSample(dataObject, fileName){
     ].join("\n");
 
     $("#uploadInformation").append(dataTitle);
-    $("#uploadInformation").append(result);
-    $("#uploadInformation").append(dataSample);
+    $("#uploadInformation").append(dataTypes);
+    $("#uploadInformation").append(dataInfo);
 }
 
 function appendVisualizationRequirements(count) {
@@ -351,6 +343,7 @@ function appendVisualizationRequirements(count) {
         `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this, ${count}); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'), ${count});"> </select></p>`,
         '<p></p>',
         `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
+        `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
         '<p></p>',
         `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
         '<hr>',
@@ -368,6 +361,17 @@ var schemeNames = {
     qualitative: ["Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"]
 };
 
-function createMapDescription() {
+function createMapDescription(vizName, vizDescription) {
+    var description = [
+    '<div class="legend" id="legend-cluster">',
+          '<h1>',
+          "Map Description",
+          '</h1>',
+          '<p>',
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          '</p>',
+    '</div>'
+    ].join("\n");
+
     $("h3").append(description);
 }
