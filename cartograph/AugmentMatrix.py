@@ -10,9 +10,6 @@ import scipy.sparse as sp
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
 
-from Regions import MakeRegions
-
-
 class AugmentLabel(MTimeMixin, luigi.Task):
     '''
     Create an augmented matrix with additional columns composed of an svd on labels.
@@ -76,6 +73,7 @@ class AugmentCluster(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("ExternalFiles", "vecs_with_labels_clusters"))
 
     def requires(self):
+        from Regions import MakeRegions
         return AugmentLabel(), MakeRegions()
 
     def run(self, clust_weight=0.25):
