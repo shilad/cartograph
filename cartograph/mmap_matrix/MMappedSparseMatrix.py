@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.sparse import csc_matrix
+import pytest
 
 def writeSparseMatrix(sequence, outputdir):
     #I can't seem to get the logic right, it's either one or two off each time. Partly because the line numbers in Original Edges are off but...
@@ -77,10 +78,11 @@ class MMappedSparseMatrix():
         else:
             if pointID == -1 and index == -1:
                 print("Error, please specify index or edgeId value")
-
         startIndex = self.rowMap[index]
-        endIndex = self.rowMap[index+1]
-
+        if index < self.rowMap.size-1:
+            endIndex = self.rowMap[index+1]
+        else:
+            endIndex = len(self.colMap)
         edgeValDict = {}
         for i in range(startIndex, endIndex):
             edgeValDict[self.colMap[i]] = self.valMap[i]
@@ -115,14 +117,14 @@ class MMappedSparseMatrix():
         return csc_matrix((self.valMap, (rowNp, self.colMap)), shape=(rowNp.size, self.colMap.size))
 
 
-def test_memmaps(self):
-    # pairs = [(4, 1247), (4, 39262), (5, 185), (5, 127), (7, 3), (7, 635), (8, 2557), (8, 39078), (10, 498), (10, 16736),
-    #          (10, 75164), (2295, 35), (2295, 92)]
-    # for src, dest in pairs:
-    #     assert self.articlesZpop[src] * self.articlesZpop[dest] == self.get_row_as_dict(pointID=src)[dest]
-    # assert 1 in self.get_row_as_dict(index=1)
-    pairs = [(2317, 8926), (2317, 1641), (2322, 273), (2324, 8125), (14980, 97), (14980, 38212), (14984, 25144),
-             (14984, 5190), (15171, 5), (15171, 322), (97017, 1475)]
-    for src, dst in pairs:
-        print(src, dst)
-        assert dst in self.get_row_as_dict(pointID=src)
+def test():
+    sequence = [(1, {11:10, 12:20, 14:50,  18:50, 13:60, 15:4}),(2, {2307: 511, 72:97, 34:982, 2308:8125, 28:33}),
+                (3,{12:14, 15:16, 17:18,19:20, 21:22}), (4,{2:4, 6:8, 10:12, 14:16}), (5,{3:6, 9:12, 15:18, 21:24}), (6,{1:1, 2:2, 3:3, 4:4, 5:5})]
+    writeSparseMatrix(sequence, "/Users/sen/PycharmProjects/cartograph/data/")
+    perry = MMappedSparseMatrix("/Users/sen/PycharmProjects/cartograph/data/")
+    for src, dict in sequence:
+        mapdict = perry.get_row_as_dict(pointID=src)
+        for key in dict:
+            print(dict[key])
+            print(mapdict[key])
+            assert dict[key] == mapdict[key]
