@@ -42,7 +42,7 @@ class MapService:
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
         self.roads_service = RoadGetterService(
-                                               "/Users/sen/Downloads/links.tsv",
-                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/OriginalVertices.txt",
+                                               "/Users/sen/PycharmProjects/cartograph/data/ext/simple/links.tsv",
+                                               "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/Original Vertices.txt",
                                                "/Users/sen/PycharmProjects/CartoGraphRoadAPI/DataFiles/zpop.tsv",
                                                "/Users/sen/PycharmProjects/cartograph/data/ext/simple/names.tsv", "/Users/sen/PycharmProjects/cartograph/data/ext/simple/")
