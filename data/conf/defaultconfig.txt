@@ -12,7 +12,6 @@ externalDir: ./data/labdata/%(dataset)s
 [ExternalFiles]
 external_ids: %(externalDir)s/ids.tsv
 vecs_with_id: %(externalDir)s/vectors.tsv
-best_vecs_with_id: %(externalDir)s/vectors.tsv
 w2v: %(externalDir)s/w2v.bin
 links: %(externalDir)s/links.tsv
 names_with_id: %(externalDir)s/names.tsv
@@ -36,6 +35,8 @@ percentile_popularity_with_id: %(generatedDir)s/percentile_popularity_with_id.ts
 zpop_with_id: %(generatedDir)s/zpop.tsv
 country_borders: %(generatedDir)s/country_borders.tsv
 edges_with_coords: %(generatedDir)s/edges_with_coords.tsv
+vecs_with_labels: %(generatedDir)s/vectors_labels.tsv
+vecs_with_labels_clusters: %(generatedDir)s/vectors_labels_clusters.tsv
 
 [PreprocessingConstants]
 sample_borders: True

@@ -83,6 +83,7 @@ class SampleCreator(MTimeMixin, luigi.Task):
     path = luigi.Parameter()
 
     def requires(self):
+        # TODO: Require augmented matrix
         return (
             WikiBrainNumbering(),
             ArticlePopularity(),
