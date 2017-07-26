@@ -20,6 +20,7 @@ popularity: %(externalDir)s/popularity.tsv
 region_names: %(externalDir)s/region_names.tsv
 article_embedding: %(externalDir)s/tsne_cache.tsv
 external_ids: %(externalDir)s/ids.tsv
+categories: %(externalDir)s/categories.tsv
 sample_ids:
 ; [ sample_ids is optional and it should be a tsv file contained sampled ids
 
