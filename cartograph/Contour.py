@@ -6,6 +6,7 @@ import pandas as pd
 import luigi
 import json
 import Coordinates
+import RegionLabel
 import Config
 import Utils
 import scipy.stats as sps
@@ -51,7 +52,7 @@ class CreateContours(MTimeMixin, luigi.Task):
                     AugmentCluster())
         else:
             return (Coordinates.CreateFullCoordinates(),
-                    cartograph.PreReqs.LabelNames(),
+                    RegionLabel.RegionLabel(),
                     ContourCode(),
                     CreateContinents(),
                     MakeRegions())

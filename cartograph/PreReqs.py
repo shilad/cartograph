@@ -5,8 +5,8 @@ import luigi
 from cartograph import Config
 from cartograph.LuigiUtils import TimestampedLocalTarget, MTimeMixin, getSampleIds
 
-
 class LabelNames(luigi.Task):
+    # FIXME: Replace this by RegionLabel.py tfidf
     '''
     Verify that cluster has been successfully labeled from Java
     and WikiBrain
