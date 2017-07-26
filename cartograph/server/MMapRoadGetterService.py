@@ -3,33 +3,40 @@ import heapq
 import json
 import math
 from collections import defaultdict
+import bisect
+import numpy as np
+
 from cartograph.mmap_matrix import MMappedSparseMatrix as mmap
 class PrioritySet(object):
     def __init__(self, max_size = 10):
-        self.heap = []
-        self.set = set()
+        self.keys = []
+
         self.max_size = max_size
+        self.maxImportance = float('inf')
+        self.priorityValueResults= [] #value (priority, value)
 
 
     def add(self,  pri, d):
-        if not d in self.set:
+        if pri < self.maxImportance:
+            index = bisect.bisect_right(self.keys,pri)
+            if index == self.max_size: return
+            self.priorityValueResults.insert(index,(pri, d))
+            self.keys.insert(index, pri)
 
-            heapq.heappush(self.heap, (pri, d))
-            self.set.add(d)
-            if len(self.heap) > self.max_size:
-                self.pop()
-
-    def pop(self):
-        pri, d = heapq.heappop(self.heap)
-        self.set.remove(d)
-        return d
+            if len(self.keys) > self.max_size:
+                self.keys = self.keys[:-1]
+                self.priorityValueResults = self.priorityValueResults[:-1]
+                self.maxImportance = self.keys[-1]
 
     def add_all(self, list_to_add):
         for ele in list_to_add:
             self.add(ele[0], ele[1])
 
     def __str__(self):
-        return str(self.heap)
+        return str(self.priorityValueResults)
+
+
+
 
 class RoadGetterService:
     def __init__(self, links, origVertsPath, pathToZPop, pathToNames, outputdir):
@@ -106,10 +113,7 @@ class RoadGetterService:
             if xmax > float(self.originalVertices[point][0]) > xmin and ymin < float(self.originalVertices[point][1]) < ymax:
                 pointsinPort.append(point)  # points in port is an array of pointIDs which are strings.
         topPaths = PrioritySet(max_size=num_paths)
-        #This part above shouldn't conflict with anything from the sparse matrix. The part below should.
-        good = []
-        bad = []
-        diff=[]
+
         for src in pointsinPort:
             #if src < len(self.rowMap):
             destDict = self.sparsematrix.get_row_as_dict(pointID=src)
@@ -117,7 +121,7 @@ class RoadGetterService:
                 if dest in self.originalVertices and xmax > self.originalVertices[dest][0] > xmin and ymax > self.originalVertices[dest][1] > ymin:
                     secondVal = destDict[dest]
                     topPaths.add(-secondVal, (src, dest))
-        return topPaths.heap
+        return topPaths.priorityValueResults
 
 
 def createSequence(links, zpop):
