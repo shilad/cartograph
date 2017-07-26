@@ -82,7 +82,7 @@ $(document).ready(function () {
                             }
                         }
                     });
-                    // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
+                    window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
                 });
 
                 $("#mapConfig").show();
