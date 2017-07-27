@@ -83,13 +83,14 @@ def gen_data(source_dir, target_path, articles):
 
     :param target_path: path to directory (that will be created) to be filled with data files
     :param articles: file object of user data; must be TSV w/ headers on first row; 1st column must be article titles
-    :return: list of article titles for which there was no exact match in the existing dataset
+    :return: tuple (set of article titles not found in source data, list of column headers excluding first column)
     """
 
     # Generate dataframe of user data
     user_data = pandas.read_csv(articles, delimiter='\t')
     first_column = list(user_data)[0]
     user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
+    all_articles = set(user_data.index.values)
 
     # Generate dataframe of names to IDs
     names_file_path = os.path.join(source_dir, 'names.tsv')
@@ -97,13 +98,14 @@ def gen_data(source_dir, target_path, articles):
 
     # Append internal ids with the user data; set the index to 'id';
     # preserve old index (i.e. 1st column goes to 2nd column)
-    user_data_with_internal_ids = user_data.join(names_to_ids)
+    user_data_with_internal_ids = user_data.join(names_to_ids, how='inner')
+    good_articles = set(user_data_with_internal_ids.index)
     user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
     user_data_with_internal_ids.set_index('id', inplace=True)
 
-    # Generate list of IDs for article names in user request
-    ids = set(user_data_with_internal_ids.index)
-    bad_articles = set()
+    # Generate list of IDs for article names in user request, generate set of articles for which no id could be found
+    ids = set(user_data_with_internal_ids.index.values)
+    bad_articles = all_articles - good_articles
 
     # Create the destination directory (if it doesn't exist already)
     if not os.path.exists(target_path):
@@ -119,7 +121,7 @@ def gen_data(source_dir, target_path, articles):
         dtype={'id': object, 'externalId': object}  # read ids as strings
     )
     external_ids.set_index('id', inplace=True)
-    user_data_with_external_ids = user_data_with_internal_ids.join(external_ids)
+    user_data_with_external_ids = user_data_with_internal_ids.join(external_ids, how='inner')
     user_data_with_external_ids.set_index('externalId', inplace=True)
     user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
 
