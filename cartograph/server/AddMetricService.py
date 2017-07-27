@@ -1,14 +1,10 @@
 import json
 import os
-from ConfigParser import SafeConfigParser
 import string
 import falcon
 import pandas
-
+from ConfigParser import SafeConfigParser
 from cartograph.Utils import build_map
-
-
-TYPE_NAME = {'BIVARIATE': 'bivariate-scale', 'COUNT': 'count', 'NONE': None}
 
 
 class AddMetricService:
