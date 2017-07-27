@@ -277,8 +277,6 @@ function createDataInfo(dataObject, fileName){
         '</div>',
     '</div>'].join("\n");
 
-    var dataTable = "";
-
     var dataTypes = "<table border=1 width=100%>";
     dataTypes += "<tr>";
     for(var i=0; i<dataObject.columns.length; i++) {
