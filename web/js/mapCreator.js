@@ -66,23 +66,9 @@ $(document).ready(function () {
                     if (! CG.mapBuilt) {
                         ajax_buildMap();
                         CG.mapBuilt = true;
+                        CG.metricFinished = true;
                     }
-                    $('form').each(function () {
-                        if ($(this).attr("id") !== "uploadForm") {
-                            $(this).validate({errorElement: 'metricErrors',});  // Validate the form
-                            if ($(this).valid() && !$(this).hasClass('submitted')) {
-                                $(this).submit();
-                                // Add a class 'submitted' to this form and disable all its elements.
-                                $(this).addClass('submitted');
-                                var form = document.getElementById($(this).attr("id"));
-                                var elements = form.elements;
-                                for (var i = 0; i < elements.length; ++i) {
-                                    elements[i].disabled = true;
-                                }
-                            }
-                        }
-                    });
-                    window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
+                    // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
                 });
 
                 $("#mapConfig").show();
@@ -116,13 +102,33 @@ function ajax_buildMap() {
         url: '../add_map/' + $("#map_name").val(),
         type: 'POST',
         success: function (textStatus, jqXHR) {
-            console.log('Successfully generated a map!');
+            submit_forms();
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log(jqXHR, textStatus, errorThrown);
         }
-    });
+    })
     $("h3").append("<p>Please wait while we create your map...</p>");
+}
+
+function submit_forms(){
+    $('form').each(function () {
+        if ($(this).attr("id") !== "uploadForm") {
+            $(this).validate({errorElement: 'metricErrors',});  // Validate the form
+            if ($(this).valid() && !$(this).hasClass('submitted') && CG.metricFinished) {
+                CG.metricFinished = false;
+                $(this).submit();
+                // Add a class 'submitted' to this form and disable all its elements.
+                $(this).addClass('submitted');
+                var form = document.getElementById($(this).attr("id"));
+                var elements = form.elements;
+                for (var i = 0; i < elements.length; ++i) {
+                    elements[i].disabled = true;
+                }
+            }
+        }
+    });
+
 }
 
 function ajax_metrics(i) {
@@ -149,6 +155,7 @@ function ajax_metrics(i) {
         processData: true,
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function (textStatus, jqXHR) {
+            CG.metricFinished = true;
             console.log("Successfully added metric to the map!");
         },
         error: function (jqXHR, textStatus, errorThrown) {
