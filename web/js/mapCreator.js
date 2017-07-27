@@ -65,23 +65,9 @@ $(document).ready(function () {
                     if (! CG.mapBuilt) {
                         ajax_buildMap();
                         CG.mapBuilt = true;
+                        CG.metricFinished = true;
                     }
-                    $('form').each(function () {
-                        if ($(this).attr("id") !== "uploadForm") {
-                            $(this).validate({errorElement: 'metricErrors',});  // Validate the form
-                            if ($(this).valid() && !$(this).hasClass('submitted')) {
-                                $(this).submit();
-                                // Add a class 'submitted' to this form and disable all its elements.
-                                $(this).addClass('submitted');
-                                var form = document.getElementById($(this).attr("id"));
-                                var elements = form.elements;
-                                for (var i = 0; i < elements.length; ++i) {
-                                    elements[i].disabled = true;
-                                }
-                            }
-                        }
-                    });
-                    window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
+                    // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
                 });
 
                 $("#mapConfig").show();
@@ -115,14 +101,34 @@ function ajax_buildMap() {
         url: '../add_map/' + $("#map_name").val(),
         type: 'POST',
         success: function (textStatus, jqXHR) {
-            console.log('Successfully generated a map!');
+            submit_forms();
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log(jqXHR, textStatus, errorThrown);
         }
-    });
+    })
     $("h3").append("<p>Please wait while we create your map...</p>");
     createMapDescription(vizName, vizDescription);
+
+}
+
+function submit_forms(){
+    $('form').each(function () {
+        if ($(this).attr("id") !== "uploadForm") {
+            $(this).validate({errorElement: 'metricErrors',});  // Validate the form
+            if ($(this).valid() && !$(this).hasClass('submitted') && CG.metricFinished) {
+                CG.metricFinished = false;
+                $(this).submit();
+                // Add a class 'submitted' to this form and disable all its elements.
+                $(this).addClass('submitted');
+                var form = document.getElementById($(this).attr("id"));
+                var elements = form.elements;
+                for (var i = 0; i < elements.length; ++i) {
+                    elements[i].disabled = true;
+                }
+            }
+        }
+    });
 
 }
 
@@ -150,6 +156,7 @@ function ajax_metrics(i) {
         processData: true,
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function (textStatus, jqXHR) {
+            CG.metricFinished = true;
             console.log("Successfully added metric to the map!");
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -232,10 +239,10 @@ function createSelectPalettes(typeSelected, numColorSelected, count) {
         scheme[schemeNames[type][i]] = colorbrewer[schemeNames[type][i]][numColor];
     }
 
-    d3.select("body").select('.container').select("#newRequirements")
+    d3.select("body").select('.mapMaker-body').select("#newRequirements")
         .select("#newMetric" + count).selectAll(".palette").remove();  // Remove previously shown palette.
 
-    d3.select('body').select('.container').select("#newRequirements").select("#newMetric" + count)
+    d3.select('body').select('.mapMaker-body').select("#newRequirements").select("#newMetric" + count)
         .selectAll(".palette")
         .data(d3.entries(scheme))
         .enter().append("span")
@@ -284,12 +291,12 @@ function createDataInfo(dataObject, fileName){
         dataTypes += dataObject.columns[i] + " ";
         dataTypes += "</td>";
     }
-    
+
     dataTypes += "</tr><tr>";
     dataTypes += "<td>";
     dataTypes += dataObject.types[0];
     dataTypes += "</td>";
-    
+
     for(var i=1; i<dataObject.types.length; i++) {
         dataTypes += "<td>";
         if (dataObject.types[i].diverging && dataObject.types[i].sequential){
@@ -336,7 +343,6 @@ function appendVisualizationRequirements(count) {
         '<p></p>',
         `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this, ${count}); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'), ${count});"> </select></p>`,
         '<p></p>',
-        `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
         `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
         '<p></p>',
         `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
