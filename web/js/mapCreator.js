@@ -239,10 +239,10 @@ function createSelectPalettes(typeSelected, numColorSelected, count) {
         scheme[schemeNames[type][i]] = colorbrewer[schemeNames[type][i]][numColor];
     }
 
-    d3.select("body").select('.container').select("#newRequirements")
+    d3.select("body").select('.mapMaker-body').select("#newRequirements")
         .select("#newMetric" + count).selectAll(".palette").remove();  // Remove previously shown palette.
 
-    d3.select('body').select('.container').select("#newRequirements").select("#newMetric" + count)
+    d3.select('body').select('.mapMaker-body').select("#newRequirements").select("#newMetric" + count)
         .selectAll(".palette")
         .data(d3.entries(scheme))
         .enter().append("span")
@@ -293,12 +293,12 @@ function createDataInfo(dataObject, fileName){
         dataTypes += dataObject.columns[i] + " ";
         dataTypes += "</td>";
     }
-    
+
     dataTypes += "</tr><tr>";
     dataTypes += "<td>";
     dataTypes += dataObject.types[0];
     dataTypes += "</td>";
-    
+
     for(var i=1; i<dataObject.types.length; i++) {
         dataTypes += "<td>";
         if (dataObject.types[i].diverging && dataObject.types[i].sequential){
@@ -345,7 +345,6 @@ function appendVisualizationRequirements(count) {
         '<p></p>',
         `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this, ${count}); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'), ${count});"> </select></p>`,
         '<p></p>',
-        `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
         `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
         '<p></p>',
         `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
