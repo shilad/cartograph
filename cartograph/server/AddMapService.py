@@ -83,7 +83,7 @@ def gen_data(source_dir, target_path, articles):
 
     :param target_path: path to directory (that will be created) to be filled with data files
     :param articles: file object of user data; must be TSV w/ headers on first row; 1st column must be article titles
-    :return: list of article titles for which there was no exact match in the existing dataset
+    :return: tuple (set of article titles not found in source data, list of column headers excluding first column)
     """
 
     # Generate dataframe of user data
