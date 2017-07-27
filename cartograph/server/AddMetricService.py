@@ -20,7 +20,10 @@ class AddMetricService:
         """Add a metric of type <metric_type> to the map stored in self.map_service.
 
         The POST request should have the follow parameters:
-            metric_name: the name for the metric. If there is already such a
+            metric_name: the name for the metric.
+            color_palette: the name of the colorbrewer palette to use for metric
+            column: the name of the column to be used for this metric
+            neutral_color: [optional] the neutral color (e.g. "#00ff88") for this metric
         :param metric_type: str of type of metric (diverging, qualitative, sequential) to be added to map
         :return:
         """
