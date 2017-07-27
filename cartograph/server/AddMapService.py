@@ -32,9 +32,9 @@ def filter_tsv(source_dir, target_dir, ids, filename):
     1   hello
     3   foo
     5   spam
-    :param source_dir:
-    :param target_dir:
-    :param ids: an iterable of the ids (each of which should be an int)
+    :param source_dir: str of path to dir containing source data files (i.e. "/some/path/")
+    :param target_dir: str of path to dir where result data files will be placed (i.e. "/another/path/")
+    :param ids: an iterable of ids (each member should be a str); result data files will only have rows w\ these ids
     :param filename: the name of the file in <source_dir> to be filtered into a file of the same name in <target_dir>
     :return:
     """
@@ -44,7 +44,7 @@ def filter_tsv(source_dir, target_dir, ids, filename):
         writer = csv.writer(write_file, delimiter='\t', lineterminator='\n')
         write_file.write(read_file.readline())  # Transfer the header
         for row in reader:
-            if int(row[0]) in ids:
+            if row[0] in ids:
                 writer.writerow(row)
 
 
@@ -93,7 +93,7 @@ def gen_data(source_dir, target_path, articles):
 
     # Generate dataframe of names to IDs
     names_file_path = os.path.join(source_dir, 'names.tsv')
-    names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name')
+    names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name', dtype={'id': object})
 
     # Append internal ids with the user data; set the index to 'id';
     # preserve old index (i.e. 1st column goes to 2nd column)
@@ -112,11 +112,16 @@ def gen_data(source_dir, target_path, articles):
     # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         filter_tsv(source_dir, target_path, ids, filename)
-        if filename == 'ids.tsv':
-            external_ids = pandas.read_csv(os.path.join(target_path, filename), sep='\t', index_col='id')
-            user_data_with_external_ids = user_data_with_internal_ids.join(external_ids)
-            user_data_with_external_ids.set_index('externalId', inplace=True)
-            user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
+
+    external_ids = pandas.read_csv(
+        os.path.join(target_path, 'ids.tsv'),
+        sep='\t',
+        dtype={'id': object, 'externalId': object}  # read ids as strings
+    )
+    external_ids.set_index('id', inplace=True)
+    user_data_with_external_ids = user_data_with_internal_ids.join(external_ids)
+    user_data_with_external_ids.set_index('externalId', inplace=True)
+    user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
 
     data_columns = list(user_data)
 
