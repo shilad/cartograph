@@ -294,14 +294,11 @@ function createDataInfo(dataObject, fileName){
     
     for(var i=1; i<dataObject.types.length; i++) {
         dataTypes += "<td>";
-        if (dataObject.types[i].diverging){
-            dataTypes += "diverging: " + dataObject.types[i].diverging.toString() + "<br/>";
-        }
-        if (dataObject.types[i].sequential){
-            dataTypes += "sequential: " + dataObject.types[i].sequential.toString() + "<br/>";
+        if (dataObject.types[i].diverging && dataObject.types[i].sequential){
+            dataTypes += "Diverging or Sequential " + "<br/>";
         }
         if (dataObject.types[i].qualitative){
-            dataTypes += "qualitative: " + dataObject.types[i].qualitative.toString() + "<br/>";
+            dataTypes += "Qualitative" + "<br/>";
         }
         dataTypes += "</td>";
     }
@@ -337,7 +334,6 @@ function appendVisualizationRequirements(count) {
         '<label>Description:</label>',
         `<textarea name="description" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
         '</p>',
-        '<hr>',
         `<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this, ${count}); createNumClasses(this, document.getElementById(\'types${count}\'), ${count}); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'), ${count});" > </select> </p>`,
         '<p></p>',
         `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this, ${count}); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'), ${count});"> </select></p>`,
