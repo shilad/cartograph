@@ -21,8 +21,6 @@ class AllMetrics(luigi.WrapperTask):
         config = Config.get()
         result = []
         metricDir = config.get('DEFAULT', 'metricDir')
-        if not os.path.exists(metricDir):  # FIXME: Make sure this is the correct way to make sure MetricDir is created.
-            os.makedirs(metricDir)
         for name in config.get('Metrics', 'active').split():
             metricConf = json.loads(config.get('Metrics', name))
             path = metricConf['path']

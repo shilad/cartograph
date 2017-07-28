@@ -215,7 +215,7 @@ img {
   font-family: GeosansLight;
   font-size: 32px;
   margin-right: 32px;
-  text-transform: uppercase;
+  /*text-transform: uppercase;*/
   top: 50%;
   left: 50%;
   -ms-transform: translate(-50%, -50%);

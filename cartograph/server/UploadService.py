@@ -60,6 +60,7 @@ class UploadService:
         # Scan the TSV for field names.
         # TODO: This should handle lots of things:
         # - Different encodings
+        # - Ignore duplicate titles
         # - Files that are too long
         # - Files that are irregularly formatted (be gentle with errors)
         try:
@@ -68,24 +69,11 @@ class UploadService:
             cols = df.columns.tolist()
             assert (len(cols) == ncols)
 
-            # # Detect types of data
-            # types = []
-            # for dt in list(df.dtypes):
-            #     if dt in (np.str, np.object):
-            #         types.append('string')
-            #     elif dt == np.int64:
-            #         types.append('int')
-            #     elif dt == np.float64:
-            #         types.append('float')
-            #     else:
-            #         raise ValueError('unknown type: ' + str(dt))
+            types, numClasses = detectDataTypes(df)
 
-            # Explicitly set first column
+            # Setup the first column
             cols[0] = 'title'
-            # types[0] = 'string'
-            types = ['string']
-            types.extend(self.detectDataTypes(df))  # Not set types for first column
-            numClasses = self.qualitativeNumClasses(df)  # Number of data classes for qualitative columns
+            types = ['string'] + types
 
             resp.body = json.dumps({
                 'success': True,
@@ -111,37 +99,36 @@ class UploadService:
                 'stacktrace': repr(e2),
             })
 
-    def detectDataTypes(self, df):
-        # TODO: Make valid columns available, hide invalid columns
-        types = []
-        for col in df.columns[1:]:
-            dt = df[col].dtype
-            type = {'sequential': False, 'diverging': False, 'qualitative': False}
-            if dt in (np.str, np.object):
-                numUnique = len(df[col].unique())
-                if numUnique <= 9:
-                    type['qualitative'] = True
-                    types.append(type)
-                else:
-                    # types.append(None)
-                    raise ValueError('too many classes for qualitative data: ' + str(numUnique))
-            elif dt in (np.int64, np.float64):
-                type['sequential'] = True
-                type['diverging'] = True
-                if len(df[col].unique()) <= 12:
-                    type['qualitative'] = True
+def detectDataTypes(df):
+    # TODO: Make valid columns available, hide invalid columns
+    types = []
+    numClasses = []
+    for col in df.columns[1:]:
+        dt = df[col].dtype
+        # Todo: Move numclasses into this dictionary
+        type = {'sequential': False, 'diverging': False, 'qualitative': False, numClasses: -1}
+        if dt in (np.str, np.object):
+            numUnique = len(df[col].unique())
+            if numUnique <= 12:
+                type['qualitative'] = True
                 types.append(type)
+                type[numClasses] = numUnique
+                numClasses.append(numUnique)
             else:
-                raise ValueError('unknown type: ' + str(dt))
+                raise ValueError('too many classes for qualitative data: ' + str(numUnique))
+        elif dt in (np.int64, np.float64):
+            type['sequential'] = True
+            type['diverging'] = True
+            numUnique = len(df[col].unique())
+            if numUnique <= 12:
+                type['qualitative'] = True
+                type[numClasses] = numUnique
+                numClasses.append(numUnique)
+            types.append(type)
+        else:
+            raise ValueError('unknown type: ' + str(dt))
 
-        return types
-
-    def qualitativeNumClasses(self, df):
-        # Find number of data classes for qualitative columns. Return None for sequential and diverging ones.
-        numClasses = []
-        for col in df.columns[1:]:
-            numClasses.append(len(df[col].unique()) if len(df[col].unique()) <= 12 else None)
-        return numClasses
+    return types, numClasses
 
 
 def check_map_name(map_name, map_services):
