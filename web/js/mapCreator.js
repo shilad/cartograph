@@ -65,7 +65,8 @@ $(document).ready(function () {
                     if (! CG.mapBuilt) {
                         ajax_buildMap();
                         CG.mapBuilt = true;
-                        CG.metricFinished = true;
+                    } else {
+                        submit_forms();
                     }
                     // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
                 });
@@ -108,7 +109,7 @@ function ajax_buildMap() {
         }
     })
     $("h3").append("<p>Please wait while we create your map...</p>");
-    createMapDescription(vizName, vizDescription);
+    // createMapDescription(vizName, vizDescription);
 
 }
 
@@ -116,8 +117,7 @@ function submit_forms(){
     $('form').each(function () {
         if ($(this).attr("id") !== "uploadForm") {
             $(this).validate({errorElement: 'metricErrors',});  // Validate the form
-            if ($(this).valid() && !$(this).hasClass('submitted') && CG.metricFinished) {
-                CG.metricFinished = false;
+            if ($(this).valid() && !$(this).hasClass('submitted')) {
                 $(this).submit();
                 // Add a class 'submitted' to this form and disable all its elements.
                 $(this).addClass('submitted');
@@ -154,9 +154,9 @@ function ajax_metrics(i) {
         dataType: 'json',
         cache: false,
         processData: true,
+        async: false,
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function (textStatus, jqXHR) {
-            CG.metricFinished = true;
             console.log("Successfully added metric to the map!");
         },
         error: function (jqXHR, textStatus, errorThrown) {
