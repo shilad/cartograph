@@ -158,67 +158,10 @@ CG.init = function(layer) {
         $("#search-field").val('');
         return false;
     };
-    allLayers = [];
-    $('#test_button').on('click', function () {
-        console.log("clicked on test button");
-
-
-        getPathsInViewPort()
-
-
-    });
-
-
-    getPathsInViewPort = function(){
-        var viewport = CG.map.getBounds();
-
-        var x_min = viewport._southWest.lng;
-        var x_max = viewport._northEast.lng;
-        var y_min = viewport._southWest.lat;
-        var y_max = viewport._northEast.lat;
-
-        var n_paths = 100;
-        var url = "roads?xmin=" + x_min + "&xmax=" + x_max + "&ymin=" + y_min + "&ymax=" + y_max + "&num_paths=" + n_paths;
 
 
 
-        $.get(url, function (response) {
 
-            console.log(response);
-            console.log(response['paths']);
-
-            allLayers.push(drawCurves(response))
-
-
-        });
-    }
-
-
-    $('#test_buttonRemove').on('click', function () {
-       removePathsInViewPort()
-    });
-    removePathsInViewPort = function(){
-        for(var j = 0; j < allLayers.length; j ++){
-            CG.map.removeLayer(allLayers[j]);
-        }
-
-        allLayers = [];
-    }
-
-    lockRoads = false
-    $('#test_lockRoads').on('click', function () {
-        if(lockRoads){
-            lockRoads = false
-            removePathsInViewPort()
-            getPathsInViewPort()
-
-        }else{
-            lockRoads = true
-        }
-    })
-    isRoadLocked = function(){
-        return lockRoads
-    }
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
     $('#search-field').autocomplete({
