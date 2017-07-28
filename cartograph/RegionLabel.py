@@ -16,7 +16,7 @@ class RegionLabel(MTimeMixin, luigi.Task):
 
     def output(self):
         config = Config.get()
-        return TimestampedLocalTarget(config.get("ExternalFiles", "region_names"))
+        return TimestampedLocalTarget(config.get("GeneratedFiles", "region_names"))
 
     def requires(self):
         return (EnsureDirectoriesExist(),
@@ -61,7 +61,6 @@ class RegionLabel(MTimeMixin, luigi.Task):
             totalLabel = {}
             for id in idCluster:
                 if id in score_df.index:
-                    logging.info("Finding label for cluster {}: article {}".format(i, id))
                     # Sum up tfidf scores for all articles in the  cluster, select labels with highest score
                     for label in score_df.loc[id]['score']:
                         if label[0] in totalLabel.keys():
@@ -80,5 +79,5 @@ class RegionLabel(MTimeMixin, luigi.Task):
         label_df = pd.DataFrame({'cluster_id': cluster, 'label': candidateLabel})
         label_df.set_index('cluster_id', inplace=True)
         label_df.sort_index(inplace=True)
-        label_df.to_csv(config.get("ExternalFiles", "region_names"), sep='\t', index_label='cluster_id',
+        label_df.to_csv(config.get("GeneratedFiles", "region_names"), sep='\t', index_label='cluster_id',
                         columns=['label'])

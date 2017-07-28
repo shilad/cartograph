@@ -60,12 +60,12 @@ class LabelNames(luigi.Task):
     '''
     def output(self):
         config = Config.get()
-        return (TimestampedLocalTarget(config.get("ExternalFiles", "region_names")))
+        return (TimestampedLocalTarget(config.get("GeneratedFiles", "region_names")))
 
     def run(self):
         config = Config.get()
 
-        with open(config.get("ExternalFiles", "region_names"), 'w') as f:
+        with open(config.get("GeneratedFiles", "region_names"), 'w') as f:
             f.write('cluster_id\tlabel\n')
             numClusters = config.getint('PreprocessingConstants', 'num_clusters')
             for i in range(numClusters + 1): # +1 is for water cluster

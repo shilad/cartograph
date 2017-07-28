@@ -16,7 +16,6 @@ w2v: %(externalDir)s/w2v.bin
 links: %(externalDir)s/links.tsv
 names_with_id: %(externalDir)s/names.tsv
 popularity: %(externalDir)s/popularity.tsv
-region_names: %(externalDir)s/region_names.tsv
 article_embedding: %(externalDir)s/tsne_cache.tsv
 categories: %(externalDir)s/categories.tsv
 sample_ids:
@@ -37,6 +36,7 @@ edges_with_coords: %(generatedDir)s/edges_with_coords.tsv
 vecs_with_labels: %(generatedDir)s/vectors_labels.tsv
 vecs_with_labels_clusters: %(generatedDir)s/vectors_labels_clusters.tsv
 categories: %(generatedDir)s/categories.tsv
+region_names: %(generatedDir)s/region_names.tsv
 
 [PreprocessingConstants]
 sample_borders: True

@@ -71,7 +71,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                     region                      # points on exterior
                 ))
 
-        regionFile = config.get("ExternalFiles", "region_names")
+        regionFile = config.get("GeneratedFiles", "region_names")
         BorderGeoJSONWriter(regionInfo, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
 
         # Mapping between regions and cluster ids

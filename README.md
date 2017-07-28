@@ -78,7 +78,6 @@ externalDir: ./data/labdata/%(dataset)s
 vecs_with_id: %(externalDir)s/vecs.tsv
 names_with_id: %(externalDir)s/names.tsv
 popularity: %(externalDir)s/popularity.tsv
-region_names: %(externalDir)s/region_names.tsv
 article_embedding = %(externalDir)s/tsne_cache.tsv
 ```
 ### Directory setup and config
