@@ -88,7 +88,6 @@ class VerticeQuadTree():
 
         # search children
         if len(quad.children) > 0:
-        #    print('here ')
             if rect[0] <= quad.center[0]:
                 if rect[1] <= quad.center[1]:
                     self._getQuadChildrenInViewPort(xmin, ymin, xmax, ymax, quad.children[0], results=results)
@@ -105,7 +104,7 @@ class VerticeQuadTree():
         return results
 
     def getKMostProminentEdgesInViewPort(self, xmin, ymin, xmax, ymax, k=100):
-        print xmin, ymin, xmax, ymax
+       # print xmin, ymin, xmax, ymax
         if k > self.maxNumberOfEdges:
             k = self.maxNumberOfEdges
         quadChildren = self._getQuadChildrenInViewPort(xmin, ymin, xmax, ymax, self.quadTreeVertices)
@@ -113,19 +112,33 @@ class VerticeQuadTree():
         edges = PrioritySet(max_size=k)
       #  print 'len quad children', len(quadChildren)
         for quad in quadChildren:
-
+            if self.isViewPortSmallerThanLeaf(quad, xmin, ymin, xmax, ymax):
+                return bruteForceEdges(xmin, ymin, xmax, ymax, self.originalVertices, k, self.edgesMMap )
             #print quad.mostImportantEdgeSet
        #     print'n of edges in quad', len(quad.mostImportantEdgeSet.priorityValueResults)
             for edgeInfo in quad.mostImportantEdgeSet.priorityValueResults:
                 if(edgeInfo[0] >= edges.maxImportance): break
-                if(edgeInfo[1][0] == 93): print edgeInfo
+
                 if not self.sourceInInViewPort(edgeInfo[1][0], xmin, ymin, xmax, ymax): continue
                 edges.add(edgeInfo[0], edgeInfo[1])
         return edges
     def isViewPortSmallerThanLeaf(self, quad, xmin, ymin, xmax, ymax):
-        rect = (xmin, ymin, xmax, ymax)
-       #make this methdo work
 
+        quadXmin = quad.center[0] - quad.height / 2
+        quadXmax = quad.center[0] + quad.height / 2
+        quadYmin = quad.center[1] - quad.width / 2
+        quadYmax = quad.center[1] + quad.width / 2
+
+        if xmin > quadXmin and xmax < quadXmax and ymin > quadYmin and ymax < quadYmax:
+            #print "within"
+            #print quadXmin, quadXmax, quadYmin, quadYmax
+            #print xmin, xmax, ymin, ymax
+
+            return True
+       #make this methdo woxmin, ymin, xmax, ymaxrk
+        else:
+
+            return False
 
     def sourceInInViewPort(self, sourceId, xmin, ymin, xmax, ymax ):
         sourceCoor = self.originalVertices[sourceId]
@@ -144,27 +157,29 @@ class VerticeQuadTree():
                 srcId = node.item
                 srcEdges = self.edgesMMap.get_row_as_dict(pointID=srcId)
                 for dest in srcEdges:
-                    if(srcId == 93): print 'here', srcEdges[dest], (srcId, dest)
+                    #if(srcId == 93): print 'here', srcEdges[dest], (srcId, dest)
                     quad.mostImportantEdgeSet.add(srcEdges[dest], (srcId, dest))
 
-            print quad.mostImportantEdgeSet
+           # print quad.mostImportantEdgeSet
         else:
             for child in quad.children:
                 self._getEdgesForQuad(child)
 
-def createRandomDict(maxNumber):
+def createRandomDict(maxNumber, weights):
     dictSize = random.randint(0, maxNumber)
     outPutDict = {}
+
     for i in range(dictSize):
         index = random.randint(0, maxNumber)
-        outPutDict[index] = random.randint(0, 80)
+        outPutDict[index] = i #random.uniform(0, maxNumber)
     return outPutDict
 
 def createRandomSequence():
     sequence = []
     coor = {}
-    for i in range(100):
-        sequence.append((i, createRandomDict(100)))
+    size = 1000
+    for i in range(size):
+        sequence.append((i, createRandomDict(size)))
         x = random.uniform(-10.0, 10.0)
         y = random.uniform(-10.0, 10.0)
         coor[i] = (x, y)
@@ -181,10 +196,10 @@ def createRandomSequence():
 
 
 def test_VerticesQuadTree():
-    #clearTestFiles('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
-    #sequence, coor = createRandomSequence()
-    #writeDictToFile('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv', coor)
-    #mmap.writeSparseMatrix(sequence, '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
+    clearTestFiles('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
+    sequence, coor = createRandomSequence()
+    writeDictToFile('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv', coor)
+    mmap.writeSparseMatrix(sequence, '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
     vqt = VerticeQuadTree('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv', '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/' )
 
     for i in range(10):
@@ -197,13 +212,33 @@ def test_VerticesQuadTree():
         resultsTree = vqt.getKMostProminentEdgesInViewPort(x_min, y_min, x_max, y_max, k=100)
         resultsBruteForce = bruteForceEdges(x_min, y_min, x_max, y_max, vqt.originalVertices, 100, vqt.edgesMMap)
 
-      #  assert len(resultsTree.priorityValueResults) == len(resultsBruteForce)
-        if len(resultsTree.priorityValueResults) != len(resultsBruteForce):
-            print 'tree      ', resultsTree
-            print 'bruteForce', resultsBruteForce
-           # print x_min, x_max, y_min, y_max
-            print len(resultsTree.priorityValueResults), len(resultsBruteForce)
+        #assert len(resultsTree.priorityValueResults) == len(resultsBruteForce)
+        if len(resultsTree) != len(resultsBruteForce):
+             print 'tree      ', resultsTree
+             print 'bruteForce', resultsBruteForce
+             print x_min, x_max, y_min, y_max
+             print len(resultsTree.priorityValueResults), len(resultsBruteForce)
 
+        else:
+            countInBothFirst = 0
+            countNotInTree = 0
+            countNotInBrute = 0
+            countInBothSecond = 0
+            for result in resultsTree.priorityValueResults:
+                if result not in resultsBruteForce.priorityValueResults:
+                   # print 'result not in bruteForce', result
+                    #print resultsTree
+                    #print resultsBruteForce
+                    countNotInBrute +=1
+                else: countInBothFirst += 1
+            for result in resultsBruteForce.priorityValueResults:
+                if result not in resultsTree.priorityValueResults:
+                    #print 'result not in tree', result
+                    #print resultsTree
+                    #print resultsBruteForce
+                    countNotInTree += 1
+                else: countInBothSecond +=1
+            print countInBothFirst, countNotInTree, countNotInBrute, countInBothSecond
 
 def clearTestFiles(pathToDir):
     dir = pathToDir
@@ -212,15 +247,12 @@ def clearTestFiles(pathToDir):
         if item.endswith(".pickle") or item.endswith(".mmap") or item.endswith(".tsv") or item.endswith(".txt"):
             os.remove(os.path.join(dir, item))
 
-
-
 def writeDictToFile(path, dictionary):
     with open(path, 'wb') as pathToFile:
         writ = csv.writer(pathToFile, delimiter = '\t')
         for key in dictionary:
             row = [key, dictionary[key][0], dictionary[key][1]]
             writ.writerow(row)
-
 
 def bruteForceEdges(xmin, ymin, xmax, ymax, originalVertices, num_paths, sparsematrix):
     pointsinPort = []
@@ -238,7 +270,7 @@ def bruteForceEdges(xmin, ymin, xmax, ymax, originalVertices, num_paths, sparsem
 
             secondVal = destDict[dest]
             topPaths.add(secondVal, (src, dest))
-    return topPaths.priorityValueResults
+    return topPaths
 
 
 test_VerticesQuadTree()
@@ -268,4 +300,5 @@ def benchmark():
     print 'time', np.mean(times)
 
 
+"Try to make it all weights unique"
 #benchmark()

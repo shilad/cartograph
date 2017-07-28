@@ -35,7 +35,8 @@ class PrioritySet(object):
     def __str__(self):
         return str(self.priorityValueResults)
 
-
+    def __len__(self):
+        return len(self.priorityValueResults)
 
 
 class RoadGetterService:
