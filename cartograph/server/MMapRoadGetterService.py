@@ -17,7 +17,7 @@ class PrioritySet(object):
 
 
     def add(self,  pri, d):
-        if pri < self.maxImportance:
+        if pri <= self.maxImportance:
             index = bisect.bisect_right(self.keys,pri)
             if index == self.max_size: return
             self.priorityValueResults.insert(index,(pri, d))
