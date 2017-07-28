@@ -38,11 +38,12 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         config = Config.get()
         return (
             RegionCode(),
-            Coordinates.CreateSampleCoordinates(),
+            AugmentLabel(),
+            # FIXME: Circular dependency
+            # Coordinates.CreateSampleCoordinates(),
             PreReqs.SampleCreator(config.get("GeneratedFiles",
                                              "vecs_with_labels")),
             PreReqs.EnsureDirectoriesExist(),
-            AugmentLabel(),
         )
 
     def run(self):
@@ -108,6 +109,23 @@ def test_MakeSampleRegions_task():
         stat.append(preserved)
     assert np.mean(stat) >= 4
 
+class CreateSampleRegionIndex(MTimeMixin, luigi.Task):
+    def __init__(self, *args, **kwargs):
+        config = Config.get()
+        super(CreateSampleRegionIndex, self).__init__(*args, **kwargs)
+        self.vecPath = config.getSample("GeneratedFiles", "vecs_with_labels")
+        self.knn = FastKnn.FastKnn(self.vecPath)
+
+    def requires(self):
+        config = Config.get()
+        return WikiBrainNumbering(), PreReqs.SampleCreator(config.get("GeneratedFiles", "vecs_with_labels"))
+
+    def output(self):
+        return TimestampedLocalTarget(self.knn.pathAnnoy), TimestampedLocalTarget(self.knn.pathIds)
+
+    def run(self):
+        self.knn.rebuild()
+
 
 class MakeRegions(MTimeMixin, luigi.Task):
     def output(self):
@@ -122,7 +140,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
                 MakeSampleRegions(),
                 WikiBrainNumbering(),
                 PreReqs.EnsureDirectoriesExist(),
-                Coordinates.CreateSampleAnnoyIndex(),
+                CreateSampleRegionIndex(),
                 AugmentLabel(),
             )
         else:

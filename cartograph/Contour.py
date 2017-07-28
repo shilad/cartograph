@@ -154,7 +154,7 @@ def _test_centrality(config, clusterIdDict, centroidContour):
     else:
         coorPath = config.get("GeneratedFiles", 'article_coordinates')
         clusterPath = config.get("GeneratedFiles", "clusters_with_id")
-        vectorsPath = config.get("ExternalFiles", "vecs_with_labels_clusters")
+        vectorsPath = config.get("GeneratedFiles", "vecs_with_labels_clusters")
 
     vecs = Utils.read_vectors(vectorsPath)
     clusters = pd.read_table(clusterPath, index_col='index')

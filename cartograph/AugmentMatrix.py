@@ -1,6 +1,6 @@
 import luigi
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
-from PreReqs import WikiBrainNumbering
+from PreReqs import WikiBrainNumbering, CreateCategories
 import Config
 
 import json
@@ -20,13 +20,14 @@ class AugmentLabel(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(config.get("GeneratedFiles", "vecs_with_labels"))
 
     def requires(self):
-        return WikiBrainNumbering()
+        return WikiBrainNumbering(), CreateCategories()
 
-    def run(self, label_dims=20, label_weight=0.2):
+    def run(self, label_dims=20):
         config = Config.get()
+        label_weight = config.getfloat("PreprocessingConstants", "label_weight")
 
         # Read in categories
-        cat_df = pd.read_table(config.get("ExternalFiles", "categories"), index_col='id')
+        cat_df = pd.read_table(config.get("GeneratedFiles", "categories"), index_col='id')
         vecs_df = pd.read_table(config.get("ExternalFiles", "vecs_with_id"), index_col=0, skiprows=1, header=None)
 
         # Find dimension and one-hot encoding of sparse matrix
@@ -70,13 +71,14 @@ class AugmentCluster(MTimeMixin, luigi.Task):
 
     def output(self):
         config = Config.get()
-        return TimestampedLocalTarget(config.get("ExternalFiles", "vecs_with_labels_clusters"))
+        return TimestampedLocalTarget(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
 
     def requires(self):
         from Regions import MakeRegions
         return AugmentLabel(), MakeRegions()
 
-    def run(self, clust_weight=0.25):
+    def run(self):
+        clust_weight = Config.get().getfloat("PreprocessingConstants", "clust_weight")
         config = Config.get()
         cluster_df = pd.read_table(config.get("GeneratedFiles", "clusters_with_id"), index_col='index')
         vecs_with_labels = pd.read_table(config.get("GeneratedFiles", "vecs_with_labels"), index_col=0, skiprows=1, header=None)
@@ -85,5 +87,4 @@ class AugmentCluster(MTimeMixin, luigi.Task):
         # One-hot encode clusters and write out merged result
         dummy_df = pd.get_dummies(cluster_df, columns=['cluster'], prefix='c') * clust_weight
         merged_df = vecs_with_labels.merge(dummy_df, how='left', left_index=True, right_index=True)
-
         merged_df.to_csv(config.get("GeneratedFiles", "vecs_with_labels_clusters"), sep='\t', index_label='id')

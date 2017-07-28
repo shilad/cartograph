@@ -2,15 +2,16 @@ from collections import defaultdict
 import pandas as pd
 import ast
 import luigi
-from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
-from PreReqs import WikiBrainNumbering, EnsureDirectoriesExist
+from LuigiUtils import MTimeMixin, TimestampedLocalTarget
+from PreReqs import EnsureDirectoriesExist
 from AugmentMatrix import AugmentCluster
 from cartograph import Config
+import logging
 
 
 class RegionLabel(MTimeMixin, luigi.Task):
     '''
-    Label the clusters
+    Label the clusters with TF-IDF method
     '''
 
     def output(self):
@@ -24,7 +25,7 @@ class RegionLabel(MTimeMixin, luigi.Task):
     def run(self):
         # Calculate TF-IDF scores
         config = Config.get()
-        category_df = pd.read_table(config.get("ExternalFiles", "categories"), index_col='id')
+        category_df = pd.read_table(config.get("GeneratedFiles", "categories"), index_col='id')
         cluster_df = pd.read_table(config.get("GeneratedFiles", "clusters_with_id"), index_col='index')
 
         docScores = []  # Nested list of tf-idf scores per document
@@ -35,7 +36,7 @@ class RegionLabel(MTimeMixin, luigi.Task):
                 catCounts[key] += 1
 
         for i, (_, row) in enumerate(category_df.iterrows()):
-            # if i % 1000 == 0: print 'Calculated TF-IDF for {}/{}'.format(i, len(category_df))
+            if i % 10000 == 0: logging.info('Calculated TF-IDF for {}/{}'.format(i, len(category_df)))
             catDict = ast.literal_eval(row['category'])
             for key, tf in catDict.items():
                 df = catCounts[key]
@@ -52,11 +53,15 @@ class RegionLabel(MTimeMixin, luigi.Task):
         candidateLabel = []  # Nested array for best labels per cluster
         cluster = []
         for i in cluster_df['cluster'].unique():
+            logging.info("Finding label for cluster {}".format(i))
             cluster.append(i)
             idCluster = cluster_df.loc[cluster_df['cluster'] == i].index  # Get all id of nodes in a cluster
+            bestScore = 0
+            bestLabel = None
             totalLabel = {}
             for id in idCluster:
                 if id in score_df.index:
+                    logging.info("Finding label for cluster {}: article {}".format(i, id))
                     # Sum up tfidf scores for all articles in the  cluster, select labels with highest score
                     for label in score_df.loc[id]['score']:
                         if label[0] in totalLabel.keys():
@@ -65,8 +70,12 @@ class RegionLabel(MTimeMixin, luigi.Task):
                         else:
                             totalLabel[label[0]] = [label[1]]
                             totalLabel[label[0]].append(1)
-            totalLabel = sorted(totalLabel.items(), key=lambda x: x[1][1] * x[1][0], reverse=True)
-            candidateLabel.append(totalLabel[0][0])  # Choose the label with the highest tf-idf score
+                        if bestScore < totalLabel[label[0]][0] * totalLabel[label[0]][1]:
+                            bestScore = totalLabel[label[0]][0] * totalLabel[label[0]][1]
+                            bestLabel = label[0]
+
+            # totalLabel = sorted(totalLabel.items(), key=lambda x: x[1][1] * x[1][0], reverse=True)
+            candidateLabel.append(bestLabel)  # Choose the label with the highest tf-idf score
 
         label_df = pd.DataFrame({'cluster_id': cluster, 'label': candidateLabel})
         label_df.set_index('cluster_id', inplace=True)
