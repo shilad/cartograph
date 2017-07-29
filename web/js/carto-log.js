@@ -41,7 +41,10 @@ CG.log = function(params) {
 
 };
 
+CG.lastLoc = {lat:0, lng:0}; //last location of the map shown to user
+CG.lastZoom = 0; //last zoom level of the map shown to user
 CG.logMany = function(messages) {
+
     var map = CG.map;
     var center = map.getCenter(),
         zoom = map.getZoom(),
@@ -56,14 +59,20 @@ CG.logMany = function(messages) {
     params.url = location.href;
     params.messages = messages;
 
+
     if (CG.logToConsole) {
         console.log(params);
     } else {
+       //if user moved the map far enough, or zoomed in or out far enough it will send a call to the server to recalculate paths and redraw them to the screen
+
+
         $.ajax({
           type: "POST",
           url: "../log",
           data: JSON.stringify(params),
-          success: function() {},
+          success: function() {
+
+          },
           dataType: 'application/json'
         });
     }

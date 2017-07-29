@@ -12,10 +12,8 @@ CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
             //Removes any dots or curves from the map
             CG.map.removeLayer(storeddotslayer);
             CG.map.removeLayer(storedcurveslayer);
+            var storeddots = [];
 
-            //Initializes arrays that will store the dots and curves to be empty
-            storeddots = [];
-            storedcurves = [];
 
             //Sets the marker to be a small black dot
             var smallMarker = L.icon({
@@ -53,20 +51,42 @@ CG.showEdgesCityTooltip = function (mapX, mapY, properties) {
 function drawCurves(linkPairArray){
                 //Creates a json file from the link pair array. It stores the edges between the src and its dests
                 json = [];
-                for (var i=0; i<linkPairArray.length-2; i+=2){
 
+                var storedcurves = [];
+                if(linkPairArray['bothWays']){
+
+                        var bothWays = {}
+                        for(var i = 0; i < linkPairArray.bothWays.length; i++){
+                            bothWays[linkPairArray.bothWays[i]] = true
+                        }
+
+                        console.log('bothways')
+                        console.log(bothWays)
+                        linkPairArray = linkPairArray['paths']
+                }
+
+                for (var i=0; i<linkPairArray.length-1; i+=2) {
+                    var name = "";
                     var pointA = linkPairArray[i][2]; //source x,y
-                    var pointB = linkPairArray[i+1][2]; //dest x,y
+                    var pointB = linkPairArray[i + 1][2]; //dest x,y
+                    var name = linkPairArray[i][1] + " -> " + linkPairArray[i+1][1]; //source + dest name
+                    if(bothWays){
 
+                        if(linkPairArray[i][0]+',' + linkPairArray[i+1][0] in bothWays || linkPairArray[i+1][0]+',' + linkPairArray[i][0] in bothWays){
+                            name = linkPairArray[i][1] + " <-> " + linkPairArray[i+1][1]
+                        }
+
+                    }
                     json.push({
                     "id": linkPairArray[i][0] + " " + linkPairArray[i+1][0], //source + dest id
-                    "name": linkPairArray[i][1] + " -> " + linkPairArray[i+1][1], //source + dest name
+                    "name": name,
                     "data": {
                         "coords": [
                             pointA[0], pointA[1], pointB[0], pointB[1]
                                   ]
                             }
                     });
+
 
                 }
 
@@ -76,25 +96,18 @@ function drawCurves(linkPairArray){
                 bundle.buildNearestNeighborGraph();
                 bundle.MINGLE();
 
-                /*
-                The three variables below set up the style for the edges that will be rendered. It gives the edges a
-                random hue and changes opacity and weight depending on where the user's mouse is hovering.
-                */
 
-                var randHue = 'rgb(' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256))
-                            + ',' + (Math.floor(Math.random() * 256)) + ')';
-
-                var edgeHoverStyle =   {weight: 3,
+                var edgeHoverStyle =   {weight: 4,
                                 opacity: 0.95,
                                 smoothFactor: 1,
                                 attribution: 'edge'};
 
-                var edgeNeutralStyle = {color: randHue,
+                var edgeNeutralStyle = {
                                 weight: 1,
-                                opacity: 0.65,
+                                opacity: 0.3,
                                 smoothFactor: 1,
-                                attribution: 'edge'};
+                                attribution: 'edge',
+                                color:'#666'};
 
                 /*
                 The code below renders the graph. It first sets the variable edges to an array of arrays that
@@ -109,42 +122,63 @@ function drawCurves(linkPairArray){
 
                 bundle.graph.each(function(node) {
                     var edges = node.unbundleEdges(1);
+                    var pct = 1 || 0,
+                         i, l, j, n, e, pos, midpoint, c1, c2, start, end;
+
+
                     for (i = 0, l = edges.length; i < l; ++i) {
+
                         e = edges[i];
+                        //console.log(e)
                         start = e[0].unbundledPos;
                         var line = ['M', start];
+                        midpoint = e[(e.length - 1) / 2].unbundledPos;
                         if (e.length > 3) {
                             c1 = e[1].unbundledPos;
                             c2 = e[(e.length - 1) / 2 - 1].unbundledPos;
-                            end = [c2[0], c2[1]]
-
+                            end = $lerp(midpoint, c2, 1 - pct);
                             line.push('C', c1, c2, end);
                             c1 = e[(e.length - 1) / 2 + 1].unbundledPos;
                             c2 = e[e.length - 2].unbundledPos;
                             end = e[e.length - 1].unbundledPos;
 
-                            start = [c1[0], c1[1]]
-                            line.push('L', start);
+                            if (1 - pct) {
+                                //line to midpoint + pct of something
+                                start = $lerp(midpoint, c1, 1 - pct);
+                                line.push('L', start);
+                             }
 
                             line.push('C', c1, c2, end);
+                           // line.push('Z');# Y U NOT WORK??????
                             } else {
                                 end = e[e.length -1].unbundledPos;
                                 line.push('L', end);
+
                             }
                         var newCurve = L.curve(line, edgeNeutralStyle);
+                        newCurve.bindPopup(e[0]['node']['name']);
                         storedcurves.push(newCurve);
-                        newCurve.bindPopup(e[0].node.name);
 
-                        newCurve.on('mouseover', function(e){
-                        e.target.setStyle(edgeHoverStyle);
-                        newCurve.openPopup();
-                        });
-                        newCurve.on('mouseout', function(e){
-                        e.target.setStyle(edgeNeutralStyle);
-                        newCurve.closePopup();
-                        });
                     }
                 });
                 storedcurveslayer = L.layerGroup(storedcurves);
+                storedcurveslayer.eachLayer(function (layer) {
+
+                    layer.on('mouseover', function(e){
+                            e.target.setStyle(edgeHoverStyle);
+                            layer.openPopup(e.latlng);
+                    });
+                    layer.on('mouseout', function(e){
+                            e.target.setStyle(edgeNeutralStyle);
+                            layer.closePopup();
+                    });
+                })
                 CG.map.addLayer(storedcurveslayer);
+
+                return(storedcurveslayer)
+}
+
+function $lerp(a, b, delta) {
+    return [ a[0] * (1 - delta) + b[0] * delta,
+             a[1] * (1 - delta) + b[1] * delta ];
 }

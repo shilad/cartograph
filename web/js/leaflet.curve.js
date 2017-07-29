@@ -9,22 +9,22 @@
 L.Curve = L.Path.extend({
 	options: {
 	},
-
+	
 	initialize: function(path, options){
 		L.setOptions(this, options);
 		this._initialUpdate = true;
 		this._setPath(path);
 	},
-
+	
 	getPath: function(){
 		return this._coords;
 	},
-
+	
 	setPath: function(path){
 		this._setPath(path);
 		return this.redraw();
 	},
-
+	
 	getBounds: function() {
 		return this._bounds;
 	},
@@ -33,7 +33,7 @@ L.Curve = L.Path.extend({
 		this._coords = path;
 		this._bounds = this._computeBounds();
 	},
-
+	
 	_computeBounds: function(){
 		var bound = new L.LatLngBounds();
 		var lastPoint;
@@ -114,18 +114,18 @@ L.Curve = L.Path.extend({
 		}
 		return bound;
 	},
-
+	
 	//TODO: use a centroid algorithm instead
 	getCenter: function () {
 		return this._bounds.getCenter();
 	},
-
+	
 	_update: function(){
 		if (!this._map) { return; }
-
+		
 		this._updatePath();
 	},
-
+	
 	_updatePath: function() {
 		this._renderer._updatecurve(this);
 	},
@@ -134,7 +134,7 @@ L.Curve = L.Path.extend({
 		var coord, lastCoord, curCommand, curPoint;
 
 		this._points = [];
-
+		
 		for(var i = 0; i < this._coords.length; i++){
 			coord = this._coords[i];
 			if(typeof coord == 'string' || coord instanceof String){
@@ -159,7 +159,7 @@ L.Curve = L.Path.extend({
 				this._points.push(curPoint);
 			}
 		}
-	}
+	}	
 });
 
 L.curve = function (path, options){
@@ -173,11 +173,11 @@ L.SVG.include({
 		if(layer.options.animate){
 			var path = layer._path;
 			var length = path.getTotalLength();
-
+			
 			if(!layer.options.dashArray){
 				path.style.strokeDasharray = length + ' ' + length;
 			}
-
+			
 			if(layer._initialUpdate){
 				path.animate([
 						{strokeDashoffset: length},
@@ -187,7 +187,7 @@ L.SVG.include({
 			}
 		}
 	},
-
+	
  	_curvePointsToPath: function(points){
 		var point, curCommand, str = '';
 		for(var i = 0; i < points.length; i++){

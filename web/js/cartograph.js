@@ -4,6 +4,7 @@ var CG = CG || {};
 
 CG.init = function(layer) {
     CG.map = L.map('map');
+
     CG.addMapLogging(CG.map);
     CG.mapEl = $("#map");  // optimization
     CG.ttEl = $("#tooltip");
@@ -46,6 +47,7 @@ CG.init = function(layer) {
     CG.changeLayer = function (newLayer) {
         CG.activeLayer = newLayer;
         var changed = false;
+
         ["vector", "raster"].forEach(function (srcName) {
             var src = CG.layer.scene.config.sources[srcName];
             var i = src.url.indexOf('/' + srcName + '/');
@@ -56,12 +58,13 @@ CG.init = function(layer) {
             var j = i + srcName.length + 2;
             var k = src.url.indexOf('/', j + 1);
             var newUrl = src.url.substring(0, j) + newLayer + src.url.substring(k);
-            if (newUrl != src.url) {
+            if (nedwUrl != src.url) {
                 src.url = newUrl;
                 changed = true;
             }
         });
         if (changed) {
+
             CG.layer.scene.updateConfig();
         }
     };
@@ -89,6 +92,7 @@ CG.init = function(layer) {
 
     CG.layer.scene.subscribe({
         load: function (e) {
+
             if (L.Hash) {
                 CG.hash = new L.Hash(CG.map);
             }
@@ -156,6 +160,8 @@ CG.init = function(layer) {
     };
 
 
+
+
     $('#search-field').on('focus', CG.hideRelated);
     $('#related-label a').on('click', CG.hideRelated);
     $('#search-field').autocomplete({
@@ -185,6 +191,7 @@ CG.init = function(layer) {
             L.marker(info.loc).addTo(CG.map);
         }
     });
+
 
     CG.handleCityHover = function (mapX, mapY, properties) {
         var title = properties.name;
@@ -285,4 +292,5 @@ CG.init = function(layer) {
             }
         });
     }
+
 }

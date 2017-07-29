@@ -1,0 +1,16 @@
+[DEFAULT]
+baseDir: ./data/user/%(dataset)s
+externalDir: ./data/ext/user/%(dataset)s
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 9
+water_level: .05
+sample_borders: True
+tsne_perplexity: 3
+
+[Server]
+compress_png: false
+
+[Metrics]
+active:

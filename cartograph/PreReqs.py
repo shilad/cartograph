@@ -62,7 +62,7 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
 class EnsureDirectoriesExist(luigi.Task):
     def __init__(self, *args, **kwargs):
         super(EnsureDirectoriesExist, self).__init__(*args, **kwargs)
-        self.configKeys = ('baseDir', 'externalDir', 'generatedDir', 'geojsonDir', 'mapDir')
+        self.configKeys = ('baseDir', 'externalDir', 'generatedDir', 'geojsonDir', 'mapDir', 'metricDir')
 
     def output(self):
         config = Config.get()

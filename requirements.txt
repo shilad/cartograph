@@ -12,6 +12,7 @@ annoy
 marisa-trie
 colour
 falcon
+falcon_multipart
 cairocffi
 jinja2
 pygsp==0.4.0

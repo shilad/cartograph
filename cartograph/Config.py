@@ -55,9 +55,7 @@ def initTest():
     distutils.dir_util.copy_tree(src, dst)
     return initConf("./data/conf/test.txt")
 
-def initConf(confFile=None):
-    global CONFIG
-
+def createConf(confFile=None):
     conf = SafeConfigParser()
     with open("./data/conf/defaultconfig.txt", "r") as configFile:
         conf.readfp(configFile)
@@ -83,9 +81,14 @@ def initConf(confFile=None):
     conf.getSample = types.MethodType(confSample, conf)
     conf.sampleBorders  = types.MethodType(confSampleBorders, conf)
 
-    CONFIG = conf
-
     return conf
+
+def initConf(confFile=None):
+    global CONFIG
+
+    CONFIG = createConf(confFile)
+
+    return CONFIG
 
 def getFullColorWheel():
     return _coloringFeatures(30)
