@@ -4,7 +4,6 @@ externalDir: /Users/a558989/Projects/CartoExtractor/companies
 
 [ExternalFiles]
 vecs_with_id: %(externalDir)s/vectors2.tsv
-best_vecs_with_id: %(externalDir)s/vectors2.tsv
 article_embedding: %(generatedDir)s/tsne_cache.tsv
 
 [PreprocessingConstants]

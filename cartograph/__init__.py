@@ -19,6 +19,8 @@ from Regions import MakeRegions, MakeSampleRegions
 from Edges import LoadCoordinateEdges
 from ParentTasks import ParentTask
 from Utils import read_features
+from RegionLabel import RegionLabel
+from AugmentMatrix import AugmentLabel, AugmentCluster
 
 from metrics import getMetric
 

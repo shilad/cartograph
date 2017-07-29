@@ -7,7 +7,7 @@ matplotlib.use("Agg")
 import Config
 import Utils
 import luigi
-import PreReqs
+import RegionLabel
 import Coordinates
 import borders
 import matplotlib.path as mplPath
@@ -48,7 +48,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
             TimestampedLocalTarget(config.get("MapData", "borders_with_region_id")))
 
     def requires(self):
-        return (PreReqs.LabelNames(),
+        return (RegionLabel.RegionLabel(),
                 Coordinates.CreateFullCoordinates(),
                 Coordinates.CreateSampleCoordinates(),
                 BorderGeoJSONWriterCode(),
@@ -71,7 +71,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                     region                      # points on exterior
                 ))
 
-        regionFile = config.get("ExternalFiles", "region_names")
+        regionFile = config.get("GeneratedFiles", "region_names")
         BorderGeoJSONWriter(regionInfo, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
 
         # Mapping between regions and cluster ids

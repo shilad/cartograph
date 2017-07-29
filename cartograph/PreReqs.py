@@ -1,24 +1,71 @@
 import os
 
 import luigi
-
+import json
+import pandas as pd
 from cartograph import Config
 from cartograph.LuigiUtils import TimestampedLocalTarget, MTimeMixin, getSampleIds
 
+class CreateCategories(luigi.Task):
+    def output(self):
+        config = Config.get()
+        return (TimestampedLocalTarget(config.get("GeneratedFiles", "categories")))
+
+    def run(self):
+        config = Config.get()
+
+        # Filter ids
+        ids = pd.read_table(config.get("ExternalFiles", "external_ids"), index_col=0)
+        ext_to_internal = dict(zip(ids['externalId'], ids.index))
+
+        # Read in the category vector and clean it up
+        # Match internal and external IDs and replace them
+        colnames = ['externalId'] + list(range(300))
+        categories = pd.read_table(config.get("ExternalFiles", "categories"), names=colnames, error_bad_lines=False)
+        categories = categories[categories['externalId'].isin(ext_to_internal)]
+
+        # join all vector columns into same column and drop other columns
+        categories['category'] = categories.iloc[:, 1:].apply(tuple, axis=1)
+        categories.drop(categories.columns[1:-1], axis=1, inplace=True)
+
+        # Reindex on external id
+        categories['id'] = categories['externalId'].replace(ext_to_internal)
+        categories.set_index('id', inplace=True, drop=True)
+        categories.reindex()
+
+        # Change category vector to dictionary
+        cat_col = []
+        for id, row in categories.iterrows():
+            cats = {}
+            for s in row['category']:
+                if type(s) == str:
+                    (k, v) = str(s).split(':')
+                    cats[k] = int(v)
+            cat_col.append(json.dumps(cats))
+        categories['category'] = cat_col
+
+        # Write out category labels
+        categories.to_csv(config.get("GeneratedFiles", "categories"), sep='\t', index_label='id',
+                          columns=['externalId', 'category'])
+
+    def requires(self):
+        return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks
+
 
 class LabelNames(luigi.Task):
+    # FIXME: Replace this by RegionLabel.py tfidf
     '''
     Verify that cluster has been successfully labeled from Java
     and WikiBrain
     '''
     def output(self):
         config = Config.get()
-        return (TimestampedLocalTarget(config.get("ExternalFiles", "region_names")))
+        return (TimestampedLocalTarget(config.get("GeneratedFiles", "region_names")))
 
     def run(self):
         config = Config.get()
 
-        with open(config.get("ExternalFiles", "region_names"), 'w') as f:
+        with open(config.get("GeneratedFiles", "region_names"), 'w') as f:
             f.write('cluster_id\tlabel\n')
             numClusters = config.getint('PreprocessingConstants', 'num_clusters')
             for i in range(numClusters + 1): # +1 is for water cluster
@@ -83,10 +130,12 @@ class SampleCreator(MTimeMixin, luigi.Task):
     path = luigi.Parameter()
 
     def requires(self):
+        # TODO: Require augmented matrix
+        from AugmentMatrix import AugmentCluster, AugmentLabel
         return (
             WikiBrainNumbering(),
             ArticlePopularity(),
-            EnsureDirectoriesExist()
+            EnsureDirectoriesExist(),
         )
 
     def samplePath(self):

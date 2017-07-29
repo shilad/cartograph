@@ -12,14 +12,12 @@ externalDir: ./data/labdata/%(dataset)s
 [ExternalFiles]
 external_ids: %(externalDir)s/ids.tsv
 vecs_with_id: %(externalDir)s/vectors.tsv
-best_vecs_with_id: %(externalDir)s/vectors.tsv
 w2v: %(externalDir)s/w2v.bin
 links: %(externalDir)s/links.tsv
 names_with_id: %(externalDir)s/names.tsv
 popularity: %(externalDir)s/popularity.tsv
-region_names: %(externalDir)s/region_names.tsv
 article_embedding: %(externalDir)s/tsne_cache.tsv
-external_ids: %(externalDir)s/ids.tsv
+categories: %(externalDir)s/categories.tsv
 sample_ids:
 ; [ sample_ids is optional and it should be a tsv file contained sampled ids
 
@@ -35,6 +33,10 @@ percentile_popularity_with_id: %(generatedDir)s/percentile_popularity_with_id.ts
 zpop_with_id: %(generatedDir)s/zpop.tsv
 country_borders: %(generatedDir)s/country_borders.tsv
 edges_with_coords: %(generatedDir)s/edges_with_coords.tsv
+vecs_with_labels: %(generatedDir)s/vectors_labels.tsv
+vecs_with_labels_clusters: %(generatedDir)s/vectors_labels_clusters.tsv
+categories: %(generatedDir)s/categories.tsv
+region_names: %(generatedDir)s/region_names.tsv
 
 [PreprocessingConstants]
 sample_borders: True
@@ -48,6 +50,9 @@ num_contours: 7
 min_border_noise_length: .01
 contour_bins: 200
 tsne_perplexity: 30
+label_weight = 0.2
+clust_weight = 0.25
+
 
 [MapConstants]
 max_coordinate: 40

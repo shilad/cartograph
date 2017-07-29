@@ -1,0 +1,17 @@
+[DEFAULT]
+dataset: simple2
+externalDir: ./data/ext/simple
+
+[PreprocessingConstants]
+sample_size: 50000
+num_clusters: 9
+water_level: .05
+sample_borders: True
+label_weight: 0.2
+clust_weight: 0.01
+
+[Server]
+compress_png: false
+
+[Metrics]
+active:

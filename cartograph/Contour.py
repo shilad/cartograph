@@ -6,6 +6,7 @@ import pandas as pd
 import luigi
 import json
 import Coordinates
+import RegionLabel
 import Config
 import Utils
 import scipy.stats as sps
@@ -16,6 +17,7 @@ import matplotlib.path as mplPath
 import scipy.ndimage as spn
 from BorderGeoJSONWriter import CreateContinents
 from Regions import MakeRegions
+from AugmentMatrix import AugmentCluster
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from geojson import Feature, FeatureCollection
 from geojson import dumps, MultiPolygon
@@ -42,14 +44,15 @@ class CreateContours(MTimeMixin, luigi.Task):
         config = Config.get()
         if config.sampleBorders():
             return (Coordinates.CreateSampleCoordinates(),
-                    cartograph.PreReqs.SampleCreator(config.get("ExternalFiles",
-                                                                "vecs_with_id")),
+                    cartograph.PreReqs.SampleCreator(config.get("GeneratedFiles",
+                                                                "vecs_with_labels_clusters")),
                     ContourCode(),
                     CreateContinents(),
-                    MakeRegions())
+                    MakeRegions(),
+                    AugmentCluster())
         else:
             return (Coordinates.CreateFullCoordinates(),
-                    cartograph.PreReqs.LabelNames(),
+                    RegionLabel.RegionLabel(),
                     ContourCode(),
                     CreateContinents(),
                     MakeRegions())
@@ -66,13 +69,13 @@ class CreateContours(MTimeMixin, luigi.Task):
             coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
             clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
             denoisedPath = config.getSample("GeneratedFiles", "denoised_with_id")
-            vectorsPath = config.getSample("ExternalFiles", "vecs_with_id")
+            vectorsPath = config.getSample("GeneratedFiles", "vecs_with_labels_clusters")
 
         else:
             coorPath = config.get("GeneratedFiles", 'article_coordinates')
             clusterPath = config.get("GeneratedFiles", "clusters_with_id")
             denoisedPath = config.get("GeneratedFiles", "denoised_with_id")
-            vectorsPath = config.get("ExternalFiles", "vecs_with_id")
+            vectorsPath = config.get("GeneratedFiles", "vecs_with_labels_clusters")
 
         coor = pd.read_table(coorPath, index_col='index')
 
@@ -146,12 +149,12 @@ def _test_centrality(config, clusterIdDict, centroidContour):
     if config.sampleBorders():
         coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
         clusterPath = config.getSample("GeneratedFiles", "clusters_with_id")
-        vectorsPath = config.getSample("ExternalFiles", "vecs_with_id")
+        vectorsPath = config.getSample("GeneratedFiles", "vecs_with_labels_clusters")
 
     else:
         coorPath = config.get("GeneratedFiles", 'article_coordinates')
         clusterPath = config.get("GeneratedFiles", "clusters_with_id")
-        vectorsPath = config.get("ExternalFiles", "vecs_with_id")
+        vectorsPath = config.get("GeneratedFiles", "vecs_with_labels_clusters")
 
     vecs = Utils.read_vectors(vectorsPath)
     clusters = pd.read_table(clusterPath, index_col='index')
