@@ -11,14 +11,14 @@ class DivergingMetric:
         by the quantitative value in one of its columns.
 
         :param fields: list of 1 string of name of the column to be used as a qualitative variable e.g. ["name"]
-        :param scale: a list of strings, each of which is the name of a category
         :param colorCode: string of Python identifier of a color palette in module palettable.colorbrewer.qualitative
-        :param sqrt: FIXME: Does this do anything?
         :param neutralColor: str of form "#rgb" where r, g, & b are all hexadecimal digits 0-f for each color component
         """
         assert (len(fields) == 1)
         self.fields = fields
         self.field = fields[0]
+        if not hasattr(dv, colorCode):
+            raise ValueError, "Unknown color palette for diverging metric: " + repr(colorCode)
         color_palette = getattr(dv, colorCode)
         self.colors = color_palette.colors
         self.numColors = color_palette.number
@@ -32,10 +32,10 @@ class DivergingMetric:
         and the alpha (i.e. opacity) level. The rgb components are determined by a combination of the color palette for
         this instance of DivergingMetric (i.e. self.colors).
 
-        The specific color for a column value is determined by of palette.number even percentiles it falls in, between
-        self.minVal and self.maxVal. E.g. if a palette has 4 colors (palette.number = 5), self.minVal = 0.0, self.maxVal
-        = 5.0, points where 0 <= point[self.field] < 1.25 will return the 1st (0th) color in the palette, points where
-        1.25 <= point[self.field] < 2.5 will return the 2nd (1st) color in the palette, etc.
+        The specific color for a column value is determined by which of palette.number even subrange it falls in,
+        between self.minVal and self.maxVal. E.g. if a palette has 4 colors (palette.number = 5), self.minVal = 0.0,
+        self.maxVal = 5.0, points where 0 <= point[self.field] < 1.25 will return the 1st (0th) color in the palette,
+        points where 1.25 <= point[self.field] < 2.5 will return the 2nd (1st) color in the palette, etc.
 
         :param point: a point FIXME: what class should this be? requires: self.minVal <= point[field] <= self.maxVal
         :param zoom: the zoom level of the viewer as an int. Higher zoom means the viewer is further zoomed out
@@ -49,11 +49,12 @@ class DivergingMetric:
             return self.neutralColor + (alpha,)
 
         # Map point to a color in the palette
-        if point[self.field] == self.maxVal:
-            # Special case: assign points with the maximum value to the highest
+        if point[self.field] >= self.maxVal:
             palette_index = self.numColors-1
+        if point[self.field] <= self.minVal:
+            palette_index = 0
         else:
-            # Otherwise, assign colors based on which percentile the points value is in
+            # Otherwise, assign colors based on which subrange the points value is in
             palette_index = (float(point[self.field]) - self.minVal) * self.numColors / (self.maxVal - self.minVal)
 
         return color_from_code(self.colors[int(palette_index)]) + (alpha,)
@@ -63,13 +64,13 @@ class DivergingMetric:
         return (val, val, val)
 
 
-if __name__ == '__main__':
+def test_diverging():
     m = DivergingMetric(['foo'], 'PRGn_7', -10, 10)
     pos = [i for i in range(-10, 10)]
     points = []
     for i in pos:
         point = {'foo': i, 'bar': -i - 100, 'zpop': 1.0}
         points.append(point)
-        print i, m.getColor(point, 1.0)
+        # print i, m.getColor(point, 1.0)
         correctColor = m.colors[(point[m.field] - m.minVal) * m.numColors / (m.maxVal - m.minVal)]
-        assert all([x & y for (x, y) in zip(m.getColor(point, 1.0)[:3], correctColor[:3])])
+        assert all([x and y for (x, y) in zip(m.getColor(point, 1.0)[:3], correctColor[:3])])

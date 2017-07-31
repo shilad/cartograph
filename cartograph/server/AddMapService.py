@@ -9,6 +9,10 @@ import pandas
 from cartograph.Utils import build_map
 from cartograph.server.Map import Map
 
+
+# TODO: move all these server-level configs into the meta config file
+# This may be a good time to rethink the format of that file as well.
+# Should it also use SafeConfig
 BASE_LANGUAGE = 'simple'
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
@@ -74,6 +78,15 @@ def gen_config(map_name, column_headers):
     config_filename = '%s.txt' % pipes.quote(map_name)
     config_path = os.path.join(USER_CONF_DIR, config_filename)
     config.write(open(config_path, 'w'))
+
+    # TODO: adjust parameters for size of dataset:
+    # - numClusters
+    # - perplexity
+    # - water level
+    # - min_num_in_cluster
+    # - num_contours
+    # - contour_bins
+
     return config_path
 
 
@@ -95,10 +108,11 @@ def gen_data(source_dir, target_path, articles):
     # Generate dataframe of names to IDs
     names_file_path = os.path.join(source_dir, 'names.tsv')
     names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name', dtype={'id': object})
+    # TODO: COnsider strings in data type above
 
     # Append internal ids with the user data; set the index to 'id';
     # preserve old index (i.e. 1st column goes to 2nd column)
-    user_data_with_internal_ids = user_data.join(names_to_ids, how='inner')
+    user_data_with_internal_ids = user_data.merge(names_to_ids, left_index=True, right_index=True, how='inner')
     good_articles = set(user_data_with_internal_ids.index)
     user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
     user_data_with_internal_ids.set_index('id', inplace=True)
@@ -115,13 +129,16 @@ def gen_data(source_dir, target_path, articles):
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         filter_tsv(source_dir, target_path, ids, filename)
 
+    # Replace internal ids in metric with external ids
+    # TODO: Change metric to use internal ids (maybe)
     external_ids = pandas.read_csv(
         os.path.join(target_path, 'ids.tsv'),
         sep='\t',
         dtype={'id': object, 'externalId': object}  # read ids as strings
     )
     external_ids.set_index('id', inplace=True)
-    user_data_with_external_ids = user_data_with_internal_ids.join(external_ids, how='inner')
+    user_data_with_external_ids = user_data_with_internal_ids.merge(external_ids, left_index=True,
+                                                                    right_index=True, how='inner')
     user_data_with_external_ids.set_index('externalId', inplace=True)
     user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
 
@@ -155,19 +172,19 @@ class AddMapService:
 
         :param map_name: name of map that client wants built. Should be name of already-uploaded file.
         """
-        # Try to open map data file, raise 404 if not found in upload directory
-        map_file_name = map_name + '.tsv'
-        if map_file_name not in os.listdir(self.upload_dir):
-            raise falcon.HTTPNotFound
-        data_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
-
         # Make sure the server is in multi-map mode
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
-        target_path = os.path.join(BASE_PATH, 'user/', map_name)
+        # Try to open map data file, raise 404 if not found in upload directory
+        map_file_name = map_name + '.tsv'
+        if map_file_name not in os.listdir(self.upload_dir):
+            raise falcon.HTTPNotFound
+        input_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
+
+        output_dir = os.path.join(BASE_PATH, 'user/', map_name)
         # FIXME: Change 'simple' to a map name selected by the user
-        bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, BASE_LANGUAGE), target_path, data_file)
+        bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, BASE_LANGUAGE), output_dir, input_file)
         config_path = gen_config(map_name, data_columns)
 
         # Build from the new config file

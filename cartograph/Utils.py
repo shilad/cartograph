@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import sys
 
+from cartograph.Config import createConf
+
 
 def read_vectors(path):
     # FIXME: Needs documentation
@@ -178,8 +180,7 @@ def build_map(config_path):
     """
 
     # Extract the location of the base dir from the config file
-    config = SafeConfigParser()
-    config.read(config_path)
+    config = createConf(config_path)
     output_path = config.get('DEFAULT', 'externalDir')
 
     # Set up the environment variables
@@ -187,15 +188,18 @@ def build_map(config_path):
     working_dir = os.getcwd()
     exec_path = os.getenv('PATH')
 
+    env = {'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
+
     # Build it!
-    subprocess.call(
-        ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler'],
-        env={'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path},
+    retCode = subprocess.call(
+        ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler', '--retcode-task-failed', '1'],
+        env=env,
         stdout=open(os.path.join(output_path, 'build.log'), 'w'),
         stderr=open(os.path.join(output_path, 'build.err'), 'w')
     )
+    if retCode != 0:
+        raise OSError, 'Luigi build failed! Log available in ' + output_path + '/build.err'
 
 
 if __name__=='__main__':
-
-    sort_by_percentile(4)
+    build_map('./data/conf/user/asdfasf.txt')

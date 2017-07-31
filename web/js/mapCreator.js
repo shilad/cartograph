@@ -6,29 +6,13 @@ $(document).ready(function () {
     var bar = $('.bar');
     var percent = $('.percent');
     var status = $('#status');
-    $('#myForm').ajaxForm({
-        beforeSend: function () {
-            status.empty();
-            var percentVal = '0%';
-            bar.width(percentVal);
-            percent.html(percentVal);
-        },
-        uploadProgress: function (event, position, total, percentComplete) {
-            var percentVal = percentComplete + '%';
-            bar.width(percentVal);
-            percent.html(percentVal);
-        },
-        complete: function (xhr) {
-            status.html(xhr.responseText);
-        }
-    });
-
-    $('input[type="file"]').change(function (e) {
-
-    });
 
     // Process the upload form after hitting "Submit" button
     var uploadForm = $("#uploadForm");
+    $('input[type="file"]').change(function (e) {
+        uploadForm.submit();
+    });
+
     uploadForm.on('submit', function (event) {
 
         event.stopPropagation(); // Stop stuff happening
@@ -38,7 +22,6 @@ $(document).ready(function () {
         var data = new FormData();
         data.append('map_name', $("#map_name").val());
         var file = uploadForm.find('input[type=file]')[0].files[0];
-        console.log(file);
         var fileName = file.name;
         data.append('file', file);
 
@@ -51,7 +34,6 @@ $(document).ready(function () {
             processData: false, // Don't process the files, we're using FormData
             contentType: false, // Set content type to false as jQuery will tell the server its a query string request
             success: function (data, textStatus, jqXHR) {
-                console.log(data);
                 CG.uploadData = data;
                 CG.metricCounter = 0; // A counter of input metrics.
                 createDataInfo(data, fileName);
@@ -65,7 +47,8 @@ $(document).ready(function () {
                     if (! CG.mapBuilt) {
                         ajax_buildMap();
                         CG.mapBuilt = true;
-                        CG.metricFinished = true;
+                    } else {
+                        submit_forms();
                     }
                     // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
                 });
@@ -75,18 +58,7 @@ $(document).ready(function () {
                 $("#uploadFile").prop('disabled', true);
 
                 // Show metric options after hitting addVisualization button.
-                $(".btn-addVisualization").click(function () {
-                    CG.metricCounter += 1;
-                    CG.data = data;
-                    $("#newRequirements").show();
-                    appendVisualizationRequirements(CG.metricCounter);
-
-                    // Automatically fill in metric input fields.
-                    createSelectFields(data.columns, CG.metricCounter);
-                    createSelectTypes(document.getElementById("fields" + CG.metricCounter), CG.metricCounter);
-                    createNumClasses(document.getElementById("fields" + CG.metricCounter), document.getElementById("types" + CG.metricCounter), CG.metricCounter);
-                    createSelectPalettes(document.getElementById("types" + CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter), CG.metricCounter);
-                })
+                $(".btn-addVisualization").click(createNewMetricHtml);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
@@ -94,6 +66,19 @@ $(document).ready(function () {
         }, {}));
     });
 });
+
+function createNewMetricHtml() {
+    CG.metricCounter += 1;
+    $("#newRequirements").show();
+    appendVisualizationRequirements(CG.metricCounter);
+
+    // Automatically fill in metric input fields.
+    createSelectFields(CG.uploadData.columns, CG.metricCounter);
+    createSelectTypes(document.getElementById("fields" + CG.metricCounter), CG.metricCounter);
+    createNumClasses(document.getElementById("fields" + CG.metricCounter), document.getElementById("types" + CG.metricCounter), CG.metricCounter);
+    createSelectPalettes(document.getElementById("types" + CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter), CG.metricCounter);
+
+}
 
 function ajax_buildMap() {
     // Ajax call to build the map
@@ -108,7 +93,7 @@ function ajax_buildMap() {
         }
     })
     $("h3").append("<p>Please wait while we create your map...</p>");
-    createMapDescription(vizName, vizDescription);
+    // createMapDescription(vizName, vizDescription);
 
 }
 
@@ -116,8 +101,7 @@ function submit_forms(){
     $('form').each(function () {
         if ($(this).attr("id") !== "uploadForm") {
             $(this).validate({errorElement: 'metricErrors',});  // Validate the form
-            if ($(this).valid() && !$(this).hasClass('submitted') && CG.metricFinished) {
-                CG.metricFinished = false;
+            if ($(this).valid() && !$(this).hasClass('submitted')) {
                 $(this).submit();
                 // Add a class 'submitted' to this form and disable all its elements.
                 $(this).addClass('submitted');
@@ -154,9 +138,9 @@ function ajax_metrics(i) {
         dataType: 'json',
         cache: false,
         processData: true,
+        async: false,
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function (textStatus, jqXHR) {
-            CG.metricFinished = true;
             console.log("Successfully added metric to the map!");
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -273,6 +257,10 @@ function createSelectPalettes(typeSelected, numColorSelected, count) {
 
 function createDataInfo(dataObject, fileName){
 
+    /**
+     * Switch to html template element
+     * @type {string}
+     */
     var dataTitle = [
     '<div class="panel panel-data">',
         '<div class="panel-heading">',
@@ -327,6 +315,10 @@ function createDataInfo(dataObject, fileName){
     $("#uploadInformation").append(dataInfo);
 }
 
+/**
+ * TODO: remove template literals.
+ * @param count
+ */
 function appendVisualizationRequirements(count) {
     var newReqs = $([
         `<div id="newMetric${count}">`,

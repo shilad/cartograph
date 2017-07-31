@@ -43,6 +43,8 @@ done
 
 export CARTOGRAPH_CONF=$CONF
 
+printenv
+
 if luigi --module $MODULE $TASK \
          --local-scheduler \
          --retcode-task-failed 1 \
