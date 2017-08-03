@@ -19,6 +19,7 @@ class BorderProcessor:
     @staticmethod
     def wrapRange(start, stop, length, reverse=False):
         """
+        Original method, works with new methods as well
         Returns:
             range from start to stop *inclusively* modulo length
         """
@@ -57,6 +58,7 @@ class BorderProcessor:
 
     def processVertices(self, vertices, circular):
         """
+        Original method
         Processes the list of vertices based on whether they are part of a coast or not
         Args:
             vertices: list of Vertex objects
@@ -81,6 +83,12 @@ class BorderProcessor:
         return vertices
 
     def processVertices_new(self, commonPoints, circular):
+        '''
+        New method
+        :param commonPoints:
+        :param circular:
+        :return:
+        '''
         if len(commonPoints) < 2:
             return commonPoints
         if self.noise:
@@ -102,6 +110,7 @@ class BorderProcessor:
     @staticmethod
     def getConsensusBorderIntersection(indices1, indices2, len1, len2, reverse2):
         """
+        Original method, works with new methods as well
         Args:
             indices1: *aligned* indices of points in points1 which are in intersection
             indices2: *aligned* indices of points in points2 which are in intersection
@@ -143,6 +152,12 @@ class BorderProcessor:
 
     @staticmethod
     def getBorderRegionIndices(points, intersection):
+        '''Original method, works with new methods as well
+
+        :param points:
+        :param intersection:
+        :return:
+        '''
         """
         Returns:
             list of indices of points in points which are in intersection
@@ -154,7 +169,7 @@ class BorderProcessor:
         return indices
 
     def getIntersectingBorders(self, points1, points2):
-        """
+        """'Original method, works with new methods as well
         Returns:
             list of lists of tuples which represents the aligned indices of points1 and points2 in each contiguous
             intersection of points1 and points2. Also returns whether the intersection is circular and whether points2
@@ -196,7 +211,7 @@ class BorderProcessor:
         return [], False, False
 
     def makeNewRegionFromProcessed(self, region, processedVertices, regionStartStopList, reverse=False, new = False):
-        '''What is this doing??? '''
+        '''Original methods, works with new methods as well '''
         assert len(processedVertices) == len(regionStartStopList)
         if reverse:
             # reverse both startStopList and processed vertices (both inner and outer lists)
@@ -242,6 +257,7 @@ class BorderProcessor:
 
     def makeNewRegions(self, region1, region2):
         """
+        Original method
         Args:
             region1: One region represented by Vertex objects
             region2: Another region represented by Vertex objects
@@ -282,6 +298,12 @@ class BorderProcessor:
         return processedRegion1, processedRegion2
 
     def makeNewRegion_new(self, ring1, ring2):
+        '''
+        New method
+        :param ring1:
+        :param ring2:
+        :return:
+        '''
         consensusLists, circular, reverse2 =self.getIntersectingBorders(ring1, ring2)
 
         if len(consensusLists) == 0:
@@ -322,6 +344,12 @@ class BorderProcessor:
         return ring1, ring2
 
     def makeLineDictOutOFNewPointDict(self, newPointIdList, idGenerator):
+        '''
+        New method
+        :param newPointIdList:
+        :param idGenerator:
+        :return:
+        '''
         previous = None
         pair = 0
         lineId = idGenerator.getNextID()
@@ -351,6 +379,7 @@ class BorderProcessor:
 
     def process(self):
         """
+        Original method
         Returns:
             the borders object where the intersecting borders are made more natural
         """
@@ -371,6 +400,10 @@ class BorderProcessor:
         return self.borders
 
     def process_new(self):
+        '''
+        New method
+        :return:
+        '''
         regionIds = []
         for key in self.regions: #key = clusterId
             regionIds.extend((key, i) for i in range(len(self.regions[key])))
