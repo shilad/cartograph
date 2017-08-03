@@ -19,21 +19,21 @@ def writeSparseMatrix(sequence, outputdir):
     #rows memmap conversion
     rowNp = np.asarray(rows)
     rowShape = rowNp.shape
-    rowMap = np.memmap(outputdir+"/row_indexes.mmap", dtype='int32', mode="w+", shape=rowShape)
+    rowMap = np.memmap(outputdir+"/row_indexes.mmap", dtype='float32', mode="w+", shape=rowShape)
     rowMap[:] = rowNp
     rowMap.flush()
 
     #cols mmap conversion
     colNp = np.asarray(cols)
     colShape = colNp.shape
-    colMap = np.memmap(outputdir+"/columns.mmap", dtype='int32', mode="w+", shape=colShape)
+    colMap = np.memmap(outputdir+"/columns.mmap", dtype='float32', mode="w+", shape=colShape)
     colMap[:] = colNp
     colMap.flush()
 
     #vals mmap conversion
     valNp = np.asarray(vals)
     valShape = valNp.shape
-    valMap = np.memmap(outputdir+"/values.mmap", dtype="int32", mode="w+", shape=valShape)
+    valMap = np.memmap(outputdir+"/values.mmap", dtype="float32", mode="w+", shape=valShape)
     valMap[:] = valNp
     valMap.flush()
 
@@ -49,9 +49,9 @@ class MMappedSparseMatrix():
         rowAddress = outputDir+"/row_indexes.mmap"
         valAddress = outputDir+"/values.mmap"
         shapesAddress = outputDir+"/shape.txt"
-        self.rowMap = np.memmap(rowAddress, dtype="int32", mode="r+")
-        self.colMap = np.memmap(colAddress, dtype="int32", mode="r+")
-        self.valMap = np.memmap(valAddress, dtype="int32", mode="r+")
+        self.rowMap = np.memmap(rowAddress, dtype="float32", mode="r+")
+        self.colMap = np.memmap(colAddress, dtype="float32", mode="r+")
+        self.valMap = np.memmap(valAddress, dtype="float32", mode="r+")
 
     #Seems to work. Still need to sort out index assignment. YOU MUST SPECIFY IF INDEX OR EDGEID BASED
     def get_row_as_np(self, index=-1, edgeId = -1):

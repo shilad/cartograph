@@ -27,7 +27,16 @@ class VerticeQuadTree():
         treePath = edgesMmapPath + 'verticesQuadTree.pickle'
         self._populateTree(treePath)
 
+
     def readCoordinatesFile(self, origVertsPath, pathForPickledFile):
+        '''
+        This method creates a dictionary where the key is the article id and the
+        value a tuple of x, y coordinates. It also finds the min and max x, y
+        coordinates for the data set.
+        :param origVertsPath: path where the input file with articles coordinates are
+        :param pathForPickledFile: path where the pickled file should be saved
+        :return:
+        '''
         if (os.path.isfile(pathForPickledFile)):
             with open(pathForPickledFile, "rb") as pickledDict:
                 try:
@@ -62,7 +71,14 @@ class VerticeQuadTree():
                 toDump = (self.min_x, self.min_y, self.max_x, self.max_y, self.originalVertices)
                 pickle.dump(toDump, pickledDict)
 
+
     def _populateTree(self, path):
+        '''
+        This method creates the quad tree that contains the the article Ids and calls a helper method to create the
+        priority queue for each of the leaves with the most important edges
+        :param path:
+        :return:
+        '''
         if(os.path.isfile(path)):
             with open(path,"rb") as pickledTree:
                 try:
@@ -75,17 +91,28 @@ class VerticeQuadTree():
                 x = self.originalVertices[vertex][0]
                 y = self.originalVertices[vertex][1]
                 self.quadTreeVertices.insert(vertex, bbox=(x, y, x, y))
-            self._getEdgesForQuad(self.quadTreeVertices)
+            self._setEdgesForQuad(self.quadTreeVertices)
             with open(path, 'wb') as pickledTree:
 
                 pickle.dump(self.quadTreeVertices, pickledTree)
 
 
     def _getQuadChildrenInViewPort(self, xmin, ymin, xmax, ymax, quad, results = None):
+        '''
+        This is a helper method that finds the leaves in the quad tree that are at least in part
+         within the view port. This  method is based on the _intersect method of the QuadTree class
+        :param xmin: minimum x coordinate in the view port
+        :param ymin: minimum y coordinate in the view port
+        :param xmax: maximum x coordinate in the view port
+        :param ymax: maximum y coordinate in the view port
+        :param quad: a quad tree
+        :param results: the list of results
+        :return: a list of the quad tree leaves that are  at least in part
+         within the view port
+        '''
         rect = (xmin, ymin, xmax, ymax)
         if results is None:
             results = []
-
         # search children
         if len(quad.children) > 0:
             if rect[0] <= quad.center[0]:
@@ -104,52 +131,82 @@ class VerticeQuadTree():
         return results
 
     def getKMostProminentEdgesInViewPort(self, xmin, ymin, xmax, ymax, k=100):
-       # print xmin, ymin, xmax, ymax
+        '''
+        This method returns a Priority Set with the K most prominent edges in the view port
+        :param xmin:
+        :param ymin:
+        :param xmax:
+        :param ymax:
+        :param k:
+        :return:
+        '''
         if k > self.maxNumberOfEdges:
             k = self.maxNumberOfEdges
         quadChildren = self._getQuadChildrenInViewPort(xmin, ymin, xmax, ymax, self.quadTreeVertices)
-     #   print 'len childre vertext', len(self.quadTreeVertices.children)
+
         edges = PrioritySet(max_size=k)
-      #  print 'len quad children', len(quadChildren)
+
         for quad in quadChildren:
             if self.isViewPortSmallerThanLeaf(quad, xmin, ymin, xmax, ymax):
                 return bruteForceEdges(xmin, ymin, xmax, ymax, self.originalVertices, k, self.edgesMMap )
-            #print quad.mostImportantEdgeSet
-       #     print'n of edges in quad', len(quad.mostImportantEdgeSet.priorityValueResults)
+
             for edgeInfo in quad.mostImportantEdgeSet.priorityValueResults:
                 if(edgeInfo[0] >= edges.maxImportance): break
 
                 if not self.sourceInInViewPort(edgeInfo[1][0], xmin, ymin, xmax, ymax): continue
                 edges.add(edgeInfo[0], edgeInfo[1])
-        return edges
-    def isViewPortSmallerThanLeaf(self, quad, xmin, ymin, xmax, ymax):
 
+        return edges
+
+    def isViewPortSmallerThanLeaf(self, quad, xmin, ymin, xmax, ymax):
+        '''
+        This method checks if the viewport fits completely within a leaf
+        :param quad:
+        :param xmin:
+        :param ymin:
+        :param xmax:
+        :param ymax:
+        :return: True if the viewport fits completely within a leaf, false otherwise
+        '''
         quadXmin = quad.center[0] - quad.height / 2
         quadXmax = quad.center[0] + quad.height / 2
         quadYmin = quad.center[1] - quad.width / 2
         quadYmax = quad.center[1] + quad.width / 2
 
         if xmin > quadXmin and xmax < quadXmax and ymin > quadYmin and ymax < quadYmax:
-            #print "within"
-            #print quadXmin, quadXmax, quadYmin, quadYmax
-            #print xmin, xmax, ymin, ymax
+
 
             return True
-       #make this methdo woxmin, ymin, xmax, ymaxrk
-        else:
 
+        else:
             return False
 
+
+
     def sourceInInViewPort(self, sourceId, xmin, ymin, xmax, ymax ):
+        '''
+        This method checks if the article identified by SourceId is within the viewport
+        :param sourceId:
+        :param xmin:
+        :param ymin:
+        :param xmax:
+        :param ymax:
+        :return: True if the article is within the viewport, false otherwise
+        '''
         sourceCoor = self.originalVertices[sourceId]
 
         if xmax >= sourceCoor[0] >= xmin and ymin <= sourceCoor[1] <= ymax:
-          #  print sourceId, sourceCoor
             return True
         return False
 
 
-    def _getEdgesForQuad(self, quad):
+    def _setEdgesForQuad(self, quad):
+        '''
+        Recursive method that adds a priority queue to the leaves of the quad tree.
+        The priority queue contain the k most important edges for that leaf.
+        :param quad: a quad tree
+        :return:
+        '''
         if len(quad.nodes) != 0:
 
             quad.mostImportantEdgeSet = PrioritySet(max_size=self.maxNumberOfEdges)
@@ -157,37 +214,43 @@ class VerticeQuadTree():
                 srcId = node.item
                 srcEdges = self.edgesMMap.get_row_as_dict(pointID=srcId)
                 for dest in srcEdges:
-                    #if(srcId == 93): print 'here', srcEdges[dest], (srcId, dest)
+
                     quad.mostImportantEdgeSet.add(srcEdges[dest], (srcId, dest))
 
-           # print quad.mostImportantEdgeSet
+
         else:
             for child in quad.children:
-                self._getEdgesForQuad(child)
+                self._setEdgesForQuad(child)
 
-def createRandomDict(maxNumber, weights):
-    dictSize = random.randint(0, maxNumber)
+
+#### Below are methods for testing/benchmark
+def createRandomDict(maxNumber):
+    maxEdgeNum = 500
+    dictSize = random.randint(0, min(maxNumber, maxEdgeNum))
     outPutDict = {}
 
     for i in range(dictSize):
         index = random.randint(0, maxNumber)
-        outPutDict[index] = i #random.uniform(0, maxNumber)
-    return outPutDict
+        outPutDict[index] = random.uniform(0, maxNumber*100)
+    return  outPutDict
 
-def createRandomSequence():
+def createRandomSequence(size):
     sequence = []
     coor = {}
-    size = 1000
+
+
     for i in range(size):
-        sequence.append((i, createRandomDict(size)))
-        x = random.uniform(-10.0, 10.0)
-        y = random.uniform(-10.0, 10.0)
+        dictionary = createRandomDict(size)
+        sequence.append((i, dictionary))
+        x = random.uniform(-40.0, 40.0)
+        y = random.uniform(-40.0, 40.0)
         coor[i] = (x, y)
     # sequence = [(1, {2: 8, 11: 3}), (2, {12: 4, 13: 6, 14: 0}), (3, {4:4}),(4, {3: 7, 20: 9, 18: 1, 17: 16}),
     #              (5, {7: 1}), (6, {9: 0, 19: 5}), (7, {1: 2, 4: 3}), (8, {13: 5}), (9, {2: 9}),
     #              (10, {6: 1}), (11, {10: 4}), (12, {4: 6, 2: 0}), (13, {9: 5}), (14, {15: 2}),
     #              (15, {19: 7, 20: 8}), (16, {11: 2, 6: 9, 5: 3}), (17, {12: 8, 6: 1}), (18, {13: 10, 4: 3, 1: 7}),
-    #              (19, {15: 0, 9: 10}), (20, {19: 6, 3: 2, 8:4})]
+    #              (19, {15: 0, 9
+    # : 10}), (20, {19: 6, 3: 2, 8:4})]
     # coor = {1: (7, 1), 2: (6, 3), 3: (6, 3), 4: (14, 2), 5: (11, 3), 6: (9, 4), 7: (3, 6), 8: (7, 6), 9: (12, 6),
     #          10: (13, 7),
     #          11: (9, 8), 12: (5, 10), 13: (2, 12), 14: (10, 12), 15: (13, 10), 16: (5, 13), 17: (2, 15), 18: (9, 15),
@@ -201,8 +264,14 @@ def test_VerticesQuadTree():
     writeDictToFile('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv', coor)
     mmap.writeSparseMatrix(sequence, '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
     vqt = VerticeQuadTree('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv', '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/' )
-
-    for i in range(10):
+    differentSize = 0
+    totalDifferentce = 0
+    total = 100
+    countAllInBoth = 0
+    countNotAllInBoth = 0
+    totalSame = 0
+    totalNotInBruteForce= 0
+    for i in range(total):
         xs = (random.uniform(vqt.min_x, vqt.max_x), random.uniform(vqt.min_x, vqt.max_x))
         ys = (random.uniform(vqt.min_y, vqt.max_y), random.uniform(vqt.min_y, vqt.max_y))
         x_min = min(xs)
@@ -213,33 +282,32 @@ def test_VerticesQuadTree():
         resultsBruteForce = bruteForceEdges(x_min, y_min, x_max, y_max, vqt.originalVertices, 100, vqt.edgesMMap)
 
         #assert len(resultsTree.priorityValueResults) == len(resultsBruteForce)
-        if len(resultsTree) != len(resultsBruteForce):
-             print 'tree      ', resultsTree
-             print 'bruteForce', resultsBruteForce
-             print x_min, x_max, y_min, y_max
-             print len(resultsTree.priorityValueResults), len(resultsBruteForce)
 
+        if len(resultsTree) != len(resultsBruteForce):
+            totalDifferentce += abs(len(resultsBruteForce)-len(resultsTree))
+            differentSize += 1
         else:
-            countInBothFirst = 0
-            countNotInTree = 0
-            countNotInBrute = 0
-            countInBothSecond = 0
-            for result in resultsTree.priorityValueResults:
-                if result not in resultsBruteForce.priorityValueResults:
+            totalSame += 1
+
+        countInBothFirst = 0
+        countNotInBrute = 0
+
+        for result in resultsTree.priorityValueResults:
+            if result not in resultsBruteForce.priorityValueResults:
                    # print 'result not in bruteForce', result
                     #print resultsTree
                     #print resultsBruteForce
-                    countNotInBrute +=1
-                else: countInBothFirst += 1
-            for result in resultsBruteForce.priorityValueResults:
-                if result not in resultsTree.priorityValueResults:
-                    #print 'result not in tree', result
-                    #print resultsTree
-                    #print resultsBruteForce
-                    countNotInTree += 1
-                else: countInBothSecond +=1
-            print countInBothFirst, countNotInTree, countNotInBrute, countInBothSecond
-
+                countNotInBrute +=1
+            else: countInBothFirst += 1
+        totalNotInBruteForce += countNotInBrute
+        if countNotInBrute == 0:
+            countAllInBoth += 1
+        else:
+            countNotAllInBoth += 1
+    print "Different size:", differentSize,  ", Same size:", totalSame, ", % of total different size:", float(differentSize)/float(total)
+    if differentSize != 0: print "Avg Difference:", float(totalDifferentce)/float(differentSize)
+    print  "Not All in Both:", countNotAllInBoth, ", All in Both:", countAllInBoth, ", % of total of not all in both:", float(countNotAllInBoth)/float(total)
+    if countNotAllInBoth != 0: print "Avg different from brute force:", totalNotInBruteForce/countNotAllInBoth
 def clearTestFiles(pathToDir):
     dir = pathToDir
     test = os.listdir(dir)
@@ -263,7 +331,6 @@ def bruteForceEdges(xmin, ymin, xmax, ymax, originalVertices, num_paths, sparsem
     topPaths = PrioritySet(max_size=num_paths)
 
     for src in pointsinPort:
-
         # if src < len(self.rowMap):
         destDict = sparsematrix.get_row_as_dict(pointID=src)
         for dest in destDict:
@@ -273,15 +340,30 @@ def bruteForceEdges(xmin, ymin, xmax, ymax, originalVertices, num_paths, sparsem
     return topPaths
 
 
-test_VerticesQuadTree()
+#test_VerticesQuadTree()
 
 
-#Talha the code seems to break if there is as point that has no outbound edges... index error on the get_row_as_dict method
-#"tomorrow try to fix the unit test, not working, attempt create sequence/coors you know whats going on"
 
 
 def benchmark():
-    vqt = VerticeQuadTree('/Users/sen/PycharmProjects/cartographEdges/data/simple/tsv/coordinates.tsv', "/Users/sen/PycharmProjects/cartograph/data/ext/simple/")
+    clearTestFiles('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
+    createDictStart = time.time()
+    sequence, coor = createRandomSequence(2000000)
+    createDictFinish = time.time()
+    print "Done creating dicts, time =", createDictFinish - createDictStart
+    writeDictToFile('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv',
+                    coor)
+    createMMapStart = time.time()
+    mmap.writeSparseMatrix(sequence, '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
+    createMMapFinish = time.time()
+
+    print "Done creating mmap, time =", createMMapFinish - createMMapStart
+    createQuadTreeStart = time.time()
+    vqt = VerticeQuadTree(
+        '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv',
+        '/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
+    createQuadTreeFinish = time.time()
+    print "Done creating quad tree, time =",  createQuadTreeFinish - createQuadTreeStart
     times = []
     for i in range(1000):
         xs = (random.uniform(vqt.min_x, vqt.max_x), random.uniform(vqt.min_x, vqt.max_x))
@@ -294,11 +376,10 @@ def benchmark():
         results = vqt.getKMostProminentEdgesInViewPort(x_min, y_min, x_max, y_max, k=100)
         finishGetCalcEdges = time.time()
         times.append(finishGetCalcEdges-calcGetEdges)
-        if i % 10 == 0:
-            print x_min, y_min, x_max, y_max
-            print results
-    print 'time', np.mean(times)
 
 
-"Try to make it all weights unique"
+    print 'time =', np.mean(times)
+
+#--- "Memory problems, but works well with a million" ----
+
 #benchmark()
