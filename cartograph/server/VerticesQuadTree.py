@@ -259,6 +259,11 @@ def createRandomSequence(size):
 
 
 def test_VerticesQuadTree():
+    '''
+    It is not a unit test as it is, but can be easily adapted to be one. I was unsure what is the threshold to say that
+    the quad tree works well enough compared to the bruteforce.
+    :return:
+    '''
     clearTestFiles('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/')
     sequence, coor = createRandomSequence()
     writeDictToFile('/Users/sen/PycharmProjects/cartographEdges/cartograph/mmap_matrix/test_vertices_coordinates.tsv', coor)
