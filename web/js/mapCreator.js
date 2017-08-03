@@ -9,18 +9,30 @@ $(document).ready(function () {
 
     // Process the upload form after hitting "Submit" button
     var uploadForm = $("#uploadForm");
-    $('input[type="file"]').change(function (e) {
-        uploadForm.submit();
-    });
+    // $('input[type="file"]').change(function (e) {
+    //     uploadForm.submit();
+    // });
+
+
+    showUploadError = function(message) {
+        $("#upload-error .alert").html(message).parent().show();
+    };
 
     uploadForm.on('submit', function (event) {
-
         event.stopPropagation(); // Stop stuff happening
         event.preventDefault(); // Totally stop stuff happening
 
+        $("#upload-error").hide();
+
+        var mapName = $("#map_name").val();
+        if (!/^[a-z0-9_]+$/i.test(mapName)) {
+            showUploadError("Map name can only contain alphanumeric characters");
+            return;
+        }
+
         // Declare a form data object
         var data = new FormData();
-        data.append('map_name', $("#map_name").val());
+        data.append('map_name', mapName);
         var file = uploadForm.find('input[type=file]')[0].files[0];
         var fileName = file.name;
         data.append('file', file);
@@ -34,6 +46,11 @@ $(document).ready(function () {
             processData: false, // Don't process the files, we're using FormData
             contentType: false, // Set content type to false as jQuery will tell the server its a query string request
             success: function (data, textStatus, jqXHR) {
+                if (!data.success) {
+                    showUploadError("<strong>Upload Failed</strong> " + data.error);
+                    return;
+                }
+                console.log(data);
                 CG.uploadData = data;
                 CG.metricCounter = 0; // A counter of input metrics.
                 createDataInfo(data, fileName);
@@ -79,6 +96,7 @@ function createNewMetricHtml() {
     createSelectPalettes(document.getElementById("types" + CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter), CG.metricCounter);
 
 }
+
 
 function ajax_buildMap() {
     // Ajax call to build the map

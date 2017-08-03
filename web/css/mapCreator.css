@@ -1,3 +1,25 @@
+#map_name {
+  width: 300px;
+}
+
+
+.hidden { display: none; }
+
+button,
+input,
+optgroup,
+select,
+textarea,
+body {
+  font-family: "GeosansLight";
+  font-weight: bolder;
+}
+
+body {
+  /*background-color: #E2E1D9;*/
+}
+
+
 #mapConfig {
     display:none;
 }
@@ -13,6 +35,15 @@
 metricErrors.error{
   color: red;
   padding: 5px;
+}
+
+
+nav a.navbar-brand {
+  font-size: 24px;
+}
+
+nav a.nav-item {
+  font-size: 20px;
 }
 
 #ramps {
@@ -72,21 +103,21 @@ metricErrors.error{
   height: 22px;
 }
 
-h1 {
-  color: #9275d8;
-}
+/*h1 {*/
+  /*color: #9275d8;*/
+/*}*/
 
-h2 {
-  font-size: 45;
-  font-size: 2.8vw;
-}
+/*h2 {*/
+  /*font-size: 45;*/
+  /*font-size: 2.8vw;*/
+/*}*/
 
-h3 {
-  color: #E8953E;
-  font-size: 33;
-  font-size: 2.5vw;
-  margin: 0.25em 0;
-}
+/*h3 {*/
+  /*color: #E8953E;*/
+  /*font-size: 33;*/
+  /*font-size: 2.5vw;*/
+  /*margin: 0.25em 0;*/
+/*}*/
 
 #uploadFile,
 #submitFile {
@@ -98,39 +129,6 @@ h3 {
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
 
-button,
-input,
-optgroup,
-select,
-textarea,
-body {
-  font-family: "GeosansLight";
-  font-weight: bolder;
-}
-
-body {
-  background-color: #E2E1D9;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: #000000;
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-
-.navButtons {
-    margin-right: 8rem;
-    float: left;
-    vertical-align: middle;
-    size: 14 pt;
-    color: #E2E1D9;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.05cm;
-  font-size: 1.1em;
-}
 
 .btn-generateMap {
   background-opacity: .75;
@@ -184,40 +182,36 @@ label {
   border-color: rgba(12, 12, 12, .75);
 }
 
-.mapMaker-body {
-    margin: 1rem 1rem 1rem 1rem;
-}
-
 .header {
     background-color: rgba(34, 34, 34, 0.75);
 }
 
-.nav {
-  list-style-type: none;
-  margin: 0;
-  height: 70px;
-  line-height: 64px;
-}
+/*.nav {*/
+  /*list-style-type: none;*/
+  /*margin: 0;*/
+  /*height: 70px;*/
+  /*line-height: 64px;*/
+/*}*/
 
-.nav li {
-  display:inline-block;
-  float: left;
-}
+/*.nav li {*/
+  /*display:inline-block;*/
+  /*float: left;*/
+/*}*/
 
-img {
-    float: clear;
-    padding: 0px;
-}
+/*img {*/
+    /*float: clear;*/
+    /*padding: 0px;*/
+/*}*/
 
-.nav li a {
-  color: #E2E1D9;
-  display: inline;
-  font-family: GeosansLight;
-  font-size: 32px;
-  margin-right: 32px;
-  /*text-transform: uppercase;*/
-  top: 50%;
-  left: 50%;
-  -ms-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
+/*.nav li a {*/
+  /*color: #E2E1D9;*/
+  /*display: inline;*/
+  /*font-family: GeosansLight;*/
+  /*font-size: 32px;*/
+  /*margin-right: 32px;*/
+  /*!*text-transform: uppercase;*!*/
+  /*top: 50%;*/
+  /*left: 50%;*/
+  /*-ms-transform: translate(-50%, -50%);*/
+  /*transform: translate(-50%, -50%);*/
+/*}*/

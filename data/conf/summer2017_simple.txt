@@ -7,6 +7,8 @@ sample_size: 50000
 num_clusters: 9
 water_level: .05
 sample_borders: True
+label_weight = 0.1
+clust_weight = 0.15
 
 [Server]
 compress_png: false
