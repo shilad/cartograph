@@ -1,8 +1,3 @@
-#map_name {
-  width: 300px;
-}
-
-
 .hidden { display: none; }
 
 button,
@@ -11,8 +6,8 @@ optgroup,
 select,
 textarea,
 body {
-  font-family: "GeosansLight";
-  font-weight: bolder;
+  /*font-family: "GeosansLight";*/
+  /*font-weight: bolder;*/
 }
 
 body {
@@ -20,198 +15,107 @@ body {
 }
 
 
-#mapConfig {
-    display:none;
-}
-
-#newRequirements{
-  display: none;
-}
-
-#color-scheme{
-  display: none
-}
-
-metricErrors.error{
-  color: red;
-  padding: 5px;
-}
-
 
 nav a.navbar-brand {
-  font-size: 24px;
+  font-size: 1.5rem;
 }
 
 nav a.nav-item {
-  font-size: 20px;
+  font-size: 1.4rem;
 }
 
-#ramps {
-  padding: 0 5px;
+div.step {
+  margin-top: 30px;
 }
 
-#singlehue { display: none; max-width: 78px; }
-
-#scheme1 {
-  float: left;
-  margin-right: 5px;
-  overflow: hidden;
+div.step .step-num {
+  font-size: 1.8rem;
+  margin-top: -0.5rem;
+}
+div.step h4 {
+  margin-bottom: 20px;
+}
+div.step .caption, div.step h4 {
+  color: #bbb;
 }
 
-.ramp {
-  float: left;
-  padding: 5px 5px 0 5px;
+
+/**
+ * Step style
+ */
+div.step.active .caption, div.step.active h4{
+  color: #000;
+}
+
+div.step .caption {
+  text-align: center;
+}
+
+div.step .contents .active {
+  border-left: 1px dashed #ccc;
+  border-bottom: 1px solid #ccc;
+}
+
+/**
+ * Table
+ */
+#file-info table {
+  font-size: 0.8rem;
+}
+
+/**
+ * Layer controls
+ */
+#layer-container .layer label { width: 100%; }
+
+#layer-container .layer {
+  margin-bottom: 10px;
+}
+
+/**
+ * Map and layer name / URL prefix
+ */
+.url-prefix {
+  /*font-family: monospace;*/
+  font-size: 1rem;
+}
+
+/**
+ * Trash icon
+ */
+.layer-remove {
+  font-size: 24px;
+  color: #777;
+  vertical-align: center;
   cursor: pointer;
 }
 
-.ramp:hover {
-  background-color: #ccc;
-}
 
-.ramp.selected {
-  background-color: #999;
-}
 
-.ramp rect, #color-chips rect {
-  stroke: #333;
-  stroke-width: .5px;
-}
-
-#addingMetrics{
-  display: none;
-}
-
-/* Color metrics */
-.palette {
+/**
+ * Color schemes
+ */
+div.color-schemes div.scheme {
+  width: 10px;
+  margin: 0 12px 0 0;
+  outline: 1px solid #ccc;
   cursor: pointer;
-  display: inline-block;
-  vertical-align: bottom;
-  margin: 4px 0 4px 6px;
-  padding: 4px;
-  background: #fff;
-  border: solid 1px #aaa;
+}
+div.color-schemes div.scheme:hover {
+  outline: 2px solid #000;
+}
+div.color-schemes div.scheme.active {
+  outline: 2px solid #000;
 }
 
-.palette:hover {
-  background-color: #999999;
-}
-
-.swatch {
-  display: block;
-  vertical-align: middle;
-  width: 37px;
-  height: 22px;
-}
-
-/*h1 {*/
-  /*color: #9275d8;*/
-/*}*/
-
-/*h2 {*/
-  /*font-size: 45;*/
-  /*font-size: 2.8vw;*/
-/*}*/
-
-/*h3 {*/
-  /*color: #E8953E;*/
-  /*font-size: 33;*/
-  /*font-size: 2.5vw;*/
-  /*margin: 0.25em 0;*/
-/*}*/
-
-#uploadFile,
-#submitFile {
-    display: none;
+/**
+ * See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
+ */
+.custom-file-control.selected:lang(en)::after {
+  content: "" !important;
 }
 
 @font-face{
   font-family: "GeosansLight";
   src: url(../fonts/GeosansLight.ttf) format("truetype");
 }
-
-
-.btn-generateMap {
-  background-opacity: .75;
-  color: #eee;
-  background-color: rgba(34, 34, 34, .75);
-  border-color: rgba(12, 12, 12, .75);
-}
-
-.btn-generateMap:hover {
-  color: #eee;
-  background-color: rgba(78, 78, 78, .75);
-  border-color: rgba(56, 56, 56, .75);
-}
-
-.btn-generateMap:active, .btn-generateMap.active,
-.show > .btn-generateMap.dropdown-toggle {
-  color: #fff;
-  background-color: #E2E1D9;
-  background-image: none;
-  border-color: #E2E1D9;
-}
-
-.btn-addVisualization {
-  background-opacity: .75;
-  color: #eee;
-  background-color: rgba(34, 34, 34, .75);
-  border-color: rgba(12, 12, 12, .75);
-}
-
-.btn-addVisualization:hover {
-  color: #eee;
-  background-color: rgba(78, 78, 78, .75);
-  border-color: rgba(56, 56, 56, .75);
-}
-
-.btn-addVisualization:active, .btn-addVisualization.active,
-.show > .btn-addVisualization.dropdown-toggle {
-  color: #fff;
-  background-color: #E2E1D9;
-  background-image: none;
-  border-color: #E2E1D9;
-}
-
-.panel-data {
-  background-opacity: .75;
-}
-
-.panel-data > .panel-heading {
-  background-opacity: .75;
-  background-color: rgba(34, 34, 34, .75);
-  border-color: rgba(12, 12, 12, .75);
-}
-
-.header {
-    background-color: rgba(34, 34, 34, 0.75);
-}
-
-/*.nav {*/
-  /*list-style-type: none;*/
-  /*margin: 0;*/
-  /*height: 70px;*/
-  /*line-height: 64px;*/
-/*}*/
-
-/*.nav li {*/
-  /*display:inline-block;*/
-  /*float: left;*/
-/*}*/
-
-/*img {*/
-    /*float: clear;*/
-    /*padding: 0px;*/
-/*}*/
-
-/*.nav li a {*/
-  /*color: #E2E1D9;*/
-  /*display: inline;*/
-  /*font-family: GeosansLight;*/
-  /*font-size: 32px;*/
-  /*margin-right: 32px;*/
-  /*!*text-transform: uppercase;*!*/
-  /*top: 50%;*/
-  /*left: 50%;*/
-  /*-ms-transform: translate(-50%, -50%);*/
-  /*transform: translate(-50%, -50%);*/
-/*}*/

@@ -2,19 +2,105 @@
  * Created by sen on 6/29/17.
  */
 
+/**
+ * TODO: This should come from the server, really...
+ */
+var CLUSTER_LAYER_INFO = {
+            "range": [],
+            "sequential": false,
+            "numUnique": 12,
+            "name": "Clusters",
+            "title": false,
+            "diverging": false,
+            "qualitative": true,
+            "num": 460
+        };
+
 $(document).ready(function () {
     var bar = $('.bar');
     var percent = $('.percent');
     var status = $('#status');
-
-    // Process the upload form after hitting "Submit" button
     var uploadForm = $("#uploadForm");
-    // $('input[type="file"]').change(function (e) {
-    //     uploadForm.submit();
-    // });
 
 
-    showUploadError = function(message) {
+    // Handle custom file inputs
+    // See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
+    // and https://github.com/twbs/bootstrap/issues/20813
+    $('#inputFile').on('change', function (ev) {
+      const $input = $(this);
+      const target = $input.data('target');
+      const $target = $(target);
+
+      // set original content so we can revert if user deselects file
+      if (!$target.attr('data-original-content'))
+        $target.attr('data-original-content', $target.attr('data-content'));
+
+      const input = $input.get(0);
+
+      let name = (input && input.files && input.files.length && input.files[0])
+          ? input.files[0].name : $input.val();
+
+      if (!name) name = $target.attr('data-original-content');
+      $target.attr('data-content', name);
+
+      // Change the visual feedback
+      $(this).next('.custom-file-control').addClass("selected").html(name);
+
+    });
+
+
+    var data = {
+        "map_name": "a",
+        "num_rows": 460,
+        "columns": [{
+            "range": [],
+            "sequential": false,
+            "numUnique": 459,
+            "name": "Article",
+            "title": true,
+            "diverging": false,
+            "values": [],
+            "qualitative": false,
+            "num": 460
+        }, {
+            "range": [],
+            "sequential": true,
+            "numUnique": 9,
+            "name": "Popularity",
+            "title": false,
+            "diverging": true,
+            "values": [0, 13, 15, 22, 25, 50, 75, 90, 100],
+            "qualitative": true,
+            "num": 460
+        }, {
+            "range": [],
+            "sequential": false,
+            "numUnique": 3,
+            "name": "Category",
+            "title": false,
+            "diverging": false,
+            "values": ["a", "b", "c"],
+            "qualitative": true,
+            "num": 460
+        }],
+        "success": true
+    };
+    addLayer(data, {
+        field : 'Clusters',
+        title : 'Thematic Clusters',
+        description : 'This visualization shows groups of thematically related articles.',
+        id : 'clusters',
+        dataType : 'qualitative',
+        numColors : 7
+    });
+
+    $("#add-layer-button").on('click', function(e) {
+        e.preventDefault();
+        addLayer(data);
+    });
+
+
+    showUploadError = function (message) {
         $("#upload-error .alert").html(message).parent().show();
     };
 
@@ -24,21 +110,21 @@ $(document).ready(function () {
 
         $("#upload-error").hide();
 
-        var mapName = $("#map_name").val();
-        if (!/^[a-z0-9_]+$/i.test(mapName)) {
-            showUploadError("Map name can only contain alphanumeric characters");
+        var mapId = $("#map-id").val();
+        if (!/^[a-z0-9_]+$/i.test(mapId)) {
+            showUploadError("Map id can only contain alphanumeric characters");
             return;
         }
 
         // Declare a form data object
         var data = new FormData();
-        data.append('map_name', mapName);
+        data.append('map-id', mapId);
         var file = uploadForm.find('input[type=file]')[0].files[0];
         var fileName = file.name;
         data.append('file', file);
 
         // Perform Ajax call to show add visualization part
-        $.ajax($.extend({}, {
+        $.ajax({
             url: uploadForm.attr('action'),
             type: 'POST',
             data: data,
@@ -50,18 +136,20 @@ $(document).ready(function () {
                     showUploadError("<strong>Upload Failed</strong> " + data.error);
                     return;
                 }
-                console.log(data);
                 CG.uploadData = data;
-                CG.metricCounter = 0; // A counter of input metrics.
-                createDataInfo(data, fileName);
+                CG.layerCounter = 0; // A counter of input layers.
 
-                // Display Generate Map button that submits all metric forms
-                $("#mapConfig").append(`<button type="submit" class="btn btn-generateMap" form="metricsForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
+                showFileInfo(data, fileName);
+                addLayer(data,
+                    {field : 'Clusters', 'num-colors': 7, 'type' : 'qualitative'});
+
+                // Display Generate Map button that submits all layer forms
+                $("#mapConfig").append(`<button type="submit" class="btn btn-generateMap" form="layersForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
 
                 CG.mapBuilt = false;  // A boolean indicating whether the map has been built to avoid building it again when hitting GenerateMap
                 $(`#submitButton`).click(function () {
                     // Build the map
-                    if (! CG.mapBuilt) {
+                    if (!CG.mapBuilt) {
                         ajax_buildMap();
                         CG.mapBuilt = true;
                     } else {
@@ -74,26 +162,26 @@ $(document).ready(function () {
                 $("#map_name").prop('disabled', true);
                 $("#uploadFile").prop('disabled', true);
 
-                // Show metric options after hitting addVisualization button.
+                // Show layer options after hitting addVisualization button.
                 $(".btn-addVisualization").click(createNewMetricHtml);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR, textStatus, errorThrown);
             }
-        }, {}));
+        });
     });
 });
 
 function createNewMetricHtml() {
-    CG.metricCounter += 1;
+    CG.layerCounter += 1;
     $("#newRequirements").show();
-    appendVisualizationRequirements(CG.metricCounter);
+    appendVisualizationRequirements(CG.layerCounter);
 
-    // Automatically fill in metric input fields.
-    createSelectFields(CG.uploadData.columns, CG.metricCounter);
-    createSelectTypes(document.getElementById("fields" + CG.metricCounter), CG.metricCounter);
-    createNumClasses(document.getElementById("fields" + CG.metricCounter), document.getElementById("types" + CG.metricCounter), CG.metricCounter);
-    createSelectPalettes(document.getElementById("types" + CG.metricCounter), document.getElementById("number-classes" + CG.metricCounter), CG.metricCounter);
+    // Automatically fill in layer input fields.
+    createSelectFields(CG.uploadData.columns, CG.layerCounter);
+    createSelectTypes(document.getElementById("fields" + CG.layerCounter), CG.layerCounter);
+    createNumClasses(document.getElementById("fields" + CG.layerCounter), document.getElementById("types" + CG.layerCounter), CG.layerCounter);
+    createSelectPalettes(document.getElementById("types" + CG.layerCounter), document.getElementById("number-classes" + CG.layerCounter), CG.layerCounter);
 
 }
 
@@ -109,16 +197,16 @@ function ajax_buildMap() {
         error: function (jqXHR, textStatus, errorThrown) {
             console.log(jqXHR, textStatus, errorThrown);
         }
-    })
+    });
     $("h3").append("<p>Please wait while we create your map...</p>");
     // createMapDescription(vizName, vizDescription);
 
 }
 
-function submit_forms(){
+function submit_forms() {
     $('form').each(function () {
         if ($(this).attr("id") !== "uploadForm") {
-            $(this).validate({errorElement: 'metricErrors',});  // Validate the form
+            $(this).validate({errorElement: 'layerErrors',});  // Validate the form
             if ($(this).valid() && !$(this).hasClass('submitted')) {
                 $(this).submit();
                 // Add a class 'submitted' to this form and disable all its elements.
@@ -134,32 +222,32 @@ function submit_forms(){
 
 }
 
-function ajax_metrics(i) {
-    // Ajax call to add the ith metric
+function ajax_layers(i) {
+    // Ajax call to add the ith layer
 
-    var metricsForm = $(`#metricsForm${i}`);
+    var layersForm = $(`#layersForm${i}`);
     event.stopPropagation(); // Stop stuff happening
     event.preventDefault(); // Totally stop stuff happening
 
-    // Perform Ajax call to apply metric
-    var metricData = {
-        metric_name: $(`#title${i}`).val(),
+    // Perform Ajax call to apply layer
+    var layerData = {
+        layer_name: $(`#title${i}`).val(),
         column: $(`#fields${i}`).val(),
         color_palette: $(`#color-scheme${i}`).val() + "_" + $(`#number-classes${i}`).val(),
         description: $(`#description${i}`).val()
     };
 
     $.ajax({
-        url: '../' + $("#map_name").val() + '/add_metric/' + $(`#types${i}`).val(),
+        url: '../' + $("#map_name").val() + '/add_layer/' + $(`#types${i}`).val(),
         type: 'POST',
-        data: metricData,
+        data: layerData,
         dataType: 'json',
         cache: false,
         processData: true,
         async: false,
         contentType: false, // Set content type to false as jQuery will tell the server its a query string request
         success: function (textStatus, jqXHR) {
-            console.log("Successfully added metric to the map!");
+            console.log("Successfully added layer to the map!");
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log(jqXHR, textStatus, errorThrown);
@@ -167,202 +255,200 @@ function ajax_metrics(i) {
     })
 }
 
-function createSelectFields(dataCol, count) {
-    // Create a drop down list of fields
-    var fields = document.getElementById("fields" + count), // get the select
-        df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
-    // dataCol[0] = 'Fields'
-    for (var i = 1; i < dataCol.length; i++) {
-        var option = document.createElement('option'); // create the option element
-        option.value = dataCol[i]; // set the value property
-        option.appendChild(document.createTextNode(dataCol[i])); // set the textContent in a safe way.
-        df.appendChild(option); // append the option to the document fragment
-    }
-    fields.appendChild(df); // append the document fragment to the DOM
-}
+function showFileInfo(data, fileName) {
+    $("#file-info table tbody tr").not(':first').remove();
+    $('#file-info h4 span:nth-child(1)').text(fileName);
+    $('#file-info h4 span:nth-child(2)').text(data.num_rows);
 
-function createSelectTypes(fieldSelected, count) {
-    // Create a drop down list of types
-    var col = fieldSelected.selectedIndex + 1; // Start from index 1
-    var types = document.getElementById("types" + count), // get the select
-        df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
-    // Remove child nodes of types from previously selected fields.
-    while (types.firstChild) {
-        types.removeChild(types.firstChild);
-    }
-    for (var key in CG.uploadData.types[col]) {
-        if (CG.uploadData.types[col][key]) {
-            var option = document.createElement('option');
-            option.value = key;
-            option.appendChild(document.createTextNode(key)); // set the textContent in a safe way.
-            df.appendChild(option); // append the option to the document fragment
-        }
-    }
-    types.appendChild(df); // append the document fragment to the DOM
-}
+    for (var i = 0; i < data.columns.length; i++) {
+        var col = data.columns[i];
+        var row = $("#row-template").clone();
+        row.removeAttr('id');
+        row.removeClass('hidden');
 
-function createNumClasses(fieldSelected, typeSelected, count) {
-    // Create a drop down list to select the number of data classes
-    var type = typeSelected.options[typeSelected.selectedIndex].value;
-    var col = fieldSelected.selectedIndex;
-    var numClasses = document.getElementById("number-classes" + count), // get the select
-        df = document.createDocumentFragment(); // create a document fragment to hold the options while we create them
-    // Remove child nodes of types from previously selected fields.
-    while (numClasses.firstChild) {
-        numClasses.removeChild(numClasses.firstChild);
-    }
-    if (type === 'qualitative') {
-        var option = document.createElement('option');
-        option.value = CG.uploadData.num_classes[col];
-        option.appendChild(document.createTextNode(option.value)); // set the textContent in a safe way.
-        df.appendChild(option);
-    } else {
-        if (type === 'sequential') {
-            var i = [3, 9]; // Range of colorbrewer's palettes
-        } else if (type === 'diverging') {
-            var i = [3, 11]; // Range of colorbrewer's palettes
-        }
-        for (var j = i[0]; j <= i[1]; j++) {
-            var option = document.createElement('option');
-            option.value = j;
-            option.appendChild(document.createTextNode(j)); // set the textContent in a safe way.
-            df.appendChild(option);
-        }
-    }
-    numClasses.appendChild(df); // append the document fragment to the DOM
-}
+        $(row).find("th").text("#" + (i + 1));
+        $(row).find("td:nth-of-type(1)").text(col.name);
+        $(row).find("td:nth-of-type(2)").text(col.num);
 
-function createSelectPalettes(typeSelected, numColorSelected, count) {
-    // Display color palettes
-    var type = typeSelected.options[typeSelected.selectedIndex].value;
-    var numColor = numColorSelected.options[numColorSelected.selectedIndex].value;
-    var scheme = {};
-    for (var i = 0; i < schemeNames[type].length; i++) {
-        scheme[schemeNames[type][i]] = colorbrewer[schemeNames[type][i]][numColor];
-    }
-
-    d3.select("body").select('.mapMaker-body').select("#newRequirements")
-        .select("#newMetric" + count).selectAll(".palette").remove();  // Remove previously shown palette.
-
-    d3.select('body').select('.mapMaker-body').select("#newRequirements").select("#newMetric" + count)
-        .selectAll(".palette")
-        .data(d3.entries(scheme))
-        .enter().append("span")
-        .attr("class", "palette")
-        .attr("title", function (d) {
-            return d;
+        var types = ['sequential', 'diverging', 'qualitative', 'title'].filter(function (t) {
+            return col[t];
         })
-        .on("click", function (d) {
-            console.log(d3.values(d)[0]);
-            // Proceed if the color scheme is not disabled
-            if (!$("#color-scheme" + count).prop("disabled")) {
-                $("#color-scheme" + count).val(d3.values(d)[0]);
-                // Change background color of selected palette
-                d3.select(this.parentNode).selectAll(".palette").style("background-color", "#fff");
-                d3.select(this).style("background-color", "Indigo");
+        $(row).find("td:nth-of-type(3)").text(types);
+
+        var vals = col.values ? col.values.join(', ') : ('min: ' + col.range[0] + 'max: ' + col.range[1]);
+        $(row).find("td:nth-of-type(4)").text(vals);
+
+        console.log(row);
+        $("#file-info tbody").append(row);
+    }
+
+    $("#file-info").show();
+}
+
+function addLayer(data, layerInfo) {
+    var layerInfo = layerInfo || {};
+    var cols = data.columns;
+    var $elem = $("#layer-template")
+        .clone()
+        .removeAttr("id")
+        .removeClass("hidden");
+
+    // Replace "__NUM__" with index in layer ids
+    var layerIndex = $("#layer-container div.layer").length;
+    $elem.find("input,select,textarea")
+        .each(function (i, elem) {
+            var e = $(elem);
+            var name = e.attr('name');
+            if (/__NUM__/.test(name)) {
+                e.attr('name', name.replace('__NUM__', layerIndex));
             }
-        })
-        .selectAll(".swatch")
-        .data(function (d) {
-            return d.value;
-        })
-        .enter().append("span")
-        .attr("class", "swatch")
-        .style("background-color", function (d) {
-            return d;
         });
-}
 
-function createDataInfo(dataObject, fileName){
+    // Useful sub elements for layer
+    var $fields = $elem.find(".layer-field");
+    var $numColors = $elem.find(".layer-num-colors");
+    var $dataType = $elem.find(".layer-datatype");
+    var $schemes = $elem.find(".color-schemes");
+    var $schemeName = $elem.find(".color-scheme-name");
 
-    /**
-     * Switch to html template element
-     * @type {string}
-     */
-    var dataTitle = [
-    '<div class="panel panel-data">',
-        '<div class="panel-heading">',
-          '<h2 class="panel-title">',
-          '<font color="#E2E1D9">',
-          fileName,
-          '</font>',
-          '</h2>',
-        '</div>',
-    '</div>'].join("\n");
+    // Add available fields
+    $fields.empty();
+    cols.forEach(function (c) {
+        $fields.append($("<option/>").text(c.name));
+    });
+    $fields.append($("<option/>").text("Clusters"));
 
-    var dataTypes = "<table border=1 width=100%>";
-    dataTypes += "<tr>";
-    for(var i=0; i<dataObject.columns.length; i++) {
-        dataTypes += "<td>";
-        dataTypes += dataObject.columns[i] + " ";
-        dataTypes += "</td>";
+    // Gets information about the selected field.
+    var getFieldInfo = function() {
+        var f = $fields.val();
+        var fieldInfo = null;
+        if (f === 'Clusters') {
+            fieldInfo = CLUSTER_LAYER_INFO;
+        } else {
+            data.columns.forEach(function (c, i) {
+                if (c.name === f) {
+                    fieldInfo = c;
+                }
+            });
+        }
+        CG.assert(fieldInfo != null, "No layer " + f + " found");
+        return fieldInfo;
+    };
+
+    // Handler for changing the field
+    var fieldHandler = function() {
+        var fi = getFieldInfo();
+        $dataType.empty();
+        if (fi.sequential) $dataType.append($("<option>sequential</option>"));
+        if (fi.diverging) $dataType.append($("<option>diverging</option>"));
+        if (fi.qualitative) $dataType.append($("<option>qualitative</option>"));
+        // if ($dataType.children().length === 1) {
+            $dataType.trigger('change');
+        // }
+    };
+    $fields.on('change', fieldHandler);
+
+    // Handler for changing the data type
+    var dataTypeHandler = function() {
+        var colorRange;
+        var fi = getFieldInfo();
+        var dt = $dataType.val();
+        if (fi.name === 'Clusters') {
+            colorRange = [3, 12];
+        } else if (dt === 'sequential') {
+            colorRange = [3, 9];
+        } else if (dt === 'diverging') {
+            colorRange = [3, 11];
+        } else {
+            CG.assert(dt === 'qualitative');
+            CG.assert(fi.numUnique <= 12, "Too many unique values: " + fi.numUnique);
+            colorRange = [fi.numUnique, fi.numUnique];
+        }
+        $numColors.empty();
+        for (var i = colorRange[0]; i <= colorRange[1]; i++) {
+            $numColors.append($("<option>" + i + "</option>"))
+        }
+        // if ($numColors.children().length === 1) {
+            $numColors.trigger('change');
+        // }
+    };
+    $dataType.on("change", dataTypeHandler);
+
+    // Handler for changing the number of colors
+    var numColorHandler = function() {
+        var fi = getFieldInfo();
+        var dt = $dataType.val();
+        var nc = $numColors.val();
+        $schemes.css('height', nc * 10 + 4);
+
+        // Clear out everything but the template.
+        $schemes.children().each(function () {
+            if (!$(this).hasClass('template')) {
+                $(this).remove();
+            }
+        });
+        schemeNames[dt].forEach(function (n) {
+            var colors = colorbrewer[n][nc];
+            if (!colors) return;
+            var $schemeDiv = $schemes.find('.template')
+                                    .clone()
+                                    .removeClass('template')
+                                    .removeClass('hidden')
+                                    .css('display', 'inline-block')
+                                    .css('height', nc * 10);
+            var $rectTemplate = $schemeDiv.find('rect');
+            var $schemeSvg = $schemeDiv.find("svg").empty();
+            for (var i = 0; i < colors.length; i++) {
+                var $rect = $rectTemplate.clone()
+                    .removeClass('template')
+                    .removeClass('hidden')
+                    .attr('y', i * $rectTemplate.attr('width'))
+                    .attr('fill', colors[i]);
+                $schemeSvg.append($rect);
+            }
+            $schemes.append($schemeDiv);
+
+            // Handler for selecting a specific color
+            $schemeDiv.on('click', function() {
+                $schemes.find('div.scheme').removeClass('active');
+                $(this).addClass('active');
+                $schemeName.val(n + '_' + nc);
+            });
+        });
+    };
+    $numColors.on("change", numColorHandler);
+
+    $("#add-layer-button").before($elem);
+
+    // Auto-populate the fields with the specified information
+    if (cols.length === 0) {
+        $fields.trigger('change');
+    } else if (layerInfo.field) {
+        $fields.val(layerInfo.field).trigger('change');
+    }
+    if (layerInfo.id) {
+        $elem.find('.layer-id').val(layerInfo.id);
+    }
+    if (layerInfo.title) {
+        $elem.find('.layer-title').val(layerInfo.title);
+    }
+    if (layerInfo.description) {
+        $elem.find('.layer-description').val(layerInfo.description);
+    }
+    if (layerInfo.numColors) {
+        $numColors.val(layerInfo.numColors).trigger('change');
+    }
+    if (layerInfo.colorScheme) {
+        $numColors.val(layerInfo.numColors).trigger('change');
     }
 
-    dataTypes += "</tr><tr>";
-    dataTypes += "<td>";
-    dataTypes += dataObject.types[0];
-    dataTypes += "</td>";
+    // Enable the user to remove the layer.
+    // TODO:
+    $elem.find(".layer-remove").on('click', function() {
+        $elem.slideUp("slow", function() { $(this).remove(); });
+    });
 
-    for(var i=1; i<dataObject.types.length; i++) {
-        dataTypes += "<td>";
-        if (dataObject.types[i].diverging && dataObject.types[i].sequential){
-            dataTypes += "Diverging or Sequential " + "<br/>";
-        }
-        if (dataObject.types[i].qualitative){
-            dataTypes += "Qualitative" + "<br/>";
-        }
-        dataTypes += "</td>";
-    }
-    dataTypes += "</tr>";
-    dataTypes += "</table>";
-
-    var dataInfo = [
-    '<div class="panel panel-data">',
-        '<div class="panel-body">',
-          '<p></p>',
-          '<p>Number of Rows:',
-          dataObject.num_rows,
-          '</p>',
-          '<p>Errors that need repair:</p>',
-        '</div>',
-    '</div>',
-    ].join("\n");
-
-    $("#uploadInformation").append(dataTitle);
-    $("#uploadInformation").append(dataTypes);
-    $("#uploadInformation").append(dataInfo);
 }
-
-/**
- * TODO: remove template literals.
- * @param count
- */
-function appendVisualizationRequirements(count) {
-    var newReqs = $([
-        `<div id="newMetric${count}">`,
-        `<form onsubmit="ajax_metrics(${count}); return false;" id="metricsForm${count}">`,
-        '<p>',
-        '<label>Title:</label>',
-        `<textarea required name="title" id = "title${count}" rows = "1" cols = "40" placeholder="What do you want to call this visualization?"></textarea>`,
-        '</p>',
-        '<p>',
-        '<label>Description:</label>',
-        `<textarea name="description" id = "description${count}" rows = "3" cols = "40" placeholder="This shows..."></textarea>`,
-        '</p>',
-        `<p> Pick a field <select required name="field" id="fields${count}" onchange="createSelectTypes(this, ${count}); createNumClasses(this, document.getElementById(\'types${count}\'), ${count}); createSelectPalettes(document.getElementById(\'types${count}\'),  document.getElementById(\'number-classes${count}\'), ${count});" > </select> </p>`,
-        '<p></p>',
-        `<p> Pick a type <select required name="type" id="types${count}" onchange="createNumClasses(document.getElementById(\'fields${count}\'), this, ${count}); createSelectPalettes(this, document.getElementById(\'number-classes${count}\'), ${count});"> </select></p>`,
-        '<p></p>',
-        `<p> Pick a number of data classes <select required name="num_classes" id="number-classes${count}" onchange="createSelectPalettes(document.getElementById(\'types${count}\'), this, ${count});"> </select></p>`,
-        '<p></p>',
-        `<input required type="text" name="color_scheme" id="color-scheme${count}" maxlength="20" placeholder="Color Scheme"/>`,
-        '<hr>',
-        '</form>',
-        '</div>'
-    ].join("\n"));
-    $("#newRequirements").append(newReqs);
-}
-
 
 var schemeNames = {
     sequential: ["BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"],
@@ -373,14 +459,14 @@ var schemeNames = {
 
 function createMapDescription(vizName, vizDescription) {
     var description = [
-    '<div class="legend" id="legend-cluster">',
-          '<h1>',
-          "Map Description",
-          '</h1>',
-          '<p>',
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-          '</p>',
-    '</div>'
+        '<div class="legend" id="legend-cluster">',
+        '<h1>',
+        "Map Description",
+        '</h1>',
+        '<p>',
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+        '</p>',
+        '</div>'
     ].join("\n");
 
     $("h3").append(description);

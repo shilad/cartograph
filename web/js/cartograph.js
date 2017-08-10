@@ -1,6 +1,6 @@
 var CG = CG || {};
 
-
+CG.assert = console.assert;
 
 CG.init = function(layer) {
     CG.map = L.map('map');
