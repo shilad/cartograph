@@ -7,7 +7,7 @@ import luigi
 import json
 import Coordinates
 import RegionLabel
-import Config
+import MapConfig
 import Utils
 import scipy.stats as sps
 import shapely.geometry as shply
@@ -41,7 +41,7 @@ class CreateContours(MTimeMixin, luigi.Task):
     '''
 
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         if config.sampleBorders():
             return (Coordinates.CreateSampleCoordinates(),
                     cartograph.PreReqs.SampleCreator(config.get("GeneratedFiles",
@@ -58,12 +58,12 @@ class CreateContours(MTimeMixin, luigi.Task):
                     MakeRegions())
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("MapData", "centroid_contours_geojson")),
                 TimestampedLocalTarget(config.get("MapData", "density_contours_geojson")))
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
 
         if config.sampleBorders():
             coorPath = config.getSample("GeneratedFiles", 'article_coordinates')
@@ -110,7 +110,7 @@ class CreateContours(MTimeMixin, luigi.Task):
 
 @pytest.mark.skip(reason="Giang and Shilad are trying to figure out why this is failing!")
 def test_CreateContours():
-    config = Config.initTest()
+    config = MapConfig.initTest()
 
     with open(config.get("MapData", "centroid_contours_geojson")) as centroidContourData:
         centroidContour = json.load(centroidContourData)

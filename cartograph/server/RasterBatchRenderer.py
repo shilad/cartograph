@@ -6,7 +6,7 @@ import sys
 
 import time
 
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.server.CountryService import CountryService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
@@ -79,7 +79,7 @@ def render(conf, maxZoom):
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-    conf = Config.initConf(sys.argv[1])
+    conf = MapConfig.initConf(sys.argv[1])
     if len(sys.argv) > 2:
         maxZoom = int(sys.argv[2])
     else:

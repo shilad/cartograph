@@ -9,7 +9,7 @@ import shapely.geometry
 import shapely.wkt
 from luigi.postgres import CopyToTable, PostgresTarget
 
-import Config, Utils
+import MapConfig, Utils
 
 logger = logging.getLogger('cartograph.luigi')
 
@@ -77,7 +77,7 @@ class LoadJsonTask(MTimeMixin, CopyToTable):
 
 
     def __init__(self, *args, **kwargs):
-        config = Config.get()
+        config = MapConfig.get()
         self._host = config.get('PG', 'host')
         self._database = config.get('PG', 'database')
         self._user = config.get('PG', 'user') or None
@@ -214,7 +214,7 @@ class LoadGeoJsonTask(MTimeMixin, CopyToTable):
     """
 
     def __init__(self, *args, **kwargs):
-        config = Config.get()
+        config = MapConfig.get()
         self._host = config.get('PG', 'host')
         self._database = config.get('PG', 'database')
         self._user = config.get('PG', 'user') or None
@@ -352,7 +352,7 @@ class ExternalFile(luigi.ExternalTask):
 
 
 def getSampleIds(n=None):
-    config = Config.get()
+    config = MapConfig.get()
     # First check if we have an explicitly specified sample
     if config.has_option('ExternalFiles', 'sample_ids') :
         fn = config.get('ExternalFiles', 'sample_ids')

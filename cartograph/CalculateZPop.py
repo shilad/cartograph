@@ -1,4 +1,4 @@
-import Config
+import MapConfig
 import Utils
 import luigi
 import Coordinates
@@ -24,7 +24,7 @@ class ZPopTask(MTimeMixin, luigi.Task):
     i.e. determines when each article label should appear.
     '''
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles",
                                                  "zpop_with_id"))
 
@@ -36,7 +36,7 @@ class ZPopTask(MTimeMixin, luigi.Task):
                 )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         feats = pd.read_table(config.get("ExternalFiles",
                                          "popularity"), index_col='id')
         assert(feats.shape[0]!=0) #check that the popularity data is not empty
@@ -49,7 +49,7 @@ class ZPopTask(MTimeMixin, luigi.Task):
 
 
 def test_zpop_task():
-    config = Config.initTest()
+    config = MapConfig.initTest()
     # Create a unit test config object
     zpt = ZPopTask()
     zpt.run()
@@ -65,7 +65,7 @@ def test_zpop_task():
 #Is this used at all?
 class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("MapData", "coordinates"))
 
     def requires(self):
@@ -75,7 +75,7 @@ class CoordinatesGeoJSONWriter(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         points = Utils.read_features(
             config.get("GeneratedFiles", "zpop_with_id"),
             config.get("GeneratedFiles", "article_coordinates"),

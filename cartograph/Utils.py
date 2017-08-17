@@ -1,13 +1,11 @@
-import os
-import subprocess
-from ConfigParser import SafeConfigParser
-from collections import defaultdict
 import codecs
+import sys
+from collections import defaultdict
+
 import numpy as np
 import pandas as pd
-import sys
 
-from cartograph.Config import createConf
+from cartograph.server.ServerUtils import build_map
 
 
 def read_vectors(path):
@@ -55,7 +53,7 @@ def read_features(*files, **kwargs):
     for fn in files:
         with open(fn, "r") as f:
             fields = [s.strip() for s in f.readline().split('\t')]
-            if fields[-1] == 'vector': # SUCH A HACK!
+            if fields[-1] == 'vector':  # SUCH A HACK!
                 for line in f:
                     tokens = line.split('\t')
                     id = tokens[0]
@@ -78,7 +76,7 @@ def read_features(*files, **kwargs):
                         sys.stderr.write('invalid line %s in %s\n' % (`line`, `fn`))
     if required:
         return {
-            id : record
+            id: record
             for (id, record) in values.items()
             if all((k in record) for k in required)
         }
@@ -105,6 +103,7 @@ def write_tsv(filename, header, indexList, *data):
             writeFile.write("%s\t%s" % (indexList[i], data[i]))
         writeFile.close()
 
+
 def append_to_tsv(parentName, writeName, *data):
     with open(parentName, "r") as parentFile:
         lines = parentFile.readlines()
@@ -112,7 +111,7 @@ def append_to_tsv(parentName, writeName, *data):
         indices = header.split("\t")
         lastIndex = len(lines) - 1
 
-    assert(len(data) == len(indices) - 1)
+    assert (len(data) == len(indices) - 1)
 
     with open(writeName, "w") as writeFile:
         for line in lines:
@@ -141,14 +140,16 @@ def sort_by_feature(articleDict, featureName, reverse=True):
     allArticles.sort(key=lambda x: float(x[1][featureName]), reverse=reverse)
     return allArticles
 
+
 def sort_by_percentile(numBins):
-    unitStep = 100/numBins
+    unitStep = 100 / numBins
     percentileDataValue = defaultdict(dict)
-    for i, percentile in enumerate(list(range(0,100,unitStep))):
+    for i, percentile in enumerate(list(range(0, 100, unitStep))):
         print(i)
         print("=========")
-        print(i+1)
+        print(i + 1)
         # np.percentile(percentileList, (i, i+1))
+
 
 class InputError(Exception):
     """Exception raised for errors in the input.
@@ -162,6 +163,7 @@ class InputError(Exception):
         self.expr = expr
         self.msg = msg
 
+
 def calc_area(points):
     unzipped = zip(*points)
     x = unzipped[0]
@@ -172,34 +174,3 @@ def calc_area(points):
 
 def zoomMeters(zoom):
     return 156543.03 / (2 ** zoom)
-
-
-def build_map(config_path):
-    """Build the map config file at config_path and output the build log/errors to files in its baseDir
-    :param config_path: full path to the config file of the map to be built
-    """
-
-    # Extract the location of the base dir from the config file
-    config = createConf(config_path)
-    output_path = config.get('DEFAULT', 'externalDir')
-
-    # Set up the environment variables
-    python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
-    working_dir = os.getcwd()
-    exec_path = os.getenv('PATH')
-
-    env = {'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
-
-    # Build it!
-    retCode = subprocess.call(
-        ['luigi', '--module', 'cartograph', 'ParentTask', '--local-scheduler', '--retcode-task-failed', '1'],
-        env=env,
-        stdout=open(os.path.join(output_path, 'build.log'), 'w'),
-        stderr=open(os.path.join(output_path, 'build.err'), 'w')
-    )
-    if retCode != 0:
-        raise OSError, 'Luigi build failed! Log available in ' + output_path + '/build.err'
-
-
-if __name__=='__main__':
-    build_map('./data/conf/user/asdfasf.txt')

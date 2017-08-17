@@ -5,18 +5,16 @@ from cartograph.metrics.Utils import color_from_code
 
 
 class DivergingMetric:
-    def __init__(self, fields, colorCode, minVal, maxVal, neutralColor='#888'):
+    def __init__(self, field, colorCode, minVal, maxVal, neutralColor='#888'):
         """Initialize a DivergingMetric. A DivergingMetric's main purpose is embodied by its .getColor() method, which
         provides the color information for a given point at a particular zoom level. A DivergingMetric colors each point
         by the quantitative value in one of its columns.
 
-        :param fields: list of 1 string of name of the column to be used as a qualitative variable e.g. ["name"]
+        :param fields: string of name of the column to be used as a qualitative variable e.g. "name"
         :param colorCode: string of Python identifier of a color palette in module palettable.colorbrewer.qualitative
         :param neutralColor: str of form "#rgb" where r, g, & b are all hexadecimal digits 0-f for each color component
         """
-        assert (len(fields) == 1)
-        self.fields = fields
-        self.field = fields[0]
+        self.field = field
         if not hasattr(dv, colorCode):
             raise ValueError, "Unknown color palette for diverging metric: " + repr(colorCode)
         color_palette = getattr(dv, colorCode)

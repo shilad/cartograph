@@ -1,7 +1,7 @@
 import logging
 import os
 import shutil
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.server.AddMetricService import AddMetricService
 from cartograph.server.CountryService import CountryService
 from cartograph.server.InfoService import InfoService
@@ -28,7 +28,7 @@ class Map:
         self.last_update = os.path.getmtime(conf_path)
         self._send_update = False
 
-        conf = Config.initConf(conf_path)
+        conf = MapConfig.initConf(conf_path)
         self.name = conf.get('DEFAULT', 'dataset')
     
         if os.getenv('CLEAR_CACHE'):

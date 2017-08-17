@@ -13,6 +13,7 @@ function usage() {
 
 MODULE=cartograph
 TASK=ParentTask
+STATUSFILE=
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -32,6 +33,10 @@ while [ "$1" != "" ]; do
             CONF=$2
             shift
             ;;
+        --status)
+            STATUSFILE=$2
+            shift
+            ;;
         *)
             echo "ERROR: unknown parameter \"$1\""
             usage
@@ -43,13 +48,23 @@ done
 
 export CARTOGRAPH_CONF=$CONF
 
+function maybeUpdateStatus() {
+    if [ -n "$STATUSFILE" ]; then
+        echo $@ >$STATUSFILE
+    fi
+}
+
+maybeUpdateStatus "RUNNING $$"
+
 if luigi --module $MODULE $TASK \
          --local-scheduler \
          --retcode-task-failed 1 \
-         --logging-conf-file ./data/conf/logging.conf; then
+         --logging-conf-file ./conf/logging.conf; then
 	echo "LUIGI BUILD SUCCEEDED" >&2
+	maybeUpdateStatus SUCCEEDED
 	exit 0
 else
 	echo "LUIGI BUILD FAILED" >&2
+	maybeUpdateStatus FAILED
 	exit 1
 fi

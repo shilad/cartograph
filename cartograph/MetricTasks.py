@@ -5,7 +5,7 @@ import logging
 
 import luigi
 
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.Coordinates import CreateFullCoordinates
 from cartograph.LuigiUtils import MTimeMixin, TimestampedLocalTarget, ExternalFile
 from cartograph.Utils import read_features
@@ -18,7 +18,7 @@ class MetricsCode(MTimeMixin, luigi.ExternalTask):
 
 class AllMetrics(luigi.WrapperTask):
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         result = []
         metricDir = config.get('DEFAULT', 'metricDir')
         for name in config.get('Metrics', 'active').split():
@@ -44,14 +44,14 @@ class MetricData(MTimeMixin, luigi.Task):
         return TimestampedLocalTarget(self.outPath)
 
     def requires(self):
-        conf = Config.get()
+        conf = MapConfig.get()
         return (ExternalFile(self.inPath),
                 ExternalFile(conf.get('ExternalFiles', 'external_ids')),
                 CreateFullCoordinates(),
                 MetricsCode())
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         points = read_features(
             config.get('GeneratedFiles', 'article_coordinates'),
             config.get('ExternalFiles', 'external_ids'),

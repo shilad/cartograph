@@ -6,7 +6,7 @@ from luigi.postgres import CopyToTable
 
 logger = logging.getLogger('cartograph.edges')
 
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.Coordinates import CreateFullCoordinates
 from cartograph.LuigiUtils import TimestampedLocalTarget, MTimeMixin, TimestampedPostgresTarget, to_list
 from cartograph.Utils import read_features
@@ -19,7 +19,7 @@ class _CreateEdgesCode(MTimeMixin, luigi.ExternalTask):
 class _RawEdges(MTimeMixin, luigi.ExternalTask):
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("ExternalFiles", "links"))
 
     def requires(self):
@@ -28,7 +28,7 @@ class _RawEdges(MTimeMixin, luigi.ExternalTask):
 class CreateCoordinateEdges(MTimeMixin, luigi.Task):
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles", "edges_with_coords"))
 
 
@@ -40,7 +40,7 @@ class CreateCoordinateEdges(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         coords = read_features(config.get("GeneratedFiles", "article_coordinates"))
         pathIn = config.get("ExternalFiles", "links")
         pathOut = config.get("GeneratedFiles", "edges_with_coords")
@@ -77,7 +77,7 @@ class CreateCoordinateEdges(MTimeMixin, luigi.Task):
 
 class _CreateEdgeBundles(MTimeMixin, luigi.Task):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles", "edge_bundles"))
 
 
@@ -88,12 +88,12 @@ class _CreateEdgeBundles(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         assert(False)
 
 class LoadCoordinateEdges(MTimeMixin, postgres.CopyToTable):
     def __init__(self):
-        config = Config.get()
+        config = MapConfig.get()
         self._host = config.get('PG', 'host')
         self._database = config.get('PG', 'database')
         self._user = config.get('PG', 'user') or None

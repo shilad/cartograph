@@ -7,7 +7,7 @@ from tsne import bh_sne
 import pandas as pd
 import filecmp
 
-import FastKnn, Utils, Config
+import FastKnn, Utils, MapConfig
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
 from PreReqs import WikiBrainNumbering
 from PreReqs import SampleCreator
@@ -23,12 +23,12 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.getSample("ExternalFiles",
                                                        "article_embedding"))
 
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (
             WikiBrainNumbering(),
             AugmentCluster(),
@@ -36,7 +36,7 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         # Create the embedding.
         featureDict = Utils.read_vectors(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"))
         sampleIds = getSampleIds()
@@ -60,7 +60,7 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
 
 
 def test_CreateEmbedding_task():
-    config = Config.initTest()
+    config = MapConfig.initTest()
     report = []
     # Create a unit test config object
     for i in range(3):
@@ -101,7 +101,7 @@ def test_CreateEmbedding_task():
 
 class CreateFullAnnoyIndex(MTimeMixin, luigi.Task):
     def __init__(self, *args, **kwargs):
-        config = Config.get()
+        config = MapConfig.get()
         super(CreateFullAnnoyIndex, self).__init__(*args, **kwargs)
         self.vecPath = config.get("GeneratedFiles", "vecs_with_labels_clusters")
         self.knn = FastKnn.FastKnn(self.vecPath)
@@ -118,13 +118,13 @@ class CreateFullAnnoyIndex(MTimeMixin, luigi.Task):
 
 class CreateSampleAnnoyIndex(MTimeMixin, luigi.Task):
     def __init__(self, *args, **kwargs):
-        config = Config.get()
+        config = MapConfig.get()
         super(CreateSampleAnnoyIndex, self).__init__(*args, **kwargs)
         self.vecPath = config.getSample("GeneratedFiles", "vecs_with_labels_clusters")
         self.knn = FastKnn.FastKnn(self.vecPath)
 
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         return WikiBrainNumbering(), SampleCreator(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
 
     def output(self):
@@ -141,7 +141,7 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                                        "article_coordinates"))
 
@@ -149,7 +149,7 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
         return CreateEmbedding()
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
 
         # Rescale sampled embedded points
         points = pd.read_table(config.getSample("ExternalFiles",
@@ -170,7 +170,7 @@ class CreateSampleCoordinates(MTimeMixin, luigi.Task):
 
 
 def test_createSample_task():
-    config = Config.initTest()
+    config = MapConfig.initTest()
 
     # Create a unit test config object
     testSample = CreateSampleCoordinates()
@@ -185,14 +185,14 @@ def test_createSample_task():
 
 class CreateFullCoordinates(MTimeMixin, luigi.Task):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles", "article_coordinates"))
 
     def requires(self):
         return CreateSampleCoordinates(), WikiBrainNumbering(), CreateSampleAnnoyIndex()
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         sampleCoords = pd.read_table(config.getSample("GeneratedFiles",
                                                       "article_coordinates"), index_col='index')
         sampleCoords.dropna(axis=0, how='any', inplace=True)
@@ -277,7 +277,7 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
 
 
 def test_createCoordinates_task():
-    config = Config.initTest()
+    config = MapConfig.initTest()
 
     knn = FastKnn.FastKnn(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"))
     knn.rebuild()

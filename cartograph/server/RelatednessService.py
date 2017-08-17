@@ -6,7 +6,7 @@ import sys
 import falcon
 import shapely.geometry
 
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.server.PointService import PointService
 from cartograph.server.TopoJson import TopoJsonBuilder
 
@@ -58,7 +58,7 @@ class RelatednessService:
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-    conf = Config.initConf(sys.argv[1])
+    conf = MapConfig.initConf(sys.argv[1])
     ps = PointService(conf)
     rs = RelatednessService(conf, ps)
     for p, score in rs.related('dog'):

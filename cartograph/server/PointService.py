@@ -115,12 +115,12 @@ class PointService:
                              shapely.geometry.Point(p['x'], p['y']), props)
 
 if __name__ == '__main__':
-    from cartograph import Config
+    from cartograph import MapConfig
 
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-    Config.initConf('data/conf/simple.txt')
-    pd = PointService(Config.get())
+    MapConfig.initConf('data/conf/simple.txt')
+    pd = PointService(MapConfig.get())
     for p in pd.getTilePoints(6, 26, 36, 10):
         print p['id'], p['zpop']
     # for p in pd.getTilePoints(6, 27, 37, 1000):

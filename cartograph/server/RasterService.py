@@ -19,7 +19,7 @@ import time
 import sys
 
 
-from cartograph import Config
+from cartograph import MapConfig
 
 from math import pi, cos, sin, log, exp, atan
 
@@ -153,7 +153,7 @@ class RasterService:
                 polysByName[props['clusterId'], int(props['contourNum'])] = shp
 
         numContours = self.conf.getint('PreprocessingConstants', 'num_contours')
-        colors = Config.getFullColorWheel()
+        colors = MapConfig.getFullColorWheel()
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size, self.size)
         context = cairo.Context(surface)
         # First draw clusters
@@ -248,7 +248,7 @@ class RasterService:
 
 if __name__ == '__main__':
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-    conf = Config.initConf(sys.argv[1])
+    conf = MapConfig.initConf(sys.argv[1])
     ps = PointService(conf)
     cs = CountryService(conf)
     ms = RasterService(conf, ps, cs)

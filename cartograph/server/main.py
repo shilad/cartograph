@@ -4,8 +4,10 @@ import logging
 import os
 import sys
 from falcon_multipart.middleware import MultipartMiddleware
+
+from cartograph.server import ServerConfig
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
-from cartograph.server.AddMapService import AddMapService
+from cartograph.server.AddMapService2 import AddMapService
 from cartograph.server.Map import Map
 from cartograph.server.StaticService import StaticService
 from cartograph.server.UploadService import UploadService
@@ -13,12 +15,30 @@ from cartograph.server.UploadService import UploadService
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
+# Initialize the server configuration
 if __name__ == '__main__' and len(sys.argv) > 1:
-    meta_config_path = sys.argv[1]
+    server_config_path = sys.argv[1]
+elif os.getenv('CARTOGRAPH_SERVER_CONFIG'):
+    server_config_path = os.getenv('CARTOGRAPH_SERVER_CONFIG')
 else:
+    server_config_path = './conf/default_server.conf'
+logging.info('using server config: ' + repr(server_config_path))
+server_config = ServerConfig.init(server_config_path)
+
+# Initialize the meta map configuration
+# TODO: SWS: Make meta the only available config
+if __name__ == '__main__' and len(sys.argv) > 2:
+    meta_config_path = sys.argv[2]
+elif os.getenv('CARTOGRAPH_CONFIGS'):
     meta_config_path = os.getenv('CARTOGRAPH_CONFIGS')
-    if not meta_config_path:
-        raise Exception, 'CARTOGRAPH_CONFIGS environment variable not set!'
+else:
+    meta_config_path = server_config.get('DEFAULT', 'default_multi_map_config')
+logging.info('using meta map config: ' + repr(meta_config_path))
+if not os.path.isfile(meta_config_path):
+    logging.info('meta map config doesnt exist, so creating an empty one.')
+    with open(meta_config_path, 'w') as f:
+        f.write(METACONF_FLAG + '\n')
+server_config = ServerConfig.init(server_config_path)
 
 configs = {}
 
@@ -27,7 +47,6 @@ logging.info('configuring falcon')
 
 # falcon.API instances are callable WSGI apps
 app = falcon.API(middleware=[MultipartMiddleware()])
-
 
 # Determine whether the input file is a multi-config (i.e. paths to multiple files) or a single config file
 with open(meta_config_path, 'r') as meta_config:
@@ -67,8 +86,8 @@ if map_services['_multi_map']:
     UPLOAD_DIR = 'tmp/upload'
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
-    app.add_route('/upload', UploadService(map_services, UPLOAD_DIR))
-    app.add_route('/add_map/{map_name}', AddMapService(map_services, UPLOAD_DIR))
+    app.add_route('/upload', UploadService(server_config, map_services))
+    app.add_route('/add_map', AddMapService(server_config, map_services))
 
 
 # Add way to get static files generally (i.e. without knowing the name of any active map)
@@ -83,6 +102,8 @@ if __name__ == '__main__':
     logging.info('starting server')
 
     from wsgiref import simple_server
-    httpd = simple_server.make_server('0.0.0.0', 4000, app)
+    httpd = simple_server.make_server(server_config.get('DEFAULT', 'host'),
+                                      int(server_config.get('DEFAULT', 'port')),
+                                      app)
     logging.info('server ready!')
     httpd.serve_forever()

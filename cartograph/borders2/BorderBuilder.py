@@ -7,7 +7,7 @@ from VoronoiWrapper import VoronoiWrapper
 from cartograph import Utils
 
 logger = logging.getLogger('luigi-interface')
-from cartograph import Config
+from cartograph import MapConfig
 
 class BorderBuilder:
     def __init__(self, config):
@@ -184,7 +184,7 @@ class BorderBuilder:
                     pair +=1
         return tempDictOfRegions, finalDictOfRegions
 
-Config.initConf("./data/conf/summer2017_simple.txt")
+MapConfig.initConf("./data/conf/summer2017_simple.txt")
 
-bb = BorderBuilder(Config.get())
+bb = BorderBuilder(MapConfig.get())
 bb.build()

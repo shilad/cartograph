@@ -27,7 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
             integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
             crossorigin="anonymous"></script>
-    <script src="js/jquery.min.js"/>
+    <script src="js/jquery.min.js"></script>
     <!--<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>-->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
             integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
@@ -36,8 +36,9 @@
 
     <script src="js/jquery.form.js"></script>
     <script src="js/jquery-fileupload.min.js"></script>
-    <script src="js/mapCreator.js"></script>
+    <script src="js/carto-utils.js"></script>
     <script src="js/cartograph.js"></script>
+    <script src="js/mapCreator.js"></script>
     <script src="js/colorbrewer.js"></script>
     <script src="js/d3.min.js"></script>
     <script src="js/jquery.validate.js"></script>
@@ -71,23 +72,29 @@
 <div class="mapMaker-body container">
     <h1>MapMaker</h1>
 
-    <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="uploadForm">
+    <form method="POST" name="newMap" enctype="multipart/form-data" action="../upload" id="upload-form">
 
         <div class="row step active">
             <div class="col-1 caption">
                 <div class="step-num">1.</div>
             </div>
-            <div class="col-11 contents">
-                <h4>Upload a tab-separated dataset.</h4>
+            <h4 class="col-11">Create Base Map</h4>
+
+
+            <p class="offset-1 col-11 step-description">
+                Upload a tab-separated dataset that will be used to create the cities and countries on your map.
+            </p>
+
+            <div class="offset-1 col-11 contents">
                 <div class="row hidden" id="upload-error">
                     <div class="alert alert-danger" role="alert">
                         <strong>Oh snap!</strong> Change a few things up and try submitting again.
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-12">
+                    <div class="col-7">
                         <div class="form-group">
-                            <input type="text" class="form-control" required
+                            <input id="map-title" type="text" class="form-control form-control-sm" required
                                    placeholder="Title of Map" name="map-title">
                             <small id="map-title-help" class="form-text text-muted">
                                 An understandable name for your map.
@@ -96,9 +103,10 @@
                     </div>
                     <div class="col-12">
                         <div class="form-group">
-                            <span class="url-prefix">http://cartograph.info/</span><input class="custom-control col-8" required type="text" name="map_name"
-                                   aria-describedby="map_name_help"
-                                   maxlength="100" placeholder="unique-map-id" id="map-id"/>
+                            <span class="url-prefix">http://cartograph.info/</span><input
+                                class="form-control form-control-sm url-input col-8" required type="text"
+                                name="map_name"
+                                aria-describedby="map_name_help" placeholder="unique-map-id" id="map-id"/>
                             <small id="map-id-help" class="form-text text-muted">The map name is a unique identifier
                                 for
                                 your
@@ -106,29 +114,36 @@
                             </small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-12">
                         <div class="form-group">
                             <label class="custom-file">
-                              <input type="file" id="inputFile" required class="custom-file-input">
-                              <span class="custom-file-control"></span>
+                                <input type="file" id="inputFile" required class="custom-file-input">
+                                <span class="custom-file-control"></span>
                             </label>
                             <small id="fileHelp" class="form-text text-muted">Select a tab-separated file.</small>
                         </div>
                     </div>
 
-                    <div class="offset-1 col-7">
+                    <div class="col-12">
                         <div class="form-group">
-                            <button type="submit" class="form-control btn btn-outline-primary col-4" id="uploadButton">Upload
+                            <button class="btn gray-button" id="uploadButton">Upload
                                 file
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <div id="file-info" class="hiddenz">
-                    <h6>Summary of <span>Foo</span> (<span></span> rows)</h6>
+
+                    <div class="col-12" id="upload-status">
+                    </div>
+                </div>
+                <div id="file-info" class="hidden">
+
                     <table class="table table-sm table-bordered table-striped">
                         <thead>
+                        <tr>
+                            <th colspan="5" class="summary"><b>Summary of <span>Foo</span> (<span></span> rows):</b>
+                            </th>
+                        </tr>
                         <tr>
                             <th>Column</th>
                             <th>Field</th>
@@ -154,13 +169,20 @@
     </form>
 
 
-    <form>
+    <form id="layer-form">
+        <input type="hidden" name="map-title"/>
+        <input type="hidden" name="map-id"/>
         <div class="row step">
             <div class="col-1 caption">
                 <div class="step-num">2.</div>
             </div>
-            <div class="col-11 contents" id="layer-container">
-                <h4>Create Layers</h4>
+            <h4 class="col-11">Create Layers</h4>
+
+            <p class="offset-1 col-11 step-description">
+                Select data layers that the map will visualize.
+            </p>
+
+            <div class="offset-1 col-11 contents" id="layer-container">
                 <div class="row layer hidden" id="layer-template">
                     <div class="col-4 form-group form-group-sm">
                         <select class="form-control form-control-sm layer-field" name="layer-field-__NUM__">
@@ -170,8 +192,10 @@
                     </div>
 
                     <div class="offset-1 col-6 form-group">
-                        <span  class="url-prefix">http://cartograph.info/map-name/</span><input type="text" class="custom-control layer-id col-5" required
-                                   placeholder="unique-layer-id" name="layer-name-__NUM__">
+                        <span class="url-prefix">http://cartograph.info/map-name/</span><input type="text"
+                                                                                               class="form-control form-control-sm url-input layer-id col-5"
+                                                                                               placeholder="unique-layer-id"
+                                                                                               name="layer-name-__NUM__">
                         <small class="form-text text-muted">May contain characters a-z, A-Z, 0-9, and _.</small>
                     </div>
 
@@ -181,15 +205,15 @@
 
                     <div class="col-4 form-group form-group-sm">
                         <label>Title:
-                            <input type="text" class="form-control form-control-sm layer-title" required
+                            <input type="text" class="form-control form-control-sm layer-title"
                                    placeholder="Short name for layer" name="layer-title-__NUM__">
                         </label>
                     </div>
                     <div class="offset-1 col-6 form-group form-group-sm">
                         <label>Description:
-                            <textarea class="form-control form-control-sm layer-description" required
+                            <textarea class="form-control form-control-sm layer-description"
                                       placeholder="This visualization shows..."
-                                        name="layer-description-__NUM__"></textarea>
+                                      name="layer-description-__NUM__"></textarea>
                         </label>
                     </div>
 
@@ -197,7 +221,7 @@
                         <label>Datatype:
                             <select class="form-control form-control-sm layer-datatype"
                                     name="layer-datatype-__NUM__"
-                                    >
+                            >
                                 <option>sequential</option>
                                 <option>diverging</option>
                                 <option>qualitative</option>
@@ -209,7 +233,7 @@
                         <label># Colors:
                             <select class="form-control form-control-sm layer-num-colors"
                                     name="layer-num-colors-__NUM__"
-                                    >
+                            >
                                 <option>3</option>
                                 <option>5</option>
                                 <option>7</option>
@@ -221,7 +245,7 @@
                     </div>
                     <div class="offset-1 col-6 form-group">
                         <label>Color Scheme:
-                            <input required type="hidden"
+                            <input type="hidden"
                                    name="layer-color-scheme-__NUM__"
                                    class="color-scheme-name">
                         </label>
@@ -238,7 +262,9 @@
                     </div>
                 </div>
                 <div class="row">
-                    <a href="#" id="add-layer-button" class="col-4">Add a new layer</a>
+                    <div class="col-12">
+                        <button href="#" id="add-layer-button" class="btn gray-button">Add a new layer</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -247,29 +273,30 @@
             <div class="col-1 caption">
                 <div class="step-num">3.</div>
             </div>
-            <div class="col-11 contents">
-                <h4>Render Map</h4>
+            <h4 class="col-11">Render Map</h4>
+
+            <p class="offset-1 col-11 step-description">
+                Render the map and layers using Cartograph.
+            </p>
+
+            <div class="offset-1 col-11 contents" id="render-container">
                 <div class="row">
-                    <div class="form-group col-12">
-                        <label for="exampleInputEmail1">Email address</label>
-                        <input type="email" class="form-control col-4" id="exampleInputEmail1"
+                    <div class="form-group col-7">
+                        <input type="email" class="form-control form-control-sm" id="email-input" required
                                aria-describedby="emailHelp" placeholder="Enter email" maxlength="60">
                         <small id="emailHelp" class="form-text text-muted">We will email you when your map is ready
                         </small>
                     </div>
 
-                    <div class="col-4">
-                        <div class="form-group">
-                            <label for="uploadButton">&nbsp;</label>
-                            <button type="submit" class="form-control btn btn-primary" id="generateButton">Generate
-                                Map
-                            </button>
-                        </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success" id="generateButton">Generate
+                            Map
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </form>
+</form>
 </div>
 </body>
 </html>

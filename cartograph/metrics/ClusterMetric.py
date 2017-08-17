@@ -2,7 +2,7 @@ import colorsys
 
 import colour
 
-from cartograph import Config
+from cartograph import MapConfig
 
 
 class ClusterMetric:
@@ -13,7 +13,7 @@ class ClusterMetric:
         nc = conf.getint('PreprocessingConstants', 'num_contours')
         self.colors = {}
         self.colorCountries = True
-        for cid, ccolors in Config.getFullColorWheel().items():
+        for cid, ccolors in MapConfig.getFullColorWheel().items():
             self.colors[cid] = colour.Color(ccolors[nc - 1]).rgb
 
         self.neutralColor = colour.Color("#777").rgb

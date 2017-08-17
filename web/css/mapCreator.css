@@ -6,16 +6,15 @@ optgroup,
 select,
 textarea,
 body {
-  /*font-family: "GeosansLight";*/
-  /*font-weight: bolder;*/
 }
 
 body {
-  /*background-color: #E2E1D9;*/
 }
 
 
-
+/**
+ * Nav style
+ */
 nav a.navbar-brand {
   font-size: 1.5rem;
 }
@@ -24,36 +23,101 @@ nav a.nav-item {
   font-size: 1.4rem;
 }
 
+/*************** Overall Step Styling *****************************************/
 div.step {
   margin-top: 30px;
 }
 
+/* Step title and numbering */
 div.step .step-num {
   font-size: 1.8rem;
   margin-top: -0.5rem;
 }
+
 div.step h4 {
   margin-bottom: 20px;
 }
-div.step .caption, div.step h4 {
+div.step .caption, div.step h4, div.step .step-description  {
   color: #bbb;
 }
-
-
-/**
- * Step style
- */
 div.step.active .caption, div.step.active h4{
   color: #000;
 }
+
+.step.active .step-description, .step .form-text  {
+  color: #999 !important;
+}
+
+.step .step-description {
+  font-size: 1rem;
+}
+
 
 div.step .caption {
   text-align: center;
 }
 
-div.step .contents .active {
-  border-left: 1px dashed #ccc;
-  border-bottom: 1px solid #ccc;
+div.step .contents {
+  display: none;
+}
+div.step.active .contents {
+  display: block;
+}
+
+/**
+ * Gray buttons
+ */
+.gray-button {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+}
+.gray-button:hover {
+  background-color: #ddd;
+  border: 1px solid #777;
+  cursor: pointer;
+}
+
+
+
+/**
+ * Map and layer name / URL prefix
+ */
+.url-prefix {
+  font-size: .875rem;
+}
+.url-input {
+  display: inline-block !important;
+}
+#map-id {
+  width: 42.5%;
+}
+
+/*************** Base Map *****************************************/
+
+/**
+ * See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
+ */
+
+.custom-file-control.selected:lang(en)::after {
+  content: "" !important;
+}
+.custom-file-control::before, .custom-file-control {
+  padding: 4px 8px 4px 8px !important;
+}
+.custom-file-input,
+.custom-file,
+.custom-file-control,
+.custom-file-control::before,
+.custom-file-control::after {
+  height: 1.875rem !important;
+}
+
+.custom-file-control:lang(en)::before, .custom-file-control:lang(en)::after, #custom-file, .custom-file-control, #inputFile {
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+#upload-status {
+  font-size: 0.875rem;
 }
 
 /**
@@ -61,6 +125,10 @@ div.step .contents .active {
  */
 #file-info table {
   font-size: 0.8rem;
+}
+#file-info table th {
+  font-weight: 500;
+  background-color: #f6f6f6;
 }
 
 /**
@@ -70,14 +138,7 @@ div.step .contents .active {
 
 #layer-container .layer {
   margin-bottom: 10px;
-}
-
-/**
- * Map and layer name / URL prefix
- */
-.url-prefix {
-  /*font-family: monospace;*/
-  font-size: 1rem;
+  font-size: .875rem;
 }
 
 /**
@@ -89,8 +150,6 @@ div.step .contents .active {
   vertical-align: center;
   cursor: pointer;
 }
-
-
 
 /**
  * Color schemes
@@ -108,12 +167,7 @@ div.color-schemes div.scheme.active {
   outline: 2px solid #000;
 }
 
-/**
- * See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
- */
-.custom-file-control.selected:lang(en)::after {
-  content: "" !important;
-}
+
 
 @font-face{
   font-family: "GeosansLight";

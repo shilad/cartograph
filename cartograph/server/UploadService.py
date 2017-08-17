@@ -14,15 +14,16 @@ logger = logging.getLogger('cartograph.upload')
 
 
 class UploadService:
-    def __init__(self, map_services, upload_dir):
+    def __init__(self, server_config, map_services):
         """
         Creates a new service to handle data uploads.
         Args:
+            server_config: ServerConfig object
             map_services: Dictionary from map name to map
-            upload_dir: Absolute full path to map directory
         """
+        self.server_config = server_config
         self.map_services = map_services
-        self.upload_dir = upload_dir
+        self.upload_dir = server_config.get('DEFAULT', 'upload_dir')
 
         if not os.path.isdir(self.upload_dir):
             os.makedirs(self.upload_dir)

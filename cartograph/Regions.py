@@ -1,5 +1,5 @@
 import luigi
-import Config
+import MapConfig
 import Utils
 import Coordinates
 import numpy as np
@@ -30,12 +30,12 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.getSample("GeneratedFiles",
                                                        "clusters_with_id"))
 
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (
             RegionCode(),
             AugmentLabel(),
@@ -47,7 +47,7 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         featureDict = Utils.read_vectors(config.getSample("GeneratedFiles", "vecs_with_labels"))
         vectors = np.array([list(i) for i in featureDict['vector']])
 
@@ -70,7 +70,7 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
                       columns=['cluster'])
 
 def test_MakeSampleRegions_task():
-    config = Config.initTest()
+    config = MapConfig.initTest()
     # Create a unit test config object
     testSampleRegion = MakeSampleRegions()
     testSampleRegion.run()
@@ -111,13 +111,13 @@ def test_MakeSampleRegions_task():
 
 class CreateSampleRegionIndex(MTimeMixin, luigi.Task):
     def __init__(self, *args, **kwargs):
-        config = Config.get()
+        config = MapConfig.get()
         super(CreateSampleRegionIndex, self).__init__(*args, **kwargs)
         self.vecPath = config.getSample("GeneratedFiles", "vecs_with_labels")
         self.knn = FastKnn.FastKnn(self.vecPath)
 
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         return WikiBrainNumbering(), PreReqs.SampleCreator(config.get("GeneratedFiles", "vecs_with_labels"))
 
     def output(self):
@@ -129,12 +129,12 @@ class CreateSampleRegionIndex(MTimeMixin, luigi.Task):
 
 class MakeRegions(MTimeMixin, luigi.Task):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles",
                                                  "clusters_with_id"))
 
     def requires(self):
-        config = Config.get()
+        config = MapConfig.get()
         if config.sampleBorders():
             return (
                 MakeSampleRegions(),
@@ -151,7 +151,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
             )
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
 
         vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels"))
 
@@ -198,7 +198,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
 
 def test_MakeRegions_task():
     # sample_size in config == 50
-    config = Config.initTest()
+    config = MapConfig.initTest()
     knn = FastKnn.FastKnn(config.getSample("GeneratedFiles", "vecs_with_labels"))
     knn.rebuild()
 

@@ -19,15 +19,15 @@ _requiredSections = [EXTERNAL_FILES, PREPROCESSING_FILES,
                      PREPROCESSING_CONSTANTS, MAP_CONSTANTS,
                      MAP_DATA, MAP_IMG_RESOURCES, MAP_OUTPUT]
 
-CONFIG = None
+MAP_CONFIG = None
 COLORWHEEL = None
 
 def get():
-    global CONFIG
+    global MAP_CONFIG
 
-    if not CONFIG:
+    if not MAP_CONFIG:
         initConf()
-    return CONFIG
+    return MAP_CONFIG
 
 def getColorWheel():
     global COLORWHEEL
@@ -53,11 +53,11 @@ def initTest():
     src = './data/test-orig'  # Path/Location of the source directory
     dst = './data/test'
     distutils.dir_util.copy_tree(src, dst)
-    return initConf("./data/conf/test.txt")
+    return initConf("./data/conf/unit_test.conf")
 
 def createConf(confFile=None):
     conf = SafeConfigParser()
-    with open("./data/conf/defaultconfig.txt", "r") as configFile:
+    with open("./conf/default_map.conf", "r") as configFile:
         conf.readfp(configFile)
 
     if confFile is None:
@@ -84,11 +84,11 @@ def createConf(confFile=None):
     return conf
 
 def initConf(confFile=None):
-    global CONFIG
+    global MAP_CONFIG
 
-    CONFIG = createConf(confFile)
+    MAP_CONFIG = createConf(confFile)
 
-    return CONFIG
+    return MAP_CONFIG
 
 def getFullColorWheel():
     return _coloringFeatures(30)

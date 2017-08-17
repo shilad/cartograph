@@ -7,11 +7,9 @@ from cartograph.metrics.Utils import color_from_code
 
 class SequentialMetric:
     # TODO: Document this
-    def __init__(self, fields, colorCode, maxValue, mode='discrete', percentile=False, neutralColor='#777'):
+    def __init__(self, field, colorCode, maxValue, mode='discrete', percentile=False, neutralColor='#777'):
         # Mode: Continuous or discrete
-        assert (len(fields) == 1)
-        self.fields = fields
-        self.field = fields[0]
+        self.field = field
         self.palette = getattr(sq, colorCode)
         self.color = self.palette.colors
         self.numColors = self.palette.number

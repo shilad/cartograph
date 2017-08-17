@@ -1,7 +1,7 @@
 import os
 import re
 
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.server.Map import Map
 
 
@@ -46,7 +46,7 @@ class ParentService:
                 if map_config == '':
                     continue
 
-                map_name = Config.initConf(map_config).get('DEFAULT', 'dataset')
+                map_name = MapConfig.initConf(map_config).get('DEFAULT', 'dataset')
 
                 # If the name of a map isn't in map_services, initialize it
                 if map_name not in self.map_services.keys():

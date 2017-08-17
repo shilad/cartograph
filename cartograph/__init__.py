@@ -3,7 +3,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-import Config
+import MapConfig
 
 # Expose public Luigi tasks:
 

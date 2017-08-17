@@ -5,7 +5,7 @@ import luigi
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
 from PreReqs import EnsureDirectoriesExist
 from AugmentMatrix import AugmentCluster
-from cartograph import Config
+from cartograph import MapConfig
 import logging
 
 
@@ -15,7 +15,7 @@ class RegionLabel(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles", "region_names"))
 
     def requires(self):
@@ -24,7 +24,7 @@ class RegionLabel(MTimeMixin, luigi.Task):
 
     def run(self):
         # Calculate TF-IDF scores
-        config = Config.get()
+        config = MapConfig.get()
         category_df = pd.read_table(config.get("GeneratedFiles", "categories"), index_col='id')
         cluster_df = pd.read_table(config.get("GeneratedFiles", "clusters_with_id"), index_col='index')
 

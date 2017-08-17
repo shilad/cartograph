@@ -6,184 +6,52 @@
  * TODO: This should come from the server, really...
  */
 var CLUSTER_LAYER_INFO = {
-            "range": [],
-            "sequential": false,
-            "numUnique": 12,
-            "name": "Clusters",
-            "title": false,
-            "diverging": false,
-            "qualitative": true,
-            "num": 460
-        };
+    range: [],
+    sequential: false,
+    numUnique: 12,
+    name: 'Clusters',
+    title: false,
+    diverging: false,
+    qualitative: true
+};
+
+var CLUSTER_LAYER_INIT = {
+    field: 'Clusters',
+    title: 'Thematic Clusters',
+    description: 'This visualization shows groups of thematically related articles.',
+    id: 'clusters',
+    dataType: 'qualitative',
+    numColors: 7,
+    colorScheme: 'Paired'
+};
+
+var COLOR_SCHEME_NAMES = {
+    sequential: ["BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"],
+    singlehue: ["Blues", "Greens", "Greys", "Oranges", "Purples", "Reds"],
+    diverging: ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
+    qualitative: ["Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"]
+};
+
 
 $(document).ready(function () {
-    var bar = $('.bar');
-    var percent = $('.percent');
-    var status = $('#status');
-    var uploadForm = $("#uploadForm");
+    // Enable the custom file input widget
+    $('#inputFile').on('change', fileChangedHandler);
 
-
-    // Handle custom file inputs
-    // See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
-    // and https://github.com/twbs/bootstrap/issues/20813
-    $('#inputFile').on('change', function (ev) {
-      const $input = $(this);
-      const target = $input.data('target');
-      const $target = $(target);
-
-      // set original content so we can revert if user deselects file
-      if (!$target.attr('data-original-content'))
-        $target.attr('data-original-content', $target.attr('data-content'));
-
-      const input = $input.get(0);
-
-      let name = (input && input.files && input.files.length && input.files[0])
-          ? input.files[0].name : $input.val();
-
-      if (!name) name = $target.attr('data-original-content');
-      $target.attr('data-content', name);
-
-      // Change the visual feedback
-      $(this).next('.custom-file-control').addClass("selected").html(name);
-
-    });
-
-
-    var data = {
-        "map_name": "a",
-        "num_rows": 460,
-        "columns": [{
-            "range": [],
-            "sequential": false,
-            "numUnique": 459,
-            "name": "Article",
-            "title": true,
-            "diverging": false,
-            "values": [],
-            "qualitative": false,
-            "num": 460
-        }, {
-            "range": [],
-            "sequential": true,
-            "numUnique": 9,
-            "name": "Popularity",
-            "title": false,
-            "diverging": true,
-            "values": [0, 13, 15, 22, 25, 50, 75, 90, 100],
-            "qualitative": true,
-            "num": 460
-        }, {
-            "range": [],
-            "sequential": false,
-            "numUnique": 3,
-            "name": "Category",
-            "title": false,
-            "diverging": false,
-            "values": ["a", "b", "c"],
-            "qualitative": true,
-            "num": 460
-        }],
-        "success": true
-    };
-    addLayer(data, {
-        field : 'Clusters',
-        title : 'Thematic Clusters',
-        description : 'This visualization shows groups of thematically related articles.',
-        id : 'clusters',
-        dataType : 'qualitative',
-        numColors : 7
-    });
-
-    $("#add-layer-button").on('click', function(e) {
-        e.preventDefault();
-        addLayer(data);
-    });
-
-
-    showUploadError = function (message) {
-        $("#upload-error .alert").html(message).parent().show();
-    };
-
-    uploadForm.on('submit', function (event) {
+    $("#upload-form").on('submit', function (event) {
         event.stopPropagation(); // Stop stuff happening
         event.preventDefault(); // Totally stop stuff happening
+        uploadFormHandler();
+    });
 
-        $("#upload-error").hide();
-
-        var mapId = $("#map-id").val();
-        if (!/^[a-z0-9_]+$/i.test(mapId)) {
-            showUploadError("Map id can only contain alphanumeric characters");
-            return;
-        }
-
-        // Declare a form data object
-        var data = new FormData();
-        data.append('map-id', mapId);
-        var file = uploadForm.find('input[type=file]')[0].files[0];
-        var fileName = file.name;
-        data.append('file', file);
-
-        // Perform Ajax call to show add visualization part
-        $.ajax({
-            url: uploadForm.attr('action'),
-            type: 'POST',
-            data: data,
-            cache: false,
-            processData: false, // Don't process the files, we're using FormData
-            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-            success: function (data, textStatus, jqXHR) {
-                if (!data.success) {
-                    showUploadError("<strong>Upload Failed</strong> " + data.error);
-                    return;
-                }
-                CG.uploadData = data;
-                CG.layerCounter = 0; // A counter of input layers.
-
-                showFileInfo(data, fileName);
-                addLayer(data,
-                    {field : 'Clusters', 'num-colors': 7, 'type' : 'qualitative'});
-
-                // Display Generate Map button that submits all layer forms
-                $("#mapConfig").append(`<button type="submit" class="btn btn-generateMap" form="layersForm0" value="GenerateMap" id="submitButton"> GENERATE MAP! </button>`)
-
-                CG.mapBuilt = false;  // A boolean indicating whether the map has been built to avoid building it again when hitting GenerateMap
-                $(`#submitButton`).click(function () {
-                    // Build the map
-                    if (!CG.mapBuilt) {
-                        ajax_buildMap();
-                        CG.mapBuilt = true;
-                    } else {
-                        submit_forms();
-                    }
-                    // window.location.href = '../' + $("#map_name").val() + '/static/iui2017.html';
-                });
-
-                $("#mapConfig").show();
-                $("#map_name").prop('disabled', true);
-                $("#uploadFile").prop('disabled', true);
-
-                // Show layer options after hitting addVisualization button.
-                $(".btn-addVisualization").click(createNewMetricHtml);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(jqXHR, textStatus, errorThrown);
-            }
-        });
+    $("#add-layer-button").on('click', function (e) {
+        e.preventDefault();
+        addLayer();
+    });
+    $("#layer-form").on('submit', function(e) {
+        e.preventDefault();
+        submitMap();
     });
 });
-
-function createNewMetricHtml() {
-    CG.layerCounter += 1;
-    $("#newRequirements").show();
-    appendVisualizationRequirements(CG.layerCounter);
-
-    // Automatically fill in layer input fields.
-    createSelectFields(CG.uploadData.columns, CG.layerCounter);
-    createSelectTypes(document.getElementById("fields" + CG.layerCounter), CG.layerCounter);
-    createNumClasses(document.getElementById("fields" + CG.layerCounter), document.getElementById("types" + CG.layerCounter), CG.layerCounter);
-    createSelectPalettes(document.getElementById("types" + CG.layerCounter), document.getElementById("number-classes" + CG.layerCounter), CG.layerCounter);
-
-}
 
 
 function ajax_buildMap() {
@@ -205,7 +73,7 @@ function ajax_buildMap() {
 
 function submit_forms() {
     $('form').each(function () {
-        if ($(this).attr("id") !== "uploadForm") {
+        if ($(this).attr("id") !== "upload-form") {
             $(this).validate({errorElement: 'layerErrors',});  // Validate the form
             if ($(this).valid() && !$(this).hasClass('submitted')) {
                 $(this).submit();
@@ -255,10 +123,83 @@ function ajax_layers(i) {
     })
 }
 
-function showFileInfo(data, fileName) {
+function uploadFormHandler() {
+    var showUploadError = function (message) {
+        $("#upload-error .alert").html(message).parent().show();
+    };
+
+    var showUploadProgress = function (percentComplete) {
+        percentComplete = parseInt(percentComplete * 100);
+        $("#upload-status").text(percentComplete + '% uploaded');
+        if (percentComplete === 100) {
+            $("#upload-status").text('Upload complete. Processing file...');
+        }
+    };
+
+
+    var $uploadForm = $("#upload-form");
+    var $layerForm = $("#layer-form");
+
+    $("#upload-error").hide();
+
+    var mapId = $("#map-id").val();
+    if (!/^[a-z0-9_-]+$/i.test(mapId)) {
+        showUploadError("Map id can only contain alphanumeric characters");
+        return;
+    }
+
+    // Declare a form data object
+    var data = new FormData();
+    data.append('map-id', mapId);
+    var file = $uploadForm.find('input[type=file]')[0].files[0];
+    var fileName = file.name;
+    data.append('file', file);
+
+    // Perform Ajax call to show add visualization part
+    $.ajax({
+        url: $uploadForm.attr('action'),
+        type: 'POST',
+        data: data,
+        cache: false,
+        processData: false, // Don't process the files, we're using FormData
+        contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+        xhr: function () {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function (evt) {
+                if (evt.lengthComputable) {
+                    showUploadProgress(evt.loaded / evt.total);
+                }
+            }, false);
+            return xhr;
+        },
+        success: function (data, textStatus, jqXHR) {
+            if (!data.success) {
+                showUploadError("<strong>Upload Failed</strong> " + data.error);
+                return;
+            }
+            CG.uploadData = data;
+
+            // Disable changes to the map id, show layer UI, and remove all existing layers
+            $("#map-id").attr('disabled', '');
+            $("div.layer:visible").remove();
+            $("#upload-status").hide();
+            $("div.step").addClass('active');
+
+            showFileInfo(fileName);
+            addLayer(CLUSTER_LAYER_INIT);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR, textStatus, errorThrown);
+        }
+    });
+}
+
+function showFileInfo(fileName) {
+    var data = CG.uploadData;
+
     $("#file-info table tbody tr").not(':first').remove();
-    $('#file-info h4 span:nth-child(1)').text(fileName);
-    $('#file-info h4 span:nth-child(2)').text(data.num_rows);
+    $('#file-info .summary span:nth-child(1)').text(fileName);
+    $('#file-info .summary span:nth-child(2)').text(data.num_rows);
 
     for (var i = 0; i < data.columns.length; i++) {
         var col = data.columns[i];
@@ -278,23 +219,37 @@ function showFileInfo(data, fileName) {
         var vals = col.values ? col.values.join(', ') : ('min: ' + col.range[0] + 'max: ' + col.range[1]);
         $(row).find("td:nth-of-type(4)").text(vals);
 
-        console.log(row);
         $("#file-info tbody").append(row);
     }
 
+    $("#upload-status").hide();
     $("#file-info").show();
 }
 
-function addLayer(data, layerInfo) {
+function addLayer(layerInfo) {
+    var data = CG.uploadData;
     var layerInfo = layerInfo || {};
-    var cols = data.columns;
+    var cols = data.columns.filter(function (col) {
+        return col.name !== 'Article';
+    });
+
+    // Calculate layer index
+    var layerIndex = 1;
+    $("#layer-container div.layer:visible").each(function () {
+        var id = $(this).attr('id');
+        CG.assert(id.startsWith('layer-'), 'Malformed layer id: ' + id);
+        id = parseInt(id.substr('layer-'.length));
+        if (id >= layerIndex) {
+            layerIndex = id + 1;
+        }
+    });
+
     var $elem = $("#layer-template")
         .clone()
-        .removeAttr("id")
+        .attr("id", 'layer-' + layerIndex)
         .removeClass("hidden");
 
     // Replace "__NUM__" with index in layer ids
-    var layerIndex = $("#layer-container div.layer").length;
     $elem.find("input,select,textarea")
         .each(function (i, elem) {
             var e = $(elem);
@@ -302,6 +257,7 @@ function addLayer(data, layerInfo) {
             if (/__NUM__/.test(name)) {
                 e.attr('name', name.replace('__NUM__', layerIndex));
             }
+            e.attr('required', '');
         });
 
     // Useful sub elements for layer
@@ -319,7 +275,7 @@ function addLayer(data, layerInfo) {
     $fields.append($("<option/>").text("Clusters"));
 
     // Gets information about the selected field.
-    var getFieldInfo = function() {
+    var getFieldInfo = function () {
         var f = $fields.val();
         var fieldInfo = null;
         if (f === 'Clusters') {
@@ -336,20 +292,21 @@ function addLayer(data, layerInfo) {
     };
 
     // Handler for changing the field
-    var fieldHandler = function() {
+    var fieldHandler = function (ev, layerInfo) {
         var fi = getFieldInfo();
         $dataType.empty();
         if (fi.sequential) $dataType.append($("<option>sequential</option>"));
         if (fi.diverging) $dataType.append($("<option>diverging</option>"));
         if (fi.qualitative) $dataType.append($("<option>qualitative</option>"));
-        // if ($dataType.children().length === 1) {
-            $dataType.trigger('change');
-        // }
+        if (layerInfo && layerInfo.dataType) {
+            $dataType.val(layerInfo.dataType);
+        }
+        $dataType.trigger('change', layerInfo);
     };
     $fields.on('change', fieldHandler);
 
     // Handler for changing the data type
-    var dataTypeHandler = function() {
+    var dataTypeHandler = function (ev, layerInfo) {
         var colorRange;
         var fi = getFieldInfo();
         var dt = $dataType.val();
@@ -368,14 +325,15 @@ function addLayer(data, layerInfo) {
         for (var i = colorRange[0]; i <= colorRange[1]; i++) {
             $numColors.append($("<option>" + i + "</option>"))
         }
-        // if ($numColors.children().length === 1) {
-            $numColors.trigger('change');
-        // }
+        if (layerInfo && layerInfo.numColors) {
+            $numColors.val(layerInfo.numColors);
+        }
+        $numColors.trigger('change', layerInfo);
     };
     $dataType.on("change", dataTypeHandler);
 
     // Handler for changing the number of colors
-    var numColorHandler = function() {
+    var numColorHandler = function (ev, layerInfo) {
         var fi = getFieldInfo();
         var dt = $dataType.val();
         var nc = $numColors.val();
@@ -387,15 +345,15 @@ function addLayer(data, layerInfo) {
                 $(this).remove();
             }
         });
-        schemeNames[dt].forEach(function (n) {
+        COLOR_SCHEME_NAMES[dt].forEach(function (n) {
             var colors = colorbrewer[n][nc];
             if (!colors) return;
             var $schemeDiv = $schemes.find('.template')
-                                    .clone()
-                                    .removeClass('template')
-                                    .removeClass('hidden')
-                                    .css('display', 'inline-block')
-                                    .css('height', nc * 10);
+                .clone()
+                .removeClass('template')
+                .removeClass('hidden')
+                .css('display', 'inline-block')
+                .css('height', nc * 10);
             var $rectTemplate = $schemeDiv.find('rect');
             var $schemeSvg = $schemeDiv.find("svg").empty();
             for (var i = 0; i < colors.length; i++) {
@@ -406,26 +364,29 @@ function addLayer(data, layerInfo) {
                     .attr('fill', colors[i]);
                 $schemeSvg.append($rect);
             }
+            if (layerInfo && layerInfo.colorScheme === n) {
+                $schemeDiv.addClass('active');
+                $schemeName.val(n + '_' + nc);
+            }
             $schemes.append($schemeDiv);
 
             // Handler for selecting a specific color
-            $schemeDiv.on('click', function() {
+            $schemeDiv.on('click', function () {
                 $schemes.find('div.scheme').removeClass('active');
                 $(this).addClass('active');
                 $schemeName.val(n + '_' + nc);
             });
         });
+        // If no schemes are active, set the first as active
+        if ($schemes.find('.active').length === 0) {
+            $schemes.find('div.scheme:visible').first().click();
+        }
     };
     $numColors.on("change", numColorHandler);
 
     $("#add-layer-button").before($elem);
 
-    // Auto-populate the fields with the specified information
-    if (cols.length === 0) {
-        $fields.trigger('change');
-    } else if (layerInfo.field) {
-        $fields.val(layerInfo.field).trigger('change');
-    }
+    // These do not have any dependencies, so they can safely be set
     if (layerInfo.id) {
         $elem.find('.layer-id').val(layerInfo.id);
     }
@@ -435,26 +396,75 @@ function addLayer(data, layerInfo) {
     if (layerInfo.description) {
         $elem.find('.layer-description').val(layerInfo.description);
     }
-    if (layerInfo.numColors) {
-        $numColors.val(layerInfo.numColors).trigger('change');
+
+    // Kick off the updates to the component
+    if (layerInfo.field) {
+        $fields.val(layerInfo.field);
     }
-    if (layerInfo.colorScheme) {
-        $numColors.val(layerInfo.numColors).trigger('change');
-    }
+    $fields.trigger('change', layerInfo);
 
     // Enable the user to remove the layer.
-    // TODO:
-    $elem.find(".layer-remove").on('click', function() {
-        $elem.slideUp("slow", function() { $(this).remove(); });
+    $elem.find(".layer-remove").on('click', function () {
+        $elem.slideUp("slow", function () {
+            $(this).remove();
+        });
     });
-
 }
 
-var schemeNames = {
-    sequential: ["BuGn", "BuPu", "GnBu", "OrRd", "PuBu", "PuBuGn", "PuRd", "RdPu", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"],
-    singlehue: ["Blues", "Greens", "Greys", "Oranges", "Purples", "Reds"],
-    diverging: ["BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
-    qualitative: ["Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"]
+
+function submitMap() {
+    var $layerForm = $("#layer-form");
+
+    var mapJs = {
+        mapId     : $("#map-id").val(),
+        mapTitle  : $("#map-title").val(),
+        email     : $("#email-input").val(),
+        layers    : []
+    };
+
+    $("#layer-container").find("div.layer:visible").each(
+        function () {
+            var $e = $(this);
+            var layer = {
+                field       : $e.find(".layer-field").val(),
+                id          : $e.find(".layer-id").val(),
+                title       : $e.find(".layer-title").val(),
+                description : $e.find(".layer-description").val(),
+                datatype    : $e.find(".layer-datatype").val(),
+                numColors   : $e.find(".layer-num-colors").val(),
+                colorScheme : $e.find(".color-scheme-name").val()
+            };
+            mapJs.layers.push(layer);
+        }
+    );
+
+    console.log(mapJs);
+}
+
+/**
+ * Custom file upload widget
+ * See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
+ * See https://github.com/twbs/bootstrap/issues/20813
+ */
+function fileChangedHandler() {
+    var $input = $(this);
+    var target = $input.data('target');
+    var $target = $(target);
+
+    // set original content so we can revert if user deselects file
+    if (!$target.attr('data-original-content'))
+        $target.attr('data-original-content', $target.attr('data-content'));
+
+    var input = $input.get(0);
+
+    var name = (input && input.files && input.files.length && input.files[0])
+        ? input.files[0].name : $input.val();
+
+    if (!name) name = $target.attr('data-original-content');
+    $target.attr('data-content', name);
+
+    // Change the visual feedback
+    $(this).next('.custom-file-control').addClass("selected").html(name);
 };
 
 function createMapDescription(vizName, vizDescription) {

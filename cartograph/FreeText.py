@@ -3,7 +3,7 @@ import logging
 import luigi
 import sys
 
-from cartograph import Config
+from cartograph import MapConfig
 from Utils import read_features
 from cartograph import FastKnn
 from cartograph.LuigiUtils import MTimeMixin, TimestampedLocalTarget
@@ -104,11 +104,11 @@ class FreeTextTask(MTimeMixin, luigi.Task):
         )
 
     def output(self):
-        w2vPath = Config.get().get('ExternalFiles', 'w2v')
+        w2vPath = MapConfig.get().get('ExternalFiles', 'w2v')
         return [TimestampedLocalTarget(p) for p in FreeText.paths(w2vPath)]
 
     def run(self):
-        conf = Config.get()
+        conf = MapConfig.get()
         w2vPath = conf.get('ExternalFiles', 'w2v')
         idMapping = {}
         for id, idInfo in read_features(conf.get('ExternalFiles', 'external_ids')).items():

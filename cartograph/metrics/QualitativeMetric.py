@@ -4,23 +4,21 @@ from cartograph.metrics.Utils import color_from_code
 
 
 class QualitativeMetric:
-    def __init__(self, fields, scale, colorCode, neutralColor='#777'):
+    def __init__(self, field, scale, colorCode, neutralColor='#777'):
         """Initialize a QualitativeMetric. QualitativeMetric's main purpose is embodied by its .getColor() method, which
         provides the color information for a given point at a particular zoom level.
 
         FIXME: Because of the way data-files (i.e. TSVs) are currently loaded, it seems like this metric can't be used
         for a column containing purely numeric data.
 
-        :param fields: list of 1 string of name of the column to be used as a qualitative variable e.g. ["name"]
+        :param fields: string of name of the column to be used as a qualitative variable e.g. "name"
         :param scale: a list of strings, each of which is the name of a category
         :param colorCode: string of Python identifier of a color palette in module palettable.colorbrewer.qualitative
         :param neutralColor: str of form "#rgb" where r, g, & b are all hexadecimal digits 0-f for each color component
         """
-        assert(len(fields) == 1)  # FIXME: should be a more informative error
         color_palette = getattr(q, colorCode)
         assert(color_palette.number == len(scale))  # FIXME: should be more informative error
-        self.fields = fields
-        self.field = fields[0]
+        self.field = field
         self.scale = scale
         self.neutral_color = colour.Color(neutralColor).rgb
         self.color = color_palette.colors

@@ -2,7 +2,7 @@ import json
 
 import falcon
 
-from cartograph import Config
+from cartograph import MapConfig
 
 
 class ConfigService:
@@ -32,11 +32,11 @@ class ConfigService:
         for name in result['Metrics']['active'].split():
             result['Metrics'][name]  = json.loads(result['Metrics'][name])
 
-        result['ColorWheel'] = Config.getColorWheel()
+        result['ColorWheel'] = MapConfig.getColorWheel()
         return result
 
 if __name__ == '__main__':
-    conf = Config.initConf('./data/conf/simple.txt')
+    conf = MapConfig.initConf('./data/conf/simple.txt')
     svc = ConfigService(conf)
     print svc.configData()
 

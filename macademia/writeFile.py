@@ -2,8 +2,8 @@ import numpy as np
 from sklearn.neighbors import KDTree
 from os import sys, path
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-from cartograph import Config
-from cartograph.Config import initConf
+from cartograph import MapConfig
+from cartograph.MapConfig import initConf
 from cartograph import Utils
 
 

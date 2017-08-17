@@ -1,6 +1,6 @@
 from pygsp import graphs, filters
 import numpy as np
-import Config
+import MapConfig
 import Utils
 import luigi
 import Coordinates
@@ -19,7 +19,7 @@ class Denoise(MTimeMixin, luigi.Task):
     and more coherent contintent boundary lines
     '''
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         if config.sampleBorders():
             return (
                 TimestampedLocalTarget(config.getSample("GeneratedFiles",
@@ -40,7 +40,7 @@ class Denoise(MTimeMixin, luigi.Task):
             )
 
     def requires(self):
-        if Config.get().sampleBorders():
+        if MapConfig.get().sampleBorders():
             return (MakeRegions(),
                     Coordinates.CreateSampleCoordinates(),
                     DenoiserCode())
@@ -50,7 +50,7 @@ class Denoise(MTimeMixin, luigi.Task):
                     DenoiserCode())
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         if config.sampleBorders():
             featureDict = Utils.read_features(config.getSample("GeneratedFiles", "article_coordinates"),
                                               config.getSample("GeneratedFiles", "clusters_with_id"),

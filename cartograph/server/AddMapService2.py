@@ -6,17 +6,22 @@ import pipes
 from ConfigParser import SafeConfigParser
 import falcon
 import pandas
-from cartograph.server.ServerUtils import build_map
 from cartograph.server.Map import Map
 
 
 # TODO: move all these server-level configs into the meta config file
 # This may be a good time to rethink the format of that file as well.
 # Should it also use SafeConfig
+from cartograph.server.ServerUtils import pid_exists, build_map
+
 BASE_LANGUAGE = 'simple'
 USER_CONF_DIR = 'data/conf/user/'
 BASE_PATH = './data/ext/'
 
+STATUS_NOT_STARTED = 'NOT_STARTED'
+STATUS_RUNNING = 'RUNNING'
+STATUS_FAILED = 'FAILED'
+STATUS_SUCCEEDED = 'SUCCEEDED'
 
 def filter_tsv(source_dir, target_dir, ids, filename):
     """Pare down the contents of <source_dir>/<filename> to only rows that start with an id in <ids>, and output them to
@@ -140,11 +145,73 @@ def gen_data(source_dir, target_path, articles):
     user_data_with_external_ids = user_data_with_internal_ids.merge(external_ids, left_index=True,
                                                                     right_index=True, how='inner')
     user_data_with_external_ids.set_index('externalId', inplace=True)
-    user_data_with_external_ids.to_csv(os.path.join(target_path, 'metric.tsv'), sep='\t')
+    user_data_with_external_ids.to_csv(os.path.join(target_path, 'metrics.tsv'), sep='\t')
 
     data_columns = list(user_data)
 
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
+
+
+def add_layer(config_path, info, metric_df):
+    """
+    Adds a single layer to the config.
+    metric_df is the data frame associated with all metrics. We presume it has a "path" attribute
+
+      {
+         "field":"Popularity",
+         "id":"pop",
+         "title":"Popularity",
+         "description":"Popularity",
+         "datatype":"sequential",
+         "numColors":"3"
+      }
+    """
+
+    if info['field'] == 'Clusters': return # TODO: Fix this up
+
+    # Add layers
+    c = SafeConfigParser()
+    c.read(config_path)
+
+    id = info['id']
+    field = info['field']
+
+    # Configure settings for a metric
+    metric_settings = {
+        'type': info['datatype'],
+        'path': metric_df.path,
+        'field': field,
+        'colorCode': info['colorScheme']
+    }
+
+    # Load user data to mine for appropriate values
+    metric_type = info['datatype']
+
+    # Add more info to metric settings depending on type
+    if metric_type == 'diverging':
+        metric_settings.update({
+            'maxVal': metric_df[field].max(),
+            'minVal': metric_df[field].min()
+        })
+    elif metric_type == 'qualitative':
+        metric_settings.update({
+            'scale': list(metric_df[field].unique())
+        })
+    elif metric_type == 'sequential':
+        metric_settings.update({
+            'maxValue': metric_df[field].max()
+        })
+
+    # Define new metric in config file
+    c.set('Metrics', id, json.dumps(metric_settings))
+
+    active = []
+    if c.has_option('Metrics', 'active'):
+        active = c.get('Metrics', 'active').split()
+    c.set('Metrics', 'active', ' '.join(active + [id]))
+
+    with open(config_path, 'w') as f:
+        c.write(f)
 
 
 class AddMapService:
@@ -155,37 +222,75 @@ class AddMapService:
     self.map_services.
     """
 
-    def __init__(self, map_services, upload_dir):
+    def __init__(self, server_config, map_services):
         """Initialize an AddMapService, a service to allow the client to build maps from already uploaded data files.
         When the client POSTs to this service, if there is a file in the upload directory of the matching name (i.e.
         map_name.tsv), this service will build a map with that name from that file.
 
+        :param server_config: ServerConfig object
         :param map_services: (dict) a reference to dictionary whose keys are map names and values are active MapServices
         :param upload_dir: (str) path to directory containing uploaded map data files
         """
+        self.conf = server_config
         self.map_services = map_services
-        self.upload_dir = upload_dir
+        self.upload_dir = server_config.get('DEFAULT','upload_dir')
 
-    def on_post(self, req, resp, map_name):
+    def on_post(self, req, resp):
         """Making a POST request to this URL will cause the server to attempt to build a map from a file in the
         upload_dir by the name of <map_name>.tsv. If no such file exists, this service will respond with a 404.
 
-        :param map_name: name of map that client wants built. Should be name of already-uploaded file.
+        {
+           "mapId":"zoo",
+           "mapTitle":"Foo",
+           "email":"shilad@gmail.com",
+           "layers":[
+              {
+                 "field":"Clusters",
+                 "id":"clusters",
+                 "title":"Thematic Clusters",
+                 "description":"This visualization shows groups of thematically related articles.",
+                 "datatype":"qualitative",
+                 "numColors":"7"
+              },
+              {
+                 "field":"Popularity",
+                 "id":"pop",
+                 "title":"Popularity",
+                 "description":"Popularity",
+                 "datatype":"sequential",
+                 "numColors":"3"
+              }
+           ]
+        }
+
         """
+        body = req.stream.read()
+        js = json.loads(body)
+        map_id = js['mapId']
+
         # Make sure the server is in multi-map mode
         # FIXME: This should be a better error
         assert self.map_services['_multi_map']
 
         # Try to open map data file, raise 404 if not found in upload directory
-        map_file_name = map_name + '.tsv'
+        map_file_name = map_id + '.tsv'
         if map_file_name not in os.listdir(self.upload_dir):
             raise falcon.HTTPNotFound
         input_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
 
-        output_dir = os.path.join(BASE_PATH, 'user/', map_name)
+        output_dir = os.path.join(BASE_PATH, 'user/', map_id)
         # FIXME: Change 'simple' to a map name selected by the user
         bad_articles, data_columns = gen_data(os.path.join(BASE_PATH, BASE_LANGUAGE), output_dir, input_file)
-        config_path = gen_config(map_name, data_columns)
+        config_path = gen_config(map_id, data_columns)
+
+        # Read in the metric file and add layers
+        config = SafeConfigParser()
+        config.read(config_path)
+        layer_tsv = os.path.join(config.get('DEFAULT', 'externalDir'), 'metrics.tsv')
+        layer_df = pandas.read_csv(layer_tsv , sep='\t')
+        layer_df.path = layer_tsv
+        for layer in js['layers']:
+            add_layer(config_path, layer, layer_df)
 
         # Build from the new config file
         build_map(config_path)
@@ -203,7 +308,40 @@ class AddMapService:
 
         # Return helpful information to client
         resp.body = json.dumps({
-            'map_name': map_name,
+            'success' : True,
+            'map_name': map_id,
             'bad_articles': list(bad_articles),
             'data_columns': data_columns
         })
+
+    def get_status(self, map_id):
+        """
+        Returns the status of map creation for the specified map.
+        Double checks that maps that should be running ARE actually running.
+        """
+        path = self.conf.getForDataset(map_id, 'ext_dir') + '/status.txt'
+        if not os.path.isfile(path):
+            return STATUS_NOT_STARTED
+        tokens = open(path).read().strip().split()
+        status = tokens[0]
+        if status == STATUS_RUNNING:
+            pid = tokens[1]
+            if not pid_exists(int(pid)):
+                status = STATUS_FAILED
+        return status
+
+    def get_logs(self, map_id):
+        """
+        Returns the luigi output log for the given map, or empty string if it doesn't exist
+        """
+        path = self.conf.getForDataset(map_id, 'ext_dir') + '/build.log'
+        if not os.path.isfile(path):
+            return ''
+        return open(path).read()
+
+    def on_get(self, request, response, map_id):
+        pass
+
+
+
+

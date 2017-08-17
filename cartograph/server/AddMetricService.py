@@ -4,7 +4,7 @@ import string
 import falcon
 import pandas
 from ConfigParser import SafeConfigParser
-from cartograph.Utils import build_map
+from cartograph.server.ServerUtils import build_map
 
 
 class AddMetricService:

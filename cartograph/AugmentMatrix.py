@@ -1,7 +1,7 @@
 import luigi
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
 from PreReqs import WikiBrainNumbering, CreateCategories
-import Config
+import MapConfig
 
 import json
 import numpy as np
@@ -16,14 +16,14 @@ class AugmentLabel(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles", "vecs_with_labels"))
 
     def requires(self):
         return WikiBrainNumbering(), CreateCategories()
 
     def run(self, label_dims=20):
-        config = Config.get()
+        config = MapConfig.get()
         label_weight = config.getfloat("PreprocessingConstants", "label_weight")
 
         # Read in categories
@@ -70,7 +70,7 @@ class AugmentCluster(MTimeMixin, luigi.Task):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return TimestampedLocalTarget(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
 
     def requires(self):
@@ -78,8 +78,8 @@ class AugmentCluster(MTimeMixin, luigi.Task):
         return AugmentLabel(), MakeRegions()
 
     def run(self):
-        clust_weight = Config.get().getfloat("PreprocessingConstants", "clust_weight")
-        config = Config.get()
+        clust_weight = MapConfig.get().getfloat("PreprocessingConstants", "clust_weight")
+        config = MapConfig.get()
         cluster_df = pd.read_table(config.get("GeneratedFiles", "clusters_with_id"), index_col='index')
         vecs_with_labels = pd.read_table(config.get("GeneratedFiles", "vecs_with_labels"), index_col=0, skiprows=1, header=None)
 

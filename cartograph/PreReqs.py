@@ -3,16 +3,16 @@ import os
 import luigi
 import json
 import pandas as pd
-from cartograph import Config
+from cartograph import MapConfig
 from cartograph.LuigiUtils import TimestampedLocalTarget, MTimeMixin, getSampleIds
 
 class CreateCategories(luigi.Task):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("GeneratedFiles", "categories")))
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
 
         # Filter ids
         ids = pd.read_table(config.get("ExternalFiles", "external_ids"), index_col=0)
@@ -59,11 +59,11 @@ class LabelNames(luigi.Task):
     and WikiBrain
     '''
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("GeneratedFiles", "region_names")))
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
 
         with open(config.get("GeneratedFiles", "region_names"), 'w') as f:
             f.write('cluster_id\tlabel\n')
@@ -78,17 +78,17 @@ class LabelNames(luigi.Task):
 
 class ArticlePopularity(luigi.ExternalTask):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "popularity")))
 
 class Word2VecFile(luigi.ExternalTask):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "w2v")))
 
 class ExternalIdFile(luigi.ExternalTask):
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "external_ids")))
 
 class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
@@ -99,7 +99,7 @@ class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles",
                                              "vecs_with_id")),
                 TimestampedLocalTarget(config.get("ExternalFiles",
@@ -112,7 +112,7 @@ class EnsureDirectoriesExist(luigi.Task):
         self.configKeys = ('baseDir', 'externalDir', 'generatedDir', 'geojsonDir', 'mapDir', 'metricDir')
 
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return list(
             luigi.LocalTarget(config.get('DEFAULT', n)) for n in self.configKeys
         )
@@ -120,7 +120,7 @@ class EnsureDirectoriesExist(luigi.Task):
     def requires(self): return []
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         for k in self.configKeys:
             fn = config.get('DEFAULT', k)
             if not os.path.isdir(fn): os.makedirs(fn)
@@ -140,9 +140,9 @@ class SampleCreator(MTimeMixin, luigi.Task):
 
     def samplePath(self):
 
-        config = Config.get()
+        config = MapConfig.get()
         n = config.getint('PreprocessingConstants', 'sample_size')
-        return Config.samplePath(self.path, n)
+        return MapConfig.samplePath(self.path, n)
 
     def output(self):
         return TimestampedLocalTarget(self.samplePath())

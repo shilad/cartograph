@@ -4,7 +4,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-import Config
+import MapConfig
 import Utils
 import luigi
 import RegionLabel
@@ -40,7 +40,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
     article clusters as the points of their exterior edge
     '''
     def output(self):
-        config = Config.get()
+        config = MapConfig.get()
         return (
             TimestampedLocalTarget(config.get("MapData", "countries_geojson")),
             TimestampedLocalTarget(config.get("GeneratedFiles", "country_borders")),
@@ -57,7 +57,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                 Denoise())
 
     def run(self):
-        config = Config.get()
+        config = MapConfig.get()
         clusterDict = BorderBuilder(config).build()
         keys = sorted(clusterDict.keys())
 
