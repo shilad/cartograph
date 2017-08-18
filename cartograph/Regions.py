@@ -42,7 +42,8 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
             # FIXME: Circular dependency
             # Coordinates.CreateSampleCoordinates(),
             PreReqs.SampleCreator(config.get("GeneratedFiles",
-                                             "vecs_with_labels")),
+                                             "vecs_with_labels"),
+                                  prereqs=[AugmentLabel()]),
             PreReqs.EnsureDirectoriesExist(),
         )
 

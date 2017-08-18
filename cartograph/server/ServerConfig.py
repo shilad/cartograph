@@ -11,10 +11,10 @@ def create(path):
     with open(path, "r") as configFile:
         conf.readfp(configFile)
 
-    def getDataset(target, datasetName, section, key):
+    def getForDataset(target, datasetName, section, key):
         return target.get(section, key).replace('__DATASET__', datasetName)
 
-    conf.getForDataset = types.MethodType(getDataset, conf)
+    conf.getForDataset = types.MethodType(getForDataset, conf)
 
     return conf
 

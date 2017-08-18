@@ -128,15 +128,16 @@ class EnsureDirectoriesExist(luigi.Task):
 
 class SampleCreator(MTimeMixin, luigi.Task):
     path = luigi.Parameter()
+    prereqs = luigi.Parameter(significant=False, default=[])
 
     def requires(self):
         # TODO: Require augmented matrix
         from AugmentMatrix import AugmentCluster, AugmentLabel
-        return (
+        return tuple(list(self.prereqs) + [
             WikiBrainNumbering(),
             ArticlePopularity(),
-            EnsureDirectoriesExist(),
-        )
+            EnsureDirectoriesExist()
+        ])
 
     def samplePath(self):
 

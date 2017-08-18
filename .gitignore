@@ -24,3 +24,4 @@ __pycache__
 conf.txt
 
 /data/simple/*
+/conf/my_maps.conf
