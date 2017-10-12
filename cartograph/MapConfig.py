@@ -80,6 +80,7 @@ def createConf(confFile=None):
 
     conf.getSample = types.MethodType(confSample, conf)
     conf.sampleBorders  = types.MethodType(confSampleBorders, conf)
+    conf.path = confFile
 
     return conf
 
@@ -157,3 +158,14 @@ def _coloringFeatures(num_clusters):
     for i in range(num_clusters):
         result[str(i)] = colors[i]
     return result
+
+
+if __name__ == '__main__':
+    import sys
+
+    if len(sys.argv) != 4:
+        sys.stderr.write('usage: %s path_conf section key' % sys.argv[0])
+        sys.exit(1)
+
+    conf = createConf(sys.argv[1])
+    print(conf.get(sys.argv[2], sys.argv[3]))

@@ -1,20 +1,6 @@
 .hidden { display: none; }
 
-button,
-input,
-optgroup,
-select,
-textarea,
-body {
-}
-
-body {
-}
-
-
-/**
- * Nav style
- */
+/*************** Nav Styling *****************/
 nav a.navbar-brand {
   font-size: 1.5rem;
 }
@@ -23,7 +9,12 @@ nav a.nav-item {
   font-size: 1.4rem;
 }
 
-/*************** Overall Step Styling *****************************************/
+/*************** Page Styling *****************/
+#map-creator-body {
+  padding-bottom: 40px;
+}
+
+/*************** Overall Step Styling *****************/
 div.step {
   margin-top: 30px;
 }
@@ -92,7 +83,7 @@ div.step.active .contents {
   width: 42.5%;
 }
 
-/*************** Base Map *****************************************/
+/*************** Base Map ***********************/
 
 /**
  * See https://stackoverflow.com/questions/43250263/bootstrap-4-file-input
@@ -120,9 +111,6 @@ div.step.active .contents {
   font-size: 0.875rem;
 }
 
-/**
- * Table
- */
 #file-info table {
   font-size: 0.8rem;
 }
@@ -131,9 +119,7 @@ div.step.active .contents {
   background-color: #f6f6f6;
 }
 
-/**
- * Layer controls
- */
+/*************** Layer controls ***********************/
 #layer-container .layer label { width: 100%; }
 
 #layer-container .layer {
@@ -141,9 +127,6 @@ div.step.active .contents {
   font-size: .875rem;
 }
 
-/**
- * Trash icon
- */
 .layer-remove {
   font-size: 24px;
   color: #777;
@@ -151,9 +134,6 @@ div.step.active .contents {
   cursor: pointer;
 }
 
-/**
- * Color schemes
- */
 div.color-schemes div.scheme {
   width: 10px;
   margin: 0 12px 0 0;
@@ -167,9 +147,11 @@ div.color-schemes div.scheme.active {
   outline: 2px solid #000;
 }
 
+/*************** Building Section ***********************/
+.build-status {
+  margin-top: 30px;
+}
 
-
-@font-face{
-  font-family: "GeosansLight";
-  src: url(../fonts/GeosansLight.ttf) format("truetype");
+.build-status pre {
+  font-size: 0.7rem !important;
 }

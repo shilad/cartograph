@@ -14,15 +14,15 @@ logger = logging.getLogger('cartograph.upload')
 
 
 class UploadService:
-    def __init__(self, server_config, map_services):
+    def __init__(self, server_config, dispatcher):
         """
         Creates a new service to handle data uploads.
         Args:
             server_config: ServerConfig object
-            map_services: Dictionary from map name to map
+            dispatcher: Map Dispatcher
         """
         self.server_config = server_config
-        self.map_services = map_services
+        self.dispatcher = dispatcher
         self.upload_dir = server_config.get('DEFAULT', 'upload_dir')
 
         if not os.path.isdir(self.upload_dir):
@@ -34,7 +34,7 @@ class UploadService:
         # Check the map name and make sure the dest file is empty
         map_id = req.get_param('map-id')
         try:
-            check_map_id(map_id, self.map_services)
+            check_map_id(map_id, self.dispatcher)
         except ValueError as e:
             resp.body = json.dumps({
                 'success': False,
@@ -142,13 +142,13 @@ def detectDataTypes(df):
     return types
 
 
-def check_map_id(map_id, map_services):
-    """Check that map_name is not already in map_services and that all of its characters are in
+def check_map_id(map_id, dispatcher):
+    """Check that map_name is not already in dispatcher and that all of its characters are in
     the list of acceptable characters. If any of these conditions is not met, this will raise a
     ValueError with an appropriate message.
 
     :param map_id: Name of the map to check
-    :param map_services: (pointer to) dictionary whose keys are names of currently active maps
+    :param dispatcher: Map dispatcher
     """
     # FIXME: This does not check if a non-user-generated non-active map with the same name \
     # FIXME: already exists. I can't think of an easy way to fix that.
@@ -167,5 +167,5 @@ def check_map_id(map_id, map_services):
     # Prevent adding a map with the same name as a currently-served map
     # This will prevent adding user-generated maps with the same names as
     # active non-user-generated maps, e.g. "simple" or "en"
-    if map_id in map_services.keys():
+    if dispatcher.has_map(map_id):
         raise ValueError('Map name "%s" already in use for an active map!' % (map_id,))

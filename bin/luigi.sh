@@ -11,6 +11,13 @@ function usage() {
     exit 1
 }
 
+function getConfSetting() {
+    section=$1
+    key=$2
+    python2.7 ./cartograph/MapConfig.py "$CONF" $section $key || \
+        { echo "getting $section $key in $CONF" failed >&2; exit 1; }
+}
+
 MODULE=cartograph
 TASK=ParentTask
 STATUSFILE=
@@ -33,10 +40,6 @@ while [ "$1" != "" ]; do
             CONF=$2
             shift
             ;;
-        --status)
-            STATUSFILE=$2
-            shift
-            ;;
         *)
             echo "ERROR: unknown parameter \"$1\""
             usage
@@ -48,23 +51,22 @@ done
 
 export CARTOGRAPH_CONF=$CONF
 
-function maybeUpdateStatus() {
-    if [ -n "$STATUSFILE" ]; then
-        echo $@ >$STATUSFILE
-    fi
+function updateStatus() {
+    statusFile=$(getConfSetting DEFAULT externalDir)/status.txt
+    echo $@ >$statusFile
 }
 
-maybeUpdateStatus "RUNNING $$"
+updateStatus "RUNNING $$"
 
 if luigi --module $MODULE $TASK \
          --local-scheduler \
          --retcode-task-failed 1 \
          --logging-conf-file ./conf/logging.conf; then
 	echo "LUIGI BUILD SUCCEEDED" >&2
-	maybeUpdateStatus SUCCEEDED
+	updateStatus SUCCEEDED
 	exit 0
 else
 	echo "LUIGI BUILD FAILED" >&2
-	maybeUpdateStatus FAILED
+	updateStatus FAILED
 	exit 1
 fi

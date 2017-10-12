@@ -79,9 +79,7 @@ def build_map(config_path):
     env = {'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
 
     # Build it!
-    proc = subprocess.Popen(['nohup', './bin/luigi.sh',
-                             '--conf', config_path,
-                             '--status', os.path.join(output_path, 'status.txt')],
+    proc = subprocess.Popen(['nohup', './bin/luigi.sh', '--conf', config_path],
                             env=env,
                             stdout=open(os.path.join(output_path, 'build.log'), 'w'),
                             stderr=subprocess.STDOUT,

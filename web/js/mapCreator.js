@@ -49,79 +49,11 @@ $(document).ready(function () {
     });
     $("#layer-form").on('submit', function(e) {
         e.preventDefault();
+        $("#generateButton").hide();
         submitMap();
     });
 });
 
-
-function ajax_buildMap() {
-    // Ajax call to build the map
-    $.ajax({
-        url: '../add_map/' + $("#map_name").val(),
-        type: 'POST',
-        success: function (textStatus, jqXHR) {
-            submit_forms();
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log(jqXHR, textStatus, errorThrown);
-        }
-    });
-    $("h3").append("<p>Please wait while we create your map...</p>");
-    // createMapDescription(vizName, vizDescription);
-
-}
-
-function submit_forms() {
-    $('form').each(function () {
-        if ($(this).attr("id") !== "upload-form") {
-            $(this).validate({errorElement: 'layerErrors',});  // Validate the form
-            if ($(this).valid() && !$(this).hasClass('submitted')) {
-                $(this).submit();
-                // Add a class 'submitted' to this form and disable all its elements.
-                $(this).addClass('submitted');
-                var form = document.getElementById($(this).attr("id"));
-                var elements = form.elements;
-                for (var i = 0; i < elements.length; ++i) {
-                    elements[i].disabled = true;
-                }
-            }
-        }
-    });
-
-}
-
-function ajax_layers(i) {
-    // Ajax call to add the ith layer
-
-    var layersForm = $(`#layersForm${i}`);
-    event.stopPropagation(); // Stop stuff happening
-    event.preventDefault(); // Totally stop stuff happening
-
-    // Perform Ajax call to apply layer
-    var layerData = {
-        layer_name: $(`#title${i}`).val(),
-        column: $(`#fields${i}`).val(),
-        color_palette: $(`#color-scheme${i}`).val() + "_" + $(`#number-classes${i}`).val(),
-        description: $(`#description${i}`).val()
-    };
-
-    $.ajax({
-        url: '../' + $("#map_name").val() + '/add_layer/' + $(`#types${i}`).val(),
-        type: 'POST',
-        data: layerData,
-        dataType: 'json',
-        cache: false,
-        processData: true,
-        async: false,
-        contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-        success: function (textStatus, jqXHR) {
-            console.log("Successfully added layer to the map!");
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log(jqXHR, textStatus, errorThrown);
-        }
-    })
-}
 
 function uploadFormHandler() {
     var showUploadError = function (message) {
@@ -438,7 +370,41 @@ function submitMap() {
         }
     );
 
+    $.ajax({
+        type: "POST",
+        url: $layerForm.attr('action'),
+        cache: false,
+        contentType: 'application/json',
+        data: JSON.stringify(mapJs)
+    })
+        .done(showLog)
+        .fail(function (a, b, c) {
+            console.log(a, b, c);
+        });
+
+
     console.log(mapJs);
+}
+
+function showLog() {
+    $.ajax({
+        type: "GET",
+        cache: false,
+        url: $("#layer-form").attr('action'),
+        contentType: 'application/json; charset=utf-8',
+        data: {map: $("#map-id").val()},
+    }).done(function(data) {
+        $bs = $(".build-status");
+        $bs.find("h5 span").text(data.status);
+        $bs.find("pre").text(data.log);
+        $bs.show();
+
+        if (data.status === 'RUNNING' || data.status === 'NOT_STARTED') {
+            setTimeout(showLog, 500);
+        }
+    }).fail(function(a, b, c) {
+        console.log(a, b, c);
+    });
 }
 
 /**
