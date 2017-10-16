@@ -31,4 +31,4 @@ docker run \
     -w /cartograph \
     -p 4000:4000 \
     shilad/cartograph-base:latest \
-    gunicorn --workers 4 -b 0.0.0.0:4000 app2:app --reload
+    gunicorn --workers 4 -b 0.0.0.0:4000 main:app --reload

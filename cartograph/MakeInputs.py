@@ -1,3 +1,22 @@
+#!/usr/bin/env python2.7
+#
+# Takes a server config, map config, and upload file and
+# generates input files for that map config.
+#
+# Example usage:
+#
+# ./bin/docker-cmd.sh python
+#               ./cartograph/MakeInputs.py
+#               ./conf/default_server.conf
+#               ./data/conf/example_map.conf
+#               ./data/upload/demo_data.tsv
+#
+# The config file is written in AddMapService2.AddMapService.gen_config
+#
+
+
+
+
 import codecs
 import csv
 import json
@@ -7,7 +26,6 @@ from ConfigParser import SafeConfigParser
 
 import pandas
 
-from cartograph import MapConfig
 
 STATUS_NOT_STARTED = 'NOT_STARTED'
 STATUS_RUNNING = 'RUNNING'
@@ -16,7 +34,6 @@ STATUS_SUCCEEDED = 'SUCCEEDED'
 
 
 def main(server_config, map_config, input_path):
-    map_config_path = map_config.path
 
     # Read in the metric file and add layers
     layer_tsv = os.path.join(map_config.get('DEFAULT', 'externalDir'), 'metrics.tsv')
@@ -26,7 +43,7 @@ def main(server_config, map_config, input_path):
     gen_data(server_config, map_config, input_path)
 
     for layer_name in map_config.get('Metrics', 'active').split():
-        add_layer(map_config_path, layer_name, layer_df)
+        add_layer(map_config, layer_name, layer_df)
 
 def gen_data(server_conf, map_config, input_file):
     """Generate the data files (i.e. "TSV" files) for a map with a string of articles <articles>
@@ -89,7 +106,7 @@ def gen_data(server_conf, map_config, input_file):
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
 
-def add_layer(map_config, metric_df, layer_name):
+def add_layer(map_config, layer_name, metric_df):
     """
     Adds a single layer to the config.
     metric_df is the data frame associated with all metrics. We presume it has a "path" attribute
@@ -106,9 +123,8 @@ def add_layer(map_config, metric_df, layer_name):
 
     if layer_name == 'Clusters': return  # TODO: Fix this up
 
-    info = json.load(map_config.get('Metrics', layer_name))
+    info = json.loads(map_config.get('Metrics', layer_name))
 
-    id = info['id']
     field = info['field']
 
     # Configure settings for a metric
@@ -190,4 +206,16 @@ def get_status_path(server_conf, map_id):
 
 
 if __name__ == '__main__':
-    main('data/upload/bar.tsv')
+    import sys
+
+    from cartograph import MapConfig
+    from cartograph.server import ServerConfig
+
+    if len(sys.argv) != 4:
+        sys.stderr.write('Usage: path_server_conf path_map_conf path_input\n')
+        sys.exit(1)
+
+    server_conf = ServerConfig.create(sys.argv[1])
+    map_conf = MapConfig.createConf(sys.argv[2])
+
+    main(server_conf, map_conf, sys.argv[3])

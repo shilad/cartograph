@@ -85,7 +85,7 @@ def build_map(config_path):
                             stderr=subprocess.STDOUT,
                             preexec_fn=os.setpgrp)
 
-    if proc.poll():
+    if proc.poll() and proc.returncode != 0:
         raise OSError, 'Luigi build exited with status %d! Log available in %s/build.log' % (proc.returncode, output_path)
 
 

@@ -1,3 +1,8 @@
+# Main entry point for Cartograph map server
+# Usage:  ./bin/docker-web.sh ./conf/my_maps.conf
+# New map creation page is at http://localhost:4000/static/newMap.html
+
+
 import re
 import falcon
 import logging

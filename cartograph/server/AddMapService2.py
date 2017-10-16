@@ -114,10 +114,8 @@ class AddMapService:
 
         map_config, map_config_path = self.gen_config(map_id, js)
 
-        for layer in js['layers']:
-            self.add_layer(map_config_path, layer)
-
         # Build from the new config file
+        # This should go away
         build_map(map_config_path)
 
         # Clean up: delete the uploaded map data file
@@ -148,49 +146,6 @@ class AddMapService:
 
         resp.content_type = 'application/json'
 
-    def add_layer(self, config_path, info, metric_df):
-        """
-        Adds a single layer to the config.
-        metric_df is the data frame associated with all metrics. We presume it has a "path" attribute
-
-          {
-             "field":"Popularity",
-             "id":"pop",
-             "title":"Popularity",
-             "description":"Popularity",
-             "datatype":"sequential",
-             "numColors":"3"
-          }
-        """
-
-        if info['field'] == 'Clusters': return  # TODO: Fix this up
-
-        # Add layers
-        c = SafeConfigParser()
-        c.read(config_path)
-
-        id = info['id']
-        field = info['field']
-
-        # Configure settings for a metric
-        metric_settings = {
-            'type': info['datatype'],
-            'path': metric_df.path,
-            'field': field,
-            'colorCode': info['colorScheme']
-        }
-
-        # Define new metric in config file
-        c.set('Metrics', id, json.dumps(metric_settings))
-
-        active = []
-        if c.has_option('Metrics', 'active'):
-            active = c.get('Metrics', 'active').split()
-        c.set('Metrics', 'active', ' '.join(active + [id]))
-
-        with open(config_path, 'w') as f:
-            c.write(f)
-
     def gen_config(self, map_name, map_info):
         """Generate the config file for a user-generated map named <map_name> and return a path to it
 
@@ -218,7 +173,7 @@ class AddMapService:
         active = []
 
         for info in map_info['layers']:
-            if info['field'] == 'Clusters': return  # TODO: Fix this up
+            #if info['field'] == 'Clusters': continue  # TODO: Fix this up
             id = info['id']
             field = info['field']
 
@@ -244,67 +199,6 @@ class AddMapService:
         config.write(open(config_path, 'w'))
 
         return config, config_path
-
-    def gen_data(self, map_config, input_file):
-        """Generate the data files (i.e. "TSV" files) for a map with a string of articles <articles>
-        in the directory at target_path.
-
-        :param target_path: path to directory (that will be created) to be filled with data files
-        :param input_file: file object of user data; must be TSV w/ headers on first row; 1st column must be article titles
-        :return: tuple (set of article titles not found in source data, list of column headers excluding first column)
-        """
-        source_dir = self.conf.get('DEFAULT', 'source_dir')
-
-        # Generate dataframe of user data
-        user_data = pandas.read_csv(input_file, delimiter='\t')
-        first_column = list(user_data)[0]
-        user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
-        all_articles = set(user_data.index.values)
-
-        # Generate dataframe of names to IDs
-        names_file_path = os.path.join(source_dir, 'names.tsv')
-        names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name', dtype={'id': object})
-        # TODO: COnsider strings in data type above
-
-        # Append internal ids with the user data; set the index to 'id';
-        # preserve old index (i.e. 1st column goes to 2nd column)
-        user_data_with_internal_ids = user_data.merge(names_to_ids, left_index=True, right_index=True, how='inner')
-        good_articles = set(user_data_with_internal_ids.index)
-        user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
-        user_data_with_internal_ids.set_index('id', inplace=True)
-
-        # Generate list of IDs for article names in user request, generate set of articles for which no id could be found
-        ids = set(user_data_with_internal_ids.index.values)
-        bad_articles = all_articles - good_articles
-
-        # Create the destination directory (if it doesn't exist already)
-        target_path = map_config.get('DEFAULT', 'externalDir')
-        if not os.path.exists(target_path):
-            os.makedirs(target_path)
-
-        # For each of the primary data files, filter it and output it to the target directory
-        for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
-            filter_tsv(source_dir, target_path, ids, filename)
-
-        extIds = set(line.split()[-1] for line in open(target_path + '/ids.tsv'))
-        filter_tsv(source_dir, target_path, extIds, 'categories.tsv')
-
-        # Replace internal ids in metric with external ids
-        # TODO: Change metric to use internal ids (maybe)
-        external_ids = pandas.read_csv(
-            os.path.join(target_path, 'ids.tsv'),
-            sep='\t',
-            dtype={'id': object, 'externalId': object}  # read ids as strings
-        )
-        external_ids.set_index('id', inplace=True)
-        user_data_with_external_ids = user_data_with_internal_ids.merge(external_ids, left_index=True,
-                                                                        right_index=True, how='inner')
-        user_data_with_external_ids.set_index('externalId', inplace=True)
-        user_data_with_external_ids.to_csv(os.path.join(target_path, 'metrics.tsv'), sep='\t')
-
-        data_columns = list(user_data)
-
-        return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
 def get_status_path(server_conf, map_id):
     return server_conf.getForDataset(map_id, 'DEFAULT', 'ext_dir') + '/status.txt'
