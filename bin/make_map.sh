@@ -97,15 +97,4 @@ function updateStatus() {
 
 updateStatus "RUNNING $$"
 
-if luigi --module $MODULE $TASK \
-         --local-scheduler \
-         --retcode-task-failed 1 \
-         --logging-conf-file ./conf/logging.conf; then
-    echo "LUIGI BUILD SUCCEEDED" >&2
-    updateStatus SUCCEEDED
-    exit 0
-else
-    echo "LUIGI BUILD FAILED" >&2
-    updateStatus FAILED
-    exit 1
-fi
+bin/docker-luigi.sh --conf $MAP_CONF
