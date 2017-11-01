@@ -58,6 +58,7 @@ def gen_data(server_conf, map_config, input_file):
     # Generate dataframe of user data
     user_data = pandas.read_csv(input_file, delimiter='\t')
     first_column = list(user_data)[0]
+    user_data.drop_duplicates(subset=first_column, inplace=True)  # Eliminate duplicates; keep 1st instance
     user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
     all_articles = set(user_data.index.values)
 
