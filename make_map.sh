@@ -83,7 +83,8 @@ if [ -n "$SERVER_CONF" ] && [ -z "$INPUT_FILE" ]; then
 fi
 
 if [ -n "$INPUT_FILE" ]; then
-    # Invoke MakeInputs.py
+    ./bin/docker-cmd.sh python ./cartograph/MakeInputs.py $SERVER_CONF $MAP_CONF $INPUT_FILE
+    # Invoke MakeInputs.py Done?
 fi
 
 
