@@ -35,12 +35,12 @@ STATUS_SUCCEEDED = 'SUCCEEDED'
 
 def main(server_config, map_config, input_path):
 
+    gen_data(server_config, map_config, input_path)
+
     # Read in the metric file and add layers
     layer_tsv = os.path.join(map_config.get('DEFAULT', 'externalDir'), 'metrics.tsv')
     layer_df = pandas.read_csv(layer_tsv, sep='\t')
     layer_df.path = layer_tsv
-
-    gen_data(server_config, map_config, input_path)
 
     for layer_name in map_config.get('Metrics', 'active').split():
         add_layer(map_config, layer_name, layer_df)
