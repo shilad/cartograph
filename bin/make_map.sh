@@ -91,7 +91,7 @@ fi
 export CARTOGRAPH_CONF=$MAP_CONF
 
 function updateStatus() {
-    statusFile=$(getConfSetting DEFAULT externalDir)/status.txt
+    statusFile=$(getMapConfSetting DEFAULT externalDir)/status.txt
     echo $@ >$statusFile
 }
 
