@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+# Leave this in to force a reinstall
+rm -rf /usr/local/lib/python2.7/dist-packages/annoy*
+pip install annoy
+
 export PYTHONPATH=$PYTHONPATH:.:./cartograph
 
 me=$0
