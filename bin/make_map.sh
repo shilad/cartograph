@@ -85,9 +85,6 @@ fi
 if [ -n "$INPUT_FILE" ]; then
     docker run --env PYTHONPATH=. -v "$(pwd)":/cartograph -w /cartograph shilad/cartograph-base:latest /bin/bash -c \
 	    "python ./cartograph/MakeInputs.py $SERVER_CONF $MAP_CONF $INPUT_FILE; ./bin/luigi.sh --conf $MAP_CONF"
-    # bin/docker-cmd.sh echo 'hello world' && echo 'goodbye world'
-    # ./bin/docker-cmd.sh ./bin/luigi.sh --conf $MAP_CONF
-    # ./bin/docker-cmd.sh echo "Well does this go through?"
 fi
 
 
