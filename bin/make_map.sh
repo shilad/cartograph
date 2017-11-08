@@ -83,8 +83,11 @@ if [ -n "$SERVER_CONF" ] && [ -z "$INPUT_FILE" ]; then
 fi
 
 if [ -n "$INPUT_FILE" ]; then
-    ./bin/docker-cmd.sh python ./cartograph/MakeInputs.py $SERVER_CONF $MAP_CONF $INPUT_FILE
-    # Invoke MakeInputs.py Done?
+    docker run --env PYTHONPATH=. -v "$(pwd)":/cartograph -w /cartograph shilad/cartograph-base:latest /bin/bash -c \
+	    "python ./cartograph/MakeInputs.py $SERVER_CONF $MAP_CONF $INPUT_FILE; ./bin/luigi.sh --conf $MAP_CONF"
+    # bin/docker-cmd.sh echo 'hello world' && echo 'goodbye world'
+    # ./bin/docker-cmd.sh ./bin/luigi.sh --conf $MAP_CONF
+    # ./bin/docker-cmd.sh echo "Well does this go through?"
 fi
 
 
@@ -96,5 +99,3 @@ function updateStatus() {
 }
 
 updateStatus "RUNNING $$"
-
-bin/docker-luigi.sh --conf $MAP_CONF
