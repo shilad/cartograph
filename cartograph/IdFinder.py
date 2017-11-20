@@ -90,12 +90,9 @@ class IdFinder:
                 page_id = int(article[u'pageid'])
                 if page_id in self.external_ids:
                     categories_query = requests.get(self.categories_url % urllib.quote(str(page_id), safe='')).json()
-                    try:
-                        categories = [category[u'title'] for category in categories_query[u'query'][u'pages'][unicode(page_id)][u'categories']]
-                        if self.disambiguation_category_title not in categories:
-                            ids[title] = self.external_ids[int(page_id)]
-                    except KeyError:
-                        print(categories_query)
+                    categories = [category[u'title'] for category in categories_query[u'query'][u'pages'][unicode(page_id)][u'categories']]
+                    if self.disambiguation_category_title not in categories:
+                        ids[title] = self.external_ids[int(page_id)]
             else:
                 bad_titles.add(title)
 
