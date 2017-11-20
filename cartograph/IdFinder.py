@@ -93,6 +93,7 @@ class IdFinder:
                     categories = [category[u'title'] for category in categories_query[u'query'][u'pages'][unicode(page_id)][u'categories']]
                     if self.disambiguation_category_title not in categories:
                         ids[title] = self.external_ids[int(page_id)]
+                        break
             else:
                 bad_titles.add(title)
 
