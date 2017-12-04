@@ -46,11 +46,7 @@ class IdFinder:
         bad_titles = set()
         for title in titles:
             if title in self.names_to_ids:
-                article_id = self.names_to_ids[title]
-                if article_id not in ids:
-                    ids[article_id] = {title}
-                else:
-                    ids[article_id].add(title)
+                ids[title] = self.names_to_ids[title]
             else:
                 bad_titles.add(title)
 
@@ -73,11 +69,7 @@ class IdFinder:
             response = requests.get(self.redirect_url % urllib.quote(title, safe='')).json()
             if not response[u'query'][u'pages'].values()[0].has_key(u'missing'):
                 title = response[u'query'][u'pages'].values()[0][u'title']
-                article_id = self.names_to_ids[title]
-                if article_id not in ids:
-                    ids[article_id] = {title}
-                else:
-                    ids[article_id].add(title)
+                ids[title] = self.names_to_ids[title]
             else:
                 bad_titles.add(title)
 
@@ -101,11 +93,7 @@ class IdFinder:
                     categories_query = requests.get(self.categories_url % urllib.quote(str(page_id), safe='')).json()
                     categories = [category[u'title'] for category in categories_query[u'query'][u'pages'][unicode(page_id)][u'categories']]
                     if self.disambiguation_category_title not in categories:
-                        article_id = self.external_ids[int(page_id)]
-                        if article_id not in ids:
-                            ids[article_id] = {title}
-                        else:
-                            ids[article_id].add(title)
+                        ids[title] = self.external_ids[int(page_id)]
                         break
             else:
                 bad_titles.add(title)
