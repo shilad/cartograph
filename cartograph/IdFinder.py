@@ -100,15 +100,22 @@ class IdFinder:
         return ids, bad_titles
 
     def get_hard_matches(self, titles):
+        '''First find all exact matches for article titles, then find redirects
+        in the appropriate-language Wikipedia.
+        '''
         ids, bad_titles = self.get_raw_matches(titles)
         redirect_ids, bad_titles = self.get_redirects(bad_titles)
         ids.update(redirect_ids)
         return ids, bad_titles
 
     def get_all_matches(self, titles):
-        pass
-        # ids.update(self.get_soft_matches(titles))
-
+        '''First find all hard matches for titles, then fill in the gaps with
+        soft matches.
+        '''
+        ids, bad_titles = self.get_hard_matches(titles)
+        soft_ids, bad_titles = self.get_soft_matches(bad_titles)
+        ids.update(soft_ids)
+        return ids, bad_titles
 
 if __name__ == '__main__':
     id_finder = IdFinder({u'Car': 1, u'Movie': 5, u'Wikipedia': 123}, {214943: 1, 3486: 5, 27263: 123}, language_code='simple')
@@ -118,3 +125,4 @@ if __name__ == '__main__':
     print(id_finder.get_hard_matches(['Car', 'Film', 'Wikipedia']))  # Film = Movie
     print(id_finder.get_soft_matches(['Film', 'Car', 'Encyclopedia', 'Movies', 'Coach']))
     print(id_finder.get_soft_matches(['Film', 'Car', 'Automobile']))
+    print(id_finder.get_all_matches(['Film', 'Car', 'Automobile', 'Wikipedia']))
