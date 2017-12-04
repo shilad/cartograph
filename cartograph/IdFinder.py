@@ -117,3 +117,4 @@ if __name__ == '__main__':
     print(id_finder.get_raw_matches(['Car', 'Film', 'Wikipedia']))
     print(id_finder.get_hard_matches(['Car', 'Film', 'Wikipedia']))  # Film = Movie
     print(id_finder.get_soft_matches(['Film', 'Car', 'Encyclopedia', 'Movies', 'Coach']))
+    print(id_finder.get_soft_matches(['Film', 'Car', 'Automobile']))
