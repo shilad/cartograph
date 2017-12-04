@@ -14,6 +14,7 @@ class IdFinder:
     '''An instance of this class is responsible for converting lists of article
     titles to internal IDs, given a map of titles to internal ids, external ids
     to internal ids, and a language code.
+
     '''
     def __init__(self, names_to_ids, external_ids, language_code=''):
         '''Initialize an IdFinder.
