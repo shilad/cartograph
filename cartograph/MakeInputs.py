@@ -8,7 +8,7 @@
 # ./bin/docker-cmd.sh python
 #               ./cartograph/MakeInputs.py
 #               ./conf/default_server.conf
-#               ./data/conf/example_map.conf
+#               ./data/conf/mymap.conf
 #               ./data/upload/demo_data.tsv
 #
 # The config file is written in AddMapService2.AddMapService.gen_config
