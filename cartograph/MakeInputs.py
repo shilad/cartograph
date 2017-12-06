@@ -23,6 +23,7 @@ import json
 
 import os
 from ConfigParser import SafeConfigParser
+from IdFinder import IdFinder
 
 import pandas
 
@@ -62,13 +63,31 @@ def gen_data(server_conf, map_config, input_file):
     user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
     all_articles = set(user_data.index.values)
 
-    # Generate dataframe of names to IDs
+    # Generate dictionary of names to IDs
+    names_dict = {}
     names_file_path = os.path.join(source_dir, 'names.tsv')
-    names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name', dtype={'id': object})
+    with open(names_file_path, 'r') as names_file:
+        names_file.readline()  # Skip the header
+        names = csv.reader(names_file, delimiter='\t')
+        for row in names:
+            names_dict[row[1]] = int(row[0])
+
+    # Generate dictionary of external IDs to internal IDs
+    ids_dict = {}
+    ids_file_path = os.path.join(source_dir, 'ids.tsv')
+    with open(ids_file_path, 'r') as ids_file:
+        ids_file.readline()  # Skip the header
+        ids = csv.reader(ids_file, delimiter='\t')
+        for row in ids:
+            ids_dict[int(row[1])] = int(row[0])
+
+    # Make ID Finder from dictionaries
+    id_finder = IdFinder(names_dict, ids_dict, 'simple')  # FIXME: Language code should be dynamic
+    print(id_finder.get_all_matches(['Hello', 'United States', 'United States of America', 'World', 'Universe', 'Film', 'Movie']))
 
     # Append internal ids with the user data; set the index to 'id';
     # preserve old index (i.e. 1st column goes to 2nd column)
-    user_data_with_internal_ids = user_data.merge(names_to_ids, left_index=True, right_index=True, how='inner')
+    user_data_with_internal_ids = user_data.merge(name_frame, left_index=True, right_index=True, how='inner')
     good_articles = set(user_data_with_internal_ids.index)
     user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
     user_data_with_internal_ids.set_index('id', inplace=True)
@@ -78,6 +97,7 @@ def gen_data(server_conf, map_config, input_file):
     bad_articles = all_articles - good_articles
 
     # Create the destination directory (if it doesn't exist already)
+
     target_path = map_config.get('DEFAULT', 'externalDir')
     if not os.path.exists(target_path):
         os.makedirs(target_path)
@@ -85,22 +105,6 @@ def gen_data(server_conf, map_config, input_file):
     # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         filter_tsv(source_dir, target_path, ids, filename)
-
-    extIds = set(line.split()[-1] for line in open(target_path + '/ids.tsv'))
-    filter_tsv(source_dir, target_path, extIds, 'categories.tsv')
-
-    # Replace internal ids in metric with external ids
-    # TODO: Change metric to use internal ids (maybe)
-    external_ids = pandas.read_csv(
-        os.path.join(target_path, 'ids.tsv'),
-        sep='\t',
-        dtype={'id': object, 'externalId': object}  # read ids as strings
-    )
-    external_ids.set_index('id', inplace=True)
-    user_data_with_external_ids = user_data_with_internal_ids.merge(external_ids, left_index=True,
-                                                                    right_index=True, how='inner')
-    user_data_with_external_ids.set_index('externalId', inplace=True)
-    user_data_with_external_ids.to_csv(os.path.join(target_path, 'metrics.tsv'), sep='\t')
 
     data_columns = list(user_data)
 
