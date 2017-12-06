@@ -31,7 +31,10 @@ class IdFinder:
         self.categories_url = BASE_CATEGORIES_URL % language_code
 
         # Figure out what how to say "disambiguation page" in the language
-        page_title_data = requests.get(PAGE_BY_ID_URL % (DISAMBIGUATION_CATEGORY_ID,)).json()
+        try:
+            page_title_data = requests.get(PAGE_BY_ID_URL % (DISAMBIGUATION_CATEGORY_ID,)).json()
+        except requests.exceptions.ConnectionError:
+            raise SystemError('Cannot connect to Wikipedia server')
         pages_by_language = page_title_data[u'entities'][u'Q'+unicode(DISAMBIGUATION_CATEGORY_ID)][u'sitelinks']
         self.disambiguation_category_title = pages_by_language[unicode(language_code)+u'wiki'][u'title']
 
