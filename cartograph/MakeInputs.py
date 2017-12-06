@@ -81,30 +81,46 @@ def gen_data(server_conf, map_config, input_file):
         for row in ids:
             ids_dict[int(row[1])] = int(row[0])
 
-    # Make ID Finder from dictionaries
+    # Make ID Finder from dictionaries and use it to find matches for articles
     id_finder = IdFinder(names_dict, ids_dict, 'simple')  # FIXME: Language code should be dynamic
-    print(id_finder.get_all_matches(['Hello', 'United States', 'United States of America', 'World', 'Universe', 'Film', 'Movie']))
+    print(id_finder.get_all_matches(['Hello', 'United States', 'United States\
+        of America', 'World', 'Universe', 'Film', 'Movie']))  # FIXME: this is broken
+    all_matches, bad_titles = id_finder.get_all_matches(all_articles)
 
-    # Append internal ids with the user data; set the index to 'id';
-    # preserve old index (i.e. 1st column goes to 2nd column)
-    user_data_with_internal_ids = user_data.merge(name_frame, left_index=True, right_index=True, how='inner')
-    good_articles = set(user_data_with_internal_ids.index)
-    user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
-    user_data_with_internal_ids.set_index('id', inplace=True)
-
-    # Generate list of IDs for article names in user request, generate set of articles for which no id could be found
-    ids = set(user_data_with_internal_ids.index.values)
-    bad_articles = all_articles - good_articles
+    # Assign a new internal ID to each article match
+    new_ids = {}
+    id_map = {}  # Dictionary mapping old IDs to sets of new IDs
+    id_counter = 1
+    for title in all_matches:
+        old_id = all_matches[title]
+        if old_id in id_map:
+            id_map[old_id].add(id_counter)
+        else:
+            id_map[old_id] = {id_counter}
+        new_ids[title] = id_counter
+        id_counter += 1
+    print(new_ids)
+    print(id_map)
 
     # Create the destination directory (if it doesn't exist already)
-
     target_path = map_config.get('DEFAULT', 'externalDir')
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
     # For each of the primary data files, filter it and output it to the target directory
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
-        filter_tsv(source_dir, target_path, ids, filename)
+        source_file_path = os.path.join(source_dir, filename)
+        target_file_path = os.path.join(target_path, filename)
+        with open(source_file_path, 'r') as source_file:
+            with open(target_file_path, 'w') as target_file:
+                source = csv.reader(source_file, delimiter='\t')
+                target = csv.writer(target_file, delimiter='\t')
+                target_file.write(source_file.readline())
+                for row in source:
+                    old_id = int(row[0])
+                    for new_id in id_map[old_id]:
+                        new_row = [new_id]+row[1:]
+                        target.writerow(new_row)
 
     data_columns = list(user_data)
 
