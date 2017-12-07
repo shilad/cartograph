@@ -22,6 +22,7 @@ class AllMetrics(luigi.WrapperTask):
         result = []
         metricDir = config.get('DEFAULT', 'metricDir')
         for name in config.get('Metrics', 'active').split():
+            if name == 'clusters': continue
             metricConf = json.loads(config.get('Metrics', name))
             path = metricConf['path']
             args= {

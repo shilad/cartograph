@@ -1,6 +1,8 @@
 import mimetypes
 import subprocess
 
+import shutil
+
 from cartograph.MapConfig import createConf
 from cartograph.server.globalmaptiles import GlobalMercator
 
@@ -62,26 +64,41 @@ def pid_exists(pid):
         return True
 
 
-def build_map(config_path):
+def build_map(server_config_path, map_config_path, input_path):
     """Build the map config file at config_path and output the build log/errors to files in its baseDir
     :param config_path: full path to the config file of the map to be built
     """
 
     # Extract the location of the base dir from the config file
-    config = createConf(config_path)
+    config = createConf(map_config_path)
     output_path = config.get('DEFAULT', 'externalDir')
+    input_path2 = os.path.join(output_path, 'input.tsv')
+    shutil.copy2(input_path, input_path2)
 
     # Set up the environment variables
     python_path = os.path.expandvars('$PYTHONPATH:.:./cartograph')
     working_dir = os.getcwd()
     exec_path = os.getenv('PATH')
 
-    env = {'CARTOGRAPH_CONF': config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
+    env = {'CARTOGRAPH_CONF': map_config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
+    log = open(os.path.join(output_path, 'build.log'), 'w')
+
+    args = ['./bin/make_map.sh',
+            '--server_conf', server_config_path,
+            '--map_conf', map_config_path,
+            '--input', input_path2]
+
+    log.write('Running command sequence:\n')
+    for (k, v) in env.items():
+        log.write(' %s=%s' % (k, v))
+    log.write(' ' + ' '.join(args))
+    log.write('\n\n\n')
+
 
     # Build it!
-    proc = subprocess.Popen(['nohup', './bin/luigi.sh', '--conf', config_path],
+    proc = subprocess.Popen(args,
                             env=env,
-                            stdout=open(os.path.join(output_path, 'build.log'), 'w'),
+                            stdout=log,
                             stderr=subprocess.STDOUT,
                             preexec_fn=os.setpgrp)
 
