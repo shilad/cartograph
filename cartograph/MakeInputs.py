@@ -83,8 +83,6 @@ def gen_data(server_conf, map_config, input_file):
 
     # Make ID Finder from dictionaries and use it to find matches for articles
     id_finder = IdFinder(names_dict, ids_dict, 'simple')  # FIXME: Language code should be dynamic
-    print(id_finder.get_all_matches(['Hello', 'United States', 'United States\
-        of America', 'World', 'Universe', 'Film', 'Movie']))  # FIXME: this is broken
     all_matches, bad_articles = id_finder.get_all_matches(all_articles)
 
     # Assign a new internal ID to each article match
