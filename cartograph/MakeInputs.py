@@ -63,7 +63,7 @@ def gen_data(server_conf, map_config, input_file):
     user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
     all_articles = set(user_data.index.values)
 
-    # Generate dictionary of names to IDs
+    # Generate dictionary of names to (Source Data, Internal) IDs
     names_dict = {}
     names_file_path = os.path.join(source_dir, 'names.tsv')
     with open(names_file_path, 'r') as names_file:
@@ -72,8 +72,8 @@ def gen_data(server_conf, map_config, input_file):
         for row in names:
             names_dict[row[1]] = int(row[0])
 
-    # Generate dictionary of external IDs to internal IDs
-    ids_dict = {}
+    # Generate dictionary of external IDs to source internal IDs
+    ids_dict = {}  # FIXME: Rename to external_ids?
     ids_file_path = os.path.join(source_dir, 'ids.tsv')
     with open(ids_file_path, 'r') as ids_file:
         ids_file.readline()  # Skip the header
@@ -88,7 +88,7 @@ def gen_data(server_conf, map_config, input_file):
     all_matches, bad_articles = id_finder.get_all_matches(all_articles)
 
     # Assign a new internal ID to each article match
-    new_ids = {}
+    new_ids = {}  # Dictionary mapping titles (as in user data) to new internal IDs
     id_map = {}  # Dictionary mapping old IDs to sets of new IDs
     id_counter = 1
     for title in all_matches:
@@ -99,8 +99,6 @@ def gen_data(server_conf, map_config, input_file):
             id_map[old_id] = {id_counter}
         new_ids[title] = id_counter
         id_counter += 1
-    print(new_ids)
-    print(id_map)
 
     # Create the destination directory (if it doesn't exist already)
     target_path = map_config.get('DEFAULT', 'externalDir')
@@ -109,6 +107,7 @@ def gen_data(server_conf, map_config, input_file):
 
     # For each of the primary data files, filter it and output it to the target
     # directory  # FIXME: This comment is not totally accurate
+    external_ids = {}  # Dictionary of (new) internal IDs to external IDs
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         source_file_path = os.path.join(source_dir, filename)
         target_file_path = os.path.join(target_path, filename)
@@ -123,6 +122,20 @@ def gen_data(server_conf, map_config, input_file):
                         for new_id in id_map[old_id]:
                             new_row = [new_id]+row[1:]
                             target.writerow(new_row)
+                            if filename == 'ids.tsv':
+                                external_ids[new_id] = int(row[1])
+    
+    # Save user-provided data as metrics.tsv
+    # FIXME: There should be some named constants in here
+    print(external_ids)
+    for title, row in user_data.iterrows():
+        user_data.loc[title, first_column] = title  # FIXME: Just don't drop it in the first place
+        if title in new_ids:
+            user_data.loc[title, 'externalId'] = external_ids[new_ids[title]]
+        else:
+            user_data.drop(title, inplace=True)
+    user_data.set_index('externalId', inplace=True)
+    user_data.to_csv(os.path.join(target_path, 'metrics.tsv'), index=True, sep='\t', line_terminator='\n')
 
     data_columns = list(user_data)
 
