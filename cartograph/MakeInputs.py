@@ -85,7 +85,7 @@ def gen_data(server_conf, map_config, input_file):
     id_finder = IdFinder(names_dict, ids_dict, 'simple')  # FIXME: Language code should be dynamic
     print(id_finder.get_all_matches(['Hello', 'United States', 'United States\
         of America', 'World', 'Universe', 'Film', 'Movie']))  # FIXME: this is broken
-    all_matches, bad_titles = id_finder.get_all_matches(all_articles)
+    all_matches, bad_articles = id_finder.get_all_matches(all_articles)
 
     # Assign a new internal ID to each article match
     new_ids = {}
@@ -107,20 +107,22 @@ def gen_data(server_conf, map_config, input_file):
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
-    # For each of the primary data files, filter it and output it to the target directory
+    # For each of the primary data files, filter it and output it to the target
+    # directory  # FIXME: This comment is not totally accurate
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
         source_file_path = os.path.join(source_dir, filename)
         target_file_path = os.path.join(target_path, filename)
         with open(source_file_path, 'r') as source_file:
             with open(target_file_path, 'w') as target_file:
-                source = csv.reader(source_file, delimiter='\t')
-                target = csv.writer(target_file, delimiter='\t')
+                source = csv.reader(source_file, delimiter='\t', lineterminator='\n')
+                target = csv.writer(target_file, delimiter='\t', lineterminator='\n')
                 target_file.write(source_file.readline())
                 for row in source:
                     old_id = int(row[0])
-                    for new_id in id_map[old_id]:
-                        new_row = [new_id]+row[1:]
-                        target.writerow(new_row)
+                    if old_id in id_map:
+                        for new_id in id_map[old_id]:
+                            new_row = [new_id]+row[1:]
+                            target.writerow(new_row)
 
     data_columns = list(user_data)
 
