@@ -8,7 +8,7 @@
 # ./bin/docker-cmd.sh python
 #               ./cartograph/MakeInputs.py
 #               ./conf/default_server.conf
-#               ./data/conf/example_map.conf
+#               ./data/conf/mymap.conf
 #               ./data/upload/demo_data.tsv
 #
 # The config file is written in AddMapService2.AddMapService.gen_config
@@ -23,6 +23,7 @@ import json
 
 import os
 from ConfigParser import SafeConfigParser
+from IdFinder import IdFinder
 
 import pandas
 
@@ -62,47 +63,78 @@ def gen_data(server_conf, map_config, input_file):
     user_data.set_index(first_column, inplace=True)  # Assume first column contains titles of articles
     all_articles = set(user_data.index.values)
 
-    # Generate dataframe of names to IDs
+    # Generate dictionary of names to (Source Data, Internal) IDs
+    names_dict = {}
     names_file_path = os.path.join(source_dir, 'names.tsv')
-    names_to_ids = pandas.read_csv(names_file_path, delimiter='\t', index_col='name', dtype={'id': object})
+    with open(names_file_path, 'r') as names_file:
+        names_file.readline()  # Skip the header
+        names = csv.reader(names_file, delimiter='\t')
+        for row in names:
+            names_dict[row[1]] = int(row[0])
 
-    # Append internal ids with the user data; set the index to 'id';
-    # preserve old index (i.e. 1st column goes to 2nd column)
-    user_data_with_internal_ids = user_data.merge(names_to_ids, left_index=True, right_index=True, how='inner')
-    good_articles = set(user_data_with_internal_ids.index)
-    user_data_with_internal_ids[first_column] = user_data_with_internal_ids.index
-    user_data_with_internal_ids.set_index('id', inplace=True)
+    # Generate dictionary of external IDs to source internal IDs
+    ids_dict = {}  # FIXME: Rename to external_ids?
+    ids_file_path = os.path.join(source_dir, 'ids.tsv')
+    with open(ids_file_path, 'r') as ids_file:
+        ids_file.readline()  # Skip the header
+        ids = csv.reader(ids_file, delimiter='\t')
+        for row in ids:
+            ids_dict[int(row[1])] = int(row[0])
 
-    # Generate list of IDs for article names in user request, generate set of articles for which no id could be found
-    ids = set(user_data_with_internal_ids.index.values)
-    bad_articles = all_articles - good_articles
+    # Make ID Finder from dictionaries and use it to find matches for articles
+    id_finder = IdFinder(names_dict, ids_dict, 'simple')  # FIXME: Language code should be dynamic
+    all_matches, bad_articles = id_finder.get_all_matches(all_articles)
+
+    # Assign a new internal ID to each article match
+    new_ids = {}  # Dictionary mapping titles (as in user data) to new internal IDs
+    id_map = {}  # Dictionary mapping old IDs to sets of new IDs
+    id_counter = 1
+    for title in all_matches:
+        old_id = all_matches[title]
+        if old_id in id_map:
+            id_map[old_id].add(id_counter)
+        else:
+            id_map[old_id] = {id_counter}
+        new_ids[title] = id_counter
+        id_counter += 1
 
     # Create the destination directory (if it doesn't exist already)
     target_path = map_config.get('DEFAULT', 'externalDir')
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
-    # For each of the primary data files, filter it and output it to the target directory
+    # For each of the primary data files, filter it and output it to the target
+    # directory  # FIXME: This comment is not totally accurate
+    external_ids = {}  # Dictionary of (new) internal IDs to external IDs
     for filename in ['ids.tsv', 'links.tsv', 'names.tsv', 'popularity.tsv', 'vectors.tsv']:
-        filter_tsv(source_dir, target_path, ids, filename)
-
-    extIds = set(line.split()[-1] for line in open(target_path + '/ids.tsv'))
-    filter_tsv(source_dir, target_path, extIds, 'categories.tsv')
-
-    # Replace internal ids in metric with external ids
-    # TODO: Change metric to use internal ids (maybe)
-    external_ids = pandas.read_csv(
-        os.path.join(target_path, 'ids.tsv'),
-        sep='\t',
-        dtype={'id': object, 'externalId': object}  # read ids as strings
-    )
-    external_ids.set_index('id', inplace=True)
-    user_data_with_external_ids = user_data_with_internal_ids.merge(external_ids, left_index=True,
-                                                                    right_index=True, how='inner')
-    user_data_with_external_ids.set_index('externalId', inplace=True)
-    user_data_with_external_ids.to_csv(os.path.join(target_path, 'metrics.tsv'), sep='\t')
-
+        source_file_path = os.path.join(source_dir, filename)
+        target_file_path = os.path.join(target_path, filename)
+        with open(source_file_path, 'r') as source_file:
+            with open(target_file_path, 'w') as target_file:
+                source = csv.reader(source_file, delimiter='\t', lineterminator='\n')
+                target = csv.writer(target_file, delimiter='\t', lineterminator='\n')
+                target_file.write(source_file.readline())
+                for row in source:
+                    old_id = int(row[0])
+                    if old_id in id_map:
+                        for new_id in id_map[old_id]:
+                            new_row = [new_id]+row[1:]
+                            target.writerow(new_row)
+                            if filename == 'ids.tsv':
+                                external_ids[new_id] = int(row[1])
+    
+    # Save user-provided data as metrics.tsv
+    # FIXME: There should be some named constants in here
     data_columns = list(user_data)
+    with open(os.path.join(target_path, 'metrics.tsv'), 'w') as metric_file:
+        metric_writer = csv.writer(metric_file, delimiter='\t', lineterminator='\n')
+        metric_writer.writerow(['externalId', first_column] + data_columns)
+        for title, row in user_data.iterrows():
+            if title in new_ids:
+                external_id = external_ids[new_ids[title]]
+                new_row = [external_id, title] + [row[column] for column in data_columns]
+                metric_writer.writerow(new_row)
+
 
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
