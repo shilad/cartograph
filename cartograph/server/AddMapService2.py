@@ -12,7 +12,7 @@ from cartograph.server.Map import Map
 # TODO: move all these server-level configs into the meta config file
 # This may be a good time to rethink the format of that file as well.
 # Should it also use SafeConfig
-from cartograph.server.ServerUtils import pid_exists, build_map
+from cartograph.server.MapJobLauncher import pid_exists, build_map
 
 STATUS_NOT_STARTED = 'NOT_STARTED'
 STATUS_RUNNING = 'RUNNING'
@@ -110,16 +110,16 @@ class AddMapService:
         map_file_name = map_id + '.tsv'
         if map_file_name not in os.listdir(self.upload_dir):
             raise falcon.HTTPNotFound(description='No map file for ' + repr(map_file_name))
-        input_file = open(os.path.join(self.upload_dir, map_file_name), 'r')
+        input_path = os.path.join(self.upload_dir, map_file_name)
 
         map_config, map_config_path = self.gen_config(map_id, js)
 
         # Build from the new config file
         # This should go away
-        build_map(map_config_path)
+        build_map(self.conf.path, map_config_path, input_path)
 
         # Clean up: delete the uploaded map data file
-        os.remove(os.path.join(self.upload_dir, map_file_name))
+        os.remove(input_path)
 
         # Return helpful information to client
         resp.body = json.dumps({
@@ -179,10 +179,10 @@ class AddMapService:
 
             # Configure settings for a metric
             metric_settings = {
-                'type': info['datatype'],
+                'datatype': info['datatype'],
                 'path': os.path.join(ext_dir, id) + '.tsv',
                 'field': field,
-                'colorCode': info['colorScheme']
+                'colorscheme': info['colorScheme']
             }
 
             # Define new metric in config file

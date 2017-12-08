@@ -122,7 +122,7 @@ class Denoiser:
             vec[self.clusters[i]] = 1
         vectors = vectors.T
         for cluster_num, vec in enumerate(vectors):
-            signal[cluster_num] = filter_.analysis(vec)
+            signal[cluster_num] = filter_.filter(vec)
         return signal
 
     def _add_water(self, x, y, clusters):

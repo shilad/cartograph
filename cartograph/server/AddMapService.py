@@ -6,7 +6,7 @@ import pipes
 from ConfigParser import SafeConfigParser
 import falcon
 import pandas
-from cartograph.server.ServerUtils import build_map
+from cartograph.server.MapJobLauncher import build_map
 from cartograph.server.Map import Map
 
 

@@ -144,22 +144,22 @@ def add_layer(map_config, layer_name, metric_df):
       }
     """
 
-    if layer_name == 'Clusters': return  # TODO: Fix this up
+    if layer_name.lower() == 'clusters': return  # TODO: Fix this up
 
     info = json.loads(map_config.get('Metrics', layer_name))
 
     field = info['field']
 
-    # Configure settings for a metric
-    metric_settings = {
-        'type': info['datatype'],
-        'path': metric_df.path,
-        'field': field,
-        'colorCode': info['colorScheme']
-    }
-
     # Load user data to mine for appropriate values
     metric_type = info['datatype']
+
+    # Configure settings for a metric
+    metric_settings = {
+        'datatype': metric_type,
+        'path': metric_df.path,
+        'field': field,
+        'colorscheme': info['colorscheme']
+    }
 
     # Add more info to metric settings depending on type
     if metric_type == 'diverging':

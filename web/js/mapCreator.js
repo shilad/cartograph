@@ -49,7 +49,7 @@ $(document).ready(function () {
     });
     $("#layer-form").on('submit', function(e) {
         e.preventDefault();
-        $("#generateButton").hide();
+        // $("#generateButton").hide();     TODO: RESTORE
         submitMap();
     });
 });

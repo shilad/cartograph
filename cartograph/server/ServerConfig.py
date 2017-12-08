@@ -15,6 +15,7 @@ def create(path):
         return target.get(section, key).replace('__DATASET__', datasetName)
 
     conf.getForDataset = types.MethodType(getForDataset, conf)
+    conf.path = path
 
     return conf
 

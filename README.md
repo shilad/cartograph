@@ -125,3 +125,18 @@ python cartograph/server/app2.py ./data/conf/summer2017_simple.txt
 ```
 
 If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map!
+
+## Tips for a local Mac OSX install
+
+Getting pygsp installed is tricky because it relies on pyqt4, which is no longer maintained for Python 2.7
+
+Install homebrew, then isntall pyside as described in this StackOverflow post: https://stackoverflow.com/a/42116484/141245
+
+```
+
+brew tap cartr/qt4
+brew install cartr/qt4/qt
+brew install cartr/qt4/pyqt
+brew install pyside
+```
+
