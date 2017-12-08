@@ -122,8 +122,6 @@ def add_layer(map_config, layer_name, metric_df):
       }
     """
 
-    if layer_name.lower() == 'clusters': return  # TODO: Fix this up
-
     info = json.loads(map_config.get('Metrics', layer_name))
 
     field = info['field']
@@ -153,6 +151,8 @@ def add_layer(map_config, layer_name, metric_df):
         metric_settings.update({
             'maxValue': metric_df[field].max()
         })
+    else:
+        raise Exception("Unknown datatype: " + metric_type)
 
     c = SafeConfigParser()
     c.read(map_config.path)

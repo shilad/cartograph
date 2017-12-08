@@ -2,22 +2,15 @@ import codecs
 import csv
 import json
 import os
-import pipes
 from ConfigParser import SafeConfigParser
-import falcon
-import pandas
-from cartograph.server.Map import Map
 
+import falcon
 
 # TODO: move all these server-level configs into the meta config file
 # This may be a good time to rethink the format of that file as well.
 # Should it also use SafeConfig
-from cartograph.server.MapJobLauncher import pid_exists, build_map
+from cartograph.server.MapJobLauncher import build_map, get_build_status
 
-STATUS_NOT_STARTED = 'NOT_STARTED'
-STATUS_RUNNING = 'RUNNING'
-STATUS_FAILED = 'FAILED'
-STATUS_SUCCEEDED = 'SUCCEEDED'
 
 def filter_tsv(source_dir, target_dir, ids, filename):
     """Pare down the contents of <source_dir>/<filename> to only rows that start with an id in <ids>, and output them to
@@ -112,13 +105,13 @@ class AddMapService:
             raise falcon.HTTPNotFound(description='No map file for ' + repr(map_file_name))
         input_path = os.path.join(self.upload_dir, map_file_name)
 
-        map_config, map_config_path = self.gen_config(map_id, js)
+        map_config = self.gen_config(map_id, js)
 
         # Build from the new config file
-        # This should go away
-        build_map(self.conf.path, map_config_path, input_path)
+        build_map(self.conf.path, map_config.path, input_path)
 
-        # Clean up: delete the uploaded map data file
+        # Clean up: delete the uploaded map data file.
+        # The original input file has now been stashed in the map directory.
         os.remove(input_path)
 
         # Return helpful information to client
@@ -159,7 +152,9 @@ class AddMapService:
 
         # Set name of dataset
         config.set('DEFAULT', 'dataset', map_name)
+        config.set('PreprocessingConstants', 'num_clusters', )
 
+        numClusters = ['clusters', map_info.values()]
 
         # TODO: adjust parameters for size of dataset:
         # - numClusters
@@ -192,29 +187,12 @@ class AddMapService:
         config.set('Metrics', 'active', ' '.join(active))
 
         # Write newly-generated config to file
-        config_path = self.conf.getForDataset(map_name, 'DEFAULT', 'map_config_path')
-        config_dir = os.path.dirname(config_path)
+        config.path = self.conf.getForDataset(map_name, 'DEFAULT', 'map_config_path')
+        config_dir = os.path.dirname(config.path)
         if not os.path.isdir(config_dir):
             os.makedirs(config_dir)
-        config.write(open(config_path, 'w'))
+        config.write(open(config.path, 'w'))
 
-        return config, config_path
+        return config
 
-def get_status_path(server_conf, map_id):
-    return server_conf.getForDataset(map_id, 'DEFAULT', 'ext_dir') + '/status.txt'
 
-def get_build_status(server_conf, map_id):
-    """
-    Returns the status of map creation for the specified map.
-    Double checks that maps that should be running ARE actually running.
-    """
-    path = get_status_path(server_conf, map_id)
-    if not os.path.isfile(path):
-        return STATUS_NOT_STARTED
-    tokens = open(path).read().strip().split()
-    status = tokens[0]
-    if status == STATUS_RUNNING:
-        pid = tokens[1]
-        if not pid_exists(int(pid)):
-            status = STATUS_FAILED
-    return status

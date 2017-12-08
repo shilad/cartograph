@@ -3,7 +3,7 @@ import logging
 
 import falcon
 
-from cartograph.server.AddMapService2 import get_build_status, STATUS_SUCCEEDED, get_status_path
+from cartograph.server.MapJobLauncher import STATUS_SUCCEEDED, get_status_path, get_build_status
 from cartograph.server.Map import Map
 
 
@@ -66,8 +66,9 @@ class MapDispatcher:
             # if the loading of the map fails for some reason.
             status = get_build_status(self.conf, map_name)
             if status == STATUS_SUCCEEDED:
+                config_path = self.conf.getForDataset(map_name, 'DEFAULT', 'map_config_path')
                 with open(self.meta_path, 'a') as f:
-                    f.write(get_status_path(self.conf, map_name) + '\n')
+                    f.write(config_path + '\n')
                 self.added_names.add(map_name)
                 self.check_config()
                 return self.get_map(map_name, attempt_num + 1)

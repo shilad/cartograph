@@ -20,3 +20,4 @@ pandas
 gunicorn
 palettable
 python-daemon
+requests

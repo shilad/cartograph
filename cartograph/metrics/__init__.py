@@ -5,10 +5,10 @@ from cartograph.metrics.QualitativeMetric import QualitativeMetric
 
 def getMetric(js):
     args = dict(js)
-    del args['type']
+    del args['datatype']
     del args['path']
 
-    mType = js['type']
+    mType = js['datatype']
     if mType == 'sequential':
         return SequentialMetric(**args)
     elif mType == 'diverging':

@@ -5,7 +5,7 @@ from cartograph.metrics.Utils import color_from_code
 
 
 class DivergingMetric:
-    def __init__(self, field, colorCode, minVal, maxVal, neutralColor='#888'):
+    def __init__(self, field, colorscheme, minVal, maxVal, neutralColor='#888'):
         """Initialize a DivergingMetric. A DivergingMetric's main purpose is embodied by its .getColor() method, which
         provides the color information for a given point at a particular zoom level. A DivergingMetric colors each point
         by the quantitative value in one of its columns.
@@ -15,9 +15,9 @@ class DivergingMetric:
         :param neutralColor: str of form "#rgb" where r, g, & b are all hexadecimal digits 0-f for each color component
         """
         self.field = field
-        if not hasattr(dv, colorCode):
-            raise ValueError, "Unknown color palette for diverging metric: " + repr(colorCode)
-        color_palette = getattr(dv, colorCode)
+        if not hasattr(dv, colorscheme):
+            raise ValueError, "Unknown color palette for diverging metric: " + repr(colorscheme)
+        color_palette = getattr(dv, colorscheme)
         self.colors = color_palette.colors
         self.numColors = color_palette.number
         self.neutralColor = colour.Color(neutralColor).rgb

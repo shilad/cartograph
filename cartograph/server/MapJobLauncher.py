@@ -88,6 +88,30 @@ def build_map(server_config_path, map_config_path, input_path):
                          stderr=subprocess.STDOUT)
             os._exit(0)
 
+STATUS_NOT_STARTED = 'NOT_STARTED'
+STATUS_RUNNING = 'RUNNING'
+STATUS_FAILED = 'FAILED'
+STATUS_SUCCEEDED = 'SUCCEEDED'
+
+def get_status_path(server_conf, map_id):
+    return server_conf.getForDataset(map_id, 'DEFAULT', 'ext_dir') + '/status.txt'
+
+def get_build_status(server_conf, map_id):
+    """
+    Returns the status of map creation for the specified map.
+    Double checks that maps that should be running ARE actually running.
+    """
+    path = get_status_path(server_conf, map_id)
+    if not os.path.isfile(path):
+        return STATUS_NOT_STARTED
+    tokens = open(path).read().strip().split()
+    status = tokens[0]
+    if status == STATUS_RUNNING:
+        pid = tokens[1]
+        if not pid_exists(int(pid)):
+            status = STATUS_FAILED
+    return status
+
 
 if __name__ == '__main__':
     build_map('./conf/default_server.conf', './data/foo/map.conf', '/Users/a558989/Downloads/demo_data.tsv')

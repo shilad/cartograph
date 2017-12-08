@@ -4,7 +4,7 @@ from cartograph.metrics.Utils import color_from_code
 
 
 class QualitativeMetric:
-    def __init__(self, field, scale, colorCode, neutralColor='#777'):
+    def __init__(self, field, scale, colorscheme, neutralColor='#777'):
         """Initialize a QualitativeMetric. QualitativeMetric's main purpose is embodied by its .getColor() method, which
         provides the color information for a given point at a particular zoom level.
 
@@ -16,7 +16,7 @@ class QualitativeMetric:
         :param colorCode: string of Python identifier of a color palette in module palettable.colorbrewer.qualitative
         :param neutralColor: str of form "#rgb" where r, g, & b are all hexadecimal digits 0-f for each color component
         """
-        color_palette = getattr(q, colorCode)
+        color_palette = getattr(q, colorscheme)
         assert(color_palette.number == len(scale))  # FIXME: should be more informative error
         self.field = field
         self.scale = scale
