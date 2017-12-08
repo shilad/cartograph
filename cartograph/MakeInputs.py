@@ -127,17 +127,16 @@ def gen_data(server_conf, map_config, input_file):
     
     # Save user-provided data as metrics.tsv
     # FIXME: There should be some named constants in here
-    print(external_ids)
-    for title, row in user_data.iterrows():
-        user_data.loc[title, first_column] = title  # FIXME: Just don't drop it in the first place
-        if title in new_ids:
-            user_data.loc[title, 'externalId'] = external_ids[new_ids[title]]
-        else:
-            user_data.drop(title, inplace=True)
-    user_data.set_index('externalId', inplace=True)
-    user_data.to_csv(os.path.join(target_path, 'metrics.tsv'), index=True, sep='\t', line_terminator='\n')
-
     data_columns = list(user_data)
+    with open(os.path.join(target_path, 'metrics.tsv'), 'w') as metric_file:
+        metric_writer = csv.writer(metric_file, delimiter='\t', lineterminator='\n')
+        metric_writer.writerow(['externalId', first_column] + data_columns)
+        for title, row in user_data.iterrows():
+            if title in new_ids:
+                external_id = external_ids[new_ids[title]]
+                new_row = [external_id, title] + [row[column] for column in data_columns]
+                metric_writer.writerow(new_row)
+
 
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
