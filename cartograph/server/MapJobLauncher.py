@@ -4,6 +4,7 @@ import shutil
 import subprocess
 
 import daemon
+import sys
 
 from cartograph.MapConfig import createConf
 
@@ -46,6 +47,7 @@ def build_map(server_config_path, map_config_path, input_path):
     # Extract the location of the base dir from the config file
     config = createConf(map_config_path)
     output_path = config.get('DEFAULT', 'externalDir')
+    if not os.path.isdir(output_path): os.makedirs(output_path)
     input_path2 = os.path.join(output_path, 'input.tsv')
     shutil.copy2(input_path, input_path2)
 
@@ -54,38 +56,38 @@ def build_map(server_config_path, map_config_path, input_path):
     working_dir = os.getcwd()
     exec_path = os.getenv('PATH')
 
+    env = {'CARTOGRAPH_CONF': map_config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
+    log = open(os.path.join(output_path, 'build.log'), 'w')
 
-    context = daemon.DaemonContext(
-        working_directory=working_dir,
+    args = ['./bin/make_map.sh',
+            '--server_conf', server_config_path,
+            '--map_conf', map_config_path,
+            '--input', input_path2]
 
-    )
+    log.write('Running command sequence:\n')
+    for (k, v) in env.items():
+        log.write(' %s=%s' % (k, v))
+    log.write(' ' + ' '.join(args))
+    log.write('\n\n\n')
+    log.close()
 
-    with context:
+    pid = os.fork()
+    if  pid == 0:
+        context = daemon.DaemonContext(
+            working_directory=working_dir,
+            stdout=sys.stdout,
+            stderr=sys.stderr)
 
-        env = {'CARTOGRAPH_CONF': map_config_path, 'PYTHONPATH': python_path, 'PWD': working_dir, 'PATH': exec_path}
-        log = open(os.path.join(output_path, 'build.log'), 'w')
+        with context:
+            # Reopen the log file in the child
+            log = open(os.path.join(output_path, 'build.log'), 'a')
 
-        args = ['./bin/make_map.sh',
-                '--server_conf', server_config_path,
-                '--map_conf', map_config_path,
-                '--input', input_path2]
-
-        log.write('Running command sequence:\n')
-        for (k, v) in env.items():
-            log.write(' %s=%s' % (k, v))
-        log.write(' ' + ' '.join(args))
-        log.write('\n\n\n')
-
-
-        # Build it!
-        proc = subprocess.Popen(args,
-                                env=env,
-                                stdout=log,
-                                stderr=subprocess.STDOUT)
-
-        if proc.poll() and proc.returncode != 0:
-            raise OSError, 'Luigi build exited with status %d! Log available in %s/build.log' % (proc.returncode, output_path)
+            subprocess.Popen(args,
+                         env=env,
+                         stdout=log,
+                         stderr=subprocess.STDOUT)
+            os._exit(0)
 
 
 if __name__ == '__main__':
-    build_map('./conf/default_server.conf', './data/foo/map.conf', './data/upload/foo.tsv')
+    build_map('./conf/default_server.conf', './data/foo/map.conf', '/Users/a558989/Downloads/demo_data.tsv')

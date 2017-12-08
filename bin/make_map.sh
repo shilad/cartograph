@@ -27,6 +27,13 @@ function getMapConfSetting() {
         { echo "getting $section $key in $MAP_CONF" failed >&2; exit 1; }
 }
 
+
+function updateStatus() {
+    statusFile=$(getMapConfSetting DEFAULT externalDir)/status.txt
+    echo $@ >$statusFile
+}
+
+
 MODULE=cartograph
 TASK=ParentTask
 STATUSFILE=
@@ -82,17 +89,24 @@ if [ -n "$SERVER_CONF" ] && [ -z "$INPUT_FILE" ]; then
     usage
 fi
 
-if [ -n "$INPUT_FILE" ]; then
-    docker run --env PYTHONPATH=. -v "$(pwd)":/cartograph -w /cartograph shilad/cartograph-base:latest /bin/bash -c \
-	    "python ./cartograph/MakeInputs.py $SERVER_CONF $MAP_CONF $INPUT_FILE && ./bin/luigi.sh --conf $MAP_CONF"
-fi
+updateStatus "RUNNING $$"
 
-
-export CARTOGRAPH_CONF=$MAP_CONF
-
-function updateStatus() {
-    statusFile=$(getMapConfSetting DEFAULT externalDir)/status.txt
-    echo $@ >$statusFile
+function die() {
+    echo $@ >& 2
+    updateStatus "FAILED"
+    exit 1
 }
 
-updateStatus "RUNNING $$"
+# Create the input dataset for the map
+if [ -n "$INPUT_FILE" ]; then
+    docker run --env PYTHONPATH=. \
+        -v "$(pwd)":/cartograph \
+        -w /cartograph shilad/cartograph-base:latest \
+        /bin/bash -c  "python ./cartograph/MakeInputs.py $SERVER_CONF $MAP_CONF $INPUT_FILE" || die "Creating input data failed"
+fi
+
+# Create the map itself
+docker run --env PYTHONPATH=. \
+    -v "$(pwd)":/cartograph \
+    -w /cartograph shilad/cartograph-base:latest \
+    /bin/bash -c "./bin/luigi.sh --conf $MAP_CONF" || die "Creating map failed"
