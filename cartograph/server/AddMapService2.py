@@ -12,7 +12,7 @@ from cartograph.server.Map import Map
 # TODO: move all these server-level configs into the meta config file
 # This may be a good time to rethink the format of that file as well.
 # Should it also use SafeConfig
-from cartograph.server.ServerUtils import pid_exists, build_map
+from cartograph.server.MapJobLauncher import pid_exists, build_map
 
 STATUS_NOT_STARTED = 'NOT_STARTED'
 STATUS_RUNNING = 'RUNNING'

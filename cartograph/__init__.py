@@ -16,7 +16,6 @@ from BorderGeoJSONWriter import CreateContinents, BorderGeoJSONWriter
 from Edges import CreateCoordinateEdges
 from PreReqs import ArticlePopularity, LabelNames, SampleCreator, WikiBrainNumbering, EnsureDirectoriesExist
 from Regions import MakeRegions, MakeSampleRegions
-from Edges import LoadCoordinateEdges
 from ParentTasks import ParentTask
 from Utils import read_features
 from RegionLabel import RegionLabel

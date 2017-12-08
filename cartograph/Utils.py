@@ -5,7 +5,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from cartograph.server.ServerUtils import build_map
+from cartograph.server.MapJobLauncher import build_map
 
 
 def read_vectors(path):
