@@ -13,7 +13,7 @@ from falcon_multipart.middleware import MultipartMiddleware
 from cartograph.server import ServerConfig
 from cartograph.server.MapDispatcher import MapDispatcher
 from cartograph.server.ParentService import ParentService, METACONF_FLAG
-from cartograph.server.AddMapService2 import AddMapService
+from cartograph.server.AddMapService import AddMapService
 from cartograph.server.Map import Map
 from cartograph.server.StaticService import StaticService
 from cartograph.server.UploadService import UploadService

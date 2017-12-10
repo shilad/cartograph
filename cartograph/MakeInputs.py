@@ -128,13 +128,28 @@ def gen_data(server_conf, map_config, input_file):
     data_columns = list(user_data)
     with open(os.path.join(target_path, 'metrics.tsv'), 'w') as metric_file:
         metric_writer = csv.writer(metric_file, delimiter='\t', lineterminator='\n')
-        metric_writer.writerow(['externalId', first_column] + data_columns)
+        metric_writer.writerow(['id', 'externalId', first_column] + data_columns)
         for title, row in user_data.iterrows():
             if title in new_ids:
-                external_id = external_ids[new_ids[title]]
-                new_row = [external_id, title] + [row[column] for column in data_columns]
+                internal_id = new_ids[title]
+                external_id = external_ids[internal_id]
+                new_row = [internal_id, external_id, title] + [row[column] for column in data_columns]
                 metric_writer.writerow(new_row)
 
+    # Filter files with external ids
+    valid_ext_ids = set(external_ids.values())
+    for filename in ['categories.tsv']:
+        source_file_path = os.path.join(source_dir, filename)
+        target_file_path = os.path.join(target_path, filename)
+        with open(source_file_path, 'r') as source_file:
+            with open(target_file_path, 'w') as target_file:
+                source = csv.reader(source_file, delimiter='\t', lineterminator='\n')
+                target = csv.writer(target_file, delimiter='\t', lineterminator='\n')
+                target_file.write(source_file.readline())
+                for row in source:
+                    ext_id = int(row[0])
+                    if ext_id in valid_ext_ids:
+                        target.writerow(row)
 
     return (bad_articles, data_columns)  # FIXME: Including data_columns is maybe coupling
 
@@ -175,14 +190,13 @@ def add_layer(map_config, layer_name, metric_df):
             'maxVal': metric_df[field].max(),
             'minVal': metric_df[field].min()
         })
+    elif layer_name == 'clusters':
+        numClusters = int(info['colorscheme'].split('_')[-1]) # Gets "7" from "Accent_7"
+        metric_settings['scale'] = list(str(i) for i in range(1, numClusters + 1))
     elif metric_type == 'qualitative':
-        metric_settings.update({
-            'scale': list(metric_df[field].unique())
-        })
+        metric_settings['scale'] = sorted(list(metric_df[field].unique()))
     elif metric_type == 'sequential':
-        metric_settings.update({
-            'maxValue': metric_df[field].max()
-        })
+        metric_settings['maxValue'] = metric_df[field].max()
     else:
         raise Exception("Unknown datatype: " + metric_type)
 
@@ -195,7 +209,7 @@ def add_layer(map_config, layer_name, metric_df):
     active = []
     if c.has_option('Metrics', 'active'):
         active = c.get('Metrics', 'active').split()
-    c.set('Metrics', 'active', ' '.join(active + [id]))
+    c.set('Metrics', 'active', ' '.join(active + [layer_name]))
 
     with open(map_config.path, 'w') as f:
         c.write(f)

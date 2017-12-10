@@ -6,6 +6,7 @@ import logging
 import luigi
 
 from cartograph import MapConfig
+from cartograph.Regions import MakeRegions
 from cartograph.Coordinates import CreateFullCoordinates
 from cartograph.LuigiUtils import MTimeMixin, TimestampedLocalTarget, ExternalFile
 from cartograph.Utils import read_features
@@ -16,71 +17,49 @@ class MetricsCode(MTimeMixin, luigi.ExternalTask):
     def output(self):
         return TimestampedLocalTarget(__file__)
 
-class AllMetrics(luigi.WrapperTask):
-    def requires(self):
-        config = MapConfig.get()
-        result = []
-        metricDir = config.get('DEFAULT', 'metricDir')
-        for name in config.get('Metrics', 'active').split():
-            if name == 'clusters': continue
-            metricConf = json.loads(config.get('Metrics', name))
-            path = metricConf['path']
-            args= {
-                'name' : name,
-                'inPath' : path,
-                'outPath' : os.path.join(metricDir, name + '.json'),
-            }
-            result.append(MetricData(**args))
-        return result
 
-class MetricData(MTimeMixin, luigi.Task):
-    name = luigi.Parameter()
-    inPath = luigi.Parameter()
-    outPath = luigi.Parameter()
+class AllMetrics(MTimeMixin, luigi.Task):
 
     '''
     Creates a point layer for metric
     '''
     def output(self):
-        return TimestampedLocalTarget(self.outPath)
+        return TimestampedLocalTarget(self.getOutputPath())
 
     def requires(self):
         conf = MapConfig.get()
-        return (ExternalFile(self.inPath),
+        return (ExternalFile(conf.get('Metrics', 'path')),
                 ExternalFile(conf.get('ExternalFiles', 'external_ids')),
                 CreateFullCoordinates(),
+                MakeRegions(),
                 MetricsCode())
 
+    def getOutputPath(self):
+        conf = MapConfig.get()
+        return os.path.join(conf.get('DEFAULT', 'metricDir'), 'metrics.json')
+
+
     def run(self):
+        # TODO: Make sure we fold in cluster ids.
         config = MapConfig.get()
         points = read_features(
             config.get('GeneratedFiles', 'article_coordinates'),
             config.get('ExternalFiles', 'external_ids'),
-            required=('x', 'y', 'externalId')
+            config.get("GeneratedFiles", "clusters_with_id"),
+            required=('x', 'y', 'cluster')
         )
-        externalData = read_features(self.inPath)
+        metrics = read_features(config.get('Metrics', 'path'))
 
         records = []
-        stringFields = set()
 
         for i, (id, p) in enumerate(points.items()):
             if i % 100000 == 0: logger.info('insert point %d of %d' % (i, len(points)))
-            extId = p['externalId']
-            if extId not in externalData: continue
-            pinfo = { 'id' : id }
-            for (k, v) in externalData[extId].items():
-                try:
-                    v = float(v)
-                except ValueError:
-                    stringFields.add(k)
-                pinfo[k] = v
+            pinfo = { 'id' : id, 'Cluster' :  p['cluster']}
+            if id not in metrics: continue
+            pinfo.update(metrics[id])
             records.append(pinfo)
 
-        for r in records:
-            for sf in stringFields:
-                r[sf] = str(r[sf])
-
-        with open(self.outPath, "w") as f:
+        with open(self.getOutputPath(), "w") as f:
             for r in records:
                 json.dump(r, f)
                 f.write('\n')

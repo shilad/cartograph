@@ -41,4 +41,3 @@ RUN pip install --upgrade pip
 RUN pip install numpy Cython
 COPY requirements.txt .
 RUN pip install -r ../../requirements.txt
-
