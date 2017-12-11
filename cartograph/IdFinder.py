@@ -69,12 +69,17 @@ class IdFinder:
         ids = dict()
         bad_titles = set()
         for title in titles:
-            response = requests.get(self.redirect_url % urllib.quote(title, safe='')).json()
-            if not response[u'query'][u'pages'].values()[0].has_key(u'missing'):
-                title = response[u'query'][u'pages'].values()[0][u'title']
-                ids[title] = self.names_to_ids[title]
-            else:
-                bad_titles.add(title)
+            try:
+                response = requests.get(self.redirect_url % urllib.quote(title, safe='')).json()
+                if not response[u'query'][u'pages'].values()[0].has_key(u'missing'):
+                    redirect_title = response[u'query'][u'pages'].values()[0][u'title']
+                    ids[title] = self.names_to_ids[redirect_title]  # FIXME: This assumes the redirect_title is gonna be in the source data
+                else:
+                    bad_titles.add(title)
+            except requests.exceptions.SSLError:
+                continue
+            except requests.exceptions.ConnectionError:
+                continue
 
         return ids, bad_titles
 
