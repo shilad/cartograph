@@ -87,7 +87,8 @@ class MapDispatcher:
             return  # Up to date
 
         for path in (line.strip() for line in open(self.meta_path)):
-            if path and path not in self.map_paths:
+            path = path.strip()
+            if path and path[0] != '#' and path not in self.map_paths:
                 try:
                     map = Map(path)
                     self.maps[map.name] = map

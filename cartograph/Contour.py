@@ -44,12 +44,13 @@ class CreateContours(MTimeMixin, luigi.Task):
         config = MapConfig.get()
         if config.sampleBorders():
             return (Coordinates.CreateSampleCoordinates(),
-                    cartograph.PreReqs.SampleCreator(config.get("GeneratedFiles",
-                                                                "vecs_with_labels_clusters")),
                     ContourCode(),
                     CreateContinents(),
                     MakeRegions(),
-                    AugmentCluster())
+                    AugmentCluster(),
+                    cartograph.PreReqs.SampleCreator(config.get("GeneratedFiles",
+                                                                "vecs_with_labels_clusters"),
+                                                     prereqs=[AugmentCluster()]))
         else:
             return (Coordinates.CreateFullCoordinates(),
                     RegionLabel.RegionLabel(),
@@ -88,6 +89,7 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         vecs = pd.read_table(vectorsPath, skip_blank_lines=True, skiprows=1,
                              header=None)
+
         vecs['vectorTemp'] = vecs.iloc[:, 1:].apply(lambda x: tuple(x),
                                                     axis=1)  # join all vector columns into same column as a tuple
         vecs.drop(vecs.columns[1:-1], axis=1,
@@ -102,11 +104,13 @@ class CreateContours(MTimeMixin, luigi.Task):
 
         numClusters = config.getint("PreprocessingConstants", "num_clusters")
         binSize = config.getint("PreprocessingConstants", "contour_bins")
+        sigma = config.getint("PreprocessingConstants", "contour_sigma")
         countryBorders = config.get("MapData", "countries_geojson")
-        contour = ContourCreator(numClusters, binSize)
+        contour = ContourCreator(numClusters, binSize, sigma)
         contour.buildContours(featuresDict, countryBorders)
         contour.makeContourFeatureCollection(
             [config.get("MapData", "density_contours_geojson"), config.get("MapData", "centroid_contours_geojson")])
+
 
 @pytest.mark.skip(reason="Giang and Shilad are trying to figure out why this is failing!")
 def test_CreateContours():
@@ -265,9 +269,10 @@ class ContourCreator:
     out to geojson files.
     '''
 
-    def __init__(self, numClusters, binSize):
+    def __init__(self, numClusters, binSize, sigma=2):
         self.numClusters = numClusters
         self.binSize = binSize
+        self.sigma = sigma
 
     def buildContours(self, featureDict, countryFile):
         '''
@@ -322,6 +327,7 @@ class ContourCreator:
         '''
         Creates the contours based off of centroids using binned_statistic_2d
         '''
+
         CSs = {}
         for c in self.xs:
             x = self.xs[c]
@@ -340,7 +346,7 @@ class ContourCreator:
             for i in range(len(centrality)):
                 centrality[i] = np.nan_to_num(centrality[i])
 
-            centrality = spn.filters.gaussian_filter(centrality, 2)
+            centrality = spn.filters.gaussian_filter(centrality, self.sigma)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
             smoothH = spn.zoom(centrality, 4)
@@ -366,7 +372,7 @@ class ContourCreator:
                                                       [np.min(x),
                                                        np.max(x)]])
 
-            H = spn.filters.gaussian_filter(H, 2)
+            H = spn.filters.gaussian_filter(H, self.sigma)
             extent = [xedges.min(), xedges.max(), yedges.min(), yedges.max()]
 
             smoothH = spn.zoom(H, 4)

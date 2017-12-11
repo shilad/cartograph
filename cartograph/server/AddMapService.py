@@ -6,9 +6,7 @@ from ConfigParser import SafeConfigParser
 
 import falcon
 
-# TODO: move all these server-level configs into the meta config file
-# This may be a good time to rethink the format of that file as well.
-# Should it also use SafeConfig
+from cartograph.Utils import countLines
 from cartograph.server.MapJobLauncher import build_map, get_build_status
 
 
@@ -41,8 +39,8 @@ class AddMapService:
            "email":"shilad@gmail.com",
            "layers":[
               {
-                 "field":"Clusters",
-                 "id":"clusters",
+                 "field":"Cluster",
+                 "id":"cluster",
                  "title":"Thematic Clusters",
                  "description":"This visualization shows groups of thematically related articles.",
                  "datatype":"qualitative",
@@ -69,8 +67,9 @@ class AddMapService:
         if map_file_name not in os.listdir(self.upload_dir):
             raise falcon.HTTPNotFound(description='No map file for ' + repr(map_file_name))
         input_path = os.path.join(self.upload_dir, map_file_name)
+        numLines = countLines(input_path)
 
-        map_config = self.gen_config(map_id, js)
+        map_config = self.gen_config(map_id, js, numLines)
 
         # Build from the new config file
         build_map(self.conf.path, map_config.path, input_path)
@@ -104,7 +103,7 @@ class AddMapService:
 
         resp.content_type = 'application/json'
 
-    def gen_config(self, map_name, map_info):
+    def gen_config(self, map_name, map_info, numLines):
         """Generate the config file for a user-generated map named <map_name> and return a path to it
 
         :param map_name: name of new map
@@ -122,19 +121,23 @@ class AddMapService:
         clusterColorScheme = [
             info['colorScheme']
             for info in map_info['layers']
-            if info['id'] == 'clusters'
+            if info['id'] == 'cluster'
         ]
         if clusterColorScheme:
             numClusters = clusterColorScheme[0].split('_')[-1] # Gets "7" from "Accent_7"
             config.set('PreprocessingConstants', 'num_clusters', numClusters)
-
+        numClusters = int(config.get('PreprocessingConstants', 'num_clusters'))
 
         # TODO: adjust parameters for size of dataset:
         # - perplexity
         # - water level
-        # - min_num_in_cluster
-        # - num_contours
         # - contour_bins
+        avgPerCluster = int(numLines / numClusters)
+        if avgPerCluster < 100:
+            config.set('PreprocessingConstants', 'min_num_in_cluster', str(avgPerCluster // 2))
+
+        if avgPerCluster < 200:
+            config.set('PreprocessingConstants', 'num_contours', str(int(avgPerCluster // 20)))
 
         ext_dir = self.conf.getForDataset(map_name, 'DEFAULT', 'ext_dir')
         active = []
@@ -147,13 +150,15 @@ class AddMapService:
             # Configure settings for a metric
             metric_settings = {
                 'datatype': info['datatype'],
+                'description' : info['description'],
+                'title' : info['title'],
                 'field': field,
                 'colorscheme': info['colorScheme']
             }
 
             # Define new metric in config file
             config.set('Metrics', id, json.dumps(metric_settings))
-            active.append(id)
+            if id not in active: active.append(id)
 
         config.set('Metrics', 'active', ' '.join(active))
         config.set('Metrics', 'path', os.path.join(ext_dir, 'metrics.tsv'))

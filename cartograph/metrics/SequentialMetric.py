@@ -27,7 +27,8 @@ class SequentialMetric:
         hist = defaultdict(int)
         for p in points:
             if self.field in p:
-                hist[p[self.field]] += 1
+                val = float(p[self.field])
+                hist[float(val)] += 1
 
         total = sum(hist.values())
         n = 0
@@ -36,7 +37,6 @@ class SequentialMetric:
             self.percentiles[k] = 1.0 * mid / total
             n += hist[k]
         self.maxValue = 1.0
-        print self.percentiles
 
     def getColor(self, point, zoom):
 
@@ -47,11 +47,11 @@ class SequentialMetric:
         if self.field not in point:
             return self.neutralColor + (alpha,)
 
-        value = point[self.field]
+        value = float(point[self.field])
         if self.percentile:
             value = int(self.percentiles[value] * self.numColors)
         else:
-            value = point[self.field] * self.numColors/self.maxValue
+            value = value * self.numColors/self.maxValue
         
         if self.mode == 'discrete':
             return color_from_code(self.color[int(value)-1]) + (alpha,)
@@ -60,7 +60,7 @@ class SequentialMetric:
         else:
             assert False
 
-    def adjustCountryColor(self, c, n):
+    def adjustCountryColor(self, c, n, maxContour):
         val = 0.97 ** (n + 1)
         return (val, val, val)
 

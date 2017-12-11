@@ -1,3 +1,5 @@
+import colorsys
+
 import colour
 import palettable.colorbrewer.qualitative as q
 from cartograph.metrics.Utils import color_from_code
@@ -40,7 +42,7 @@ class QualitativeMetric:
         if self.field not in point:
             return self.neutral_color + (alpha,)
 
-        value = point[self.field]
+        value = str(point[self.field])
 
         # If the value in the chosen column is out of the specified list, return neutral color
         if value not in self.scale:
@@ -49,9 +51,17 @@ class QualitativeMetric:
         scale_index = self.scale.index(value)
         return color_from_code(self.color[scale_index]) + (alpha,)
 
-    def adjustCountryColor(self, c, n):
-        val = 0.97 ** (n + 1)
-        return (val, val, val)
+    def adjustCountryColor(self, c, contourNum, maxContour):
+        assert(contourNum <= maxContour)
+        (r, g, b, a) = c
+
+        (h, l, s) = colorsys.rgb_to_hls(r, g, b)
+        # Throw out lightness and recalculate it based on contours
+        maxLight = 0.9
+        minLight = 0.4
+        l2 = maxLight - 1.0 * contourNum / maxContour * (maxLight - minLight)
+        return colorsys.hls_to_rgb(h, l2, s)
+
 
 
 # Test case

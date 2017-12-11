@@ -46,18 +46,20 @@ class DivergingMetric:
         if self.field not in point:
             return self.neutralColor + (alpha,)
 
+        val = float(point[self.field])
+
         # Map point to a color in the palette
-        if point[self.field] >= self.maxVal:
+        if val >= self.maxVal:
             palette_index = self.numColors-1
-        if point[self.field] <= self.minVal:
+        elif val <= self.minVal:
             palette_index = 0
         else:
             # Otherwise, assign colors based on which subrange the points value is in
-            palette_index = (float(point[self.field]) - self.minVal) * self.numColors / (self.maxVal - self.minVal)
+            palette_index = (float(val - self.minVal) * self.numColors / (self.maxVal - self.minVal))
 
         return color_from_code(self.colors[int(palette_index)]) + (alpha,)
 
-    def adjustCountryColor(self, c, n):
+    def adjustCountryColor(self, c, n, maxCountour):
         val = 0.97 ** (n + 1)
         return (val, val, val)
 

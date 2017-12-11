@@ -32,7 +32,8 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
         return (
             WikiBrainNumbering(),
             AugmentCluster(),
-            SampleCreator(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
+            SampleCreator(config.get("GeneratedFiles", "vecs_with_labels_clusters"),
+                          prereqs=[AugmentCluster()])
         )
 
     def run(self):

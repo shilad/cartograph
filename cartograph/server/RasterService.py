@@ -153,18 +153,18 @@ class RasterService:
                 polysByName[props['clusterId'], int(props['contourNum'])] = shp
 
         numContours = self.conf.getint('PreprocessingConstants', 'num_contours')
-        colors = MapConfig.getFullColorWheel()
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.size, self.size)
         context = cairo.Context(surface)
         # First draw clusters
         for i in clusterIds:
             shp = polysByName[i]
-            c = metric.adjustCountryColor(colors[i][numContours], 0)
+            color = metric.getColor({ 'Cluster' : str(i), 'zpop' : 0}, 0)
+            c = metric.adjustCountryColor(color, 0, numContours)
             self._drawPoly(z, x, y, context, shp, c, (0.7, 0.7, 0.7))
             for j in range(numContours):
                 if (i, j) in polysByName:
                     shp = polysByName[i, j]
-                    c = metric.adjustCountryColor(colors[i][j], j + 1)
+                    c = metric.adjustCountryColor(color, j + 1, numContours)
                     self._drawPoly(z, x, y, context, shp, c)
         return surface
 

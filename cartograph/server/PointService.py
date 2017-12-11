@@ -5,6 +5,7 @@ import sys
 
 from collections import defaultdict
 
+import os
 import shapely.geometry
 
 
@@ -20,7 +21,7 @@ logger = logging.getLogger('cartograph.pointdata')
 class PointService:
     def __init__(self, config):
         self.points = {}
-        self.metrics = {'cluster' : ClusterMetric(config) }
+        self.metrics = {}
         self.maxZoom = config.getint('Server', 'vector_zoom')
 
         self.points = read_features(
@@ -53,17 +54,18 @@ class PointService:
             js = json.loads(config.get('Metrics', n))
             self.metrics[n] = getMetric(js)
 
-        metricDir = config.get('DEFAULT', 'metricDir')
-        for name, m in self.metrics.items():
-            if name == 'cluster': continue
-            for line in open('%s/%s.json' % (metricDir, name), 'r'):
-                js = json.loads(line)
-                id = js.get('id')
-                if id in self.points:
-                    for (k, v) in js.items():
-                        if k != 'id':
-                            self.points[id][k]= v
+        # Load metric info, but don't overwrite existing point info
 
+        for line in open('%s/metrics.json' % (config.get('DEFAULT', 'metricDir'),), 'r'):
+            js = json.loads(line)
+            id = js.get('id')
+            if id in self.points:
+                p = self.points[id]
+                for (k, v) in js.items():
+                    if k not in p:
+                        p[k] = v
+
+        for m in self.metrics.values():
             if hasattr(m, 'train'):
                 m.train(self.points.values())
 
@@ -109,8 +111,7 @@ class PointService:
                       'color' : color,
                       'zoff' : (z - p['zpop'])
                       }
-            for f in metric.fields:
-                props[f] = p.get(f, 0.0)
+            props[metric.field] = p.get(metric.field, 0.0)
             builder.addPoint('cities', p['name'],
                              shapely.geometry.Point(p['x'], p['y']), props)
 

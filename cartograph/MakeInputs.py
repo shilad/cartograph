@@ -179,7 +179,6 @@ def add_layer(map_config, layer_name, metric_df):
     # Configure settings for a metric
     metric_settings = {
         'datatype': metric_type,
-        'path': metric_df.path,
         'field': field,
         'colorscheme': info['colorscheme']
     }
@@ -190,9 +189,9 @@ def add_layer(map_config, layer_name, metric_df):
             'maxVal': metric_df[field].max(),
             'minVal': metric_df[field].min()
         })
-    elif layer_name == 'clusters':
+    elif layer_name == 'cluster':
         numClusters = int(info['colorscheme'].split('_')[-1]) # Gets "7" from "Accent_7"
-        metric_settings['scale'] = list(str(i) for i in range(1, numClusters + 1))
+        metric_settings['scale'] = list(str(i) for i in range(numClusters))
     elif metric_type == 'qualitative':
         metric_settings['scale'] = sorted(list(metric_df[field].unique()))
     elif metric_type == 'sequential':
@@ -209,7 +208,8 @@ def add_layer(map_config, layer_name, metric_df):
     active = []
     if c.has_option('Metrics', 'active'):
         active = c.get('Metrics', 'active').split()
-    c.set('Metrics', 'active', ' '.join(active + [layer_name]))
+    if layer_name not in active:
+        c.set('Metrics', 'active', ' '.join(active + [layer_name]))
 
     with open(map_config.path, 'w') as f:
         c.write(f)

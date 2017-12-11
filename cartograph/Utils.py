@@ -163,6 +163,20 @@ class InputError(Exception):
         self.expr = expr
         self.msg = msg
 
+def countLines(path):
+    """
+    Very quickly count the number of lines in a text file.
+    From https://stackoverflow.com/a/9631635/141245
+    """
+    def blocks(files, size=65536):
+        while True:
+            b = files.read(size)
+            if not b: break
+            yield b
+
+    with open(path, "r") as f:
+        return sum(bl.count("\n") for bl in blocks(f))
+
 
 def calc_area(points):
     unzipped = zip(*points)
