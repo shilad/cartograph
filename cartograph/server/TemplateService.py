@@ -20,6 +20,7 @@ class TemplateService:
         env = self.configService.configData()
         for (k, v) in req.params.items():
             env[k] = v
+        print(env)
         resp.body = template.render(env)
 
     def load_template(self, name):

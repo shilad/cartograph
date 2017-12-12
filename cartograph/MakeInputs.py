@@ -180,6 +180,8 @@ def add_layer(map_config, layer_name, metric_df):
     metric_settings = {
         'datatype': metric_type,
         'field': field,
+        'description' : info['description'],
+        'title' : info['title'],
         'colorscheme': info['colorscheme']
     }
 

@@ -58,7 +58,7 @@ CG.init = function(layer) {
             var j = i + srcName.length + 2;
             var k = src.url.indexOf('/', j + 1);
             var newUrl = src.url.substring(0, j) + newLayer + src.url.substring(k);
-            if (nedwUrl != src.url) {
+            if (newUrl != src.url) {
                 src.url = newUrl;
                 changed = true;
             }

@@ -22,7 +22,8 @@ class ConfigService:
             'PreprocessingConstants',
             'MapConstants',
             'Server',
-            'Metrics'
+            'Metrics',
+            'DEFAULT'
         ]
         for sec in sections:
             result[sec] = {}

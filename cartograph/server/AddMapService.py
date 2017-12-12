@@ -116,6 +116,7 @@ class AddMapService:
 
         # Set name of dataset
         config.set('DEFAULT', 'dataset', map_name)
+        config.set('DEFAULT', 'title', map_info['mapTitle'])
 
         # Calculate number of clusters based on number of colors in palette
         clusterColorScheme = [

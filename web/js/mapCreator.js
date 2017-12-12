@@ -9,17 +9,17 @@ var CLUSTER_LAYER_INFO = {
     range: [],
     sequential: false,
     numUnique: 12,
-    name: 'Clusters',
+    name: 'Cluster',
     title: false,
     diverging: false,
     qualitative: true
 };
 
 var CLUSTER_LAYER_INIT = {
-    field: 'Clusters',
+    field: 'Cluster',
     title: 'Thematic Clusters',
     description: 'This visualization shows groups of thematically related articles.',
-    id: 'clusters',
+    id: 'cluster',
     dataType: 'qualitative',
     numColors: 7,
     colorScheme: 'Paired'
@@ -204,13 +204,13 @@ function addLayer(layerInfo) {
     cols.forEach(function (c) {
         $fields.append($("<option/>").text(c.name));
     });
-    $fields.append($("<option/>").text("Clusters"));
+    $fields.append($("<option/>").text("Cluster"));
 
     // Gets information about the selected field.
     var getFieldInfo = function () {
         var f = $fields.val();
         var fieldInfo = null;
-        if (f === 'Clusters') {
+        if (f === 'Cluster') {
             fieldInfo = CLUSTER_LAYER_INFO;
         } else {
             data.columns.forEach(function (c, i) {
@@ -242,7 +242,7 @@ function addLayer(layerInfo) {
         var colorRange;
         var fi = getFieldInfo();
         var dt = $dataType.val();
-        if (fi.name === 'Clusters') {
+        if (fi.name === 'Cluster') {
             colorRange = [3, 12];
         } else if (dt === 'sequential') {
             colorRange = [3, 9];
