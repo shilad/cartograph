@@ -87,6 +87,7 @@ def gen_data(server_conf, map_config, input_file):
 
     # Assign a new internal ID to each article match
     new_ids = {}  # Dictionary mapping titles (as in user data) to new internal IDs
+    new_names = {} # Dictionary mapping new internal IDs to titles (as in user data)
     id_map = {}  # Dictionary mapping old IDs to sets of new IDs
     id_counter = 1
     for title in all_matches:
@@ -96,6 +97,7 @@ def gen_data(server_conf, map_config, input_file):
         else:
             id_map[old_id] = {id_counter}
         new_ids[title] = id_counter
+        new_names[id_counter] = title
         id_counter += 1
 
     # Create the destination directory (if it doesn't exist already)
@@ -118,10 +120,13 @@ def gen_data(server_conf, map_config, input_file):
                     old_id = int(row[0])
                     if old_id in id_map:
                         for new_id in id_map[old_id]:
-                            new_row = [new_id]+row[1:]
-                            target.writerow(new_row)
                             if filename == 'ids.tsv':
                                 external_ids[new_id] = int(row[1])
+                            if filename == 'names.tsv':
+                                new_row = [new_id, new_names[new_id]]
+                            else:
+                                new_row = [new_id]+row[1:]
+                            target.writerow(new_row)
     
     # Save user-provided data as metrics.tsv
     # FIXME: There should be some named constants in here
