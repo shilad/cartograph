@@ -16,37 +16,24 @@ class CreateCategories(luigi.Task):
 
         # Filter ids
         ids = pd.read_table(config.get("ExternalFiles", "external_ids"), index_col=0)
-        ext_to_internal = dict(zip(ids['externalId'], ids.index))
 
-        # Read in the category vector and clean it up
-        # Match internal and external IDs and replace them
-        colnames = ['externalId'] + list(range(300))
-        categories = pd.read_table(config.get("ExternalFiles", "categories"), names=colnames, error_bad_lines=False)
-        categories = categories[categories['externalId'].isin(ext_to_internal)]
+        idToCats = {}
+        for line in open(config.get("ExternalFiles", "categories")):
+            tokens = line.split('\t')
+            if tokens:
+                cats = {}
+                for s in tokens[1:]:
+                    if s.count(':') == 1:
+                        (k, v) = s.split(':')
+                        cats[k] = int(v)
+                idToCats[tokens[0]] = json.dumps(cats)
 
-        # join all vector columns into same column and drop other columns
-        categories['category'] = categories.iloc[:, 1:].apply(tuple, axis=1)
-        categories.drop(categories.columns[1:-1], axis=1, inplace=True)
-
-        # Reindex on external id
-        categories['id'] = categories['externalId'].replace(ext_to_internal)
-        categories.set_index('id', inplace=True, drop=True)
-        categories.reindex()
-
-        # Change category vector to dictionary
-        cat_col = []
-        for id, row in categories.iterrows():
-            cats = {}
-            for s in row['category']:
-                if type(s) == str:
-                    (k, v) = str(s).split(':')
-                    cats[k] = int(v)
-            cat_col.append(json.dumps(cats))
-        categories['category'] = cat_col
+        cat_col = [ idToCats.get(str(id), '{}') for id in ids.index.values ]
+        ids['category'] = cat_col
 
         # Write out category labels
-        categories.to_csv(config.get("GeneratedFiles", "categories"), sep='\t', index_label='id',
-                          columns=['externalId', 'category'])
+        ids.to_csv(config.get("GeneratedFiles", "categories"),
+                   sep='\t', columns=['externalId', 'category'])
 
     def requires(self):
         return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks

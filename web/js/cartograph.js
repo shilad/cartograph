@@ -64,7 +64,6 @@ CG.init = function(layer) {
             }
         });
         if (changed) {
-
             CG.layer.scene.updateConfig();
         }
     };

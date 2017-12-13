@@ -6,6 +6,8 @@ from cartograph.metrics.QualitativeMetric import QualitativeMetric
 def getMetric(js):
     args = dict(js)
     del args['datatype']
+    if 'description' in args: del args['description']
+    if 'title' in args: del args['title']
 
     mType = js['datatype']
     if mType == 'sequential':

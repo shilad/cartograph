@@ -1,5 +1,7 @@
 import colour
 from collections import defaultdict
+
+import numpy
 import palettable.colorbrewer.sequential as sq
 
 from cartograph.metrics.Utils import color_from_code
@@ -48,6 +50,10 @@ class SequentialMetric:
             return self.neutralColor + (alpha,)
 
         value = float(point[self.field])
+        if numpy.isnan(value):
+            return self.neutralColor + (alpha,)
+
+
         if self.percentile:
             value = int(self.percentiles[value] * self.numColors)
         else:

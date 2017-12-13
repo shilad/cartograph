@@ -1,4 +1,5 @@
 import requests
+import sys
 import urllib
 from difflib import SequenceMatcher
 
@@ -68,12 +69,16 @@ class IdFinder:
         # Look up redirects for raw titles
         ids = dict()
         bad_titles = set()
-        for title in titles:
+        for i, title in enumerate(titles):
+            sys.stderr.write('processing redirects for title %d of %d\n' % (i, len(titles)))
             try:
                 response = requests.get(self.redirect_url % urllib.quote(title, safe='')).json()
                 if not response[u'query'][u'pages'].values()[0].has_key(u'missing'):
                     redirect_title = response[u'query'][u'pages'].values()[0][u'title']
-                    ids[title] = self.names_to_ids[redirect_title]  # FIXME: This assumes the redirect_title is gonna be in the source data
+                    if redirect_title in self.names_to_ids:
+                        ids[title] = self.names_to_ids[redirect_title]  # FIXME: This assumes the redirect_title is gonna be in the source data
+                    else:
+                        bad_titles.add(title)
                 else:
                     bad_titles.add(title)
             except requests.exceptions.SSLError:
@@ -89,7 +94,9 @@ class IdFinder:
         ids = dict()
         bad_titles = set()
 
-        for title in titles:
+        for i, title in enumerate(titles):
+            sys.stderr.write('processing searches for title %d of %d\n' % (i, len(titles)))
+
             # Search for each title
             response = requests.get(self.search_url % urllib.quote(title, safe='')).json()
 
@@ -112,6 +119,7 @@ class IdFinder:
         '''First find all exact matches for article titles, then find redirects
         in the appropriate-language Wikipedia.
         '''
+
         ids, bad_titles = self.get_raw_matches(titles)
         redirect_ids, bad_titles = self.get_redirects(bad_titles)
         ids.update(redirect_ids)

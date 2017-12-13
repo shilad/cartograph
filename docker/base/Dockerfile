@@ -35,9 +35,13 @@ RUN apt-get install -y libcairo2-dev
 # We need git!
 RUN apt-get --assume-yes install git
 
+# Bindings for leveldb
+RUN apt-get install -y libleveldb-dev
+
 #Install python requirements
 # Numpy and Cython must be first for weird reasons.
 RUN pip install --upgrade pip
 RUN pip install numpy Cython
 COPY requirements.txt .
 RUN pip install -r ../../requirements.txt
+

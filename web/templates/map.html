@@ -114,7 +114,8 @@
           padding: 0 6px;
         }
         #map-choice .home-choice img {
-          height: 15px;
+          height: 16px;
+          width: 16px;
         }
 
         #map-choice .choice.active {
@@ -195,7 +196,7 @@
       showing concepts related to "<span>foo</span>" <a href="#">(hide)</a>
     </div>
     <div id="map-choice">
-      <div layerId="home" class="home-choice"><a href="index.html"><img src="images/home-7-128.png"></a></div>
+      <div layerId="home" class="home-choice"><a href="../static/index.html"><img src="../static/images/cartographLogo.png"></a></div>
       <div layerId="wmf_en-cluster" class="choice">Wikipedia topics</div>
       <div layerId="wmf_en-gender" class="choice">Wikipedia gender</div>
       <div layerId="movies_nav-cluster" class="choice">Movie groups</div>
@@ -204,6 +205,8 @@
       <div layerId="companies_nav-sustainability" class="choice">Company sustainability</div>
     </div>
 
+
+  {% for user in users %}
     <div class="legend" id="legend-wmf_en-cluster">
       <h1>Map of Wikipedia Topics</h1>
       <p>
@@ -336,7 +339,6 @@
                 var newMap = newParts[0];
                 var newLayer = newParts[1];
                 if (newMap == oldMap) {
-                console.log(newLayer, '1');
                   showLayerUI(layerId);
                   CG.changeLayer(newLayer);
                 } else {

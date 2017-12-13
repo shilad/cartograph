@@ -102,44 +102,45 @@ class UploadService:
 
 def detectDataTypes(df):
     # TODO: Make valid columns available, hide invalid columns
-    types = []
+    columnTypes = []
     for i, col in enumerate(df.columns):
 
         # Todo: Move numclasses into this dictionary
-        type = {'sequential': False,
-                'diverging': False,
-                'qualitative': False,
-                'title': False,
-                'numUnique': -1,
-                'name': str(col),
-                'values': [],
-                'range' : [],
-                'num' : 0}
+        typeInfo = {'sequential': False,
+                    'diverging': False,
+                    'qualitative': False,
+                    'title': False,
+                    'numUnique': -1,
+                    'name': str(col),
+                    'values': [],
+                    'range' : [],
+                    'num' : 0}
 
 
-        type['num'] = len(df[col]) - df[col].isnull().sum()
-        type['numUnique'] = df[col].nunique()
+        typeInfo['num'] = len(df[col]) - df[col].isnull().sum()
+        typeInfo['numUnique'] = df[col].nunique()
         if i == 0:
-            type['title'] = True
+            typeInfo['title'] = True
         else:
-            if type['numUnique'] <= 12:
-                type['qualitative'] = True
-                type['values'] = sorted(df[col].unique())
+            if typeInfo['numUnique'] <= 12:
+                typeInfo['qualitative'] = True
+                typeInfo['values'] = sorted(x for x in df[col].unique() if type(x) == float and np.isfinite(x))
+
 
             dt = df[col].dtype
             if dt in (np.str, np.object):
                 if df[col].nunique() > 12:
-                    raise ValueError('too many classes for qualitative data: ' + str(df[col].nunique()))
+                    pass
             elif dt in (np.int64, np.float64):
-                type['sequential'] = True
-                type['diverging'] = True
+                typeInfo['sequential'] = True
+                typeInfo['diverging'] = True
                 if df[col].nunique() > 12:
-                    type['range'] = [df[col].min(), df[col].max()]
+                    typeInfo['range'] = [df[col].min(), df[col].max()]
             else:
                 raise ValueError('unknown type: ' + str(dt))
-        types.append(type)
+        columnTypes.append(typeInfo)
 
-    return types
+    return columnTypes
 
 
 def check_map_id(map_id, dispatcher):
