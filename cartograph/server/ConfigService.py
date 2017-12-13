@@ -4,6 +4,10 @@ import falcon
 
 from cartograph import MapConfig
 
+import palettable.colorbrewer.sequential as sq
+import palettable.colorbrewer.diverging as dv
+import palettable.colorbrewer.qualitative as qu
+
 
 class ConfigService:
     def __init__(self, config):
@@ -22,7 +26,6 @@ class ConfigService:
             'PreprocessingConstants',
             'MapConstants',
             'Server',
-            'Metrics',
             'DEFAULT'
         ]
         for sec in sections:
@@ -30,8 +33,19 @@ class ConfigService:
             for (key, value) in self.config.items(sec):
                 result[sec][key] = value
 
-        for name in result['Metrics']['active'].split():
-            result['Metrics'][name]  = json.loads(result['Metrics'][name])
+        result['Metrics'] = {}
+        for name in self.config.get('Metrics', 'active').split():
+            m = json.loads(self.config.get('Metrics', name))
+            c = m['colorscheme']
+            if hasattr(sq, c):
+                m['palette'] = getattr(sq, c)
+            elif hasattr(dv, c):
+                m['palette'] = getattr(dv, c)
+            elif hasattr(qu, c):
+                m['palette'] = getattr(qu, c)
+            else:
+                raise Exception("Unknown color palette: " + c)
+            result['Metrics'][name]  = m
 
         result['ColorWheel'] = MapConfig.getColorWheel()
         return result

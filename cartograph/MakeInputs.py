@@ -292,7 +292,7 @@ def add_layer(map_config, layer_name, metric_df):
     }
 
     # Add more info to metric settings depending on type
-    if metric_type == 'diverging':
+    if metric_type in ('diverging', 'sequential'):
         metric_settings.update({
             'maxVal': metric_df[field].max(),
             'minVal': metric_df[field].min()
@@ -302,8 +302,6 @@ def add_layer(map_config, layer_name, metric_df):
         metric_settings['scale'] = list(str(i) for i in range(numClusters))
     elif metric_type == 'qualitative':
         metric_settings['scale'] = sorted(list(metric_df[field].unique()))
-    elif metric_type == 'sequential':
-        metric_settings['maxValue'] = metric_df[field].max()
     else:
         raise Exception("Unknown datatype: " + metric_type)
 
