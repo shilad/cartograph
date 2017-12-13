@@ -2,6 +2,9 @@ import colorsys
 
 import colour
 import palettable.colorbrewer.qualitative as q
+import palettable.colorbrewer.sequential as sq
+import palettable.colorbrewer.diverging as dv
+import palettable.colorbrewer.qualitative as qu
 from cartograph.metrics.Utils import color_from_code
 
 
@@ -18,7 +21,17 @@ class QualitativeMetric:
         :param colorCode: string of Python identifier of a color palette in module palettable.colorbrewer.qualitative
         :param neutralColor: str of form "#rgb" where r, g, & b are all hexadecimal digits 0-f for each color component
         """
-        color_palette = getattr(q, colorscheme)
+
+        c = colorscheme
+        if hasattr(sq, c):
+            color_palette = getattr(sq, c)
+        elif hasattr(dv, c):
+            color_palette = getattr(dv, c)
+        elif hasattr(qu, c):
+            color_palette = getattr(qu, c)
+        else:
+            raise Exception("Unknown color palette: " + c)
+
         assert(color_palette.number == len(scale))  # FIXME: should be more informative error
         self.field = field
         self.scale = scale
