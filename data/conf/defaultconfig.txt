@@ -33,10 +33,7 @@ percentile_popularity_with_id: %(generatedDir)s/percentile_popularity_with_id.ts
 zpop_with_id: %(generatedDir)s/zpop.tsv
 country_borders: %(generatedDir)s/country_borders.tsv
 edges_with_coords: %(generatedDir)s/edges_with_coords.tsv
-vecs_with_labels: %(generatedDir)s/vectors_labels.tsv
-vecs_with_labels_clusters: %(generatedDir)s/vectors_labels_clusters.tsv
 categories: %(generatedDir)s/categories.tsv
-region_names: %(generatedDir)s/region_names.tsv
 
 [PreprocessingConstants]
 sample_borders: True

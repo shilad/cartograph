@@ -107,7 +107,7 @@ Docker will take care of installing a bunch of dependencies in order to get you 
 The actual location of the cartograph repo (and even its name) may change depending on where your data are stored in your file system. For us, the Cartograph directory contains a /data/ext/simple subdirectory that itself contains our data files.
 
 ```
-docker run -ti -v ~/PycharmProjects/cartograph:/testvoldir mjulstro/cartorepo:version4
+docker run -ti -v ~/PycharmProjects/cartograph:/testvoldir shilad/cartograph-base
 ```
 
 # Run the pipeline!
@@ -125,3 +125,16 @@ python cartograph/server/app2.py ./data/conf/summer2017_simple.txt
 ```
 
 If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map!
+
+
+## Shilad's OSX instructions
+
+0. Install homebrew, `brew install` openblas, lapack, qt, and cmake 
+1. Configure environment:
+```
+% export LDFLAGS="-L/usr/local/opt/qt/lib"
+% export CPPFLAGS="-I/usr/local/opt/qt/include"
+% export PATH="/usr/local/opt/qt/bin:$PATH"
+```
+1. Create a virtual env and activate it.
+2. Install everything in requirements.txt

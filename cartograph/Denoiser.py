@@ -104,8 +104,9 @@ class Denoiser:
         '''
         Build graph and heatmap for denoising.
         '''
-        graph = graphs.NNGraph(zip(self.x, self.y), k=self.num_clusters)
+        graph = graphs.NNGraph(zip(self.x, self.y), k=self.num_clusters, use_flann=True)
         graph.estimate_lmax()
+
         # higher tau, spikier signal, less points
         fn = filters.Heat(graph, tau=tau)
         return fn
@@ -122,7 +123,7 @@ class Denoiser:
             vec[self.clusters[i]] = 1
         vectors = vectors.T
         for cluster_num, vec in enumerate(vectors):
-            signal[cluster_num] = filter_.analysis(vec)
+            signal[cluster_num] = filter_.filter(vec)
         return signal
 
     def _add_water(self, x, y, clusters):

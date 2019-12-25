@@ -52,44 +52,23 @@ class CreateCategories(luigi.Task):
         return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks
 
 
-class LabelNames(luigi.Task):
-    # FIXME: Replace this by RegionLabel.py tfidf
-    '''
-    Verify that cluster has been successfully labeled from Java
-    and WikiBrain
-    '''
-    def output(self):
-        config = Config.get()
-        return (TimestampedLocalTarget(config.get("GeneratedFiles", "region_names")))
-
-    def run(self):
-        config = Config.get()
-
-        with open(config.get("GeneratedFiles", "region_names"), 'w') as f:
-            f.write('cluster_id\tlabel\n')
-            numClusters = config.getint('PreprocessingConstants', 'num_clusters')
-            for i in range(numClusters + 1): # +1 is for water cluster
-                f.write('%d\tCluster %d\n' % (i, i))
-            f.close()
-
-    def requires(self):
-        return EnsureDirectoriesExist() # This should occur in at least one of the sample tasks
-
-
 class ArticlePopularity(luigi.ExternalTask):
     def output(self):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "popularity")))
+
 
 class Word2VecFile(luigi.ExternalTask):
     def output(self):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "w2v")))
 
+
 class ExternalIdFile(luigi.ExternalTask):
     def output(self):
         config = Config.get()
         return (TimestampedLocalTarget(config.get("ExternalFiles", "external_ids")))
+
 
 class WikiBrainNumbering(MTimeMixin, luigi.ExternalTask):
     '''
@@ -130,8 +109,6 @@ class SampleCreator(MTimeMixin, luigi.Task):
     path = luigi.Parameter()
 
     def requires(self):
-        # TODO: Require augmented matrix
-        from AugmentMatrix import AugmentCluster, AugmentLabel
         return (
             WikiBrainNumbering(),
             ArticlePopularity(),

@@ -3,15 +3,17 @@ import random
 
 import luigi
 import numpy as np
-from tsne import bh_sne
 import pandas as pd
+import multiprocessing
+
 import filecmp
+
+from sklearn.manifold import TSNE
 
 import FastKnn, Utils, Config
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
-from PreReqs import WikiBrainNumbering
+from PreReqs import WikiBrainNumbering, CreateCategories
 from PreReqs import SampleCreator
-from AugmentMatrix import AugmentCluster
 
 logger = logging.getLogger('cartograph.coordinates')
 
@@ -28,27 +30,30 @@ class CreateEmbedding(MTimeMixin, luigi.Task):
                                                        "article_embedding"))
 
     def requires(self):
+        from Regions import MakeRegions
         config = Config.get()
         return (
             WikiBrainNumbering(),
-            AugmentCluster(),
-            SampleCreator(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
+            MakeRegions(),
+            SampleCreator(config.get("ExternalFiles", "vecs_with_id"))
         )
 
     def run(self):
         config = Config.get()
         # Create the embedding.
-        featureDict = Utils.read_vectors(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"))
+        featureDict = Utils.read_vectors(config.getSample("ExternalFiles", "vecs_with_id"))
         sampleIds = getSampleIds()
         featureDict = featureDict.loc[featureDict.index.isin(sampleIds)]
 
         vectors = [list(i) for i in featureDict['vector']]
         vectors = np.array(vectors)
 
-        out = bh_sne(vectors,
-                     pca_d=None,
-                     perplexity=config.getfloat("PreprocessingConstants", "tsne_perplexity"),
-                     theta=config.getfloat("PreprocessingConstants", "tsne_theta"))
+        tsne = TSNE(
+            perplexity=config.getfloat("PreprocessingConstants", "tsne_perplexity"),
+            angle=config.getfloat("PreprocessingConstants", "tsne_theta"),
+            verbose=2
+        )
+        out = tsne.fit_transform(vectors)
         X, Y = list(out[:, 0]), list(out[:, 1])
 
         data = {'index': featureDict.index, 'x': X, 'y': Y}
@@ -71,8 +76,8 @@ def test_CreateEmbedding_task():
         testEmbed.run()
 
         # For each point, count how many neighbors are retained in the embedding
-        vecs = Utils.read_vectors(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"))
-        vecsdf = pd.read_table(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"), skiprows=1,
+        vecs = Utils.read_vectors(config.getSample("ExternalFiles", "vecs_with_id"))
+        vecsdf = pd.read_table(config.getSample("ExternalFiles", "vecs_with_id"), skiprows=1,
                                skip_blank_lines=True,
                                header=None, index_col=0)
         points = pd.read_table(config.getSample("ExternalFiles", "article_embedding"), index_col='index')
@@ -103,7 +108,7 @@ class CreateFullAnnoyIndex(MTimeMixin, luigi.Task):
     def __init__(self, *args, **kwargs):
         config = Config.get()
         super(CreateFullAnnoyIndex, self).__init__(*args, **kwargs)
-        self.vecPath = config.get("GeneratedFiles", "vecs_with_labels_clusters")
+        self.vecPath = config.get("ExternalFiles", "vecs_with_id")
         self.knn = FastKnn.FastKnn(self.vecPath)
 
     def requires(self):
@@ -120,12 +125,12 @@ class CreateSampleAnnoyIndex(MTimeMixin, luigi.Task):
     def __init__(self, *args, **kwargs):
         config = Config.get()
         super(CreateSampleAnnoyIndex, self).__init__(*args, **kwargs)
-        self.vecPath = config.getSample("GeneratedFiles", "vecs_with_labels_clusters")
+        self.vecPath = config.getSample("ExternalFiles", "vecs_with_id")
         self.knn = FastKnn.FastKnn(self.vecPath)
 
     def requires(self):
         config = Config.get()
-        return WikiBrainNumbering(), SampleCreator(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
+        return WikiBrainNumbering(), SampleCreator(config.get("ExternalFiles", "vecs_with_id"))
 
     def output(self):
         return TimestampedLocalTarget(self.knn.pathAnnoy), TimestampedLocalTarget(self.knn.pathIds)
@@ -198,9 +203,9 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
         sampleCoords.dropna(axis=0, how='any', inplace=True)
         sampleCoords.index = sampleCoords.index.astype(str)
 
-        vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels_clusters"))
+        vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))
 
-        knn = FastKnn.FastKnn(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"))
+        knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
         assert (knn.exists())
         knn.read()
 
@@ -279,7 +284,7 @@ class CreateFullCoordinates(MTimeMixin, luigi.Task):
 def test_createCoordinates_task():
     config = Config.initTest()
 
-    knn = FastKnn.FastKnn(config.getSample("GeneratedFiles", "vecs_with_labels_clusters"))
+    knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
     knn.rebuild()
 
     # Create a unit test config object
@@ -293,8 +298,8 @@ def test_createCoordinates_task():
     assert abs(embedding.all()).between(0, maxCoor).all()
 
     # Neighbors are preserved
-    vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels_clusters"))  # Each entry of vectors in a column
-    vecsdf = pd.read_table(config.get("GeneratedFiles", "vecs_with_labels_clusters"), skiprows=1,
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))  # Each entry of vectors in a column
+    vecsdf = pd.read_table(config.get("ExternalFiles", "vecs_with_id"), skiprows=1,
                            skip_blank_lines=True,
                            header=None, index_col=0)  # Vectors are merged in one column
     embedding.index = embedding.index.astype(str)

@@ -7,7 +7,6 @@ matplotlib.use("Agg")
 import Config
 import Utils
 import luigi
-import RegionLabel
 import Coordinates
 import borders
 import matplotlib.path as mplPath
@@ -48,8 +47,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
             TimestampedLocalTarget(config.get("MapData", "borders_with_region_id")))
 
     def requires(self):
-        return (RegionLabel.RegionLabel(),
-                Coordinates.CreateFullCoordinates(),
+        return (Coordinates.CreateFullCoordinates(),
                 Coordinates.CreateSampleCoordinates(),
                 BorderGeoJSONWriterCode(),
                 BorderFactoryCode(),
@@ -71,8 +69,7 @@ class CreateContinents(MTimeMixin, luigi.Task):
                     region                      # points on exterior
                 ))
 
-        regionFile = config.get("GeneratedFiles", "region_names")
-        BorderGeoJSONWriter(regionInfo, regionFile).writeToFile(config.get("MapData", "countries_geojson"))
+        BorderGeoJSONWriter(regionInfo).writeToFile(config.get("MapData", "countries_geojson"))
 
         # Mapping between regions and cluster ids
         Utils.write_tsv(config.get("MapData", "clusters_with_region_id"),
@@ -96,11 +93,10 @@ class BorderGeoJSONWriter:
     Writes the country borders to a geojson file.
     '''
 
-    def __init__(self, regionInfo, regionFile):
+    def __init__(self, regionInfo):
         '''
         Sets the class variables.
         '''
-        self.regionFile = regionFile
         self.continents = self._buildContinentTrees(regionInfo)
 
     def _buildContinentTrees(self, regionInfo):
@@ -125,15 +121,13 @@ class BorderGeoJSONWriter:
         '''
         Creates the geojson geometries with the necessary properties.
         '''
-        labels = Utils.read_features(self.regionFile)
         shapeList = []
         for child in continents:
             polygon = child.points
             shapeList.append(polygon)
 
         newMultiPolygon = MultiPolygon(shapeList)
-        label = labels[clusterId].get("label", "Unknown")
-        properties = {"clusterId": clusterId, "labels": label}
+        properties = {"clusterId": clusterId }
         return Feature(geometry=newMultiPolygon, properties=properties)
 
     def writeToFile(self, filename):

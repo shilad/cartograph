@@ -12,7 +12,6 @@ import PreReqs
 from PreReqs import WikiBrainNumbering
 from sklearn.cluster import KMeans
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget
-from AugmentMatrix import AugmentLabel
 
 global clusterCenters
 
@@ -38,17 +37,15 @@ class MakeSampleRegions(MTimeMixin, luigi.Task):
         config = Config.get()
         return (
             RegionCode(),
-            AugmentLabel(),
             # FIXME: Circular dependency
             # Coordinates.CreateSampleCoordinates(),
-            PreReqs.SampleCreator(config.get("GeneratedFiles",
-                                             "vecs_with_labels")),
+            PreReqs.SampleCreator(config.get("ExternalFiles", "vecs_with_id")),
             PreReqs.EnsureDirectoriesExist(),
         )
 
     def run(self):
         config = Config.get()
-        featureDict = Utils.read_vectors(config.getSample("GeneratedFiles", "vecs_with_labels"))
+        featureDict = Utils.read_vectors(config.getSample("ExternalFiles", "vecs_with_id"))
         vectors = np.array([list(i) for i in featureDict['vector']])
 
         # labels = list(KMeans((config.getint("PreprocessingConstants",
@@ -80,7 +77,7 @@ def test_MakeSampleRegions_task():
 
     # All points in a cluster are closer to its centroid than to other centroids
     global clusterCenters
-    vecs = Utils.read_vectors(config.getSample("GeneratedFiles", "vecs_with_labels"))
+    vecs = Utils.read_vectors(config.getSample("ExternalFiles", "vecs_with_id"))
     clusters.index = clusters.index.astype(str)
     for i, (index, row) in enumerate(vecs.iterrows()):
         centroid = clusterCenters[clusters.loc[index]['cluster']]  # Centroid of cluster this vector is in
@@ -90,8 +87,8 @@ def test_MakeSampleRegions_task():
             assert centerdDist >= centroidDist
 
     # Neighbors of a point should also be in the same cluster
-    vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels"))
-    vecsdf = pd.read_table(config.get("GeneratedFiles", "vecs_with_labels"), skiprows=1,
+    vecs = Utils.read_vectors(config.getSample("ExternalFiles", "vecs_with_id"))
+    vecsdf = pd.read_table(config.get("ExternalFiles", "vecs_with_id"), skiprows=1,
                            skip_blank_lines=True,
                            header=None, index_col=0)  # Vectors are merged in one column
     features = pd.merge(vecs, clusters, how='inner', left_index=True, right_index=True)
@@ -113,12 +110,12 @@ class CreateSampleRegionIndex(MTimeMixin, luigi.Task):
     def __init__(self, *args, **kwargs):
         config = Config.get()
         super(CreateSampleRegionIndex, self).__init__(*args, **kwargs)
-        self.vecPath = config.getSample("GeneratedFiles", "vecs_with_labels")
+        self.vecPath = config.getSample("ExternalFiles", "vecs_with_id")
         self.knn = FastKnn.FastKnn(self.vecPath)
 
     def requires(self):
         config = Config.get()
-        return WikiBrainNumbering(), PreReqs.SampleCreator(config.get("GeneratedFiles", "vecs_with_labels"))
+        return WikiBrainNumbering(), PreReqs.SampleCreator(config.get("ExternalFiles", "vecs_with_id"))
 
     def output(self):
         return TimestampedLocalTarget(self.knn.pathAnnoy), TimestampedLocalTarget(self.knn.pathIds)
@@ -141,25 +138,23 @@ class MakeRegions(MTimeMixin, luigi.Task):
                 WikiBrainNumbering(),
                 PreReqs.EnsureDirectoriesExist(),
                 CreateSampleRegionIndex(),
-                AugmentLabel(),
             )
         else:
             return (
                 WikiBrainNumbering(),
                 PreReqs.EnsureDirectoriesExist(),
-                AugmentLabel(),
             )
 
     def run(self):
         config = Config.get()
 
-        vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels"))
+        vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))
 
         if config.sampleBorders():
             logger = logging.getLogger('workload')
             sampleRegions = pd.read_table(config.getSample("GeneratedFiles", "clusters_with_id"), index_col='index')
             sampleRegions.index = sampleRegions.index.astype(str)
-            knn = FastKnn.FastKnn(config.getSample("GeneratedFiles", "vecs_with_labels"))
+            knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
             assert (knn.exists())
             knn.read()
             ids = []
@@ -199,7 +194,7 @@ class MakeRegions(MTimeMixin, luigi.Task):
 def test_MakeRegions_task():
     # sample_size in config == 50
     config = Config.initTest()
-    knn = FastKnn.FastKnn(config.getSample("GeneratedFiles", "vecs_with_labels"))
+    knn = FastKnn.FastKnn(config.getSample("ExternalFiles", "vecs_with_id"))
     knn.rebuild()
 
     # First get regions for samples to get centroids
@@ -216,7 +211,7 @@ def test_MakeRegions_task():
 
     global clusterCenters
     # All points in a cluster are closer to its centroid than to other centroids
-    vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels"))
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))
     clusters.index = clusters.index.astype(str)
     count = 0
     for i, (index, row) in enumerate(vecs.iterrows()):
@@ -229,8 +224,8 @@ def test_MakeRegions_task():
                     count += 1
 
     # Neighbors of a point should also be in the same cluster
-    vecs = Utils.read_vectors(config.get("GeneratedFiles", "vecs_with_labels"))
-    vecsdf = pd.read_table(config.get("GeneratedFiles", "vecs_with_labels"), skiprows=1,
+    vecs = Utils.read_vectors(config.get("ExternalFiles", "vecs_with_id"))
+    vecsdf = pd.read_table(config.get("ExternalFiles", "vecs_with_id"), skiprows=1,
                            skip_blank_lines=True,
                            header=None, index_col=0)  # Vectors are merged in one column
     features = pd.merge(vecs, clusters, how='inner', left_index=True, right_index=True)

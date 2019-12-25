@@ -11,19 +11,4 @@ sample_borders: True
 compress_png: false
 
 [Metrics]
-active: gender quality
-gender: {
-         "type": "trivariate-count",
-         "path": "%(externalDir)s/gender.tsv",
-         "fields": ["women", "men"],
-         "colors": ["red","#8910C9","blue"]
-         }
-
-quality: {
-         "type": "bivariate-nominal",
-         "path": "%(metricDir)s/quality.tsv",
-         "fields": ["grade"],
-         "sqrt": true,
-         "scale": ["Start", "Stub", "C", "B", "GA", "FA" ],
-         "colors": ["yellow", "red"]
-         }
+active:

@@ -1,8 +1,8 @@
 import luigi
 import logging
 
-from luigi import postgres
-from luigi.postgres import CopyToTable
+from luigi.contrib import postgres
+from luigi.contrib.postgres import CopyToTable
 
 logger = logging.getLogger('cartograph.edges')
 

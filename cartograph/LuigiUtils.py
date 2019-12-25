@@ -7,7 +7,7 @@ import luigi
 import shapely
 import shapely.geometry
 import shapely.wkt
-from luigi.postgres import CopyToTable, PostgresTarget
+from luigi.contrib.postgres import CopyToTable, PostgresTarget
 
 import Config, Utils
 
