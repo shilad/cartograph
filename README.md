@@ -106,22 +106,18 @@ Docker will take care of installing a bunch of dependencies in order to get you 
 
 The actual location of the cartograph repo (and even its name) may change depending on where your data are stored in your file system. For us, the Cartograph directory contains a /data/ext/simple subdirectory that itself contains our data files.
 
-```
-docker run -ti -v ~/PycharmProjects/cartograph:/testvoldir shilad/cartograph-base
-```
-
 # Run the pipeline!
 This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. What comes after the --conf tag in this command will, like the previous command, depend on your filesystem and where your data are stored.
 
 ```
-./build.sh --conf ./data/conf/summer2017_simple.txt
+./bin/luigi-build.sh --conf ./data/conf/simple.txt
 ```
 
 ## Run the server!
 The last step is to run the TileStache server, which takes your map xml and turns it into tiles that can then be served. This part also handles setting up things like the search function. For the last part of this command, just enter the same thing you entered after --conf in the last command.
 
 ```
-python cartograph/server/app2.py ./data/conf/summer2017_simple.txt
+./bin/docker-web.sh ./data/conf/simple.txt
 ```
 
 If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map!
