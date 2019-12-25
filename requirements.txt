@@ -18,3 +18,4 @@ pygsp
 pandas
 gunicorn
 palettable
+pyflann
