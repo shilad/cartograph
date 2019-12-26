@@ -1,7 +1,6 @@
 import luigi
 import Config
 import Utils
-import Coordinates
 import numpy as np
 import pandas as pd
 import FastKnn

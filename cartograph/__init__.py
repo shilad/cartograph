@@ -13,10 +13,8 @@ from Denoiser import Denoise
 from FastKnn import FastKnn
 from Contour import CreateContours
 from BorderGeoJSONWriter import CreateContinents, BorderGeoJSONWriter
-from Edges import CreateCoordinateEdges
 from PreReqs import ArticlePopularity, SampleCreator, WikiBrainNumbering, EnsureDirectoriesExist
 from Regions import MakeRegions, MakeSampleRegions
-from Edges import LoadCoordinateEdges
 from ParentTasks import ParentTask
 from Utils import read_features
 

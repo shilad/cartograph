@@ -12,7 +12,7 @@ from sklearn.manifold import TSNE
 
 import FastKnn, Utils, Config
 from LuigiUtils import MTimeMixin, TimestampedLocalTarget, getSampleIds
-from PreReqs import WikiBrainNumbering, CreateCategories
+from PreReqs import WikiBrainNumbering
 from PreReqs import SampleCreator
 
 logger = logging.getLogger('cartograph.coordinates')
