@@ -17,8 +17,16 @@ Fork and clone the repo:
 git clone https://github.com/shilad/cartograph
 cd cartograph/
 ```
-#Getting your data set up
-As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful. 
+# Getting your data set up
+As long as your data is in the proper format, the pipeline should be able to handle it just fine. Unfortunately, it's a pretty specific format, so be careful.
+
+## Example data
+
+If you'd like an example dataset, you can download data from [Simple English Wikipedia](https://simple.wikipedia.org/wiki/Main_Page) at https://drive.google.com/drive/u/0/folders/0BzlDGhkHWrbfMXFZMnRiM05lSkk
+Unzip this directory and place it in the cloned directory in data/ext/user/. As an example, after this, the file `data/ext/user/simple/ids.tsv` should exist.
+You can then use the connfig in `conf/simple.txt`.
+
+If you'd like to create your own dataset, read on...
 
 ## Data format
 
@@ -71,20 +79,26 @@ dataset: dev_en
 baseDir: ./data/%(dataset)s
 generatedDir: %(baseDir)s/tsv
 mapDir: %(baseDir)s/maps
+webCacheDir: %(baseDir)s/webCache
+tileDir: %(baseDir)s/tiles
 geojsonDir: %(baseDir)s/geojson
+metricDir: %(baseDir)s/metrics
 externalDir: ./data/labdata/%(dataset)s
 
 [ExternalFiles]
-vecs_with_id: %(externalDir)s/vecs.tsv
+external_ids: %(externalDir)s/ids.tsv
+vecs_with_id: %(externalDir)s/vectors.tsv
+w2v: %(externalDir)s/w2v.bin
+links: %(externalDir)s/links.tsv
 names_with_id: %(externalDir)s/names.tsv
 popularity: %(externalDir)s/popularity.tsv
-article_embedding = %(externalDir)s/tsne_cache.tsv
+article_embedding: %(externalDir)s/tsne_cache.tsv
 ```
 ### Directory setup and config
 This is the only part of this file you should need to change - the rest will either be generated based on your data or is constant.
 
 First up, the directories.
-1. In data/labdata, create a new folder and call it something relevant to your dataset. Ours is called dev_en (development english)
+1. In data/ext/user, create a new folder and call it something relevant to your dataset. Ours is called dev_en (development english)
 2. Put all your data files from Data Format into this folder
 3. Change the "dataset" line in the config file to point to your folder rather than dev_en
 4. One more conf file to create - create a file called conf.txt and put it in the base directory (cartograph). It doesn't need to do anything, but it won't work if it's blank, so just add an arbitary heading like so: 
@@ -110,22 +124,24 @@ The actual location of the cartograph repo (and even its name) may change depend
 This runs a luigi script that works through workflow.py, checking to see if any tasks have already been completed and skipping those (so you don't have to rerun the clustering algorithm/denoising/etc every time). It will automatically update if code marked as required has been changed. The end product of this script is an xml file that represents the map. What comes after the --conf tag in this command will, like the previous command, depend on your filesystem and where your data are stored.
 
 ```
-./bin/luigi-build.sh --conf ./data/conf/simple.txt
+./bin/docker-luigi.sh --conf ./data/conf/simple.txt
 ```
 
 ## Run the server!
-The last step is to run the TileStache server, which takes your map xml and turns it into tiles that can then be served. This part also handles setting up things like the search function. For the last part of this command, just enter the same thing you entered after --conf in the last command.
+The last step is to run the server, which serves your map. This part also handles setting up things like the search function. For the last part of this command, just enter the same thing you entered after --conf in the last command.
 
 ```
 ./bin/docker-web.sh ./data/conf/simple.txt
 ```
 
-If you go to localhost:8080/static/index.html, you'll hit the landing page, and you can click through to go to your map, or you can just go directly to localhost:8080/static/mapPage.html. The html/javascript is set up for wikipedia, but you should have a functional map!
+You can then access  http://localhost:4000/simple/static/simple.html to view the simple map.
 
 
 ## Shilad's OSX instructions
 
-0. Install homebrew, `brew install` openblas, lapack, qt, and cmake 
+These are necessary if you want to run the pipeline or server WITHOUT using docker.
+
+0. Install homebrew, `brew install` openblas, lapack, qt, cairo, and cmake 
 1. Configure environment:
 ```
 % export LDFLAGS="-L/usr/local/opt/qt/lib"

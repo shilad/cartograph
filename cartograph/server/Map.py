@@ -8,7 +8,6 @@ from cartograph.server.InfoService import InfoService
 from cartograph.server.LoggingService import LoggingService
 from cartograph.server.PointService import PointService
 from cartograph.server.RasterService import RasterService
-from cartograph.server.RelatedPointsService import RelatedPointsService
 from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService
@@ -48,7 +47,6 @@ class Map:
         self.info_service = InfoService(conf)
         self.mapnik_service = RasterService(conf, self.point_service, self.country_service)
         self.template_service = TemplateService(conf)
-        self.related_points_service = RelatedPointsService(conf, self.point_service)
         self.static_service = StaticService(conf)
         self.search_service = SearchService(self.point_service)
 

@@ -1,5 +1,8 @@
+import logging
 import os
 import re
+
+import falcon
 
 from cartograph import Config
 from cartograph.server.Map import Map
@@ -66,8 +69,10 @@ class ParentService:
         :return: the method
         """
 
-        def func(*args, **kwargs):  # = on_<method>()
+        # Handle special case calls...
+        if item == '__nonzero__': return lambda *args, **kwards: True
 
+        def func(*args, **kwargs):  # = on_<method>()
             # Extract map name from request
             map_name = kwargs['map_name']
             del kwargs['map_name']

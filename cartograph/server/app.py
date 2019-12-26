@@ -12,7 +12,6 @@ from cartograph.server.CountryService import CountryService
 from cartograph.server.LoggingService import LoggingService
 from cartograph.server.RasterService import RasterService
 from cartograph.server.PointService import PointService
-from cartograph.server.RelatednessService import RelatednessService
 from cartograph.server.SearchService import SearchService
 from cartograph.server.StaticService import StaticService
 from cartograph.server.TemplateService import TemplateService

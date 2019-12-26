@@ -56,8 +56,6 @@ class CountryService:
         box = shapely.geometry.box(x0 - delta, y0 - delta, x1 + delta, y1 + delta)
         for poly in self.polys:
             for shp, props, center in poly.getPolysInBox(z, box):
-                if center and poly.labelField:
-                    points.append(('countries_labels', center, props[poly.labelField]))
                 polys.append((poly.name, shp, props))
         return (polys, points)
 

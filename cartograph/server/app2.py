@@ -1,5 +1,6 @@
 import re
 import falcon
+
 import logging
 import os
 import sys
@@ -24,9 +25,18 @@ configs = {}
 
 logging.info('configuring falcon')
 
+class HandleCORS(object):
+    def process_request(self, req, resp):
+        resp.set_header('Access-Control-Allow-Origin', '*')
+        resp.set_header('Access-Control-Allow-Methods', '*')
+        resp.set_header('Access-Control-Allow-Headers', '*')
+        resp.set_header('Access-Control-Max-Age', 1728000)  # 20 days
+        if req.method == 'OPTIONS':
+            raise falcon.HTTPStatus(falcon.HTTP_200, body='\n')
+
 
 # falcon.API instances are callable WSGI apps
-app = falcon.API(middleware=[MultipartMiddleware()])
+app = falcon.API(middleware=[HandleCORS(), MultipartMiddleware()])
 
 
 # Determine whether the input file is a multi-config (i.e. paths to multiple files) or a single config file
@@ -46,6 +56,7 @@ for path in conf_files:
         continue  # Skip blank lines
     map_service = Map(path)
     map_services[map_service.name] = map_service
+
 map_services['_meta_config'] = meta_config_path
 map_services['_last_update'] = os.path.getmtime(meta_config_path)
 
